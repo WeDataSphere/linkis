@@ -430,6 +430,10 @@ export default {
       if (e && e.target && e.target.dataset.colIndex) {
         let index = e.target.dataset.colIndex
         this.$emit("on-head-dblclick", this.columns[index], index);
+        const selection = window.getSelection(); 
+        selection.selectAllChildren(e.target);
+      } else {
+        window.getSelection().removeAllRanges();
       }
     },
     //排序

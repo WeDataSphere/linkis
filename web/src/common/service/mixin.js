@@ -58,7 +58,10 @@ export default {
       const baseInfo = storage.get('baseInfo', 'local');
       if (!baseInfo) return;
       const vsBi = baseInfo.applications ? (baseInfo.applications.find((item) => item.name === name) || {}) : {};
-      const projectJson = vsBi.enhanceJson;
+      let projectJson = vsBi.enhanceJson;
+      if(!projectJson && key==='rsDownload') {
+        projectJson = '{"watermark": false, "rsDownload": true}'
+      }
       return projectJson ? JSON.parse(projectJson)[key] : true;
     },
     getFAQUrl() {

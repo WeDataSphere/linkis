@@ -248,7 +248,7 @@ export default {
         if (item.engineStatus === 'Starting') flage = true;
         params.push(
           {
-            engineType: "EngineConn",
+            engineType: item.applicationName,
             engineInstance: item.engineInstance,
           }
         );

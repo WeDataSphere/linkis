@@ -128,7 +128,7 @@ function Execute(data) {
       if (data.method === prefix + `${execute.id}/status`) {
         reawakening(execute);
         deconstructStatus(execute, data.data);
-      } else if (data.method === prefix + `${execute.id}/progress`) {
+      } else if (data.method === prefix + `${execute.id}/progressWithResource`) {
         reawakening(execute);
         execute.trigger('progress', data.data);
       } else if (data.method === prefix + `${execute.id}/log`) {
@@ -270,7 +270,7 @@ Execute.prototype.queryStatus = function({ isKill }) {
 };
 
 Execute.prototype.queryProgress = function() {
-  api.fetch(`/entrance/${this.id}/progress`, 'get')
+  api.fetch(`/entrance/${this.id}/progressWithResource`, 'get')
     .then((rst) => {
       this.trigger('progress', { progress: rst.progress, progressInfo: rst.progressInfo });
     });

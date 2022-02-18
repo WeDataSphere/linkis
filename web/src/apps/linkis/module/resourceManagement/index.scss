@@ -77,3 +77,12 @@ td.table-project-column {
   position: relative;
   z-index: 99;
 }
+.label-normal {
+  color: $success-color
+}
+.label-warn {
+  color: $warning-color
+}
+.label-critical {
+  color: $error-color
+}

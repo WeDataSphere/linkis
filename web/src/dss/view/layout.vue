@@ -16,7 +16,7 @@
   -->
   
 <template>
-  <div class="layout-body" :class="{ 'layout-top': !showHeader}">
+  <div class="layout-body" :class="{ 'layout-top': showHeader}">
     <layout-header
       v-show="showHeader"
       @clear-session="clearSession"

@@ -47,7 +47,7 @@
         class="content-body-side-right">
         <div class="content-body-side-right-title">
           <Breadcrumb>
-            <BreadcrumbItem :to="skipPath">{{ breadcrumbSecondName }}</BreadcrumbItem>
+            <BreadcrumbItem :to="skipPath"><Icon v-if="skipPath" type="ios-arrow-back" size="16" color="#338cf0"></Icon>{{ breadcrumbSecondName }}</BreadcrumbItem>
             <BreadcrumbItem v-if="$route.name === 'viewHistory'">{{ $route.query.taskID }}</BreadcrumbItem>
             <template v-if="$route.name === 'EngineConnList'">
               <BreadcrumbItem>{{ $route.query.instance }}</BreadcrumbItem>
@@ -85,6 +85,7 @@ export default {
           { key: '1-6', name: this.$t('message.linkis.sideNavList.function.children.ECMManage'), path: '/console/ECM' },
           { key: '1-7', name: this.$t('message.linkis.sideNavList.function.children.microserviceManage'), path: '/console/microService' },
           { key: '1-5', name: this.$t('message.linkis.sideNavList.function.children.globalValiable'), path: '/console/FAQ' },
+          { key: '1-8', name: this.$t('message.linkis.sideNavList.function.children.dataSourceManage'), path: '/console/dataSource' },
         ],
       },
       breadcrumbSecondName: this.$t('message.linkis.sideNavList.function.children.globalHistory')

@@ -156,34 +156,18 @@ module.exports = {
       .end()
     if (process.env.NODE_ENV === 'production' || process.env.NODE_ENV === 'sandbox' || process.env.NODE_ENV === 'bdp') {
       config.plugin('compress').use(FileManagerPlugin, [{
-        events: {
-          onEnd: {
-            copy: [
-              { source: './config.sh', destination: `./dist/config.sh`,toType: 'file'},
-              { source: './install.sh', destination: `./dist/install.sh`,toType: 'file' },
-              { source: '../NOTICE-binary-ui', destination: `./dist/NOTICE`,toType: 'file'},
-              { source: '../LICENSE-binary-ui', destination: `./dist/LICENSE`,toType: 'file'},
-              { source: '../DISCLAIMER-WIP', destination: `./dist/DISCLAIMER-WIP`,toType: 'file'},
-              { source: '../licenses-binary-ui', destination: `./dist/licenses` }
-            ],
-            // 先删除根目录下的zip包
-            delete: [`./apache-linkis-${getVersion()}-incubating-web-bin.tar.gz`],
-            // 将dist文件夹下的文件进行打包
-            archive: [
-              { source: './dist', destination: `./apache-linkis-${getVersion()}-incubating-web-bin.tar.gz`,format: 'tar' ,
-                options: {
-                  gzip: true,
-                  gzipOptions: {
-                    level: 1,
-                  },
-                  globOptions: {
-                    dot: true,
-                  },
-                }
-              },
-            ]
-          },
-        }
+        onEnd: {
+          copy: [
+            { source: './config.sh', destination: `./dist` },
+            { source: './install.sh', destination: `./dist` }
+          ],
+          // 先删除根目录下的zip包
+          delete: [`./wedatasphere-linkis-${getVersion()}-dist.zip`],
+          // 将dist文件夹下的文件进行打包
+          archive: [
+            { source: './dist', destination: `./wedatasphere-linkis-${getVersion()}-dist.zip` },
+          ]
+        },
       }])
     }
   },

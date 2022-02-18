@@ -69,11 +69,11 @@
           <Tooltip
             v-for="(item, index) in row.labels"
             :key="index"
-            :content="`${item.labelKey}-${item.stringValue}`"
+            :content="`${item.stringValue}`"
             placement="top"
           >
             <Tag class="tag-item" type="border" color="primary">{{
-              `${item.labelKey}-${item.stringValue}`
+              `${item.stringValue}`
             }}</Tag>
           </Tooltip>
         </div>
@@ -98,6 +98,7 @@
         size="small"
         show-total
         show-sizer
+        prev-text="上一页" next-text="下一页"
         @on-change="change"
         @on-page-size-change="changeSize"
       />
@@ -308,7 +309,7 @@ export default {
     // 修改标签
     editEnter(editInputKey, editInputValue,editedInputValue) {
       let index = this.modifyData.labels.findIndex((item)=>{
-        return  item.value === editInputValue
+        return  item.value === editInputValue && item.key === editInputKey
       })
       this.modifyData.labels.splice(index,1,{key: editInputKey,modifiable: true,value: editedInputValue})
     },

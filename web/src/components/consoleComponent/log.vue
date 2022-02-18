@@ -23,18 +23,22 @@
           v-model="curPage"
           class="log-tabs">
           <TabPane
+            v-if="logs.all !== undefined"
             name="all"
             label="All"
           />
           <TabPane
+            v-if="logs.error !== undefined"
             :label="errorLabel"
             name="error"
           />
           <TabPane
+            v-if="logs.warning !== undefined"
             :label="warnLabel"
             name="warning"
           />
           <TabPane
+            v-if="logs.info !== undefined"
             name="info"
             label="Info"/>
         </Tabs>
@@ -150,12 +154,7 @@ export default {
       this.$refs.logEditor.editor.setScrollPosition({ scrollTop: this.scriptViewState.cacheLogScroll || 0 });
     },
     formattedLogs() {
-      let logs = {
-        all: '',
-        error: '',
-        warning: '',
-        info: '',
-      };
+      let logs = {};
       Object.keys(this.logs).map((key) => {
         logs[key] = this.getSearchList(this.logs[key]);
       });
@@ -215,13 +214,13 @@ export default {
         top: 2px;
         .log-tabs {
           display: inline-block;
-          position: $absolute;
+          position: relative;
         }
         .log-search {
           width: 100px;
-          position: $absolute;
-          left: 350px;
-          top: 5px;
+          position: relative;
+          top: 3px;
+          vertical-align: top;
           font-size: $font-size-small;
         }
         .err-badge {

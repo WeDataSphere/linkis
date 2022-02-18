@@ -24,7 +24,7 @@
         <div class="logo">
           <img
             class="logo-img"
-            src=""
+            src="../../assets/images/dssLogo5.png"
             :alt="$t('message.common.logoName')"
           >
           <span class="version">{{sysVersion}}</span>

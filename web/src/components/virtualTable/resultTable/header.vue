@@ -31,9 +31,10 @@
         slot-scope="{col, index}">
         <div
           class="we-table-header-box"
-          @dblclick.prevent.stop="handleDblClick(col)">
+          @dblclick.prevent.stop="handleDblClick($event, col)">
           <span
             class="we-table-header-content"
+            :data-col="col.title"
             :title="col.colHeadHoverTitle">{{ col.content }}</span>
           <span
             v-if="col.sortable"
@@ -127,8 +128,14 @@ export default {
         },
       });
     },
-    handleDblClick(col) {
-      this.$emit('dbl-click', col);
+    handleDblClick(e, col) {
+      if (e && e.target && e.target.dataset.col) {
+        this.$emit('dbl-click', col);
+        const selection = window.getSelection(); 
+        selection.selectAllChildren(e.target);
+      } else {
+        window.getSelection().removeAllRanges();
+      }
     },
   },
 };

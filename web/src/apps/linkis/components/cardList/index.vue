@@ -118,18 +118,20 @@ export default {
       currentIndex: 0, // 当前高亮
     };
   },
-  watch: {},
+  watch: {
+    categoryList() {
+      this.liWidthTotal = (this.categoryList.length + 1) * (225 + 20);
+    }
+  },
   beforeDestroy() {
     window.removeEventListener("resize", this.getRowWidth);
   },
   mounted() {
-    this.$nextTick(() => {
-      this.getRowWidth();
-      // 监听窗口变化
-      window.addEventListener("resize", this.getRowWidth);
-      // 计算列表的总长度
-      this.liWidthTotal = (this.categoryList.length + 1) * (225 + 20);
-    });
+    this.getRowWidth();
+    // 监听窗口变化
+    window.addEventListener("resize", this.getRowWidth);
+    // 计算列表的总长度
+    this.liWidthTotal = (this.categoryList.length + 1) * (225 + 20);
   },
   methods: {
     // 获取ul的宽度
@@ -160,6 +162,7 @@ export default {
     getRight() {
       // 判断所有li总长度与ul的长度，并作出判断操作
       // 如果ul长度小于li总长，则进行详细判断
+      this.getRowWidth()
       if (this.ulWidth < this.liWidthTotal) {
         // 可移动数量
         let canMoveNum = this.liWidthTotal - this.ulWidth;

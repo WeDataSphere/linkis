@@ -36,6 +36,7 @@
         z-index: 1;
     }
 }
+
 .global-history {
     position: $relative;
     height: 100%;
@@ -81,43 +82,5 @@
 .datepicker {
     .ivu-picker-panel-body {
         background-color: $background-color-white;
-    }
-    .ivu-icon {
-        display: none;
-    }
-}
-.workbench-log-view {
-    height: 100%;
-    .log-tools {
-        height: 36px;
-        line-height: 36px;
-        padding-left: 10px;
-        background: $background-color-base;
-        position: $relative;
-        border-bottom: 2px solid $border-color-base;
-        overflow: hidden;
-        margin-bottom: -2px;
-        .log-tools-control {
-            display: inline-block;
-            position: $absolute;
-            top: 2px;
-            .log-tabs {
-                display: inline-block;
-                position: $absolute;
-            }
-            .log-search {
-                width: 100px;
-                position: $absolute;
-                left: 350px;
-                top: 5px;
-                font-size: $font-size-small;
-            }
-            .err-badge {
-                background: $error-color !important;
-            }
-            .warn-badge {
-                background: $yellow-color !important;
-            }
-        }
     }
 }

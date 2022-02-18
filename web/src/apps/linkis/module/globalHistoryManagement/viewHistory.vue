@@ -141,17 +141,32 @@ export default {
             'get'
           )
           .then(ret => {
-            console.log(ret)
-            const result = {
-              headRows: ret.metadata,
-              bodyRows: ret.fileContent,
-              // 如果totalLine是null，就显示为0
-              total: ret.totalLine ? ret.totalLine : 0,
-              // 如果内容为null,就显示暂无数据
-              type: ret.fileContent ? ret.type : 0,
-              path: resultPath,
-              current: 1,
-              size: 20
+            let result = {}
+            if (ret.metadata && ret.metadata.length >= 500) {
+              result = {
+                headRows: [],
+                bodyRows: [],
+                // 如果totalLine是null，就显示为0
+                total: ret.totalLine ? ret.totalLine : 0,
+                // 如果内容为null,就显示暂无数据
+                type: ret.fileContent ? ret.type : 0,
+                path: resultPath,
+                current: 1,
+                size: 20,
+                hugeData: true
+              }
+            } else {
+              result = {
+                headRows: ret.metadata,
+                bodyRows: ret.fileContent,
+                // 如果totalLine是null，就显示为0
+                total: ret.totalLine ? ret.totalLine : 0,
+                // 如果内容为null,就显示暂无数据
+                type: ret.fileContent ? ret.type : 0,
+                path: resultPath,
+                current: 1,
+                size: 20
+              }
             }
 
             this.script.resultList[resultSet].result = result
@@ -159,12 +174,6 @@ export default {
             this.script = {
               ...this.script
             }
-            this.updateResult({
-              tabId: this.script.id,
-              resultSet,
-              showPanel: 'result',
-              ...this.script.resultList
-            })
             cb()
           })
           .catch(() => {
@@ -175,12 +184,6 @@ export default {
         this.script = {
           ...this.script
         }
-        this.updateResult({
-          tabId: this.script.id,
-          resultSet: resultSet,
-          showPanel: 'result',
-          ...this.script.resultList
-        })
         cb()
       }
     },
@@ -347,22 +350,34 @@ export default {
                 'get'
               )
               .then(ret => {
-                let tmpResult = {
-                  headRows: ret.metadata,
-                  bodyRows: ret.fileContent,
-                  total: ret.totalLine,
-                  type: ret.type,
-                  path: currentResultPath
+                let tmpResult = {}
+                if (ret.metadata && ret.metadata.length >= 500) {
+                  tmpResult = {
+                    headRows: [],
+                    bodyRows: [],
+                    total: ret.totalLine,
+                    type: ret.type,
+                    path: currentResultPath,
+                    hugeData: true
+                  }
+                } else {
+                  tmpResult = {
+                    headRows: ret.metadata,
+                    bodyRows: ret.fileContent,
+                    total: ret.totalLine,
+                    type: ret.type,
+                    path: currentResultPath
+                  }
                 }
                 this.script.resultSet = 0
                 this.script.resultList = scriptResultList
                 this.$set(this.script.resultList[0], 'result', {})
                 Object.assign(this.script.resultList[0].result, tmpResult)
                 this.scriptViewState.showPanel = 'result'
+                this.isLoading = false
               })
           }
           this.hasResultData = true
-          this.isLoading = false
         } else {
           // 没有返回则设置一个初始化数据
           let tmpResult = {

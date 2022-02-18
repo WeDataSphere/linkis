@@ -38,9 +38,21 @@
           :key="item"/>
       </Select>
     </FormItem>
+    <FormItem v-if="engineTypes.length" prop="engineType" :label="$t('message.linkis.tableColumns.engineType')" >
+      <Select  v-model="searchBar.engineType" style="width:200px" clearable>
+        <Option
+          v-for="(item) in engineTypes"
+          :label="item"
+          :value="item"
+          :key="item"/>
+      </Select>
+    </FormItem>
     <FormItem>
       <Button type="primary" @click="search">
         {{ $t('message.linkis.search') }}
+      </Button>
+      <Button v-if="stopbtn" type="error" @click="stop"  style="margin-left:20px">
+        {{ $t('message.linkis.stop') }}
       </Button>
     </FormItem>
   </Form>
@@ -59,6 +71,13 @@ export default {
     ownerList: {
       type: Array,
       default: () => []
+    },
+    engineTypes: {
+      type: Array,
+      default: () => []
+    },
+    stopbtn: {
+      type: Boolean
     }
   },
   data() {
@@ -84,6 +103,9 @@ export default {
   methods: {
     search() {
       this.$emit("search", this.searchBar)
+    },
+    stop() {
+      this.$emit("stop")
     }
   },
 };

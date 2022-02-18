@@ -107,6 +107,12 @@ export default {
       },
       deep: true,
     },
+    filterNode(v) {
+      if (this.store) {
+        this.store.filterNode = v
+        this.store.filter()
+      }
+    }
   },
   created() {
     this.initTree();
