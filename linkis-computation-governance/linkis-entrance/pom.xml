@@ -24,7 +24,7 @@
     <parent>
         <artifactId>linkis</artifactId>
         <groupId>org.apache.linkis</groupId>
-        <version>1.0.3</version>
+        <version>1.1.2</version>
     </parent>
     <artifactId>linkis-entrance</artifactId>
 
@@ -45,13 +45,6 @@
         <dependency>
             <groupId>org.apache.linkis</groupId>
             <artifactId>linkis-protocol</artifactId>
-            <version>${linkis.version}</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.apache.linkis</groupId>
-            <artifactId>linkis-rpc</artifactId>
             <version>${linkis.version}</version>
             <scope>provided</scope>
         </dependency>
