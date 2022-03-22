@@ -47,7 +47,7 @@
         <div class="content-body-side-right-title">
           <Breadcrumb>
             <BreadcrumbItem>
-              <!-- <Icon type="ios-arrow-back" size="16" color="#338cf0"></Icon> -->
+              <Icon type="ios-arrow-back" size="16" color="#338cf0" class="back" @click="back"></Icon>
               {{ breadcrumbSecondName }}
             </BreadcrumbItem>
           </Breadcrumb>
@@ -117,6 +117,11 @@ export default {
           workspaceId: this.$route.query.workspaceId
         },
       });
+    },
+    back() {
+      this.$router.push({
+        path: '/console/globalHistory',
+      });
     }
   }
 };
@@ -125,6 +130,11 @@ export default {
 <style lang="scss" scoped>
   .crrentItem {
     color: #338cf0;
+  }
+  .back {
+    position: relative;
+    top: -1px;
+    cursor: pointer;
   }
 </style>
 
