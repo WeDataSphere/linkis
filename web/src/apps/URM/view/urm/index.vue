@@ -19,6 +19,7 @@
   <div class="console-page">
     <div class="console-page-content-head">
       <div>
+        <Icon type="ios-arrow-back" size="20" color="#338cf0" class="back" @click="back"></Icon>
         <span class="console-page-content-title">用户资源管理</span>
       </div>
     </div>
@@ -47,7 +48,6 @@
         <div class="content-body-side-right-title">
           <Breadcrumb>
             <BreadcrumbItem>
-              <Icon type="ios-arrow-back" size="16" color="#338cf0" class="back" @click="back"></Icon>
               {{ breadcrumbSecondName }}
             </BreadcrumbItem>
           </Breadcrumb>
@@ -133,7 +133,7 @@ export default {
   }
   .back {
     position: relative;
-    top: -1px;
+    top: -3px;
     cursor: pointer;
   }
 </style>
