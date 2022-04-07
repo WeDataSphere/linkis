@@ -22,15 +22,16 @@
         class="layout-header-menu-icon"
         @click="$router.push('/')"
       >
-        <div style="display:inline-block;">
+        <!-- <div style="display:inline-block;">
           <SvgIcon style="font-size: 28px;" icon-class="common" color="#00FFFF"/>
-        </div>
+        </div> -->
         <div class="logo">
-          <img
+          <!-- <img
             class="logo-img"
             src="../../assets/images/Linkis.svg"
             :alt="$t('message.common.logoName')"
-          >
+          > -->
+          <span>Computation Middleware</span>
           <span class="version">{{sysVersion}}</span>
         </div>
       </div>

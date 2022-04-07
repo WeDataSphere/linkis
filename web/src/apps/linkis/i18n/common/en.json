@@ -116,7 +116,7 @@
         "engineTop": "引擎上限资源"
       },
       "logLoading": "Requesting logs, please hold on",
-      "title": "Linkis Control Panel",
+      "title": "Computation Middleware",
       "info": "{num} new messages",
       "hint": "Please view in the redirected page……",
       "sideNavList": {
