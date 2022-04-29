@@ -63,7 +63,7 @@ object SecurityFilter extends Logging {
         return false
       }
     }
-    GatewayHttpUtils.addGateWayUrlToRequest(gatewayContext)
+    //GatewayHttpUtils.addGateWayUrlToRequest(gatewayContext)
     if (refererValidate) {
       //Security certification support, referer limited(安全认证支持，referer限定)
       val referer = gatewayContext.getRequest.getHeaders.get("Referer")
