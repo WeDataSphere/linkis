@@ -5,9 +5,9 @@
   ~ The ASF licenses this file to You under the Apache License, Version 2.0
   ~ (the "License"); you may not use this file except in compliance with
   ~ the License.  You may obtain a copy of the License at
-  ~ 
+  ~
   ~   http://www.apache.org/licenses/LICENSE-2.0
-  ~ 
+  ~
   ~ Unless required by applicable law or agreed to in writing, software
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -195,10 +195,10 @@
           type="textarea"/>
       </FormItem>
       <FormItem :label="$t('message.linkis.udf.class')" prop="directory">
-        <Select 
-          ref="directory" 
-          v-model="setting.directory" filterable 
-          :remoteMethod="filterAdd" 
+        <Select
+          ref="directory"
+          v-model="setting.directory" filterable
+          :remoteMethod="filterAdd"
           @on-query-change="queryChange"
           :disabled="isUdf && model === 1">
           <Option
@@ -210,7 +210,7 @@
       </FormItem>
       <FormItem :label="$t('message.linkis.udf.clusterName')">
         <Select v-model="setting.clusterName" :disabled="isUdf && model === 1">
-          <Option   
+          <Option
             label="all"
             value="all" />
         </Select>
@@ -626,6 +626,13 @@ export default {
     },
 
     submitForm(formName) {
+      if (this.fnType === 2) {
+        if (!this.setting.scalaTypeL) return this.$Message.warning(this.$t('message.linkis.datasource.pleaseInput') + this.$t('message.linkis.udf.returnType'))
+        if (!this.setting.scalaTypeR) return this.$Message.warning(this.$t('message.linkis.datasource.pleaseInput') + this.$t('message.linkis.udf.inputType'))
+      } else {
+        if (!this.setting.useFormatParaL) return this.$Message.warning(this.$t('message.linkis.datasource.pleaseInput') + this.$t('message.linkis.udf.returnType'))
+        if (!this.setting.useFormatParaR) return this.$Message.warning(this.$t('message.linkis.datasource.pleaseInput') + this.$t('message.linkis.udf.inputType'))
+      }
       this.$refs[formName].validate((valid) => {
         if (valid) {
           let { name, description, defaultLoad, directory, clusterName} = this.setting;

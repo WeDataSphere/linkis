@@ -47,7 +47,6 @@ object AccessibleExecutorConfiguration {
 
   val ENGINECONN_STATUS_SCAN_TIME = CommonVars("wds.linkis.engineconn.status.scan.time", new TimeType("1m"))
 
-
   val ENABLE_MAINTAIN = CommonVars("wds.linkis.engineconn.maintain.enable", false)
 
   val ENABLE_MAINTAIN_CREATORS = CommonVars("wds.linkis.engineconn.maintain.cretors", "IDE")
