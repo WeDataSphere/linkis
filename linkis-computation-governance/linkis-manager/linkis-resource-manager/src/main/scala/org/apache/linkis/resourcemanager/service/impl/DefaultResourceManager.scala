@@ -24,7 +24,7 @@ import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.node.{AMEMNode, AMEngineNode, InfoRMNode}
 import org.apache.linkis.manager.common.entity.persistence.PersistenceLabel
-import org.apache.linkis.manager.common.entity.resource.{NodeResource, Resource, ResourceType}
+import org.apache.linkis.manager.common.entity.resource.{DriverAndYarnResource, NodeResource, Resource, ResourceType, YarnResource}
 import org.apache.linkis.manager.common.exception.{RMErrorException, RMWarnException}
 import org.apache.linkis.manager.common.utils.{ManagerUtils, ResourceUtils}
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
@@ -336,6 +336,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
         case engineInstanceLabel: EngineInstanceLabel =>
           Utils.tryCatch {
             lockedResource.setUsedResource(lockedResource.getLockedResource)
+            updateYarnApplicationID(usedResource, lockedResource)
             lockedResource.setLockedResource(Resource.getZeroResource(lockedResource.getLockedResource))
             labelResourceService.setLabelResource(engineInstanceLabel, lockedResource, labelContainer.getCombinedUserCreatorEngineTypeLabel.getStringValue)
             resourceLogService.success(ChangeType.ENGINE_INIT, engineInstanceLabel)
@@ -371,6 +372,40 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       }
     } {
       resourceLockService.unLock(labelContainer)
+    }
+  }
+
+  private def updateYarnApplicationID(nodeResource: NodeResource, lockedResource: NodeResource): Unit = {
+    lockedResource.getUsedResource match {
+      case driverAndYarnResource: DriverAndYarnResource =>
+        if (nodeResource.getUsedResource.isInstanceOf[DriverAndYarnResource]) {
+          val newYarnResource = nodeResource.getUsedResource.asInstanceOf[DriverAndYarnResource].yarnResource
+          val applicationId: String = if (null != newYarnResource) {
+            newYarnResource.applicationId
+          } else {
+            null
+          }
+          val oriYarnResource = driverAndYarnResource.yarnResource
+          val tmpUsedResource = new DriverAndYarnResource(driverAndYarnResource.loadInstanceResource, new YarnResource(
+            oriYarnResource.queueMemory,
+            oriYarnResource.queueCores,
+            oriYarnResource.queueInstances,
+            oriYarnResource.queueName,
+            applicationId
+          ))
+          lockedResource.setUsedResource(tmpUsedResource)
+        }
+      case yarnResource: YarnResource =>
+        if (nodeResource.getUsedResource.isInstanceOf[YarnResource]) {
+          val tmpYarnResource = new YarnResource(yarnResource.queueMemory,
+            yarnResource.queueCores,
+            yarnResource.queueInstances,
+            yarnResource.queueName,
+            nodeResource.getUsedResource.asInstanceOf[YarnResource].applicationId
+          )
+          lockedResource.setUsedResource(tmpYarnResource)
+        }
+      case _ =>
     }
   }
 
