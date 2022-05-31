@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.apache.linkis.resourcemanager.service.impl
 
 import com.google.common.collect.Lists
@@ -309,6 +309,9 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
    */
   override def resourceUsed(labels: util.List[Label[_]], usedResource: NodeResource): Unit = {
     val labelContainer = labelResourceService.enrichLabels(labels)
+    if (null == labelContainer.getEngineInstanceLabel) {
+      throw new RMErrorException(RMErrorCode.LABEL_RESOURCE_NOT_FOUND.getCode, "engine instance label is null")
+    }
     var lockedResource: NodeResource = null
     var persistenceResource: PersistenceResource = null
     try {
@@ -382,32 +385,36 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
   private def updateYarnApplicationID(nodeResource: NodeResource, lockedResource: NodeResource): Unit = {
     lockedResource.getUsedResource match {
       case driverAndYarnResource: DriverAndYarnResource =>
-        if (nodeResource.getUsedResource.isInstanceOf[DriverAndYarnResource]) {
-          val newYarnResource = nodeResource.getUsedResource.asInstanceOf[DriverAndYarnResource].yarnResource
-          val applicationId: String = if (null != newYarnResource) {
-            newYarnResource.applicationId
-          } else {
-            null
-          }
-          val oriYarnResource = driverAndYarnResource.yarnResource
-          val tmpUsedResource = new DriverAndYarnResource(driverAndYarnResource.loadInstanceResource, new YarnResource(
-            oriYarnResource.queueMemory,
-            oriYarnResource.queueCores,
-            oriYarnResource.queueInstances,
-            oriYarnResource.queueName,
-            applicationId
-          ))
-          lockedResource.setUsedResource(tmpUsedResource)
+        nodeResource.getUsedResource match {
+          case resource: DriverAndYarnResource =>
+            val newYarnResource = resource.yarnResource
+            val applicationId: String = if (null != newYarnResource) {
+              newYarnResource.applicationId
+            } else {
+              null
+            }
+            val oriYarnResource = driverAndYarnResource.yarnResource
+            val tmpUsedResource = new DriverAndYarnResource(driverAndYarnResource.loadInstanceResource, new YarnResource(
+              oriYarnResource.queueMemory,
+              oriYarnResource.queueCores,
+              oriYarnResource.queueInstances,
+              oriYarnResource.queueName,
+              applicationId
+            ))
+            lockedResource.setUsedResource(tmpUsedResource)
+          case _ =>
         }
       case yarnResource: YarnResource =>
-        if (nodeResource.getUsedResource.isInstanceOf[YarnResource]) {
-          val tmpYarnResource = new YarnResource(yarnResource.queueMemory,
-            yarnResource.queueCores,
-            yarnResource.queueInstances,
-            yarnResource.queueName,
-            nodeResource.getUsedResource.asInstanceOf[YarnResource].applicationId
-          )
-          lockedResource.setUsedResource(tmpYarnResource)
+        nodeResource.getUsedResource match {
+          case resource: YarnResource =>
+            val tmpYarnResource = new YarnResource(yarnResource.queueMemory,
+              yarnResource.queueCores,
+              yarnResource.queueInstances,
+              yarnResource.queueName,
+              resource.applicationId
+            )
+            lockedResource.setUsedResource(tmpYarnResource)
+          case _ =>
         }
       case _ =>
     }
@@ -448,35 +455,37 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       labelContainer.getResourceLabels.foreach {
         case label: Label[_] =>
           Utils.tryCatch {
-            val labelResource = labelResourceService.getLabelResource(label)
-            if (labelResource != null) {
-              if (label.isInstanceOf[EMInstanceLabel]) timeCheck(labelResource, usedResource)
-              if (null != usedResource.getUsedResource && usedResource.getUsedResource != Resource.initResource(usedResource.getResourceType)) {
-                labelResource.setUsedResource(labelResource.getUsedResource - usedResource.getUsedResource)
-                labelResource.setLeftResource(labelResource.getLeftResource + usedResource.getUsedResource)
-              }
-              if (null != usedResource.getLockedResource && usedResource.getLockedResource != Resource.initResource(usedResource.getResourceType)) {
-                labelResource.setLockedResource(labelResource.getLockedResource - usedResource.getLockedResource)
-                labelResource.setLeftResource(labelResource.getLeftResource + usedResource.getLockedResource)
-              }
-              labelResourceService.setLabelResource(label, labelResource, labelContainer.getCombinedUserCreatorEngineTypeLabel.getStringValue)
-              if (label.getClass.isAssignableFrom(labelContainer.getCombinedUserCreatorEngineTypeLabel.getClass)) {
-                if (usedResource.getUsedResource != null) {
-                  resourceLogService.recordUserResourceAction(labelContainer, persistenceResource.getTicketId, ChangeType.ENGINE_CLEAR, usedResource.getUsedResource)
-                } else if (usedResource.getLockedResource != null) {
-                  resourceLogService.recordUserResourceAction(labelContainer, persistenceResource.getTicketId, ChangeType.ENGINE_CLEAR, usedResource.getLockedResource)
+            if (! label.isInstanceOf[EngineInstanceLabel]) {
+              val labelResource = labelResourceService.getLabelResource(label)
+              if (labelResource != null) {
+                if (label.isInstanceOf[EMInstanceLabel]) timeCheck(labelResource, usedResource)
+                if (null != usedResource.getUsedResource && usedResource.getUsedResource != Resource.initResource(usedResource.getResourceType)) {
+                  labelResource.setUsedResource(labelResource.getUsedResource - usedResource.getUsedResource)
+                  labelResource.setLeftResource(labelResource.getLeftResource + usedResource.getUsedResource)
                 }
+                if (null != usedResource.getLockedResource && usedResource.getLockedResource != Resource.initResource(usedResource.getResourceType)) {
+                  labelResource.setLockedResource(labelResource.getLockedResource - usedResource.getLockedResource)
+                  labelResource.setLeftResource(labelResource.getLeftResource + usedResource.getLockedResource)
+                }
+                labelResourceService.setLabelResource(label, labelResource, labelContainer.getCombinedUserCreatorEngineTypeLabel.getStringValue)
+                if (label.getClass.isAssignableFrom(labelContainer.getCombinedUserCreatorEngineTypeLabel.getClass)) {
+                  if (usedResource.getUsedResource != null) {
+                    resourceLogService.recordUserResourceAction(labelContainer, persistenceResource.getTicketId, ChangeType.ENGINE_CLEAR, usedResource.getUsedResource)
+                  } else if (usedResource.getLockedResource != null) {
+                    resourceLogService.recordUserResourceAction(labelContainer, persistenceResource.getTicketId, ChangeType.ENGINE_CLEAR, usedResource.getLockedResource)
+                  }
+                }
+                label match {
+                  case emLabel: EMInstanceLabel =>
+                    resourceLogService.success(ChangeType.ECM_Resource_MINUS, labelResource.getUsedResource, null, emLabel)
+                  case _ =>
+                }
+                resourceCheck(label, labelResource)
               }
-              label match {
-                case emLabel: EMInstanceLabel =>
-                  resourceLogService.success(ChangeType.ECM_Resource_MINUS, labelResource.getUsedResource, null, emLabel)
-                case _ =>
-              }
-              resourceCheck(label, labelResource)
             }
           } {
             case exception: Exception =>
-              logger.warn(s"Failed to release resource label ${label.getStringValue} resource ${usedResource.getUsedResource.toJson}")
+              logger.warn(s"Failed to release resource label ${label.getStringValue}", exception)
           }
         case _ =>
       }
