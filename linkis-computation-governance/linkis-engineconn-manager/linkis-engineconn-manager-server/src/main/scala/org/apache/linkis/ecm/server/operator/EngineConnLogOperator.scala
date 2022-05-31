@@ -125,25 +125,26 @@ class EngineConnLogOperator extends Operator with Logging {
     Map("logPath" -> logPath.getPath, "logs" -> logs, "endLine" -> lineNum, "rows" -> readLine)
   }
 
-
-  private def includeLine(line: String,
-                          onlyKeywordList: Array[String], ignoreKeywordList: Array[String]): Boolean = {
-    var accept: Boolean = ignoreKeywordList.isEmpty || !ignoreKeywordList.exists(line.contains)
-    if (accept) {
-      accept = onlyKeywordList.isEmpty || onlyKeywordList.exists(line.contains)
+  protected def getLogPath(implicit parameters: Map[String, Any]): File = {
+    val (ticketId, engineConnInstance, engineConnLogDir) = getEngineConnInfo(parameters)
+    val logPath = new File(engineConnLogDir, getAs("logType", EngineConnLogOperator.LOG_FILE_NAME.getValue));
+    if (!logPath.exists() || !logPath.isFile) {
+      throw new ECMErrorException(ECMErrorCode.EC_FETCH_LOG_FAILED, s"LogFile $logPath is not exists or is not a file.")
     }
-    accept
+    info(s"Try to fetch EngineConn(id: $ticketId, instance: $engineConnInstance) logs from ${logPath.getPath}.")
+    logPath
   }
-  private def getLogPath(implicit parameters: Map[String, Any]): File = {
+
+  protected def getEngineConnInfo(implicit parameters: Map[String, Any]): (String, String, String) = {
     if (engineConnListService == null) {
       engineConnListService = DataWorkCloudApplication.getApplicationContext.getBean(classOf[EngineConnListService])
       localDirsHandleService = DataWorkCloudApplication.getApplicationContext.getBean(classOf[LocalDirsHandleService])
     }
     val logDIrSuffix = getAs("logDirSuffix", "")
-    val (engineConnLogDir, ticketId) = if (StringUtils.isNotBlank(logDIrSuffix)) {
+    val (engineConnLogDir, engineConnInstance, ticketId) = if (StringUtils.isNotBlank(logDIrSuffix)) {
       val ecLogPath = ECMConfiguration.ENGINECONN_ROOT_DIR + File.pathSeparator + logDIrSuffix
       val ticketId = getAs("ticketId", "")
-      (ecLogPath, ticketId)
+      (ecLogPath, "", ticketId)
     } else {
       val engineConnInstance = getAs(ECMOperateRequest.ENGINE_CONN_INSTANCE_KEY, getAs[String]("engineConnInstance", null))
       Option(engineConnInstance).flatMap { instance =>
@@ -159,16 +160,18 @@ class EngineConnLogOperator extends Operator with Logging {
             val engineConnType = getAsThrow[String]("engineConnType")
             localDirsHandleService.getEngineConnLogDir(creator, ticketId, engineConnType)
           }
-        (logDir, ticketId)
+        (logDir, engineConnInstance, ticketId)
       }
     }
-
-    val logPath = new File(engineConnLogDir, getAs("logType", EngineConnLogOperator.LOG_FILE_NAME.getValue));
-    if (!logPath.exists() || !logPath.isFile) {
-      throw new ECMErrorException(ECMErrorCode.EC_FETCH_LOG_FAILED, s"LogFile $logPath is not exists or is not a file.")
+    (ticketId, engineConnInstance, engineConnLogDir)
+  }
+  private def includeLine(line: String,
+                          onlyKeywordList: Array[String], ignoreKeywordList: Array[String]): Boolean = {
+    var accept: Boolean = ignoreKeywordList.isEmpty || !ignoreKeywordList.exists(line.contains)
+    if (accept) {
+      accept = onlyKeywordList.isEmpty || onlyKeywordList.exists(line.contains)
     }
-    info(s"Try to fetch EngineConn(id: $ticketId, logs from ${logPath.getPath}.")
-    logPath
+    accept
   }
 }
 
