@@ -20,7 +20,7 @@ package org.apache.linkis.ecm.server.operator
 
 import org.apache.commons.io.IOUtils
 import org.apache.commons.io.input.ReversedLinesFileReader
-import org.apache.commons.lang.StringUtils
+import org.apache.commons.lang3.StringUtils
 import org.apache.linkis.DataWorkCloudApplication
 import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.utils.{Logging, Utils}
@@ -149,7 +149,7 @@ class EngineConnLogOperator extends Operator with Logging {
       val engineConnInstance = getAs(ECMOperateRequest.ENGINE_CONN_INSTANCE_KEY, getAs[String]("engineConnInstance", null))
       Option(engineConnInstance).flatMap { instance =>
         engineConnListService.getEngineConns.asScala.find(_.getServiceInstance.getInstance == instance)
-      }.map(engineConn => (engineConn.getEngineConnManagerEnv.engineConnLogDirs, engineConn.getTickedId)).getOrElse {
+      }.map(engineConn => (engineConn.getEngineConnManagerEnv.engineConnLogDirs, engineConnInstance, engineConn.getTickedId)).getOrElse {
         val ticketId = getAs("ticketId", "")
         if (StringUtils.isBlank(ticketId)) {
           throw new ECMErrorException(ECMErrorCode.EC_FETCH_LOG_FAILED, s"the parameters of ${ECMOperateRequest.ENGINE_CONN_INSTANCE_KEY}, engineConnInstance and ticketId are both not exists.")
