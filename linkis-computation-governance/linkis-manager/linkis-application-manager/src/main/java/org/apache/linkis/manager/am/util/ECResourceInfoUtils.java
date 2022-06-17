@@ -14,24 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.linkis.manager.am.util;
 
-package org.apache.linkis.manager.am.service;
+import org.springframework.util.StringUtils;
 
-import org.apache.linkis.manager.common.entity.persistence.ECResourceInfoRecord;
+import java.util.regex.Pattern;
 
-import java.util.Date;
-import java.util.List;
+public class ECResourceInfoUtils {
 
-public interface ECResourceInfoService {
 
-    ECResourceInfoRecord getECResourceInfoRecord(String ticketId);
+    public static String NAME_REGEX = "^[a-zA-Z\\d_\\.]+$";
 
-    void deleteECResourceInfoRecordByTicketId(String ticketId);
+    public static boolean checkNameValid(String creator){
+        return Pattern.compile(NAME_REGEX).matcher(creator).find();
+    }
 
-    void deleteECResourceInfoRecord(Integer id);
 
-    List<ECResourceInfoRecord> getECResourceInfoRecordList(String instance, Date endDate, Date startDate, String username);
-
-    // TODO add search method
+    public static String strCheckAndDef(String str,String def){
+        return StringUtils.isEmpty(str)?def:str;
+    }
 
 }
