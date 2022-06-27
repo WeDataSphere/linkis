@@ -43,6 +43,4 @@ object RunType extends Enumeration {
 
   val TRINO_SQL = Value("tsql")
 
-  val TRINO_SQL = Value("tsql")
-
 }
