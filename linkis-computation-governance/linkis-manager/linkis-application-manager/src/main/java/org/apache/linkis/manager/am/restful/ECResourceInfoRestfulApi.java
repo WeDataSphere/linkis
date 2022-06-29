@@ -18,6 +18,7 @@
 package org.apache.linkis.manager.am.restful;
 
 import org.apache.linkis.common.conf.Configuration;
+import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.manager.am.exception.AMErrorException;
 import org.apache.linkis.manager.am.service.ECResourceInfoService;
 import org.apache.linkis.manager.am.util.ECResourceInfoUtils;
@@ -37,11 +38,9 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequestMapping(
@@ -123,9 +122,11 @@ public class ECResourceInfoRestfulApi {
             }
         }
         List<ECResourceInfoRecordVo> list = new ArrayList<>();
+        List<ECResourceInfoRecord> queryTasks = null;
+
         PageHelper.startPage(pageNow, pageSize);
         try {
-            List<ECResourceInfoRecord> queryTasks =
+            queryTasks =
                     ecResourceInfoService.getECResourceInfoRecordList(
                             instance, endDate, startDate, username);
             if (StringUtils.isNotBlank(engineType)) {
@@ -141,11 +142,15 @@ public class ECResourceInfoRestfulApi {
                         BeanUtils.copyProperties(info, ecrHistroryListVo);
                         ecrHistroryListVo.setEngineType(
                                 info.getLabelValue().split(",")[1].split("-")[0]);
+                        ecrHistroryListVo.setUsedResource(
+                                ECResourceInfoUtils.getStringToMap(info.getUsedResource()));
                         list.add(ecrHistroryListVo);
                     });
         } finally {
             PageHelper.clearPage();
         }
-        return Message.ok().data("engineList", list);
+        PageInfo<ECResourceInfoRecord> pageInfo = new PageInfo<>(queryTasks);
+        long total = pageInfo.getTotal();
+        return Message.ok().data("engineList", list).data(JobRequestConstants.TOTAL_PAGE(), total);
     }
 }
