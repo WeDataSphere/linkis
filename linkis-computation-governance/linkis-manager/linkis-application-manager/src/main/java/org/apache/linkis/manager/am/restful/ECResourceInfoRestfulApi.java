@@ -128,14 +128,7 @@ public class ECResourceInfoRestfulApi {
         try {
             queryTasks =
                     ecResourceInfoService.getECResourceInfoRecordList(
-                            instance, endDate, startDate, username);
-            if (StringUtils.isNotBlank(engineType)) {
-                String finalEngineType = engineType;
-                queryTasks =
-                        queryTasks.stream()
-                                .filter(info -> info.getLabelValue().contains(finalEngineType))
-                                .collect(Collectors.toList());
-            }
+                            instance, endDate, startDate, username, engineType);
             queryTasks.forEach(
                     info -> {
                         ECResourceInfoRecordVo ecrHistroryListVo = new ECResourceInfoRecordVo();
@@ -143,11 +136,13 @@ public class ECResourceInfoRestfulApi {
                         ecrHistroryListVo.setEngineType(
                                 info.getLabelValue().split(",")[1].split("-")[0]);
                         ecrHistroryListVo.setUsedResource(
-                                ECResourceInfoUtils.getStringToMap(info.getUsedResource(),info));
+                                ECResourceInfoUtils.getStringToMap(info.getUsedResource(), info));
                         ecrHistroryListVo.setReleasedResource(
-                                ECResourceInfoUtils.getStringToMap(info.getReleasedResource(),info));
+                                ECResourceInfoUtils.getStringToMap(
+                                        info.getReleasedResource(), info));
                         ecrHistroryListVo.setRequestResource(
-                                ECResourceInfoUtils.getStringToMap(info.getRequestResource(),info));
+                                ECResourceInfoUtils.getStringToMap(
+                                        info.getRequestResource(), info));
                         list.add(ecrHistroryListVo);
                     });
         } finally {
