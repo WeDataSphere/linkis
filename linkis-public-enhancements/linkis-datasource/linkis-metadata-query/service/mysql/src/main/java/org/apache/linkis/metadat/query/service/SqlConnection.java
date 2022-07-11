@@ -228,6 +228,9 @@ public class SqlConnection implements Closeable {
             this.username = username;
             this.password = password;
             this.extraParams = extraParams;
+            if (extraParams != null) {
+                this.extraParams = extraParams;
+            }
             this.extraParams.put("connectTimeout", SQL_CONNECT_TIMEOUT.getValue());
             this.extraParams.put("socketTimeout", SQL_SOCKET_TIMEOUT.getValue());
         }
