@@ -225,7 +225,22 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
         Utils.tryCatch {
           labelContainer.setCurrentLabel(label)
           if (!requestResourceService.canRequest(labelContainer, resource)) {
-            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource")
+            val labelResource = labelResourceService.getLabelResource(labelContainer.getCurrentLabel)
+            val maxResourceMsg = {
+              if (null != labelResource.getMaxResource) {
+                labelResource.getMaxResource.toJson
+              } else {
+                "null max resource"
+              }
+            }
+            val leftResourceMsg = {
+              if (null != labelResource.getLeftResource) {
+                labelResource.getLeftResource.toJson
+              } else {
+                "null left resource"
+              }
+            }
+            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource. Max resource : ${maxResourceMsg}, left resource : ${leftResourceMsg}")
           }
         } {
           case exception: RMWarnException => return NotEnoughResource(exception.getMessage)
