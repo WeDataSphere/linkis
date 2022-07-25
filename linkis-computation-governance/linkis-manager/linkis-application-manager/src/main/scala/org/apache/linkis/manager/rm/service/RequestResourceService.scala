@@ -51,15 +51,15 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
         logger.info(s"ResourceInit: ${labelContainer.getCurrentLabel.getStringValue} ")
       }
       val configuredResource = UserConfiguration.getUserConfiguredResource(resource.getResourceType, labelContainer.getUserCreatorLabel, labelContainer.getEngineTypeLabel)
-      logger.debug(s"Get configured resource ${configuredResource} for [${labelContainer.getUserCreatorLabel}] and [${labelContainer.getEngineTypeLabel}] ")
+      if (logger.isDebugEnabled()) logger.debug(s"Get configured resource ${configuredResource} for [${labelContainer.getUserCreatorLabel}] and [${labelContainer.getEngineTypeLabel}] ")
       labelResource.setMaxResource(configuredResource)
       labelResource.setMinResource(Resource.initResource(labelResource.getResourceType))
       labelResource.setLeftResource(labelResource.getMaxResource - labelResource.getUsedResource - labelResource.getLockedResource)
       labelResourceService.setLabelResource(labelContainer.getCurrentLabel, labelResource, labelContainer.getCombinedUserCreatorEngineTypeLabel.getStringValue)
-      logger.debug(s"${labelContainer.getCurrentLabel} to request [${requestResource}]  \t labelResource: Max: ${labelResource.getMaxResource}  \t " +
+      if (logger.isDebugEnabled()) logger.debug(s"${labelContainer.getCurrentLabel} to request [${requestResource}]  \t labelResource: Max: ${labelResource.getMaxResource}  \t " +
         s"use:  ${labelResource.getUsedResource}  \t locked: ${labelResource.getLockedResource}")
     }
-    logger.debug(s"Label [${labelContainer.getCurrentLabel}] has resource + [${labelResource }]")
+    if (logger.isDebugEnabled()) logger.debug(s"Label [${labelContainer.getCurrentLabel}] has resource + [${labelResource }]")
     if (labelResource != null) {
       val labelAvailableResource = labelResource.getLeftResource
       if(labelAvailableResource < requestResource && enableRequest) {
@@ -68,7 +68,7 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
         val notEnoughMessage = generateNotEnoughMessage(requestResource, labelAvailableResource)
         throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
       }
-      logger.debug(s"Passed check: ${labelContainer.getUserCreatorLabel.getUser} want to use label [${labelContainer.getCurrentLabel}] resource[${requestResource}] <= label available resource[${labelAvailableResource}]")
+      if (logger.isDebugEnabled()) logger.debug(s"Passed check: ${labelContainer.getUserCreatorLabel.getUser} want to use label [${labelContainer.getCurrentLabel}] resource[${requestResource}] <= label available resource[${labelAvailableResource}]")
       true
     } else {
       logger.warn(s"No resource available found for label ${labelContainer.getCurrentLabel}")
@@ -79,7 +79,7 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
   private def checkEMResource(user: String, emInstanceLabel: EMInstanceLabel, resource: NodeResource): Boolean = {
     val labelResource = labelResourceService.getLabelResource(emInstanceLabel)
     val requestResource = resource.getMinResource
-    logger.debug(s"emInstanceLabel resource info ${labelResource }")
+    if (logger.isDebugEnabled()) logger.debug(s"emInstanceLabel resource info ${labelResource }")
     if (labelResource != null) {
       val labelAvailableResource = labelResource.getLeftResource
       if(labelAvailableResource < requestResource && enableRequest) {
@@ -88,7 +88,7 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
         val notEnoughMessage = generateECMNotEnoughMessage(requestResource, labelAvailableResource)
         throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
       }
-      logger.debug(s"Passed check: resource[${requestResource}] want to use em ${emInstanceLabel.getInstance()}  available resource[${labelAvailableResource}]")
+      if (logger.isDebugEnabled()) logger.debug(s"Passed check: resource[${requestResource}] want to use em ${emInstanceLabel.getInstance()}  available resource[${labelAvailableResource}]")
       true
     } else {
       logger.warn(s"No resource available found for em ${emInstanceLabel.getInstance()} ")
