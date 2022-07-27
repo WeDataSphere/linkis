@@ -360,8 +360,10 @@ public class OpenLooKengEngineConnExecutor extends ConcurrentComputationExecutor
                 if (error.getFailureInfo() != null) {
                     cause = error.getFailureInfo().toException();
                 }
-                engineExecutorContext.appendStdout(
-                        LogUtils.generateERROR(ExceptionUtils.getStackTrace(cause)));
+                if (null != cause) {
+                    engineExecutorContext.appendStdout(
+                            LogUtils.generateERROR(ExceptionUtils.getStackTrace(cause)));
+                }
                 return new ErrorExecuteResponse(ExceptionUtils.getMessage(cause), cause);
             }
         } else if (statement.isClientAborted()) {

@@ -175,7 +175,12 @@ class EngineExecuteAsyncReturn(val request: ExecuteRequest,
           case entranceExecuteRequest: EntranceExecuteRequest =>
             r match {
               case ErrorExecuteResponse(errorMsg, error) =>
-                val msg = s"jobRequest($id)  execute failed,$errorMsg \n ${ExceptionUtils.getStackTrace(error)}"
+                val stackTrace = if (null != error.t) {
+                  ExceptionUtils.getStackTrace(error.t)
+                } else {
+                  ""
+                }
+                val msg = s"jobRequest($id)  execute failed,$errorMsg \n $stackTrace"
                 entranceExecuteRequest.getJob.getLogListener.foreach(_.onLogUpdate(entranceExecuteRequest.getJob, LogUtils.generateERROR(msg)))
               case _ =>
             }
