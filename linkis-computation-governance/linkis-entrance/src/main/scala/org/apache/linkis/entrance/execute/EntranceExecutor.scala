@@ -26,7 +26,6 @@ import org.apache.linkis.governance.common.entity.ExecutionNodeStatus._
 import org.apache.linkis.governance.common.protocol.task.{RequestTask, ResponseTaskStatus}
 import org.apache.linkis.orchestrator.computation.operation.log.LogProcessor
 import org.apache.linkis.orchestrator.computation.operation.progress.ProgressProcessor
-import org.apache.linkis.orchestrator.computation.operation.resource.ResourceReportProcessor
 import org.apache.linkis.orchestrator.core.OrchestrationFuture
 import org.apache.linkis.protocol.UserWithCreator
 import org.apache.linkis.scheduler.executer.ExecutorState.ExecutorState
