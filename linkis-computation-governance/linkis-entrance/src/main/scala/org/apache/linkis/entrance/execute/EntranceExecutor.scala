@@ -175,8 +175,8 @@ class EngineExecuteAsyncReturn(val request: ExecuteRequest,
           case entranceExecuteRequest: EntranceExecuteRequest =>
             r match {
               case ErrorExecuteResponse(errorMsg, error) =>
-                val stackTrace = if (null != error.t) {
-                  ExceptionUtils.getStackTrace(error.t)
+                val stackTrace = if (null != error) {
+                  ExceptionUtils.getStackTrace(error)
                 } else {
                   ""
                 }
