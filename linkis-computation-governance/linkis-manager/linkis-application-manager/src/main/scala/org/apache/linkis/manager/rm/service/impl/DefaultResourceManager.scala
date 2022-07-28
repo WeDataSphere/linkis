@@ -206,7 +206,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
    */
   override def requestResource(labels: util.List[Label[_]], resource: NodeResource, wait: Long): ResultResource = {
     val labelContainer = labelResourceService.enrichLabels(labels)
-    if (logger.isDebugEnabled()) logger.debug("start processing request resource for labels [" + labelContainer + "] and resource [" + resource + "]")
+    logger.debug("start processing request resource for labels [" + labelContainer + "] and resource [" + resource + "]")
 
     Utils.tryFinally {
       // lock labels
@@ -223,37 +223,13 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       val labelResourceList = new util.HashMap[String, NodeResource]()
       labelContainer.getResourceLabels.foreach(label => {
         //check all resource of label
-        var resourceMsg = ""
         Utils.tryCatch {
           labelContainer.setCurrentLabel(label)
-          val labelResource = labelResourceService.getLabelResource(labelContainer.getCurrentLabel)
-          val maxResourceMsg = {
-            if (null != labelResource.getMaxResource) {
-              labelResource.getMaxResource.toJson
-            } else {
-              "invalid null max resource"
-            }
-          }
-          val leftResourceMsg = {
-            if (null != labelResource.getLeftResource) {
-              labelResource.getLeftResource.toJson
-            } else {
-              "invalid null left resource"
-            }
-          }
-          val requestResourceMsg = {
-            if (null != resource.getMinResource) {
-              resource.getMinResource.toJson
-            } else {
-              "invalid null request resource."
-            }
-          }
-          resourceMsg = s" UserCreator maxResource : ${maxResourceMsg}, left resource : ${leftResourceMsg}, request resource : ${requestResourceMsg}"
           if (!requestResourceService.canRequest(labelContainer, resource)) {
-            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource. ${resourceMsg}")
+            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource")
           }
         } {
-          case exception: RMWarnException => return NotEnoughResource(exception.getMessage + resourceMsg)
+          case exception: RMWarnException => return NotEnoughResource(exception.getMessage)
         }
         val usedResource = labelResourceService.getLabelResource(label)
         if (usedResource == null) {
