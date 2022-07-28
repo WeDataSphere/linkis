@@ -48,7 +48,11 @@ class DriverAndYarnReqResourceService(labelResourceService: LabelResourceService
     if (queueLeftResource < requestedYarnResource) {
       logger.info(s"user: ${labelContainer.getUserCreatorLabel.getUser} request queue resource $requestedYarnResource > left resource $queueLeftResource")
       val notEnoughMessage = generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource)
-      throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
+      val requestResourceJson = if (null != requestedYarnResource) requestedYarnResource.toJson else "invalid null requestResource"
+      val maxResourceJson = if (null != maxCapacity) maxCapacity.toJson else "invalid null queueMaxResource"
+      val availableResourceJson = if (null != queueLeftResource) queueLeftResource.toJson else "invalid null queleLeftResource"
+      val userCreatorStr = if (null != labelContainer.getUserCreatorLabel) labelContainer.getUserCreatorLabel.getStringValue else "invalid null userCreator"
+      throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2 + s" userCreator : ${userCreatorStr}, max queue resource : ${maxResourceJson}, available queue resource : ${availableResourceJson}, request queue resource : ${requestResourceJson}")
     } else true
   }
 

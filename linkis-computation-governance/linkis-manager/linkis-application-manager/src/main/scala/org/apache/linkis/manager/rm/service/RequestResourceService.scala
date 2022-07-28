@@ -65,8 +65,12 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
       if(labelAvailableResource < requestResource && enableRequest) {
         logger.info(s"Failed check: ${labelContainer.getUserCreatorLabel.getUser} want to use label [${labelContainer.getCurrentLabel}] resource[${requestResource}] > label available resource[${labelAvailableResource}]")
         // TODO sendAlert(moduleInstance, user, creator, requestResource, moduleAvailableResource.resource, moduleLeftResource)
+        val userCreatorStr = labelContainer.getUserCreatorLabel.toString
+        val requestResourceJson = if (null != requestResource) requestResource.toJson else "invalid null requestResource"
+        val maxResourceJson = if (null != labelResource.getMaxResource) labelResource.getMaxResource.toJson else "invalid null maxResource"
+        val availableResourceJson = if (null != labelAvailableResource) labelAvailableResource.toJson else "invalid null availableResource"
         val notEnoughMessage = generateNotEnoughMessage(requestResource, labelAvailableResource)
-        throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
+        throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2 + s" userCreator : ${userCreatorStr}, maxResource : ${maxResourceJson}, availableResource : ${availableResourceJson}, requestResource : ${requestResourceJson}")
       }
       if (logger.isDebugEnabled()) logger.debug(s"Passed check: ${labelContainer.getUserCreatorLabel.getUser} want to use label [${labelContainer.getCurrentLabel}] resource[${requestResource}] <= label available resource[${labelAvailableResource}]")
       true
@@ -86,7 +90,10 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
         logger.info(s"user want to use resource[${requestResource}] > em ${emInstanceLabel.getInstance()} available resource[${labelAvailableResource}]")
         // TODO sendAlert(moduleInstance, user, creator, requestResource, moduleAvailableResource.resource, moduleLeftResource)
         val notEnoughMessage = generateECMNotEnoughMessage(requestResource, labelAvailableResource)
-        throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
+        val requestResourceJson = if (null != requestResource) requestResource.toJson else "invalid null requestResource"
+        val maxResourceJson = if (null != labelResource.getMaxResource) labelResource.getMaxResource.toJson else "invalid null maxResource"
+        val availableResourceJson = if (null != labelAvailableResource) labelAvailableResource.toJson else "invalid null availableResource"
+        throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2 + s" ECM maxResource : ${maxResourceJson}, availableResource : ${availableResourceJson}, requestResource : ${requestResourceJson}")
       }
       if (logger.isDebugEnabled()) logger.debug(s"Passed check: resource[${requestResource}] want to use em ${emInstanceLabel.getInstance()}  available resource[${labelAvailableResource}]")
       true
