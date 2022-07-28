@@ -19,6 +19,7 @@ package org.apache.linkis.manager.rm.service.impl
 
 import com.google.common.collect.Lists
 import org.apache.linkis.common.ServiceInstance
+import org.apache.linkis.common.exception.LinkisRetryException
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.manager.common.conf.RMConfiguration
@@ -205,7 +206,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
    */
   override def requestResource(labels: util.List[Label[_]], resource: NodeResource, wait: Long): ResultResource = {
     val labelContainer = labelResourceService.enrichLabels(labels)
-    logger.debug("start processing request resource for labels [" + labelContainer + "] and resource [" + resource + "]")
+    if (logger.isDebugEnabled()) logger.debug("start processing request resource for labels [" + labelContainer + "] and resource [" + resource + "]")
 
     Utils.tryFinally {
       // lock labels
@@ -222,28 +223,37 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       val labelResourceList = new util.HashMap[String, NodeResource]()
       labelContainer.getResourceLabels.foreach(label => {
         //check all resource of label
+        var resourceMsg = ""
         Utils.tryCatch {
           labelContainer.setCurrentLabel(label)
+          val labelResource = labelResourceService.getLabelResource(labelContainer.getCurrentLabel)
+          val maxResourceMsg = {
+            if (null != labelResource.getMaxResource) {
+              labelResource.getMaxResource.toJson
+            } else {
+              "invalid null max resource"
+            }
+          }
+          val leftResourceMsg = {
+            if (null != labelResource.getLeftResource) {
+              labelResource.getLeftResource.toJson
+            } else {
+              "invalid null left resource"
+            }
+          }
+          val requestResourceMsg = {
+            if (null != resource.getMinResource) {
+              resource.getMinResource.toJson
+            } else {
+              "invalid null request resource."
+            }
+          }
+          resourceMsg = s" UserCreator maxResource : ${maxResourceMsg}, left resource : ${leftResourceMsg}, request resource : ${requestResourceMsg}"
           if (!requestResourceService.canRequest(labelContainer, resource)) {
-            val labelResource = labelResourceService.getLabelResource(labelContainer.getCurrentLabel)
-            val maxResourceMsg = {
-              if (null != labelResource.getMaxResource) {
-                labelResource.getMaxResource.toJson
-              } else {
-                "null max resource"
-              }
-            }
-            val leftResourceMsg = {
-              if (null != labelResource.getLeftResource) {
-                labelResource.getLeftResource.toJson
-              } else {
-                "null left resource"
-              }
-            }
-            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource. Max resource : ${maxResourceMsg}, left resource : ${leftResourceMsg}")
+            return NotEnoughResource(s"Labels:${label.getStringValue} not enough resource. ${resourceMsg}")
           }
         } {
-          case exception: RMWarnException => return NotEnoughResource(exception.getMessage)
+          case exception: RMWarnException => return NotEnoughResource(exception.getMessage + resourceMsg)
         }
         val usedResource = labelResourceService.getLabelResource(label)
         if (usedResource == null) {
