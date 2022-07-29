@@ -30,8 +30,6 @@ public interface LockManagerMapper {
                     + "values(#{jsonObject}, #{timeOut}, now(), now())")
     void lock(@Param("jsonObject") String jsonObject, @Param("timeOut") Long timeOut);
 
-    @Delete("delete  from linkis_cg_manager_lock where lock_object = #{jsonObject}")
-    void unlock(String jsonObject);
 
     @Delete("delete  from linkis_cg_manager_lock where id = #{id}")
     void unlock(int id);
