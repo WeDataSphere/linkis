@@ -29,9 +29,11 @@ import org.apache.linkis.rpc.Sender
 import org.apache.linkis.server.conf.ServerConfiguration
 import org.apache.linkis.server.security.SSOUtils
 import org.apache.linkis.server.{Message, _}
-
 import java.nio.charset.StandardCharsets
 import java.util.Random
+
+
+import scala.collection.JavaConversions._
 
 
 trait UserRestful {
@@ -188,6 +190,29 @@ abstract class UserPwdAbstractUserRestful extends AbstractUserRestful with Loggi
     (userName.toString, password)
   }
 
+  def clearExpireCookie(gatewayContext: GatewayContext): Unit = {
+    val cookies = gatewayContext.getRequest.getCookies.values().flatMap(cookie => cookie).toArray
+    val expireCookies = cookies.filter(cookie => cookie.getName.equals(ServerConfiguration.LINKIS_SERVER_SESSION_TICKETID_KEY.getValue))
+    val host = gatewayContext.getRequest.getHeaders.get("Host")
+    val currentDomainLevel = GatewayConfiguration.GATEWAY_DOMAIN_LEVEL.getValue
+    if(host != null && host.nonEmpty) {
+      val maxDomainLevel = host.head.split("\\.").length
+      for(level <- currentDomainLevel to maxDomainLevel) {
+        expireCookies.clone().foreach(cookie => {
+          cookie.setValue(null)
+          cookie.setPath("/")
+          cookie.setMaxAge(0)
+          val domain = GatewaySSOUtils.getCookieDomain(host.head, level)
+          cookie.setDomain(domain)
+          gatewayContext.getResponse.addCookie(cookie)
+          logger.info(s"success clear user cookie: ${getUserNameAndPWD(gatewayContext)._1}" +
+            s"--${ServerConfiguration.LINKIS_SERVER_SESSION_TICKETID_KEY.getValue}" +
+            s"--${domain}")
+        })
+      }
+    }
+  }
+
   override protected def tryLogin(gatewayContext: GatewayContext): Message = {
     val (userName, password) = getUserNameAndPWD(gatewayContext)
     if (StringUtils.isBlank(userName)) {
@@ -207,6 +232,7 @@ abstract class UserPwdAbstractUserRestful extends AbstractUserRestful with Loggi
         // standard login
         val lowerCaseUserName = userName.toLowerCase
         message = login(lowerCaseUserName, password)
+        clearExpireCookie(gatewayContext)
         if (message.getStatus == 0) {
           GatewaySSOUtils.setLoginUser(gatewayContext, lowerCaseUserName)
         }
