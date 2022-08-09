@@ -194,10 +194,9 @@ abstract class UserPwdAbstractUserRestful extends AbstractUserRestful with Loggi
     val cookies = gatewayContext.getRequest.getCookies.values().flatMap(cookie => cookie).toArray
     val expireCookies = cookies.filter(cookie => cookie.getName.equals(ServerConfiguration.LINKIS_SERVER_SESSION_TICKETID_KEY.getValue))
     val host = gatewayContext.getRequest.getHeaders.get("Host")
-    val currentDomainLevel = GatewayConfiguration.GATEWAY_DOMAIN_LEVEL.getValue
     if(host != null && host.nonEmpty) {
       val maxDomainLevel = host.head.split("\\.").length
-      for(level <- currentDomainLevel to maxDomainLevel) {
+      for(level <- 1 to maxDomainLevel) {
         expireCookies.clone().foreach(cookie => {
           cookie.setValue(null)
           cookie.setPath("/")
