@@ -31,10 +31,13 @@ import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.scheduler.executer.{ErrorExecuteResponse, ExecuteResponse, SuccessExecuteResponse}
+
 import scala.collection.JavaConverters._
 import java.io.{BufferedReader, File, FileReader, IOException, InputStreamReader}
 import java.util
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicBoolean
+
 import scala.collection.mutable.ArrayBuffer
 
 class ShellEngineConnExecutor(id: Int) extends ComputationExecutor with Logging {
@@ -92,7 +95,7 @@ class ShellEngineConnExecutor(id: Int) extends ComputationExecutor with Logging 
 
       val workingDirectory = if (engineExecutionContext.getTotalParagraph == 1 &&
         engineExecutionContext.getProperties != null &&
-        engineExecutionContext.getProperties.containsKey(ShellEngineConnPluginConst.SHELL_RUNTIME_WORKING_DIRECTORY)){
+        engineExecutionContext.getProperties.containsKey(ShellEngineConnPluginConst.SHELL_RUNTIME_WORKING_DIRECTORY)) {
         Utils.tryCatch{
           val wdStr = engineExecutionContext.getProperties.get(ShellEngineConnPluginConst.SHELL_RUNTIME_WORKING_DIRECTORY).asInstanceOf[String]
           if(isExecutePathExist(wdStr)) {
@@ -129,15 +132,15 @@ class ShellEngineConnExecutor(id: Int) extends ComputationExecutor with Logging 
       bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream))
       errorsReader = new BufferedReader(new InputStreamReader(process.getErrorStream))
 
-      inputReaderThread = new ReaderThread(engineExecutionContext, bufferedReader, extractor, true)
-      errReaderThread = new ReaderThread(engineExecutionContext, bufferedReader, extractor, false)
+      val counter: CountDownLatch = new CountDownLatch(2)
+      inputReaderThread = new ReaderThread(engineExecutionContext, bufferedReader, extractor, true, counter)
+      errReaderThread = new ReaderThread(engineExecutionContext, errorsReader, extractor, false, counter)
 
       inputReaderThread.start()
       errReaderThread.start()
 
       val exitCode = process.waitFor()
-      joinThread(inputReaderThread)
-      joinThread(errReaderThread)
+      counter.await()
 
       completed.set(true)
 
@@ -149,16 +152,16 @@ class ShellEngineConnExecutor(id: Int) extends ComputationExecutor with Logging 
         logger.error("Execute shell code failed, reason:", e)
         ErrorExecuteResponse("run shell failed", e)
       }
-      case t: Throwable => ErrorExecuteResponse("Internal error executing shell process(执行shell进程内部错误)", t)
     } finally {
       if (!completed.get()) {
-        errReaderThread.interrupt()
-        joinThread(errReaderThread)
+        Utils.tryAndWarn(errReaderThread.interrupt())
+        Utils.tryAndWarn(inputReaderThread.interrupt())
       }
-
-      extractor.onDestroy()
-      inputReaderThread.onDestroy()
-      errReaderThread.onDestroy()
+      Utils.tryAndWarn{
+        extractor.onDestroy()
+        inputReaderThread.onDestroy()
+        errReaderThread.onDestroy()
+      }
 
       IOUtils.closeQuietly(bufferedReader)
       IOUtils.closeQuietly(errorsReader)
@@ -175,20 +178,9 @@ class ShellEngineConnExecutor(id: Int) extends ComputationExecutor with Logging 
   }
 
   private def generateRunCodeWithArgs(code: String, args: Array[String]): Array[String] = {
-    Array("sh", "-c", "echo \"dummy " + args.mkString(" ") + "\" | xargs sh -c \'" + code + "\'" ) //pass args by pipeline
+    Array("sh", "-c", "echo \"dummy " + args.mkString(" ") + "\" | xargs sh -c \'" + code + "\'")
   }
 
-  private def joinThread(thread: Thread) = {
-    while ({
-      thread.isAlive
-    }) {
-      Utils.tryCatch{
-        thread.join()
-      } { t =>
-        logger.warn("Exception thrown while joining on: " + thread, t)
-      }
-    }
-  }
 
   override def getId(): String = Sender.getThisServiceInstance.getInstance + "_" + id
 
