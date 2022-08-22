@@ -66,6 +66,9 @@ public class DefaultLockManagerPersistence implements LockManagerPersistence {
                 lockManagerMapper.lock(persistenceLock.getLockObject(), timeOut);
                 return true;
             } else {
+                logger.info(
+                        "Failed to obtain lock {} ,Because locker is exists",
+                        persistenceLock.getLockObject());
                 return false;
             }
         } catch (DataAccessException e) {
