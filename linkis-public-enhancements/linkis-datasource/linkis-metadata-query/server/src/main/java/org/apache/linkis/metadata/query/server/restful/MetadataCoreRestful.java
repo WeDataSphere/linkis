@@ -29,6 +29,7 @@ import org.apache.linkis.server.security.SecurityFilter;
 
 import org.apache.commons.lang3.StringUtils;
 
+import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -62,7 +63,7 @@ public class MetadataCoreRestful {
             if (!MetadataUtils.nameRegexPattern.matcher(dataSourceId).matches()) {
                 return Message.error("'dataSourceId' is invalid[数据源错误]");
             }
-
+            ModuleUserUtils.getOperationUser(request, "getDatabases, dataSourceId:" + dataSourceId);
             List<String> databases =
                     metadataAppService.getDatabasesByDsId(
                             dataSourceId, system, SecurityFilter.getLoginUsername(request));
@@ -94,6 +95,7 @@ public class MetadataCoreRestful {
             if (!MetadataUtils.nameRegexPattern.matcher(dataSourceId).matches()) {
                 return Message.error("'dataSourceId' is invalid[数据源错误]");
             }
+            ModuleUserUtils.getOperationUser(request, "getTables, dataSourceId:" + dataSourceId);
             List<String> tables =
                     metadataAppService.getTablesByDsId(
                             dataSourceId,
@@ -137,7 +139,7 @@ public class MetadataCoreRestful {
             if (!MetadataUtils.nameRegexPattern.matcher(dataSourceId).matches()) {
                 return Message.error("'dataSourceId' is invalid[数据源错误]");
             }
-
+            ModuleUserUtils.getOperationUser(request, "getTableProps, dataSourceId:" + dataSourceId);
             Map<String, String> tableProps =
                     metadataAppService.getTablePropsByDsId(
                             dataSourceId,
@@ -187,6 +189,7 @@ public class MetadataCoreRestful {
             if (!MetadataUtils.nameRegexPattern.matcher(dataSourceId).matches()) {
                 return Message.error("'dataSourceId' is invalid[数据源错误]");
             }
+            ModuleUserUtils.getOperationUser(request, "getPartitions, dataSourceId:" + dataSourceId);
             MetaPartitionInfo partitionInfo =
                     metadataAppService.getPartitionsByDsId(
                             dataSourceId,
@@ -238,6 +241,7 @@ public class MetadataCoreRestful {
             if (!MetadataUtils.nameRegexPattern.matcher(partition).matches()) {
                 return Message.error("'partition' is invalid[partition错误]");
             }
+            ModuleUserUtils.getOperationUser(request, "getPartitionProps, dataSourceId:" + dataSourceId);
             Map<String, String> partitionProps =
                     metadataAppService.getPartitionPropsByDsId(
                             dataSourceId,
