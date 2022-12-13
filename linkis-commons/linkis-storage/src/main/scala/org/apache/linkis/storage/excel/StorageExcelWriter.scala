@@ -196,6 +196,10 @@ class StorageExcelWriter(
     }
   }
 
+  /**
+   * Check whether the double exceeds the number of digits, which will affect the data accuracy
+   * @param elemValue
+   */
   private def doubleCheck(elemValue: String): Unit = {
     val value = new BigDecimal(elemValue).stripTrailingZeros
     if ((value.precision - value.scale) > 15) {
