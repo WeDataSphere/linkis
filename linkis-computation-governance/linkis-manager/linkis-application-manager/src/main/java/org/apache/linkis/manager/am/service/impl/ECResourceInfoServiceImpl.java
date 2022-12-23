@@ -26,8 +26,6 @@ import org.apache.linkis.manager.common.entity.persistence.PersistencerEcNodeInf
 import org.apache.linkis.manager.dao.ECResourceRecordMapper;
 import org.apache.linkis.manager.dao.LabelManagerMapper;
 import org.apache.linkis.manager.dao.NodeManagerMapper;
-import org.apache.linkis.manager.label.entity.Label;
-import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel;
 import org.apache.linkis.manager.label.service.NodeLabelService;
 import org.apache.linkis.manager.persistence.LabelManagerPersistence;
 
@@ -119,8 +117,8 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
 
     // map k:v---> instanceName：PersistencerEcNodeInfo
     Map<String, PersistencerEcNodeInfo> persistencerEcNodeInfoMap =
-            ecNodesInfo.stream()
-                    .collect(Collectors.toMap(PersistencerEcNodeInfo::getInstance, item -> item));
+        ecNodesInfo.stream()
+            .collect(Collectors.toMap(PersistencerEcNodeInfo::getInstance, item -> item));
 
     List<String> instanceList =
         ecNodesInfo.stream().map(e -> e.getInstance()).collect(Collectors.toList());
@@ -132,39 +130,38 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
     List<ECResourceInfoRecord> ecResourceInfoRecords =
         ecResourceRecordMapper.getECResourceInfoList(instanceList, engineTypeList);
 
-
     ecResourceInfoRecords.forEach(
         latestRecord -> {
+          PersistencerEcNodeInfo ecNodeinfo =
+              persistencerEcNodeInfoMap.get(latestRecord.getServiceInstance());
+          if (ecNodeinfo == null) {
+            logger.info("Can not get any ec node info of ec:{}", ecNodeinfo.getInstance());
+          } else {
+            try {
+              Map<String, Object> item =
+                  json.readValue(
+                      json.writeValueAsString(ecNodeinfo),
+                      new TypeReference<Map<String, Object>>() {});
 
-            PersistencerEcNodeInfo ecNodeinfo =persistencerEcNodeInfoMap.get(latestRecord.getServiceInstance());
-            if (ecNodeinfo == null) {
-              logger.info("Can not get any ec node info of ec:{}", ecNodeinfo.getInstance());
-            }else {
-              try {
-                Map<String, Object> item =
-                        json.readValue(
-                                json.writeValueAsString(ecNodeinfo), new TypeReference<Map<String, Object>>() {
-                                });
+              Integer intStatus = ecNodeinfo.getInstanceStatus();
+              item.put("instanceStatus", NodeStatus.values()[intStatus].name());
 
-                Integer intStatus = ecNodeinfo.getInstanceStatus();
-                item.put("instanceStatus", NodeStatus.values()[intStatus].name());
+              String usedResourceStr = latestRecord.getUsedResource();
+              /*
+              {"instance":1,"memory":"2.0 GB","cpu":1}
+              ->
+              {"driver":{"instance":1,"memory":"2.0 GB","cpu":1} }
+               */
 
-                String usedResourceStr = latestRecord.getUsedResource();
-                /*
-                {"instance":1,"memory":"2.0 GB","cpu":1}
-                ->
-                {"driver":{"instance":1,"memory":"2.0 GB","cpu":1} }
-                 */
-
-                item.put("useResource", ECResourceInfoUtils.getStringToMap(usedResourceStr));
-                item.put("ecmInstance", latestRecord.getEcmInstance());
-                String engineType = latestRecord.getLabelValue().split(",")[1].split("-")[0];
-                item.put("engineType", engineType);
-                resultList.add(item);
-              } catch (JsonProcessingException e) {
-                logger.error("Fail to process the ec node info: [{}]", ecNodeinfo, e);
-              }
+              item.put("useResource", ECResourceInfoUtils.getStringToMap(usedResourceStr));
+              item.put("ecmInstance", latestRecord.getEcmInstance());
+              String engineType = latestRecord.getLabelValue().split(",")[1].split("-")[0];
+              item.put("engineType", engineType);
+              resultList.add(item);
+            } catch (JsonProcessingException e) {
+              logger.error("Fail to process the ec node info: [{}]", ecNodeinfo, e);
             }
+          }
         });
 
     return resultList;

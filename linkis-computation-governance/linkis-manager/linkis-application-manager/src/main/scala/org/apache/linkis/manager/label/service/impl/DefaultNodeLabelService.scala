@@ -408,5 +408,4 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
     resultMap
   }
 
-
 }

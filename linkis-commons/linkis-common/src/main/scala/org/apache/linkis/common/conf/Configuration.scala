@@ -17,8 +17,9 @@
 
 package org.apache.linkis.common.conf
 
-import org.apache.commons.lang3.StringUtils
 import org.apache.linkis.common.utils.Logging
+
+import org.apache.commons.lang3.StringUtils
 
 object Configuration extends Logging {
 
@@ -66,11 +67,11 @@ object Configuration extends Logging {
 
   private val adminUsers = GOVERNANCE_STATION_ADMIN.getHotValue.split(",")
   private val historyAdminUsers = JOB_HISTORY_ADMIN.getHotValue.split(",")
+
   def isAdminToken(token: String): Boolean = {
     if (StringUtils.isBlank(token)) {
-        return false
-    }
-    else {
+      return false
+    } else {
       return token.toUpperCase().startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
     }
   }

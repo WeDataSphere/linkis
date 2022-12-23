@@ -22,7 +22,7 @@ import org.apache.linkis.common.utils.Utils
 import org.apache.linkis.manager.common.entity.enumeration.MaintainType
 
 object AMConfiguration {
-  
+
   val ECM_ADMIN_OPERATIONS = CommonVars("wds.linkis.governance.admin.operations", "")
 
   val ENGINE_START_MAX_TIME =

@@ -260,10 +260,7 @@ public class EngineRestfulApi {
       notes = "kill one engineconn or more ",
       response = Message.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(
-        name = "engineInstance",
-        dataType = "String",
-        example = "bdp110:12295"),
+    @ApiImplicitParam(name = "engineInstance", dataType = "String", example = "bdp110:12295"),
     @ApiImplicitParam(
         name = "applicationName",
         dataType = "String",
@@ -507,7 +504,6 @@ public class EngineRestfulApi {
         .data("errorMsg", engineOperateResponse.errorMsg())
         .data("isError", engineOperateResponse.isError());
   }
-
 
   static ServiceInstance getServiceInstance(JsonNode jsonNode) throws AMErrorException {
     String applicationName = jsonNode.get("applicationName").asText();
