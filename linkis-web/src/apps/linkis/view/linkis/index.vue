@@ -17,78 +17,83 @@
 
 <template>
   <div class="console-page">
-    <div class="console-page-content-head">
-      <div>
-        <span class="console-page-content-title">{{ $t('message.linkis.title') }}</span>
+    <template v-if="!noLayout">
+      <div class="console-page-content-head">
+        <div>
+          <span class="console-page-content-title">{{ $t('message.linkis.title') }}</span>
+        </div>
       </div>
-    </div>
-    <div class="console-page-content-body">
-      <div class="content-body-side-nav">
-        <Card
-          style="height:87vh; overflow: auto;"
-          :padding="sideNavList.padding"
-          :icon="sideNavList.icon"
-          shadow
-          class="content-body-card">
-          <CellGroup
-            v-for="(item, index2) in sideNavList.children"
-            :key="index2"
-            @on-click="handleCellClick">
-            <Cell
-              v-if="!isLogAdmin? (item.path !=='/console/ECM')&&(item.path !=='/console/microService')&&(item.key !== '1-10'):true"
+      <div class="console-page-content-body">
+        <div class="content-body-side-nav">
+          <Card
+            style="height:87vh; overflow: auto;"
+            :padding="sideNavList.padding"
+            :icon="sideNavList.icon"
+            shadow
+            class="content-body-card">
+            <CellGroup
+              v-for="(item, index2) in sideNavList.children"
               :key="index2"
-              :class="{ crrentItem: crrentItem === item.key }"
-              :title="item.name"
-              :name="item.key">
-              <div>
-                <span>{{item.name}}</span>
-                <div class="sub-menu-row">
-                  <Icon v-show="item.showSubMenu && (item.key === '1-8' || item.key === '1-9' || item.key === '1-10')" type="ios-arrow-down" class="user-icon"/>
-                  <Icon v-show="!item.showSubMenu && (item.key === '1-8' || item.key === '1-9' || item.key === '1-10')" type="ios-arrow-up" class="user-icon"/>
+              @on-click="handleCellClick">
+              <Cell
+                v-if="!isLogAdmin? (item.path !=='/console/ECM')&&(item.path !=='/console/microService')&&(item.key !== '1-10'):true"
+                :key="index2"
+                :class="{ crrentItem: crrentItem === item.key }"
+                :title="item.name"
+                :name="item.key">
+                <div>
+                  <span>{{item.name}}</span>
+                  <div class="sub-menu-row">
+                    <Icon v-show="item.showSubMenu && (item.key === '1-8' || item.key === '1-9' || item.key === '1-10')" type="ios-arrow-down" class="user-icon"/>
+                    <Icon v-show="!item.showSubMenu && (item.key === '1-8' || item.key === '1-9' || item.key === '1-10')" type="ios-arrow-up" class="user-icon"/>
+                  </div>
                 </div>
-              </div>
-              <div v-if="(item.key === '1-8' || item.key === '1-9' || item.key === '1-10') && !item.showSubMenu">
-                <div @click.stop="">
-                  <CellGroup
-                    v-for="(item3, index3) in (item.key === '1-9' ? urmSideNavList.children : item.key === '1-8' ?datasourceNavList.children:basedataNavList.children)"
-                    :key="index3"
-                    @on-click="clickToRoute">
-                    <div v-if="isLogAdmin ? true : item3.key === '1-8-1' || item3.key === '1-9-2' || item3.key === '1-9-3'">
-                      <Cell
-                        :key="index3"
-                        :class="{ crrentItem: crrentItem === item3.key }"
-                        :title="item3.name"
-                        :name="item3.key"/>
-                    </div>
-                  </CellGroup>
+                <div v-if="(item.key === '1-8' || item.key === '1-9' || item.key === '1-10') && !item.showSubMenu">
+                  <div @click.stop="">
+                    <CellGroup
+                      v-for="(item3, index3) in (item.key === '1-9' ? urmSideNavList.children : item.key === '1-8' ?datasourceNavList.children:basedataNavList.children)"
+                      :key="index3"
+                      @on-click="clickToRoute">
+                      <div v-if="isLogAdmin ? true : item3.key === '1-8-1' || item3.key === '1-9-2' || item3.key === '1-9-3'">
+                        <Cell
+                          :key="index3"
+                          :class="{ crrentItem: crrentItem === item3.key }"
+                          :title="item3.name"
+                          :name="item3.key"/>
+                      </div>
+                    </CellGroup>
+                  </div>
                 </div>
-              </div>
-            </Cell>
-          </CellGroup>
-        </Card>
-      </div>
-      <div
-        class="content-body-side-right">
-        <div class="content-body-side-right-title">
-          <Breadcrumb v-if="$route.name !== 'resource' && $route.name !== 'resourceEngineConnList'">
-            <BreadcrumbItem :to="skipPath"><Icon v-if="skipPath" type="ios-arrow-back" size="16" color="#338cf0"></Icon>{{ breadcrumbSecondName }}</BreadcrumbItem>
-            <BreadcrumbItem v-if="$route.name === 'viewHistory'">{{ $route.query.taskID }}</BreadcrumbItem>
-            <template v-if="$route.name === 'EngineConnList'">
-              <BreadcrumbItem>{{ $route.query.instance }}</BreadcrumbItem>
-              <BreadcrumbItem>EngineConnList</BreadcrumbItem>
-            </template>
-          </Breadcrumb>
-          <Tabs v-if="$route.name === 'resource' || $route.name === 'resourceEngineConnList'" value="resourceEngineConnList" @on-click="clickResourceTab" class="resource-tab">
-            <Tab-pane name="resourceEngineConnList" :label="$t('message.linkis.sideNavList.function.children.resourceEngineConnList')" href="/ecm"></Tab-pane>
-            <Tab-pane name="resource" :label="$t('message.linkis.sideNavList.function.children.resource')" href="/resource"></Tab-pane>
-          </Tabs>
+              </Cell>
+            </CellGroup>
+          </Card>
         </div>
         <div
-          class="content-body-side-right-content">
-          <router-view></router-view>
+          class="content-body-side-right">
+          <div class="content-body-side-right-title">
+            <Breadcrumb v-if="$route.name !== 'resource' && $route.name !== 'resourceEngineConnList'">
+              <BreadcrumbItem :to="skipPath"><Icon v-if="skipPath" type="ios-arrow-back" size="16" color="#338cf0"></Icon>{{ breadcrumbSecondName }}</BreadcrumbItem>
+              <BreadcrumbItem v-if="$route.name === 'viewHistory'">{{ $route.query.taskID }}</BreadcrumbItem>
+              <template v-if="$route.name === 'EngineConnList'">
+                <BreadcrumbItem>{{ $route.query.instance }}</BreadcrumbItem>
+                <BreadcrumbItem>EngineConnList</BreadcrumbItem>
+              </template>
+            </Breadcrumb>
+            <Tabs v-if="$route.name === 'resource' || $route.name === 'resourceEngineConnList'" value="resourceEngineConnList" @on-click="clickResourceTab" class="resource-tab">
+              <Tab-pane name="resourceEngineConnList" :label="$t('message.linkis.sideNavList.function.children.resourceEngineConnList')" href="/ecm"></Tab-pane>
+              <Tab-pane name="resource" :label="$t('message.linkis.sideNavList.function.children.resource')" href="/resource"></Tab-pane>
+            </Tabs>
+          </div>
+          <div
+            class="content-body-side-right-content">
+            <router-view></router-view>
+          </div>
         </div>
       </div>
-    </div>
+    </template>
+    <template v-else>
+      <router-view></router-view>
+    </template>
   </div>
 </template>
 <script>
@@ -170,9 +175,11 @@ export default {
     isEmbedInFrame() {
       // If it is introduced by iframe top !== self returns true, used to distinguish between running alone or being introduced(如果是被iframe引入时 top !== self 返回true，用来区分单独跑还是被引入)
       return top !== self;
+    },
+    noLayout() {
+      return this.$route.meta.noLayout;
     }
   },
-
   created() {
     // Display the title of the page based on the path(根据路径显示页面的标题)
     this.sideNavList.children.forEach(element => {
@@ -241,7 +248,7 @@ export default {
     } else if ((to.name === 'Console' && from.name === 'Home') || (to.name === 'Console' && from.name === 'Project') || (to.name === 'Console' && from.name === 'Workflow') || !from.name) {
       const lastActiveConsole = storage.get('lastActiveConsole');
       // If it is historical details, refresh directly(如果为历史详情则直接刷新)
-      if(to.name === 'viewHistory') return next();
+      if(['viewHistory', 'viewHistoryDetail'].includes(to.name)) return next();
       next((vm) => {
         if (lastActiveConsole) {
           if (lastActiveConsole.key === '1-9-1' || lastActiveConsole.key === '1-9-2') {
