@@ -103,15 +103,29 @@ export default {
     isdeleteListItem: {
       type: Boolean,
       default: false,
-    }
+    },
+    currentCardIndex: {
+      type: Number,
+      default: 0
+    },
   },
   data() {
     return {
       ulWidth: 0, // List container length(列表容器长度)
       liWidthTotal: 0, // total length of the list(列表总长)
       moveNum: 0, // Moving distance(移动距离)
-      currentIndex: 0, // currently highlighted(当前高亮)
     };
+  },
+  computed: {
+    // currently highlighted(当前高亮)
+    currentIndex: {
+      get() {
+        return this.currentCardIndex;
+      },
+      set(val) {
+        this.$emit('update:currentCardIndex', val);
+      }
+    }
   },
   watch: {
     categoryList() {
