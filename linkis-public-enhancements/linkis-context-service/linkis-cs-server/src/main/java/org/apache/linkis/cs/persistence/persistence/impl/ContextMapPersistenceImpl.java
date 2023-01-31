@@ -230,6 +230,11 @@ public class ContextMapPersistenceImpl implements ContextMapPersistence {
   }
 
   @Override
+  public void removeByKey(ContextID contextID, String keyStr) {
+    contextMapMapper.removeByKeyAndContextType(contextID, null, keyStr);
+  }
+
+  @Override
   public void removeByKeyPrefix(ContextID contextID, ContextType contextType, String keyPrefix) {
     contextMapMapper.removeByKeyPrefixAndContextType(contextID, contextType, keyPrefix);
   }

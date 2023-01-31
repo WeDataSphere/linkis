@@ -155,6 +155,7 @@ public class HttpContextClient extends AbstractContextClient {
   public Context createContext(ContextID contextID) throws ErrorException {
     ContextCreateAction contextCreateAction = new ContextCreateAction();
     String contextIDStr = SerializeHelper.serializeContextID(contextID);
+    LOGGER.info("contextIDStr: {}", contextIDStr);
     contextCreateAction.addHeader(ContextHTTPConstant.CONTEXT_ID_STR, contextIDStr);
     contextCreateAction.getRequestPayloads().put(ContextHTTPConstant.CONTEXT_ID_STR, contextIDStr);
     Result result = null;
@@ -738,6 +739,7 @@ public class HttpContextClient extends AbstractContextClient {
             .build();
     checkDWSResult(execute(action));
   }
+
 
   @Override
   public List<String> searchHAIDByTime(

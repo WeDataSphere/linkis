@@ -57,6 +57,8 @@ public interface ContextMapPersistence {
 
   void removeByKeyPrefix(ContextID contextID, String keyPrefix);
 
+  void removeByKey(ContextID contextID, String keyPrefix);
+
   void removeByKeyPrefix(ContextID contextID, ContextType contextType, String keyPrefix);
 
   void removeByKey(ContextID contextID, ContextType contextType, String keyPrefix);
