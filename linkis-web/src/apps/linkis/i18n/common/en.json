@@ -180,6 +180,12 @@
           }
         }
       },
+      "modal": {
+        "modalTitle": "prompt message ",
+        "modalDelete": "Confirm whether to delete the [{envName} option?",
+        "modalDeleteSuccess": "deleted successfully",
+        "modalDeleteFail": "Delete failed"
+      },
       "formItems": {
         "id": {
           "placeholder": "Please search by entering the ID"

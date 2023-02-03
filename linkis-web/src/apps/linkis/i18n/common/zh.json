@@ -172,6 +172,12 @@
           }
         }
       },
+      "modal": {
+        "modalTitle": "提示信息",
+        "modalDelete": "确认是否删除[{envName}]项?",
+        "modalDeleteSuccess": "删除成功",
+        "modalDeleteFail": "删除失败"
+      },
       "formItems": {
         "id": {
           "placeholder": "请输入ID搜索"
