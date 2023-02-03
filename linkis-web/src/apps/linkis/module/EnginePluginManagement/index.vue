@@ -87,7 +87,7 @@
               @click="handleCancel"
             >{{ $t('message.linkis.cancel') }}</Button>
             <Button type="primary" @click="onSubmit">{{
-              $t('message.linkis.complete')}}</Button>
+              $t('message.common.ok')}}</Button>
           </div>
         </div>
       </div>
