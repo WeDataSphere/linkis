@@ -130,6 +130,11 @@ export default {
   watch: {
     categoryList() {
       this.liWidthTotal = (this.categoryList.length + 1) * (225 + 20);
+    },
+    currentIndex(cur, old) {
+      if (cur > old && cur === (this.categoryList.length - 1)) {
+        this.getRight('last')
+      }
     }
   },
   beforeDestroy() {
@@ -168,7 +173,7 @@ export default {
       }
     },
     // Click right to switch(点击右切换)
-    getRight() {
+    getRight(type = 'last') {
       // Determine the total length of all li and the length of ul, and make a judgment operation(判断所有li总长度与ul的长度，并作出判断操作)
       // If the length of ul is less than the total length of li, make a detailed judgment(如果ul长度小于li总长，则进行详细判断)
       this.getRowWidth()
@@ -176,6 +181,11 @@ export default {
         // movable quantity(可移动数量)
         let canMoveNum = this.liWidthTotal - this.ulWidth;
         if (Math.abs(this.moveNum) <= canMoveNum) {
+          // Slide it to the far right
+          if (type === 'last') {
+            this.moveNum = -canMoveNum;
+            return;
+          }
           // If the offset is greater than the offset length, it is directly the maximum value(如果偏移量大于可偏移长度直接为最大值)
           let nextWidth = Math.abs(this.moveNum) + 245;
           if (nextWidth <= canMoveNum) {

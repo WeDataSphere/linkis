@@ -99,6 +99,7 @@
       :title="$t('message.linkis.editDescriptionEngineConfig')"
       v-model="isEditChildCategory"
       :mask-closable="false"
+      :ok-text="$t('message.common.ok')"
     >
       <!-- Editing of engine descriptions(引擎描述的编辑) -->
       <Form
@@ -140,6 +141,7 @@
       :title="$t('message.linkis.addParameterConfig')"
       v-model="isChildCategory"
       :mask-closable="false"
+      :ok-text="$t('message.common.ok')"
     >
       <!-- Editing of engine descriptions(引擎描述的编辑) -->
       <Form
@@ -193,6 +195,7 @@
       :title="$t('message.linkis.addAppType')"
       v-model="isAddApptype"
       :mask-closable="false"
+      :ok-text="$t('message.common.ok')"
     >
       <Form :label-width="80">
         <FormItem :label="`${$t('message.linkis.name')}：`">
@@ -465,7 +468,7 @@ export default {
             this.currentCardIndex = menuListItem.childCategory.length - 1;
           }
           let currentItem = menuListItem.childCategory[this.currentCardIndex];
-          if (!this.subCategory[menuListItem.categoryName]) {
+          if (!this.subCategory[menuListItem.categoryName] || condition === 'new') {
             this.subCategory[menuListItem.categoryName] = currentItem
           }
           type = `${menuListItem.categoryName}-${currentItem.categoryName}`
@@ -524,7 +527,7 @@ export default {
             }
           });
           // this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
-          this.$Message.success(`修改描述成功`);
+          this.$Message.success(this.$t('message.linkis.udf.success'));
         });
     },
 
@@ -541,6 +544,7 @@ export default {
             "post"
           )
         this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
+        this.$Message.success(this.$t('message.linkis.udf.success'));
       }
     },
     // Click Edit Directory to display the Delete button for the application and engine(点击编辑目录 显示应用和引擎的删除按钮)
@@ -628,6 +632,7 @@ export default {
               "post"
             )
             .then(() => {
+              this.$Message.success(this.$t('message.linkis.udf.success'));
               this.getMenuList('new'); //调用getMenuList 重新渲染新增的menuList数据
             });
         } else {
@@ -648,6 +653,7 @@ export default {
           "post"
         )
         .then(() => {
+          this.$Message.success(this.$t('message.linkis.udf.success'));
           this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
         });
 
