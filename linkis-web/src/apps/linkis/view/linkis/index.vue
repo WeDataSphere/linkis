@@ -145,8 +145,8 @@ export default {
           {key: '1-10-2', name: this.$t('message.linkis.sideNavList.function.children.errorCode'), path: '/console/errorCode' },
           {key: '1-10-3', name: this.$t('message.linkis.sideNavList.function.children.rmExternalResourceProvider'), path: '/console/rmExternalResourceProvider'},
           {key: '1-10-4', name: this.$t('message.linkis.sideNavList.function.children.EnginePluginManagement'), path: '/console/EnginePluginManagement' },
-          // {key: '1-10-5', name: this.$t('message.linkis.sideNavList.function.children.tenantTagManagement'), path: '/console/tenantTagManagement' },
-          // {key: '1-10-6', name: this.$t('message.linkis.sideNavList.function.children.ipListManagement'), path: '/console/ipListManagement' },
+          {key: '1-10-5', name: this.$t('message.linkis.sideNavList.function.children.tenantTagManagement'), path: '/console/tenantTagManagement' },
+          {key: '1-10-6', name: this.$t('message.linkis.sideNavList.function.children.ipListManagement'), path: '/console/ipListManagement' },
 
         ]
       },
