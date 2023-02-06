@@ -100,7 +100,7 @@ export default {
     let taskID = this.$route.query.taskID
     this.initHistory(taskID)
     const node = document.getElementsByClassName('global-history')[0];
-    this.scriptViewState.bottomContentHeight = node.clientHeight - 55
+    this.scriptViewState.bottomContentHeight = node.clientHeight - 85
   },
   computed: {
     isHistoryDetail() {
