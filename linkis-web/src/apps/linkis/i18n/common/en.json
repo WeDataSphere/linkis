@@ -181,11 +181,11 @@
         }
       },
       "modal": {
-        "modalTitle": "prompt message ",
+        "modalTitle": "Prompt message ",
         "modalDelete": "Confirm whether to delete the [{envName} option?",
-        "modalDeleteSuccess": "deleted successfully",
+        "modalDeleteSuccess": "Deleted successfully",
         "modalDeleteFail": "Delete failed"
-      },
+      }, 
       "formItems": {
         "id": {
           "placeholder": "Please search by entering the ID"
