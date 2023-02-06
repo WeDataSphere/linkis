@@ -121,11 +121,12 @@ const api = {
     successCode: '0',
     messagePath: 'message',
     resultPath: 'data',
+    errorMsgTipPath: 'errorMsgTip',
   },
 };
 
 const getData = function(data) {
-  let _arr = ['codePath', 'messagePath', 'resultPath'];
+  let _arr = ['codePath', 'messagePath', 'resultPath', 'errorMsgTipPath'];
   let res = {};
   _arr.forEach((item) => {
     let pathArray = api.constructionOfResponse[item].split('.');
@@ -157,18 +158,22 @@ const success = function(response) {
     } else if (util.isObject(response.data)) {
       data = response.data;
     } else {
-      throw new Error('后台接口异常，请联系开发处理！');
+      throw new Error(sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！');
     }
     let res = getData(data);
     let code = res.codePath;
     let message = res.messagePath;
     let result = res.resultPath;
+    let errorMsgTip = res.errorMsgTipPath;
+    if (errorMsgTip) {
+      sessionStorage.setItem('linkis.errorMsgTip', errorMsgTip)
+    }
     if (code != api.constructionOfResponse.successCode) {
       if (api.error[code]) {
         api.error[code](response);
         throw new Error('');
       } else {
-        throw new Error(message || '后台接口异常，请联系开发处理！');
+        throw new Error(message || sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！');
       }
     }
     if (result) {
@@ -194,7 +199,7 @@ const fail = function(error) {
   if (response && api.error[response.status]) {
     api.error[response.status].forEach((fn) => fn(response));
   } else {
-    _message = '后台接口异常，请联系开发处理！';
+    _message = sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！';
     if (response && response.data) {
       let data;
       if (util.isString(response.data)) {
