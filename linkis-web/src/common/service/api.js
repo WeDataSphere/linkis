@@ -200,7 +200,7 @@ const fail = function(error) {
     api.error[response.status].forEach((fn) => fn(response));
   } else {
     _message = '后台接口异常，请联系开发处理！';
-    if (response) _message = (sessionStorage.getItem('linkis.errorMsgTip') || '').replace(/%s/g, response.config.url)
+    if (response) _message = (sessionStorage.getItem('linkis.errorMsgTip') || '').replace(/%s/g, response.config.url) || '后台接口异常，请联系开发处理！';
     if (response && response.data) {
       let data;
       if (util.isString(response.data)) {
