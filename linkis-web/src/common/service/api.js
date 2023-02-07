@@ -120,13 +120,12 @@ const api = {
     codePath: 'status',
     successCode: '0',
     messagePath: 'message',
-    resultPath: 'data',
-    errorMsgTipPath: 'errorMsgTip',
+    resultPath: 'data'
   },
 };
 
 const getData = function(data) {
-  let _arr = ['codePath', 'messagePath', 'resultPath', 'errorMsgTipPath'];
+  let _arr = ['codePath', 'messagePath', 'resultPath'];
   let res = {};
   _arr.forEach((item) => {
     let pathArray = api.constructionOfResponse[item].split('.');
@@ -153,18 +152,19 @@ const success = function(response) {
   }
   let data;
   if (response) {
+    const linkis_errorMsgTip = (sessionStorage.getItem('linkis.errorMsgTip') || '').replace(/%s/g, response.config.url)
     if (util.isString(response.data)) {
       data = JSON.parse(response.data);
     } else if (util.isObject(response.data)) {
       data = response.data;
     } else {
-      throw new Error(sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！');
+      throw new Error(linkis_errorMsgTip || '后台接口异常，请联系开发处理！');
     }
     let res = getData(data);
     let code = res.codePath;
     let message = res.messagePath;
     let result = res.resultPath;
-    let errorMsgTip = res.errorMsgTipPath;
+    let errorMsgTip = result.errorMsgTip;
     if (errorMsgTip) {
       sessionStorage.setItem('linkis.errorMsgTip', errorMsgTip)
     }
@@ -173,7 +173,7 @@ const success = function(response) {
         api.error[code](response);
         throw new Error('');
       } else {
-        throw new Error(message || sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！');
+        throw new Error(message || linkis_errorMsgTip || '后台接口异常，请联系开发处理！');
       }
     }
     if (result) {
@@ -199,7 +199,8 @@ const fail = function(error) {
   if (response && api.error[response.status]) {
     api.error[response.status].forEach((fn) => fn(response));
   } else {
-    _message = sessionStorage.getItem('linkis.errorMsgTip') || '后台接口异常，请联系开发处理！';
+    _message = '后台接口异常，请联系开发处理！';
+    if (response) _message = (sessionStorage.getItem('linkis.errorMsgTip') || '').replace(/%s/g, response.config.url)
     if (response && response.data) {
       let data;
       if (util.isString(response.data)) {
