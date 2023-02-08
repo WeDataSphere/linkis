@@ -153,7 +153,7 @@
         <!-- Engine version information(应用方) -->
         <FormItem
           class="addTagClass"
-          label="应用方"
+          :label="`${$t('message.linkis.tableColumns.applicationRole')}：`"
         >
           <Input v-model="currentTabName" disabled />
         </FormItem>
@@ -175,7 +175,7 @@
             v-model="childCategoryFormItem.version"
             :data="versionList"
             :filter-method="filterMethod"
-            placeholder="如果没有对应的版本，请确认是否已安装对应的版本引擎物料"
+            :placeholder="$t('message.linkis.tableColumns.versioTips')"
             style="width:100%">
           </AutoComplete>
         </FormItem>

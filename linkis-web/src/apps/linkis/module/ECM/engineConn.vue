@@ -323,8 +323,8 @@ export default {
         return;
       }
       this.$Modal.confirm({
-        title: "提示信息",
-        content: "确认是否停止当前选择实例?",
+        title: this.$t('message.linkis.modal.modalTitle'),
+        content: this.$t('message.linkis.modal.modalDeleteInstance'),
         onOk: () => {
           let data = [];
           this.selection.forEach(row => {

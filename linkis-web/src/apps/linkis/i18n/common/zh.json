@@ -127,7 +127,9 @@
         "queueTop": "队列上限资源",
         "engineRemain": "引擎剩余资源",
         "engineUsed": "引擎已用资源",
-        "engineTop": "引擎上限资源"
+        "engineTop": "引擎上限资源",
+        "versioTips": "如果没有对应的版本，请确认是否已安装对应的版本引擎物料",
+        "applicationRole": "应用方"
       },
       "logLoading": "日志请求中，请稍后",
       "title": "Linkis管理台",
@@ -175,6 +177,9 @@
       "modal": {
         "modalTitle": "提示信息",
         "modalDelete": "确认是否删除[{envName}]项?",
+        "modalDeleteRecord": "确认是否删除该记录?",
+        "modalDeleteTask": "确认是否停止当前选择任务?",
+        "modalDeleteInstance": "确认是否停止当前选择实例?",
         "modalDeleteSuccess": "删除成功",
         "modalDeleteFail": "删除失败"
       },

@@ -664,8 +664,8 @@ export default {
         return;
       }
       this.$Modal.confirm({
-        title: '提示信息',
-        content: '确认是否停止当前选择任务？',
+        title: this.$t('message.linkis.modal.modalTitle'),
+        content: this.$t('message.linkis.modal.modalDeleteTask'),
         onOk: ()=>{
           const inst = {}
           selected.forEach(it => {
