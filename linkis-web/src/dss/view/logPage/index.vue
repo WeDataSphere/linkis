@@ -91,7 +91,7 @@ export default {
         }
         this.params = {
           path: res.task.logPath,
-          // proxyUser: res.task.umUser
+          // executeUser: res.task.executeUser
         };
         this.getLogs(this.params);
       }).catch(() => {
