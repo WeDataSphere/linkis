@@ -306,7 +306,7 @@ export default {
           path: jobhistory.task.logPath
         }
         if (this.$route.query.proxyUser) {
-          params.proxyUser = this.$route.query.executeUser
+          params.proxyUser = this.$route.query.proxyUser
         }
         let openLog = {}
         if (this.$route.query.status === 'Scheduled' || this.$route.query.status === 'Running') {
