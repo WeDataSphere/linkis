@@ -307,7 +307,9 @@
           "download": "Successfully downloaded, please check from the local download directory!"
         },
         "rowToColumn": "Switch row to column",
-        "rowToColumnTitle": "View current row details"
+        "rowToColumnTitle": "View current row details",
+        "placeholderSeparator": "Please enter a separator",
+        "selectSeparator": "Please select a custom separator："
       },
       "tableRow": {
         "detail": "Details of the selected row",

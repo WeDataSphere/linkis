@@ -131,6 +131,14 @@
                 </RadioGroup>
               </Row>
             </div>
+            <div v-if="+download.format === 1">
+              <Row>
+                {{$t('message.common.toolbar.selectSeparator')}}
+              </Row>
+              <Row>
+                <Input v-model="download.csvSeparator" size="small" :placeholder="$t('message.common.toolbar.placeholderSeparator')" />
+              </Row>
+            </div>
             <div v-if="isAll">
               <Row>
                 {{$t('message.common.toolbar.downloadMode')}}
@@ -251,6 +259,7 @@ export default {
         format: '1',
         coding: '1',
         nullValue: '1',
+        csvSeparator: ',',
       },
       isIconLabelShow: true,
       iconSize: 14,
@@ -284,6 +293,7 @@ export default {
           format: '1',
           coding: '1',
           nullValue: '1',
+          csvSeparator: ',',
         }
       }
       if (type === 'export') {
@@ -320,6 +330,7 @@ export default {
       const charset = this.download.coding === '1' ? 'utf-8' : 'gbk';
       const nullValue = this.download.nullValue === '1' ? 'NULL' : 'BLANK';
       const timestamp = moment.unix(moment().unix()).format('MMDDHHmm');
+      const separator = +this.download.format === 1 ? encodeURIComponent(this.download.csvSeparator) : '';
       let fileName = ''
       if (this.$route.query.fileName && this.$route.query.fileName !== 'undefined') {
         fileName = this.$route.query.fileName
@@ -341,7 +352,9 @@ export default {
       if(this.getResultUrl !== 'filesystem') {
         url += `&taskId=${this.comData.taskID}`
       }
-
+      if (+this.download.format === 1) {
+        url += `&csvSeparator=${separator}`
+      }
       // Before downloading, use the heartbeat interface to confirm whether to log in(下载之前条用心跳接口确认是否登录)
       await api.fetch('/user/heartbeat', 'get');
 
