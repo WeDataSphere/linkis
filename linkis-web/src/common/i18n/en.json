@@ -28,6 +28,13 @@
       "management": "Console",
       "feedback": "Feedback",
       "bbs": "BBS",
+      "separator": {
+        "comma": "Comma(,)",
+        "tab": "Tab(\\t)",
+        "semicolon": "Semicolon(;)",
+        "space": "Space(_)",
+        "vertical": "Vertical bar(|)"
+      },
       "tabs": {
         "progress": "Progress",
         "result": "Execution Result",
