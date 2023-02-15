@@ -314,7 +314,6 @@
         },
         "rowToColumn": "行转列",
         "rowToColumnTitle": "查看当前行详情",
-        "placeholderSeparator": "请输入分隔符",
         "selectSeparator": "请选择自定义分隔符："
       },
       "statusType": {

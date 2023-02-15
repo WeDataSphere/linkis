@@ -136,7 +136,14 @@
                 {{$t('message.common.toolbar.selectSeparator')}}
               </Row>
               <Row>
-                <Input v-model="download.csvSeparator" size="small" :placeholder="$t('message.common.toolbar.placeholderSeparator')" />
+                <Select v-model="download.csvSeparator" size="small">
+                  <Option
+                    v-for="(item, index) in separators"
+                    :label="item"
+                    :value="item"
+                    :key="item + index"
+                  />
+                </Select>
               </Row>
             </div>
             <div v-if="isAll">
@@ -264,7 +271,14 @@ export default {
       isIconLabelShow: true,
       iconSize: 14,
       allDownload: false, // whether to download all result sets(是否下载全部结果集)
-      resultsShowType: '2'
+      resultsShowType: '2',
+      separators: [
+        '\,',
+        '\t',
+        '\;',
+        '\_',
+        '\|'
+      ]
     };
   },
   computed: {
@@ -357,7 +371,6 @@ export default {
       }
       // Before downloading, use the heartbeat interface to confirm whether to log in(下载之前条用心跳接口确认是否登录)
       await api.fetch('/user/heartbeat', 'get');
-
       const link = document.createElement('a');
       link.setAttribute('href', url);
       link.setAttribute('download', '');
@@ -426,5 +439,12 @@ export default {
       }
     }
   }
+</style>
+<style lang="scss">
+.we-poptip {
+  .ivu-poptip-body-content {
+    overflow: inherit;
+  }
+}
 </style>
 
