@@ -237,6 +237,18 @@ export default {
           key: 'fileSize',
           tooltip: true,
           align: 'center',
+          render: (h, params) => {
+            if (!params.row.fileSize || isNaN(Number(params.row.fileSize)) ) {
+              return h('span', '');
+            }
+            let size = +params.row.fileSize;
+            let format = size >= 1024 * 1024 ?
+              Math.floor(size / (1024 * 1024)) + 'MB' :
+              size >= 1024 ?
+                Math.floor(size / 1024) + 'KB' :
+                size + 'B';
+            return h('span', format);
+          }
         },
         {
           title: this.$t('message.linkis.EnginePluginManagement.lastModified'),
