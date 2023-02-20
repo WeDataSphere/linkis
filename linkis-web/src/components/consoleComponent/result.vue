@@ -150,7 +150,7 @@
           :prev-text="$t('message.linkis.previousPage')" :next-text="$t('message.linkis.nextPage')"
           @on-change="change"
           @on-page-size-change="changeSize" />
-        <span class="hint-text">{{tableData.total === 5000 ? '前端只展示5000条数据' : ''}}</span>
+        <span class="hint-text">{{result.total === 5000 ? '前端只展示5000条数据' : ''}}</span>
       </div>
     </div>
     <we-menu

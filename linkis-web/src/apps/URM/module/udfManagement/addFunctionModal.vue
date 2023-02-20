@@ -694,7 +694,10 @@ export default {
     },
 
     setNodePath(node) {
-      this.$set(this.setting, this.getTypes(), node.path);
+      ['jarPath', 'sparkPath', 'customPath'].forEach(item => {
+        const temp = item === this.getTypes() ? node.path : '';
+        this.$set(this.setting, item, temp);
+      })
     },
 
     getTypes() {
