@@ -33,7 +33,7 @@
         "comma": "逗号(,)",
         "tab": "tab键(\\t)",
         "semicolon": "分号(;)",
-        "space": "空格(_)",
+        "space": "空格()",
         "vertical": "竖线(|)"
       },
       "tabs": {

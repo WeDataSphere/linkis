@@ -136,14 +136,11 @@
                 {{$t('message.common.toolbar.selectSeparator')}}
               </Row>
               <Row>
-                <Select v-model="download.csvSeparator" size="small">
-                  <Option
-                    v-for="(item) in separators"
-                    :label="item.label"
-                    :value="item.value"
-                    :key="item.value"
-                  />
-                </Select>
+                <RadioGroup v-model="download.csvSeparator">
+                  <Col span="10" :offset="index % 2 > 0 ? 4 : 0" v-for="(item, index) in separators" :key="item.value">
+                    <Radio :label="item.value">{{item.label}}</Radio>
+                  </Col>
+                </RadioGroup>
               </Row>
             </div>
             <div v-if="isAll">
@@ -276,7 +273,7 @@ export default {
         { key: ',', label: this.$t('message.common.separator.comma'), value: '1'},
         { key: '\t', label: this.$t('message.common.separator.tab'), value: '2'},
         { key: ';', label: this.$t('message.common.separator.semicolon'), value: '3'},
-        { key: '_', label: this.$t('message.common.separator.space'), value: '4'},
+        { key: '', label: this.$t('message.common.separator.space'), value: '4'},
         { key: '|', label: this.$t('message.common.separator.vertical'), value: '5'}
       ]
     };
@@ -440,12 +437,5 @@ export default {
       }
     }
   }
-</style>
-<style lang="scss">
-.we-poptip {
-  .ivu-poptip-body-content {
-    overflow: inherit;
-  }
-}
 </style>
 
