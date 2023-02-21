@@ -130,7 +130,7 @@ class StorageScriptFsWriterTest {
   @Test
   void TestOpen() throws FileNotFoundException {
 
-    // http://sit.dss.bdp.weoa.com/api/rest_j/v1/filesystem/openScriptFromBML?fileName=229cf765-6839-4c82-829d-1907c2ccf668.sql&resourceId=c9755cad-619b-4c1c-9204-cc4bb9836194&version=v000008&creator=&projectName=test1122a1
+    // /api/rest_j/v1/filesystem/openScriptFromBML?fileName=229cf765-6839-4c82-829d-1907c2ccf668.sql&resourceId=c9755cad-619b-4c1c-9204-cc4bb9836194&version=v000008&creator=&projectName=test1122a1
 
     String filePath = this.getClass().getResource("/scritpis-test.sql").getFile().toString();
 
@@ -143,15 +143,6 @@ class StorageScriptFsWriterTest {
 
     String scriptRes = collect.getSecond().get(0)[0];
     String metadataRes = new Gson().toJson(collect.getFirst());
-
-    System.out.println(scriptRes);
-    System.out.println("################");
-    System.out.println(scriptContent);
-
-    System.out.println("///////");
-    System.out.println(metadataRes);
-    System.out.println("################");
-    System.out.println(resultMetaData);
 
     Assertions.assertEquals(scriptRes, scriptContent + "\n");
 
