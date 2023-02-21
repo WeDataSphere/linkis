@@ -137,7 +137,7 @@
               </Row>
               <Row>
                 <RadioGroup v-model="download.csvSeparator">
-                  <Col span="10" :offset="index % 2 > 0 ? 4 : 0" v-for="(item, index) in separators" :key="item.value">
+                  <Col span="4" :offset="index > 0 ? 1 : 0" v-for="(item, index) in separators" :key="item.value">
                     <Radio :label="item.value">{{item.label}}</Radio>
                   </Col>
                 </RadioGroup>

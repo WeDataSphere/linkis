@@ -508,6 +508,7 @@ export default {
       this.editEngineFromItem.categoryId = item.categoryId;
       this.editEngineFromItem.categoryName =
         item.fatherCategoryName + "-" + item.categoryName;
+      this.editEngineFromItem.desc = item.description;
     },
     //Edit engine submission(编辑引擎提交)
     addEngineDesc() {
@@ -668,6 +669,7 @@ export default {
         )
         .then((res) => {
           this.versionList = res.queryList || [];
+          this.childCategoryFormItem.version = '';
         });
     },
     // Engine version filtering
