@@ -95,7 +95,7 @@
               @click="handleCancel"
             >{{ $t('message.linkis.cancel') }}</Button>
             <Button type="primary" @click="onSubmit" :disabled="!hasFile" :loading="isUploading">{{
-              $t('message.linkis.ok')}}</Button>
+              $t('message.common.ok')}}</Button>
           </div>
         </div>
       </div>
@@ -286,12 +286,12 @@ export default {
           tooltip: true,
           align: 'center',
         },
-        {
-          title: this.$t('message.linkis.EnginePluginManagement.action'),
-          slot: 'action',
-          minWidth: 20,
-          align: 'center',
-        },
+        // {
+        //   title: this.$t('message.linkis.EnginePluginManagement.action'),
+        //   slot: 'action',
+        //   minWidth: 20,
+        //   align: 'center',
+        // },
       ],
       pageDatalist: [],
       currentVersionList: [],
@@ -314,14 +314,14 @@ export default {
           minWidth: 60,
           align: 'center',
         },
-        {
-          title: this.$t('message.linkis.EnginePluginManagement.action'),
-          key: 'action',
-          tooltip: true,
-          minWidth: 120,
-          align: 'center',
-          slot: 'action',
-        },
+        // {
+        //   title: this.$t('message.linkis.EnginePluginManagement.action'),
+        //   key: 'action',
+        //   tooltip: true,
+        //   minWidth: 120,
+        //   align: 'center',
+        //   slot: 'action',
+        // },
       ],
     }
   },

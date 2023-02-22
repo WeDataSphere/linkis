@@ -391,7 +391,7 @@ export default {
       this.breadcrumbSecondName = activedCell ? activedCell.name : '';
       storage.set('lastActiveConsole', activedCell)
       this.$router.push({
-        path: activedCell.path,
+        path: activedCell ? activedCell.path : '',
         query: {
           workspaceId: this.$route.query.workspaceId,
         },

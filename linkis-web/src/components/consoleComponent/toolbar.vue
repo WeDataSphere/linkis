@@ -70,7 +70,7 @@
       <li v-if="analysistext.flag !== 2 && rsDownload" :style="{cursor: rsDownload ? 'pointer': 'not-allowed'}">
         <Poptip
           :transfer="true"
-          :width="200"
+          :width="400"
           v-model="popup.download"
           placement="right"
           popper-class="we-poptip">
@@ -249,9 +249,7 @@ export default {
     }
   },
   data() {
-    const rsDownload = this.getProjectJsonResult('rsDownload', 'linkis')
     return {
-      rsDownload,
       popup: {
         download: false,
         export: false,
@@ -292,6 +290,9 @@ export default {
     },
     isAll() {
       return ['hql', 'sql'].includes(this.script.runType) && this.download.format === '2';
+    },
+    rsDownload() {
+      return this.getProjectJsonResult('rsDownload', 'linkis');
     }
   },
   mounted() {
