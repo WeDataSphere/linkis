@@ -24,7 +24,7 @@ import org.apache.linkis.entrance.conf.EntranceConfiguration$;
 import org.apache.linkis.entrance.constant.ServiceNameConsts;
 import org.apache.linkis.entrance.execute.EntranceJob;
 import org.apache.linkis.entrance.log.LogReader;
-import org.apache.linkis.governance.common.protocol.conf.EntranceInstanceConfRequest;
+import org.apache.linkis.governance.common.protocol.conf.JobHistoryConfRequest;
 import org.apache.linkis.rpc.Sender;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,14 +65,12 @@ public class DefaultEntranceServer extends EntranceServer {
     if ((Boolean) EntranceConfiguration$.MODULE$.SEND_INSTANCE().getValue()) {
       Sender sender =
           Sender.getSender(
-              EntranceConfiguration$.MODULE$
-                  .QUERY_PERSISTENCE_SPRING_APPLICATION_NAME()
-                  .getValue());
+              EntranceConfiguration$.MODULE$.JOBHISTORY_SPRING_APPLICATION_NAME().getValue());
       ServiceInstance thisServiceInstance = Sender.getThisServiceInstance();
       logger.info(
           "-------------------------------Start  ServiceInstance ----------: "
               + thisServiceInstance.getInstance());
-      sender.ask(new EntranceInstanceConfRequest(thisServiceInstance.getInstance()));
+      sender.ask(new JobHistoryConfRequest(thisServiceInstance.getInstance()));
     }
   }
 

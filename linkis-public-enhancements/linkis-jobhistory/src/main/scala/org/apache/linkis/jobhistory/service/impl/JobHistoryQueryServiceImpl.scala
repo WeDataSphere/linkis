@@ -26,7 +26,7 @@ import org.apache.linkis.governance.common.entity.job.{
   QueryException,
   SubJobDetail
 }
-import org.apache.linkis.governance.common.protocol.conf.EntranceInstanceConfRequest
+import org.apache.linkis.governance.common.protocol.conf.JobHistoryConfRequest
 import org.apache.linkis.governance.common.protocol.job._
 import org.apache.linkis.jobhistory.conversions.TaskConversions._
 import org.apache.linkis.jobhistory.dao.JobHistoryMapper
@@ -434,7 +434,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
 
   @Receiver
   override def clearUndoneTasksByEntranceInstance(
-      request: EntranceInstanceConfRequest,
+      request: JobHistoryConfRequest,
       sender: Sender
   ): Unit = {
     // Query incomplete tasks
@@ -449,10 +449,11 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
     val jobHistoryList =
       jobHistoryMapper.search(null, null, statusList, sDate, eDate, null, null, request.instance)
     val idlist = jobHistoryList.asScala.map(_.getId).asJava
-    logger.info("Tasks id will be canceled id :{}", idlist)
+    logger.info("Tasks id will be canceled ids :{}", idlist)
     // Modify task status
-    val errorMsg = JobhistoryErrorCodeSummary.USER_IP_EXCEPTION.getErrorDesc
+    val errorMsg = JobhistoryErrorCodeSummary.UNFINISHED_TASKS.getErrorDesc
     if (!idlist.isEmpty) {
+      if (idlist.size() >= 1000) logger.error("The number of batch modification tasks exceeds 1000")
       Lists
         .partition(idlist, 100)
         .asScala

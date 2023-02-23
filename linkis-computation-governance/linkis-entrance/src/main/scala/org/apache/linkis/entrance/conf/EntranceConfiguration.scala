@@ -33,11 +33,10 @@ object EntranceConfiguration {
   val MULTI_ENTRANCE_CONDITION = CommonVars("wds.linkis.entrance.multi.entrance.flag", true)
 
   /**
-   * QUERY_PERSISTENCE_SPRING_APPLICATION_NAME is the name of the application that represents the
-   * query module in springcloud QUERY_PERSISTENCE_SPRING_APPLICATION_NAME
-   * 是表示query模块在springcloud中的应用名称
+   * JOBHISTORY_SPRING_APPLICATION_NAME is the name of the application that represents the query
+   * module in springcloud QUERY_PERSISTENCE_SPRING_APPLICATION_NAME 是表示query模块在springcloud中的应用名称
    */
-  val QUERY_PERSISTENCE_SPRING_APPLICATION_NAME =
+  val JOBHISTORY_SPRING_APPLICATION_NAME =
     CommonVars("wds.linkis.query.application.name", "linkis-ps-jobhistory")
 
   /**
@@ -226,6 +225,6 @@ object EntranceConfiguration {
     CommonVars("wds.linkis.entrance.user.creator.ip.interceptor.switch", false)
 
   val SEND_INSTANCE =
-    CommonVars("wds.linkis.entrance.auto.check.job.status.enable", true)
+    CommonVars("linkis.entrance.auto.check.job.status.enable", true)
 
 }
