@@ -271,7 +271,7 @@ export default {
         { key: ',', label: this.$t('message.common.separator.comma'), value: '1'},
         { key: '\t', label: this.$t('message.common.separator.tab'), value: '2'},
         { key: ';', label: this.$t('message.common.separator.semicolon'), value: '3'},
-        { key: '', label: this.$t('message.common.separator.space'), value: '4'},
+        { key: ' ', label: this.$t('message.common.separator.space'), value: '4'},
         { key: '|', label: this.$t('message.common.separator.vertical'), value: '5'}
       ]
     };
