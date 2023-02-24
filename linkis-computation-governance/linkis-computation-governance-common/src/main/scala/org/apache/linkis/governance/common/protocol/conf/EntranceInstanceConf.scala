@@ -19,8 +19,8 @@ package org.apache.linkis.governance.common.protocol.conf
 
 import org.apache.linkis.protocol.message.RequestProtocol
 
-trait JobHistoryConf extends RequestProtocol
+trait EntranceInstanceConf extends RequestProtocol
 
-case class JobHistoryConfRequest(instance: String) extends JobHistoryConf
+case class EntranceInstanceConfRequest(instance: String) extends EntranceInstanceConf
 
-case class JobHistoryConfResponse()
+case class EntranceInstanceConfResponse()

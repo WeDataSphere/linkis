@@ -26,7 +26,7 @@ import org.apache.linkis.governance.common.entity.job.{
   QueryException,
   SubJobDetail
 }
-import org.apache.linkis.governance.common.protocol.conf.JobHistoryConfRequest
+import org.apache.linkis.governance.common.protocol.conf.EntranceInstanceConfRequest
 import org.apache.linkis.governance.common.protocol.job._
 import org.apache.linkis.jobhistory.conversions.TaskConversions._
 import org.apache.linkis.jobhistory.dao.JobHistoryMapper
@@ -434,7 +434,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
 
   @Receiver
   override def clearUndoneTasksByEntranceInstance(
-      request: JobHistoryConfRequest,
+      request: EntranceInstanceConfRequest,
       sender: Sender
   ): Unit = {
     // Query incomplete tasks

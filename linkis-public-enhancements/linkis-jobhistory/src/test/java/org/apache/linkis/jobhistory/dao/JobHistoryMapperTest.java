@@ -175,9 +175,7 @@ public class JobHistoryMapperTest extends BaseDaoTest {
     List<Long> idList = new ArrayList<>();
     idList.add(1L);
     jobHistoryMapper.updateJobHistoryCancelById(idList, errorMsg);
-    JobHistory jobHistory = createJobHistory();
-    jobHistory.setId(1L);
-    List<JobHistory> histories = jobHistoryMapper.selectJobHistory(jobHistory);
-    Assertions.assertEquals("Cancelled", histories.get(0).getStatus());
+    String status = jobHistoryMapper.selectJobHistoryStatusForUpdate(1L);
+    Assertions.assertEquals("Cancelled", status);
   }
 }
