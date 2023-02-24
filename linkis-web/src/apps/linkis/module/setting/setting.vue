@@ -655,9 +655,25 @@ export default {
         )
         .then(() => {
           this.$Message.success(this.$t('message.linkis.udf.success'));
+          this.currentTabName = this.addApptypeFormItem.name;
           this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
+          this.$nextTick(() => {
+            let contentWidth = document.querySelector('.ivu-tabs-nav').clientWidth;
+            this.moveTab(contentWidth);
+          })
         });
 
+    },
+    // Move tab
+    moveTab(contentWidth) {
+      let wrapperWidth = document.querySelector('.ivu-tabs-nav-scroll').clientWidth;
+      while ((contentWidth - wrapperWidth) > 0) {
+        setTimeout(() => {
+          document.querySelector('.ivu-tabs-nav-next').click();
+        }, 500)
+        contentWidth -= wrapperWidth;
+        this.moveTab(contentWidth);
+      }
     },
     // Select engine type
     changeEngine(type) {
