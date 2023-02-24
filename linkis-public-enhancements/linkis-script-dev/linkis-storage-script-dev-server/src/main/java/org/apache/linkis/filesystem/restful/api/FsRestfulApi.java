@@ -708,6 +708,12 @@ public class FsRestfulApi {
     if (csvSeparator.equals(",") && !csvSeperator.equals(",")) {
       csvSeparator = csvSeperator;
     }
+    LOGGER.info(
+        "resultsetToExcel with outputFileType:{}, csvSeparator:{}, quoteRetouchEnable:{}, charset:{}",
+        outputFileType,
+        csvSeparator,
+        quoteRetouchEnable,
+        charset);
     try {
       String userName = ModuleUserUtils.getOperationUser(req, "resultsetToExcel " + path);
       FsPath fsPath = new FsPath(path);
