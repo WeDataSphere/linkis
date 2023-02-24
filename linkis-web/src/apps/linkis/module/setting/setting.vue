@@ -684,7 +684,13 @@ export default {
           "get"
         )
         .then((res) => {
-          this.versionList = res.queryList || [];
+          this.versionList = (res.queryList || []).map(item => {
+            if (/^v/.test(item)) {
+              return item.replace(/v/, '');
+            } else {
+              return item;
+            }
+          });
           this.childCategoryFormItem.version = '';
         });
     },
