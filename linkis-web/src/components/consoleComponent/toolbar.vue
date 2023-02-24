@@ -211,6 +211,7 @@ import tableRow from './tableRow.vue';
 import mixin from '@/common/service/mixin';
 import api from '@/common/service/api';
 import 'material-design-icons/iconfont/material-icons.css';
+import storage from '@/common/helper/storage';
 export default {
   components: {
     resultsExport,
@@ -292,7 +293,7 @@ export default {
       return ['hql', 'sql'].includes(this.script.runType) && this.download.format === '2';
     },
     rsDownload() {
-      return this.getProjectJsonResult('rsDownload', 'linkis');
+      return storage.get('resultSetExportEnable');
     }
   },
   mounted() {
