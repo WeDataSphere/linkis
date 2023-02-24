@@ -54,6 +54,8 @@ public class EcmClearTask {
   public void init() {
     logger.info("Schedule Task is init");
     CleanExpiredThread cleanExpiredThread = new CleanExpiredThread();
-    Utils.defaultScheduler().scheduleAtFixedRate(cleanExpiredThread, 10, 86400, TimeUnit.SECONDS);
+    // Once a day
+    Utils.defaultScheduler()
+        .scheduleAtFixedRate(cleanExpiredThread, 10, 24 * 60 * 60, TimeUnit.SECONDS);
   }
 }
