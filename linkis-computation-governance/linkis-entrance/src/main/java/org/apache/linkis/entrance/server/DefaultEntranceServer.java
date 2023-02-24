@@ -65,9 +65,7 @@ public class DefaultEntranceServer extends EntranceServer {
     if ((Boolean) EntranceConfiguration$.MODULE$.SEND_INSTANCE().getValue()) {
       Sender sender =
           Sender.getSender(
-              EntranceConfiguration$.MODULE$
-                  .QUERY_PERSISTENCE_SPRING_APPLICATION_NAME()
-                  .getValue());
+              EntranceConfiguration$.MODULE$.JOBHISTORY_SPRING_APPLICATION_NAME().getValue());
       ServiceInstance thisServiceInstance = Sender.getThisServiceInstance();
       logger.info(
           "-------------------------------Start  ServiceInstance ----------: "

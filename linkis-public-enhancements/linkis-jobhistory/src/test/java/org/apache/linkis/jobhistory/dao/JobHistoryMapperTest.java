@@ -18,6 +18,7 @@
 package org.apache.linkis.jobhistory.dao;
 
 import org.apache.linkis.jobhistory.entity.JobHistory;
+import org.apache.linkis.jobhistory.errorcode.JobhistoryErrorCodeSummary;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -165,5 +166,16 @@ public class JobHistoryMapperTest extends BaseDaoTest {
 
     String status = jobHistoryMapper.selectJobHistoryStatusForUpdate(1L);
     Assertions.assertEquals("Succeed", status);
+  }
+
+  @Test
+  @DisplayName("updateJobHistoryCancelByIdTest")
+  public void updateJobHistoryCancelByIdTest() {
+    String errorMsg = JobhistoryErrorCodeSummary.UNFINISHED_TASKS.getErrorDesc();
+    List<Long> idList = new ArrayList<>();
+    idList.add(1L);
+    jobHistoryMapper.updateJobHistoryCancelById(idList, errorMsg);
+    String status = jobHistoryMapper.selectJobHistoryStatusForUpdate(1L);
+    Assertions.assertEquals("Cancelled", status);
   }
 }
