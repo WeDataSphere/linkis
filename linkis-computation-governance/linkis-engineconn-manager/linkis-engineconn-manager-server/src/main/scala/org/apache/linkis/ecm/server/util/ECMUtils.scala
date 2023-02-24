@@ -28,7 +28,6 @@ import org.apache.linkis.ecm.server.conf.ECMConfiguration.{
   ECM_PROTECTED_CORES,
   ECM_PROTECTED_INSTANCES,
   ECM_PROTECTED_MEMORY,
-  ECM_STIMATE_ACTUAL_CORE_ENABLE,
   ECM_STIMATE_ACTUAL_MEMORY_ENABLE
 }
 import org.apache.linkis.ecm.server.exception.ECMErrorException
