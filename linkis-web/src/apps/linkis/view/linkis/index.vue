@@ -333,6 +333,10 @@ export default {
       this.isLogAdmin = res.admin
       storage.set('isLogAdmin', res.admin, 'session')
     })
+    // Whether the result set can be downloaded
+    api.fetch('/user/baseinfo', 'get').then((res) => {
+      storage.set('resultSetExportEnable', res.resultSetExportEnable ? true : false,'session')
+    })
   },
   methods: {
     handleCellClick(index) {
