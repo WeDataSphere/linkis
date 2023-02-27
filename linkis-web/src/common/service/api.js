@@ -108,7 +108,7 @@ instance.interceptors.response.use((response) => {
 const api = {
   instance: instance,
   error: {
-    '-1': function(res) {
+    '-1': function (res) {
       if (res.data && res.data.enableSSO && res.data.SSOURL) {
         return window.location.replace(res.data.SSOURL);
       }
@@ -124,7 +124,7 @@ const api = {
   },
 };
 
-const getData = function(data) {
+const getData = function (data) {
   let _arr = ['codePath', 'messagePath', 'resultPath'];
   let res = {};
   _arr.forEach((item) => {
@@ -144,9 +144,9 @@ const getData = function(data) {
   return res;
 };
 
-const success = function(response) {
+const success = function (response) {
   if (util.isNull(api.constructionOfResponse.codePath) || util.isNull(api.constructionOfResponse.successCode) ||
-        util.isNull(api.constructionOfResponse.messagePath) || util.isNull(api.constructionOfResponse.resultPath)) {
+    util.isNull(api.constructionOfResponse.messagePath) || util.isNull(api.constructionOfResponse.resultPath)) {
     console.error('【FEX】Api配置错误: 请调用setConstructionOfResponse来设置API的响应结构');
     return;
   }
@@ -178,7 +178,7 @@ const success = function(response) {
     }
     if (result) {
       let len = 0
-      let hasBigData = Object.values(result).some(item=>{
+      let hasBigData = Object.values(result).some(item => {
         if (Array.isArray(item)) {
           len = item.length > len ? item.length : len
           return len > 200
@@ -193,7 +193,7 @@ const success = function(response) {
   }
 };
 
-const fail = function(error) {
+const fail = function (error) {
   let _message = '';
   let response = error.response;
   if (response && api.error[response.status]) {
@@ -218,7 +218,7 @@ const fail = function(error) {
   throw error;
 };
 
-const param = function(url, data, option) {
+const param = function (url, data, option) {
   let method = 'post';
   if (util.isNull(url)) {
     return console.error('请传入URL');
@@ -266,21 +266,43 @@ const param = function(url, data, option) {
   return instance.request(option);
 };
 
-const action = function(url, data, option) {
+const action = function (url, data, option) {
   return param(url, data, option)
     .then(success, fail)
-    .then(function(response) {
+    .then(function (response) {
       return response;
     })
-    .catch(function(error) {
-      error.message && Message.error(error.message);
+    .catch(function (error) {
+      if (error.message) {
+        let urlReg = /(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?/g;
+        let result = error.message.match(urlReg);
+        result ? Message.error({
+          duration: 3,
+          render: h => {
+            let context = error.message.split(result[0]);
+            return h('span', [
+              context[0],
+              h('a', {
+                domProps: {
+                  href: result[0],
+                  target: '_blank'
+                },
+              }, result[0]),
+              context[1],
+            ])
+          }
+        }) : Message.error({
+          duration: 1.5,
+          content: error.message
+        });
+      }
       throw error;
     });
 };
 
 api.fetch = action;
 
-api.option = function(option) {
+api.option = function (option) {
   if (option.root) {
     instance.defaults.baseURL = option.root;
   }
@@ -288,19 +310,19 @@ api.option = function(option) {
     instance.defaults.timeout = option.timeout;
   }
   if (option.config && util.isObject(option.config)) {
-    Object.keys(option.config).forEach(function(key) {
+    Object.keys(option.config).forEach(function (key) {
       instance.defaults[key] = option.config[key];
     });
   }
 };
 
-api.setError = function(option) {
+api.setError = function (option) {
   if (option && util.isObject(option)) {
     util.merge(api.error, option);
   }
 };
 
-api.setResponse = function(constructionOfResponse) {
+api.setResponse = function (constructionOfResponse) {
   this.constructionOfResponse = constructionOfResponse;
 };
 
