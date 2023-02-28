@@ -340,7 +340,7 @@ export default {
           rst.fullTree.forEach((item) => {
             item.settings = orderBy(item.settings, ["level"], ["asc"]);
             if (item.settings.length) {
-              if (parameter[0] !== '全局设置') {
+              if (parameter[0] !== '全局设置' && parameter[0] !== 'GlobalSettings') {
                 item.settings = item.settings.filter(set => set.engineType)
               }
               item.settings.forEach((set) => {

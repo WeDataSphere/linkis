@@ -84,6 +84,11 @@
       "common": "通用",
       "tenant": "租户标签",
       "inputTenant": "请输入租户标签",
+      "resultSet": {
+        "prefixText": "因为您的结果集较大，为了更好的体验，",
+        "linkText": "点击查看结果集",
+        "largeResultTips": "前端只展示5000条数据"
+      },
       "warning": {
         "api": "接口请求中，请稍候！",
         "data": "数据请求中，请稍候！",
@@ -560,7 +565,7 @@
         "fileSize": "文件大小",
         "lastModified": "文件更新时间",
         "bmlResourceId": "物料资源Id",
-        "bmlResourceVersion": "物料资源版本",
+        "bmlResoourceVersion": "物料资源版本",
         "lastUpdateTime": "更新时间",
         "createTime": "创建时间",
         "Reset": "重置",

@@ -83,6 +83,11 @@
       "common": "Common",
       "tenant": "Tenant",
       "inputTenant": "Please Input Tenant",
+      "resultSet": {
+        "prefixText": "Because your result set is large, for a better experience, ",
+        "linkText": "View result set",
+        "largeResultTips": "The front end displays only 5000 pieces of data"
+      },
       "warning": {
         "api": "Requesting API, please hold on!",
         "data": "Requesting data, please hold on!",
