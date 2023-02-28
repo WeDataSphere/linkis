@@ -565,7 +565,7 @@
         "fileSize": "文件大小",
         "lastModified": "文件更新时间",
         "bmlResourceId": "物料资源Id",
-        "bmlResoourceVersion": "物料资源版本",
+        "bmlResourceVersion": "物料资源版本",
         "lastUpdateTime": "更新时间",
         "createTime": "创建时间",
         "Reset": "重置",
