@@ -422,7 +422,7 @@ export default {
                   ) {
                     delete s.validateRangeList;
                   }
-                  if (err.message.indexOf(s.key) > -1) {
+                  if (err.message.indexOf(s.key + '-') > -1) { // - end tag
                     msg = s.description;
                     key = s.key;
                   }
