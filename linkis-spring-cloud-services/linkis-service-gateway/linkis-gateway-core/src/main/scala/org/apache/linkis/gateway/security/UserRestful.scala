@@ -88,6 +88,7 @@ abstract class AbstractUserRestful extends UserRestful with Logging {
       case "publicKey" => publicKey(gatewayContext)
       case "heartbeat" => heartbeat(gatewayContext)
       case "proxy" => proxy(gatewayContext)
+      case "baseinfo" => baseinfo(gatewayContext)
       case _ =>
         Message.error("unknown request URI " + path)
     }
@@ -114,7 +115,6 @@ abstract class AbstractUserRestful extends UserRestful with Logging {
     message
       .data("sessionTimeOut", SSOUtils.getSessionTimeOut())
       .data("enableWatermark", GatewayConfiguration.ENABLE_WATER_MARK.getValue)
-      .data("resultSetExportEnable", GatewayConfiguration.IS_DOWNLOAD.getValue)
     if (securityHooks != null) securityHooks.foreach(_.postLogin(gatewayContext))
     message
   }
@@ -140,6 +140,12 @@ abstract class AbstractUserRestful extends UserRestful with Logging {
       "userName",
       GatewaySSOUtils.getLoginUsername(gatewayContext)
     )
+  }
+
+  def baseinfo(gatewayContext: GatewayContext): Message = {
+    Message
+      .ok("get baseinfo success(获取成功)！")
+      .data("resultSetExportEnable", GatewayConfiguration.IS_DOWNLOAD.getValue)
   }
 
   def publicKey(gatewayContext: GatewayContext): Message = {
