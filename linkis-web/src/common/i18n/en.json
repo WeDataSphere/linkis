@@ -32,7 +32,7 @@
         "comma": "Comma(,)",
         "tab": "Tab(\\t)",
         "semicolon": "Semicolon(;)",
-        "space": "Space(_)",
+        "space": "Space()",
         "vertical": "Vertical bar(|)"
       },
       "tabs": {

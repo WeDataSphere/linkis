@@ -337,10 +337,12 @@ export default {
         .then((rst) => {
           this.loading = false;
           //Whether the currently active tab is the same tab as the clicked engine(当前活动的tab 是否和点击的引擎同一个tab)
-          this.fullTree = rst.fullTree;
-          this.fullTree.forEach((item) => {
+          rst.fullTree.forEach((item) => {
             item.settings = orderBy(item.settings, ["level"], ["asc"]);
             if (item.settings.length) {
+              if (parameter[0] !== '全局设置' && parameter[0] !== 'GlobalSettings') {
+                item.settings = item.settings.filter(set => set.engineType)
+              }
               item.settings.forEach((set) => {
                 if (set.validateType === "OFT") {
                   set.validateRangeList = this.formatValidateRange(
@@ -357,6 +359,7 @@ export default {
               });
             }
           });
+          this.fullTree = rst.fullTree.filter(item => item.settings && item.settings.length);
         })
         .catch(() => {
           this.loading = false;
@@ -419,7 +422,7 @@ export default {
                   ) {
                     delete s.validateRangeList;
                   }
-                  if (err.message.indexOf(s.key) > -1) {
+                  if (err.message.indexOf(s.key + '-') > -1) { // - end tag
                     msg = s.description;
                     key = s.key;
                   }
@@ -488,8 +491,9 @@ export default {
       this.currentTabName = name;
       this.showCardItem(name);
     },
+    // Added parameter configuration modal(新增参数配置modal)
     addChildCategory() {
-      this.isChildCategory = true;
+      this.handleEngineAdd();
     },
     // Click on sub item settings(点击子项设置)
     clickChildCategory(title, index, item) {
@@ -508,6 +512,7 @@ export default {
       this.editEngineFromItem.categoryId = item.categoryId;
       this.editEngineFromItem.categoryName =
         item.fatherCategoryName + "-" + item.categoryName;
+      this.editEngineFromItem.desc = item.description;
     },
     //Edit engine submission(编辑引擎提交)
     addEngineDesc() {
@@ -608,9 +613,22 @@ export default {
     // Display the new application type modal(显示新增应用类型modal)
     handleTabsAdd() {
       this.isAddApptype = true;
+      this.addApptypeFormItem = {
+        name: "",
+        order: "",
+        desc: "",
+      }
     },
+    // Added parameter configuration modal(新增参数配置modal)
     handleEngineAdd() {
       this.isChildCategory = true;
+      this.childCategoryFormItem = {
+        name: "",
+        tagList: [],
+        version: "",
+        type: "",
+        desc: "",
+      }
     },
     // Add engine configuration(新增引擎配置)
     addParameterSet() {
@@ -654,9 +672,25 @@ export default {
         )
         .then(() => {
           this.$Message.success(this.$t('message.linkis.udf.success'));
+          this.currentTabName = this.addApptypeFormItem.name;
           this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
+          this.$nextTick(() => {
+            let contentWidth = document.querySelector('.ivu-tabs-nav').clientWidth;
+            this.moveTab(contentWidth);
+          })
         });
 
+    },
+    // Move tab
+    moveTab(contentWidth) {
+      let wrapperWidth = document.querySelector('.ivu-tabs-nav-scroll').clientWidth;
+      while ((contentWidth - wrapperWidth) > 0) {
+        setTimeout(() => {
+          document.querySelector('.ivu-tabs-nav-next').click();
+        }, 500)
+        contentWidth -= wrapperWidth;
+        this.moveTab(contentWidth);
+      }
     },
     // Select engine type
     changeEngine(type) {
@@ -667,7 +701,14 @@ export default {
           "get"
         )
         .then((res) => {
-          this.versionList = res.queryList || [];
+          this.versionList = (res.queryList || []).map(item => {
+            if (/^v/.test(item)) {
+              return item.replace(/v/, '');
+            } else {
+              return item;
+            }
+          });
+          this.childCategoryFormItem.version = '';
         });
     },
     // Engine version filtering
