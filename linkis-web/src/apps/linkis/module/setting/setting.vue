@@ -337,10 +337,12 @@ export default {
         .then((rst) => {
           this.loading = false;
           //Whether the currently active tab is the same tab as the clicked engine(当前活动的tab 是否和点击的引擎同一个tab)
-          this.fullTree = rst.fullTree;
-          this.fullTree.forEach((item) => {
+          rst.fullTree.forEach((item) => {
             item.settings = orderBy(item.settings, ["level"], ["asc"]);
             if (item.settings.length) {
+              if (parameter[0] !== '全局设置') {
+                item.settings = item.settings.filter(set => set.engineType)
+              }
               item.settings.forEach((set) => {
                 if (set.validateType === "OFT") {
                   set.validateRangeList = this.formatValidateRange(
@@ -357,6 +359,7 @@ export default {
               });
             }
           });
+          this.fullTree = rst.fullTree.filter(item => item.settings && item.settings.length);
         })
         .catch(() => {
           this.loading = false;
@@ -488,8 +491,9 @@ export default {
       this.currentTabName = name;
       this.showCardItem(name);
     },
+    // Added parameter configuration modal(新增参数配置modal)
     addChildCategory() {
-      this.isChildCategory = true;
+      this.handleEngineAdd();
     },
     // Click on sub item settings(点击子项设置)
     clickChildCategory(title, index, item) {
@@ -609,9 +613,22 @@ export default {
     // Display the new application type modal(显示新增应用类型modal)
     handleTabsAdd() {
       this.isAddApptype = true;
+      this.addApptypeFormItem = {
+        name: "",
+        order: "",
+        desc: "",
+      }
     },
+    // Added parameter configuration modal(新增参数配置modal)
     handleEngineAdd() {
       this.isChildCategory = true;
+      this.childCategoryFormItem = {
+        name: "",
+        tagList: [],
+        version: "",
+        type: "",
+        desc: "",
+      }
     },
     // Add engine configuration(新增引擎配置)
     addParameterSet() {
