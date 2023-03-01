@@ -15,9 +15,6 @@
  * limitations under the License.
  */
 
-
-ALTER TABLE `linkis_ps_job_history_group_history` ADD COLUMN `observe_info` VARCHAR(500) NULL DEFAULT NULL ;
-
 update linkis_cg_manager_label set label_value ="*-GlobalSettings,*-*"  where label_key ="combined_userCreator_engineType" and id = 1;
 update linkis_ps_configuration_config_key set en_treeName ="QueueResources" where treeName  = '队列资源';
 update linkis_ps_configuration_config_key set en_treeName ="SparkResourceSettings" where treeName  = 'spark资源设置';
@@ -255,7 +252,6 @@ INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) 
 
 INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('12015','您好，您设置的执行器内存已经超过了集群的限定值%s，请减少到限定值以下','Required executor memory (\\S+)',0);
 
-alter table `linkis_cg_ec_resource_info_record`  add column `metrics` VARCHAR(1024) DEFAULT NULL COMMENT 'ec metrics';
 
 
 

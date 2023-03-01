@@ -218,4 +218,7 @@ ALTER TABLE `linkis_ps_dm_datasource_type` ADD COLUMN `classifier_en` varchar(32
 ALTER TABLE `linkis_ps_dm_datasource_type_key` ADD COLUMN `name_en` varchar(32) DEFAULT NULL COMMENT 'english name';
 ALTER TABLE `linkis_ps_dm_datasource_type_key` ADD COLUMN `description_en` varchar(200) DEFAULT NULL COMMENT 'english description';
 
+ALTER TABLE `linkis_ps_job_history_group_history` ADD COLUMN `observe_info` varchar(500) DEFAULT NULL COMMENT 'The notification information configuration of this job';
+
+alter table `linkis_cg_ec_resource_info_record`  add column `metrics` VARCHAR(1024) DEFAULT NULL COMMENT 'ec metrics';
 
