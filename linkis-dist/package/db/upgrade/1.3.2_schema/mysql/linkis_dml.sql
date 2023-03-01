@@ -253,7 +253,7 @@ update linkis_ps_dm_datasource_type_key set description_en="Input JSON Format: {
 
 INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('43041','用户UDF函数 %s 加载失败，请检查后再执行','Invalid function (\\S+)',0);
 
-INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('12015','您好，您设置的执行器内存已经超过了集群的限定值%s，请减少到限定值以下','Required executor memory (\\S+)',0);
+INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('12015','您好，您设置的执行器内存已经超过了集群的限定值%s，请减少到限定值以下','is above the max threshold (\\S+.+\\))',0);
 
 alter table `linkis_cg_ec_resource_info_record`  add column `metrics` VARCHAR(1024) DEFAULT NULL COMMENT 'ec metrics';
 
