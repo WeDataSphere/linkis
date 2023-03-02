@@ -272,7 +272,7 @@ insert into `linkis_cg_manager_label` (`label_key`, `label_value`, `label_featur
 
 
 -- Associate first-level and second-level directories
-select @label_id := id from linkis_cg_manager_label where `label_value` = '*-全局设置,*-*';
+select @label_id := id from linkis_cg_manager_label where `label_value` = '*-GlobalSettings,*-*';
 insert into linkis_ps_configuration_category (`label_id`, `level`) VALUES (@label_id, 1);
 
 select @label_id := id from linkis_cg_manager_label where `label_value` = '*-IDE,*-*';

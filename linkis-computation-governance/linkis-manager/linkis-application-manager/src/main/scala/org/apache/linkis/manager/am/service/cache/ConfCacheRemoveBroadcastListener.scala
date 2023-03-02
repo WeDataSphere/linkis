@@ -51,6 +51,9 @@ class ConfCacheRemoveBroadcastListener extends BroadcastListener with Logging {
               request.engineTypeLabel,
               null
             )
+            logger.info(
+              s"success to clear request :${request.toString}  and ${globalRequest.toString}"
+            )
             cacheableRPCInterceptor.removeCache(request.toString)
             cacheableRPCInterceptor.removeCache(globalRequest.toString)
             logger.info(
