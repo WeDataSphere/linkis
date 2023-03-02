@@ -84,6 +84,11 @@
       "common": "通用",
       "tenant": "租户标签",
       "inputTenant": "请输入租户标签",
+      "resultSet": {
+        "prefixText": "因为您的结果集较大，为了更好的体验，",
+        "linkText": "点击查看结果集",
+        "largeResultTips": "前端只展示5000条数据"
+      },
       "warning": {
         "api": "接口请求中，请稍候！",
         "data": "数据请求中，请稍候！",
@@ -574,7 +579,11 @@
         "rollback": "回滚",
         "action": "操作",
         "checkEngineConnTypeAndVersion": "请选择引擎类型及版本",
-        "upload": "请点击上传引擎插件"
+        "upload": "请点击上传引擎插件",
+        "hasUpload": "文件已上传，可以点击按钮重新上传",
+        "force": "是否覆盖",
+        "yes": "是",
+        "no": "否"
       },
       "codeQuery": {
         "executionCode": "执行代码",

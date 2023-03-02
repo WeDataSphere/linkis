@@ -103,12 +103,12 @@ object ECMUtils extends Logging {
     if (ECM_STIMATE_ACTUAL_MEMORY_ENABLE) {
 
       // 90%
-      val totalByte = (HardwareUtils.getMaxMemory() * 0.9).asInstanceOf[Int]
+      val totalByte = (HardwareUtils.getMaxMemory() * 0.9).asInstanceOf[Long]
 
       val resultMemory = math.max(totalByte, ECM_PROTECTED_MEMORY)
       // max of PhysicalMemory or ECM_PROTECTED_MEMORY
       logger.info(
-        s"Ecm protected memory:${ECM_PROTECTED_MEMORY} byte, ecm machine physical  max memory:${totalByte} byte, will use the lager one:${resultMemory}"
+        s"Ecm protected memory:${ECM_PROTECTED_MEMORY} byte, ecm machine physical max memory:${totalByte} byte, will use the lager one:${resultMemory}"
       )
       resultMemory
 

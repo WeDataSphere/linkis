@@ -70,7 +70,7 @@
       <li v-if="analysistext.flag !== 2 && rsDownload" :style="{cursor: rsDownload ? 'pointer': 'not-allowed'}">
         <Poptip
           :transfer="true"
-          :width="200"
+          :width="500"
           v-model="popup.download"
           placement="right"
           popper-class="we-poptip">
@@ -136,14 +136,11 @@
                 {{$t('message.common.toolbar.selectSeparator')}}
               </Row>
               <Row>
-                <Select v-model="download.csvSeparator" size="small">
-                  <Option
-                    v-for="(item) in separators"
-                    :label="item.label"
-                    :value="item.value"
-                    :key="item.value"
-                  />
-                </Select>
+                <RadioGroup v-model="download.csvSeparator" style="width: 100%;">
+                  <Col v-for="item in separators" :key="item.value" :span="item.span" :offset="item.offset">
+                    <Radio :label="item.value">{{item.label}}</Radio>
+                  </Col>
+                </RadioGroup>
               </Row>
             </div>
             <div v-if="isAll">
@@ -214,6 +211,7 @@ import tableRow from './tableRow.vue';
 import mixin from '@/common/service/mixin';
 import api from '@/common/service/api';
 import 'material-design-icons/iconfont/material-icons.css';
+import storage from '@/common/helper/storage';
 export default {
   components: {
     resultsExport,
@@ -252,9 +250,7 @@ export default {
     }
   },
   data() {
-    const rsDownload = this.getProjectJsonResult('rsDownload', 'linkis')
     return {
-      rsDownload,
       popup: {
         download: false,
         export: false,
@@ -273,11 +269,11 @@ export default {
       allDownload: false, // whether to download all result sets(是否下载全部结果集)
       resultsShowType: '2',
       separators: [
-        { key: ',', label: this.$t('message.common.separator.comma'), value: '1'},
-        { key: '\t', label: this.$t('message.common.separator.tab'), value: '2'},
-        { key: ';', label: this.$t('message.common.separator.semicolon'), value: '3'},
-        { key: '_', label: this.$t('message.common.separator.space'), value: '4'},
-        { key: '|', label: this.$t('message.common.separator.vertical'), value: '5'}
+        { key: ',', label: this.$t('message.common.separator.comma'), value: '1', span: 4, offset: 0},
+        { key: '\t', label: this.$t('message.common.separator.tab'), value: '2', span: 4, offset: 1},
+        { key: ' ', label: this.$t('message.common.separator.space'), value: '3', span: 4, offset: 1},
+        { key: '|', label: this.$t('message.common.separator.vertical'), value: '4', span: 4, offset: 1 },
+        { key: ';', label: this.$t('message.common.separator.semicolon'), value: '5', span: 4, offset: 1}
       ]
     };
   },
@@ -295,6 +291,9 @@ export default {
     },
     isAll() {
       return ['hql', 'sql'].includes(this.script.runType) && this.download.format === '2';
+    },
+    rsDownload() {
+      return storage.get('resultSetExportEnable');
     }
   },
   mounted() {
@@ -440,12 +439,5 @@ export default {
       }
     }
   }
-</style>
-<style lang="scss">
-.we-poptip {
-  .ivu-poptip-body-content {
-    overflow: inherit;
-  }
-}
 </style>
 
