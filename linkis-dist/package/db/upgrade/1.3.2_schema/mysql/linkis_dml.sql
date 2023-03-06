@@ -96,7 +96,7 @@ update linkis_ps_configuration_config_key set en_name ="Yarn Queue" where name =
 update linkis_ps_configuration_config_key set en_name ="Maximum Number Of Queue Instances" where name ="队列实例最大个数";
 update linkis_ps_configuration_config_key set en_name ="Maximum Queue CPU Usage" where name ="队列CPU使用上限";
 update linkis_ps_configuration_config_key set en_name ="Maximum Queue Memory Usage" where name ="队列内存使用上限";
-update linkis_ps_configuration_config_key set en_name ="Global Upper Limit Of Each Engine's Memory Usage" where name ="全局各个引擎内存使用上限";
+update linkis_ps_configuration_config_key set en_name ="Global Upper Limit Of Each Engines Memory Usage" where name ="全局各个引擎内存使用上限";
 update linkis_ps_configuration_config_key set en_name ="Maximum Number Of Global Engine Cores" where name ="全局各个引擎核心个数上限";
 update linkis_ps_configuration_config_key set en_name ="Maximum Concurrent Number Of Global Engines" where name ="全局各个引擎最大并发数";
 update linkis_ps_configuration_config_key set en_name ="Maximum Concurrent Number Of Spark Engine" where name ="spark引擎最大并发数";
