@@ -280,7 +280,7 @@ public class ConfigurationRestfulApi {
       List<CategoryLabelVo> allCategory = categoryService.getAllCategory(null);
       List<CategoryLabelVo> categoryLabelVos =
           allCategory.stream()
-              .filter(s -> s.getCategoryName().equals("IDE"))
+              .filter(s -> s.getCategoryName().equals(Configuration.REMOVE_APPLICATION_CACHE()))
               .map(CategoryLabelVo::getChildCategory)
               .findFirst()
               .get();
@@ -294,15 +294,14 @@ public class ConfigurationRestfulApi {
               if (tmpString.length == 2) {
                 engine2 = tmpString[0];
                 version2 = tmpString[1];
-                configurationService.clearAMCacheConf(username, "IDE", engine2, version2);
+                configurationService.clearAMCacheConf(username, Configuration.REMOVE_APPLICATION_CACHE(), engine2, version2);
               }
             }
           });
     } else {
       configurationService.clearAMCacheConf(username, creator, engine, version);
     }
-    Message message = Message.ok();
-    return message;
+    return Message.ok();
   }
 
   @ApiOperation(
