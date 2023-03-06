@@ -275,7 +275,32 @@ public class ConfigurationRestfulApi {
       version = tmpString[1];
     }
     configurationService.updateUserValue(createList, updateList);
-    configurationService.clearAMCacheConf(username, creator, engine, version);
+    // TODO: Add a refresh cache interface later
+    if (StringUtils.isNotBlank(creator) && creator.equals("*")) {
+      List<CategoryLabelVo> allCategory = categoryService.getAllCategory(null);
+      List<CategoryLabelVo> categoryLabelVos =
+          allCategory.stream()
+              .filter(s -> s.getCategoryName().equals("IDE"))
+              .map(CategoryLabelVo::getChildCategory)
+              .findFirst()
+              .get();
+      categoryLabelVos.forEach(
+          info -> {
+            String categoryName = info.getCategoryName();
+            String engine2 = null;
+            String version2 = null;
+            if (StringUtils.isNotBlank(categoryName)) {
+              String[] tmpString = categoryName.split("-");
+              if (tmpString.length == 2) {
+                engine2 = tmpString[0];
+                version2 = tmpString[1];
+                configurationService.clearAMCacheConf(username, "IDE", engine2, version2);
+              }
+            }
+          });
+    } else {
+      configurationService.clearAMCacheConf(username, creator, engine, version);
+    }
     Message message = Message.ok();
     return message;
   }
