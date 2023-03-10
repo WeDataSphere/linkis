@@ -28,16 +28,6 @@ object CommonLogPathUtils {
   def buildCommonPath(commonPath: String): Unit = {
     val fileSystem = getRootFs(commonPath)
     fileSystem.init(null)
-    val realPath: String = if (commonPath.endsWith("/")) {
-      commonPath.substring(0, commonPath.length - 1)
-    } else {
-      commonPath
-    }
-    val fsPath = new FsPath(realPath)
-    if (!fileSystem.exists(fsPath)) {
-      FileSystemUtils.mkdirs(fileSystem, fsPath, StorageUtils.getJvmUser)
-      fileSystem.setPermission(fsPath, "770")
-    }
     Utils.tryQuietly(fileSystem.close())
   }
 

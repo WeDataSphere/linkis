@@ -24,8 +24,7 @@ import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
 import org.apache.linkis.entrance.exception.EntranceErrorException
 import org.apache.linkis.storage.FSFactory
 import org.apache.linkis.storage.fs.FileSystem
-import org.apache.linkis.storage.utils.FileSystemUtils
-
+import org.apache.linkis.storage.utils.{FileSystemUtils, StorageUtils}
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.hdfs.client.HdfsDataOutputStream
 import org.apache.hadoop.io.IOUtils
@@ -55,6 +54,18 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
 
   private def init(): Unit = {
     fileSystem.init(new util.HashMap[String, String]())
+    Utils.tryCatch {
+      val logFsPath = new FsPath(logPath)
+      if (StorageUtils.HDFS == logFsPath.getFsType) {
+        val fsPath = logFsPath.getParent.getParent
+        if (!fileSystem.exists(fsPath)) {
+          FileSystemUtils.mkdirs(fileSystem, fsPath, StorageUtils.getJvmUser)
+          fileSystem.setPermission(fsPath, "770")
+        }
+      }
+    } { e: Throwable =>
+      logger.warn("path check error. log path is: " + logPath, e)
+    }
     FileSystemUtils.createNewFileWithFileSystem(fileSystem, new FsPath(logPath), user, true)
   }
 
