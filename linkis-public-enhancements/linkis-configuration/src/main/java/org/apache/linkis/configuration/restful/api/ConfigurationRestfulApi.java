@@ -284,20 +284,22 @@ public class ConfigurationRestfulApi {
               .map(CategoryLabelVo::getChildCategory)
               .findFirst()
               .get();
-      categoryLabelVos.forEach(
-          info -> {
-            String categoryName = info.getCategoryName();
-            String engine2 = null;
-            String version2 = null;
-            if (StringUtils.isNotBlank(categoryName)) {
-              String[] tmpString = categoryName.split("-");
-              if (tmpString.length == 2) {
-                engine2 = tmpString[0];
-                version2 = tmpString[1];
-                configurationService.clearAMCacheConf(username, Configuration.REMOVE_APPLICATION_CACHE(), engine2, version2);
-              }
-            }
-          });
+      categoryLabelVos.stream()
+          .map(CategoryLabelVo::getCategoryName)
+          .filter(StringUtils::isNotBlank)
+          .forEach(
+              info -> {
+                String[] tmpString = info.split("-");
+                if (tmpString.length == 2) {
+                  String engineName = tmpString[0];
+                  String engineVersion = tmpString[1];
+                  configurationService.clearAMCacheConf(
+                      username,
+                      Configuration.REMOVE_APPLICATION_CACHE(),
+                      engineName,
+                      engineVersion);
+                }
+              });
     } else {
       configurationService.clearAMCacheConf(username, creator, engine, version);
     }
