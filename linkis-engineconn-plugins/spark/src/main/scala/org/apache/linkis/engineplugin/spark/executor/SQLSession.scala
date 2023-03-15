@@ -215,12 +215,9 @@ object SQLSession extends Logging {
 
       case (str: String, StringType) => str.replaceAll("\n|\t", " ")
       case (double: Double, DoubleType) =>
-        logger.info("double :" + double)
         if (double.isNaN) {
-          logger.info("double y:" + double)
           "NaN"
         } else {
-          logger.info("double n:" + double)
           nf.format(double)
         }
       case (decimal: java.math.BigDecimal, DecimalType()) => formatDecimal(decimal)
