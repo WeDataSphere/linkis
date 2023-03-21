@@ -130,7 +130,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
       Map<String, Object> resultmap = null;
       try {
         resultmap = HttpsUtil.sendHttp(null, null);
-        logger.info("ResourceMonitor  response  {}:", resultmap);
+        logger.info("Request ecm list  response  {}:", resultmap);
       } catch (IOException e) {
         logger.warn("failed to get ecmResource data");
       }
@@ -161,7 +161,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
   }
 
   @Override
-  public Boolean userExists(String user, String creator) {
+  public Boolean isExist(String user, String creator) {
     boolean result = false;
     Map<String, Object> resultMap =
         queryTenantList(user.toLowerCase(), creator.toLowerCase(), null, 1, 20);

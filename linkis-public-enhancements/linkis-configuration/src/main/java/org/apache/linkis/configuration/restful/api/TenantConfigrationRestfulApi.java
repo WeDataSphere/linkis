@@ -75,7 +75,7 @@ public class TenantConfigrationRestfulApi {
       if (!Configuration.isAdmin(userName)) {
         return Message.error("Failed to create-tenant,msg: only administrators can configure");
       }
-      if (tenantConfigService.userExists(tenantVo.getUser(), tenantVo.getCreator())) {
+      if (tenantConfigService.isExist(tenantVo.getUser(), tenantVo.getCreator())) {
         throw new ConfigurationException("User-creator is existed");
       }
       parameterVerification(tenantVo);
@@ -240,7 +240,7 @@ public class TenantConfigrationRestfulApi {
       if (!Configuration.isAdmin(userName)) {
         return Message.error("Failed to check-user-creator,msg: only administrators can configure");
       }
-      result = tenantConfigService.userExists(user, creator);
+      result = tenantConfigService.isExist(user, creator);
       // The incoming id represents the update. The update allows user-create
       if (StringUtils.isNotBlank(id)) {
         result = !result;
