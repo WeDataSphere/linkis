@@ -127,15 +127,16 @@ public class TenantConfigServiceImpl implements TenantConfigService {
     if (!tenantVo.getCreator().equals("*")) {
       AtomicReference<Boolean> tenantResult = new AtomicReference<>(false);
       // Obtain the tenant information of the ECM list
-      Map<String, Object> resultmap = null;
+      Map<String, Object> ecmListResult = null;
       try {
-        resultmap = HttpsUtil.sendHttp(null, null);
-        logger.info("Request ecm list  response  {}:", resultmap);
+        ecmListResult = HttpsUtil.sendHttp(null, null);
+        logger.info("Request ecm list  response  {}:", ecmListResult);
       } catch (IOException e) {
         logger.warn("failed to get ecmResource data");
       }
-      Map<String, List<Map<String, Object>>> data = MapUtils.getMap(resultmap, "data");
+      Map<String, List<Map<String, Object>>> data = MapUtils.getMap(ecmListResult, "data");
       List<Map<String, Object>> emNodeVoList = data.get("EMs");
+      // Compare ECM list tenant labels for task
       emNodeVoList.forEach(
           ecmInfo -> {
             List<Map<String, Object>> labels = (List<Map<String, Object>>) ecmInfo.get("labels");
