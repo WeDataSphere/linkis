@@ -57,9 +57,8 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
 
   private def init(): Unit = {
     fileSystem.init(new util.HashMap[String, String]())
-    var logFsPath: FsPath = null
+    val logFsPath: FsPath = new FsPath(logPath)
     Utils.tryCatch {
-      logFsPath = new FsPath(logPath)
       CommonLogPathUtils.buildCommonPath(logFsPath.getParent.getParent.getPath)
     } { e: Throwable =>
       logger.warn("path check error. log path is: " + logPath, e)
