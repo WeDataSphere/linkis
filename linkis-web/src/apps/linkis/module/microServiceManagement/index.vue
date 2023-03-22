@@ -46,8 +46,8 @@
         <Button class="search" type="primary" @click="searchAction">{{
           $t("message.linkis.find")
         }}</Button>
-        <!-- jump(跳转) -->
-        <Button class="jump" type="primary" @click="handleTabsJump">{{ $t("message.linkis.eurekaRegisterCenter") }}</Button>
+        <!-- 跳转 -->
+        <Button class="jump" type="primary" @click="handleTabsJump">{{ $t("message.linkis.serviceRegistryCenter") }}</Button>
       </Col>
     </Row>
     <Table
@@ -108,6 +108,7 @@
       v-model="modifyShow"
       :title="$t('message.linkis.edit')"
       @on-ok="modifyOk"
+      :ok-text="$t('message.common.ok')"
     >
       <Form v-model="modifyData" :label-width="100">
         <FormItem :label="`${$t('message.linkis.instanceName')}`">
@@ -256,7 +257,7 @@ export default {
     },
     //Jump to Microservices(跳转到微服务)
     handleTabsJump() {
-      api.fetch("/microservice/eurekaURL", "get").then((rst) => {
+      api.fetch("/microservice/serviceRegistryURL", "get").then((rst) => {
         window.open(rst.url, "_blank");
       });
     },

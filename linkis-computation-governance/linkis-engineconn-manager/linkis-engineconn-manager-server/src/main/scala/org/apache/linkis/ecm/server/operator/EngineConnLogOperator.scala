@@ -32,7 +32,7 @@ import org.apache.commons.io.input.ReversedLinesFileReader
 import org.apache.commons.lang3.StringUtils
 
 import java.io.{File, RandomAccessFile}
-import java.nio.charset.Charset
+import java.nio.charset.{Charset, StandardCharsets}
 import java.text.MessageFormat
 import java.util
 import java.util.Collections
@@ -83,7 +83,10 @@ class EngineConnLogOperator extends Operator with Logging {
     }
     def randomAndReversedReadLine(): String = {
       if (null != randomReader) {
-        randomReader.readLine()
+        val line = randomReader.readLine()
+        if (line != null) {
+          new String(line.getBytes(StandardCharsets.ISO_8859_1), Charset.defaultCharset())
+        } else null
       } else {
         reversedReader.readLine()
       }
@@ -92,10 +95,7 @@ class EngineConnLogOperator extends Operator with Logging {
     var readLine, skippedLine, lineNum = 0
     var rowIgnore = false
     var ignoreLine = 0
-    val linePattern = Option(EngineConnLogOperator.MULTILINE_PATTERN.getValue) match {
-      case Some(pattern) => pattern.r
-      case _ => null
-    }
+    val linePattern = getLinePattern
     val maxMultiline = EngineConnLogOperator.MULTILINE_MAX.getValue
     Utils.tryFinally {
       var line = randomAndReversedReadLine()
@@ -150,6 +150,13 @@ class EngineConnLogOperator extends Operator with Logging {
       s"Try to fetch EngineConn(id: $ticketId, instance: $engineConnInstance) logs from ${logPath.getPath}."
     )
     logPath
+  }
+
+  protected def getLinePattern: Regex = {
+    Option(EngineConnLogOperator.MULTILINE_PATTERN.getValue) match {
+      case Some(pattern) => pattern.r
+      case _ => null
+    }
   }
 
   protected def getEngineConnInfo(implicit

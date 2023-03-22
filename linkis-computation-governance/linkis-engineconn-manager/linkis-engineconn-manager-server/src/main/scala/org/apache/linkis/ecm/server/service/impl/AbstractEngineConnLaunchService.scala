@@ -29,7 +29,7 @@ import org.apache.linkis.ecm.server.listener.{EngineConnAddEvent, EngineConnStat
 import org.apache.linkis.ecm.server.service.{EngineConnLaunchService, ResourceLocalizationService}
 import org.apache.linkis.ecm.server.util.ECMUtils
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
-import org.apache.linkis.governance.common.utils.JobUtils
+import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus.Failed
 import org.apache.linkis.manager.common.entity.node.{AMEngineNode, EngineNode}
@@ -63,6 +63,7 @@ abstract class AbstractEngineConnLaunchService extends EngineConnLaunchService w
   override def launchEngineConn(request: EngineConnLaunchRequest, duration: Long): EngineNode = {
     // 1.创建engineConn和runner,launch 并设置基础属性
     val taskId = JobUtils.getJobIdFromStringMap(request.creationDesc.properties)
+    LoggerUtils.setJobIdMDC(taskId)
     logger.info("TaskId: {} try to launch a new EngineConn with {}.", taskId: Any, request: Any)
     val conn = createEngineConn
     val runner = createEngineConnLaunchRunner
@@ -97,46 +98,59 @@ abstract class AbstractEngineConnLaunchService extends EngineConnLaunchService w
       afterLaunch(request, conn, duration)
 
       val future = Future {
-        logger.info("wait engineConn {} start", conn.getServiceInstance)
-        waitEngineConnStart(request, conn, duration)
+        LoggerUtils.setJobIdMDC(taskId)
+        logger.info(
+          "TaskId: {} with request {} wait engineConn {} start",
+          Array(taskId, request, conn.getServiceInstance): _*
+        )
+        Utils.tryFinally(waitEngineConnStart(request, conn, duration)) {
+          LoggerUtils.removeJobIdMDC()
+        }
       }
 
       future onComplete {
         case Failure(t) =>
+          LoggerUtils.setJobIdMDC(taskId)
           logger.error(
-            "TaskId: {} init {} failed. {}",
+            "TaskId: {} init {} failed. {} with request {}",
             Array(
               taskId,
               conn.getServiceInstance,
               conn.getEngineConnLaunchRunner.getEngineConnLaunch
                 .getEngineConnManagerEnv()
-                .engineConnWorkDir
+                .engineConnWorkDir,
+              request
             ): _*
           )
           LinkisECMApplication.getContext.getECMSyncListenerBus.postToAll(
             EngineConnStatusChangeEvent(conn.getTickedId, Failed)
           )
+          LoggerUtils.removeJobIdMDC()
         case Success(_) =>
+          LoggerUtils.setJobIdMDC(taskId)
           logger.info(
-            "TaskId: {} init {} succeed. {}",
+            "TaskId: {} init {} succeed. {} with request {}",
             Array(
               taskId,
               conn.getServiceInstance,
               conn.getEngineConnLaunchRunner.getEngineConnLaunch
                 .getEngineConnManagerEnv()
-                .engineConnWorkDir
+                .engineConnWorkDir,
+              request
             ): _*
           )
+          LoggerUtils.removeJobIdMDC()
       }
     } { t =>
       logger.error(
-        "TaskId: {} init {} failed, {}, now stop and delete it. message: {}",
+        "TaskId: {} init {} failed, {}, with request {} now stop and delete it. message: {}",
         Array(
           taskId,
           conn.getServiceInstance,
           conn.getEngineConnLaunchRunner.getEngineConnLaunch
             .getEngineConnManagerEnv()
             .engineConnWorkDir,
+          request,
           t.getMessage,
           t
         ): _*
@@ -154,8 +168,10 @@ abstract class AbstractEngineConnLaunchService extends EngineConnLaunchService w
       LinkisECMApplication.getContext.getECMSyncListenerBus.postToAll(
         EngineConnStatusChangeEvent(conn.getTickedId, Failed)
       )
+      LoggerUtils.removeJobIdMDC()
       throw t
     }
+    LoggerUtils.removeJobIdMDC()
     val engineNode = new AMEngineNode()
     engineNode.setLabels(conn.getLabels)
 

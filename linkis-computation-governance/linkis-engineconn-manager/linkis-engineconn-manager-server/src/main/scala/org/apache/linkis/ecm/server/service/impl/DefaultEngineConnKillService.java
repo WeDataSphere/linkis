@@ -94,11 +94,11 @@ public class DefaultEngineConnKillService implements EngineConnKillService {
         return response;
     }
 
-    private  void killYarnAppIdOfOneEc(EngineConn engineConn) {
+    public void killYarnAppIdOfOneEc(EngineConn engineConn) {
         String engineConnInstance = engineConn.getServiceInstance().toString();
         logger.info("try to kill yarn app ids in the engine of ({}).", engineConnInstance);
         String engineLogDir = engineConn.getEngineConnManagerEnv().engineConnLogDirs();
-        final String errEngineLogPath = engineLogDir.concat(File.separator).concat("yarnApp.log");
+        final String errEngineLogPath = engineLogDir.concat(File.separator).concat("yarnApp");
         logger.info("try to parse the yarn app id from the engine err log file path: {}", errEngineLogPath);
         File file = new File(errEngineLogPath);
         if (file.exists())

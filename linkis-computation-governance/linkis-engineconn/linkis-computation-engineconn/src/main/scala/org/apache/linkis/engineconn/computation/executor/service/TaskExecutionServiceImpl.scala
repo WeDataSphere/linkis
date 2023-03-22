@@ -45,22 +45,26 @@ import org.apache.linkis.engineconn.computation.executor.utlis.{
   ComputationEngineConstant,
   ComputationEngineUtils
 }
+import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.executor.ExecutorManager
 import org.apache.linkis.engineconn.executor.entity.ResourceFetchExecutor
 import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext
 import org.apache.linkis.engineconn.executor.listener.event.EngineConnSyncEvent
+import org.apache.linkis.engineconn.launch.EngineConnServer
+import org.apache.linkis.governance.common.constant.ec.ECConstants
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
 import org.apache.linkis.governance.common.exception.engineconn.{
   EngineConnExecutorErrorCode,
   EngineConnExecutorErrorException
 }
 import org.apache.linkis.governance.common.protocol.task._
-import org.apache.linkis.governance.common.utils.JobUtils
+import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.protocol.resource.{
   ResponseTaskRunningInfo,
   ResponseTaskYarnResource
 }
+import org.apache.linkis.manager.engineplugin.common.launch.process.LaunchConstants
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.message.RequestProtocol
@@ -167,7 +171,8 @@ class TaskExecutionServiceImpl
 
   @Receiver
   override def execute(requestTask: RequestTask, sender: Sender): ExecuteResponse = {
-
+    val jobId = JobUtils.getJobIdFromMap(requestTask.getProperties)
+    LoggerUtils.setJobIdMDC(jobId)
     // check lock
     logger.info("Received a new task, task content is " + requestTask)
     if (StringUtils.isBlank(requestTask.getLock)) {
@@ -204,7 +209,7 @@ class TaskExecutionServiceImpl
       if (null != retry) retry.asInstanceOf[Boolean]
       else false
     }
-    val jobId = JobUtils.getJobIdFromMap(requestTask.getProperties)
+
     if (StringUtils.isNotBlank(jobId)) {
       System.getProperties.put(ComputationExecutorConf.JOB_ID_TO_ENV_KEY, jobId)
       logger.info(s"Received job with id ${jobId}.")
@@ -223,6 +228,7 @@ class TaskExecutionServiceImpl
       override def run(): Unit = Utils.tryCatch {
         // Waiting to run, preventing task messages from being sent to submit services before SubmitResponse, such as entry
         Thread.sleep(ComputationExecutorConf.TASK_SUBMIT_WAIT_TIME_MS)
+        LoggerUtils.setJobIdMDC(jobId)
         submitTaskToExecutor(task, labels) match {
           case ErrorExecuteResponse(message, throwable) =>
             sendToEntrance(task, ResponseTaskError(task.getTaskId, message))
@@ -252,11 +258,11 @@ class TaskExecutionServiceImpl
       case computationExecutor: ComputationExecutor =>
         taskIdCache.put(task.getTaskId, computationExecutor)
         submitTask(task, computationExecutor)
-      case o =>
+      case _ =>
         val labelsStr =
           if (labels != null) labels.filter(_ != null).map(_.getStringValue).mkString(",") else ""
         val msg =
-          "Invalid computationExecutor : " + o.getClass.getName + ", labels : " + labelsStr + ", requestTask : " + task.getTaskId
+          "Invalid computationExecutor : " + executor.getClass.getName + ", labels : " + labelsStr + ", requestTask : " + task.getTaskId
         logger.error(msg)
         ErrorExecuteResponse(
           "Invalid computationExecutor(生成无效的计算引擎，请联系管理员).",
@@ -385,6 +391,8 @@ class TaskExecutionServiceImpl
   }
 
   private def executeTask(task: EngineConnTask, executor: ComputationExecutor): Unit = {
+    val jobId = JobUtils.getJobIdFromMap(task.getProperties)
+    LoggerUtils.setJobIdMDC(jobId)
     val response = executor.execute(task)
     response match {
       case ErrorExecuteResponse(message, throwable) =>
@@ -436,6 +444,22 @@ class TaskExecutionServiceImpl
               }
             val extraInfoMap = new util.HashMap[String, Object]()
             extraInfoMap.put(TaskConstant.ENGINE_INSTANCE, Sender.getThisInstance)
+            extraInfoMap.put(
+              ECConstants.EC_TICKET_ID_KEY,
+              EngineConnObject.getEngineCreationContext.getTicketId
+            )
+            val ecParams = EngineConnObject.getEngineCreationContext.getOptions
+            if (ecParams.containsKey(ECConstants.YARN_QUEUE_NAME_CONFIG_KEY)) {
+              extraInfoMap.put(
+                ECConstants.YARN_QUEUE_NAME_KEY,
+                ecParams.get(ECConstants.YARN_QUEUE_NAME_CONFIG_KEY)
+              )
+            }
+            extraInfoMap.put(TaskConstant.ENGINE_CONN_TASK_ID, task.getTaskId)
+            extraInfoMap.put(
+              TaskConstant.ENGINE_CONN_SUBMIT_TIME,
+              System.currentTimeMillis.toString
+            )
             // todo add other info
             var respRunningInfo: ResponseTaskRunningInfo = null
             if (null != resourceResponse) {
@@ -483,12 +507,10 @@ class TaskExecutionServiceImpl
         if (ExecutionNodeStatus.isCompleted(task.getStatus)) {
           response = ResponseTaskProgress(taskID, 1.0f, null)
         } else {
+          val progress = executor.progress(taskID)
+          logger.info("The latest progress {} of the task id {} is:", progress, taskID)
           response = Utils.tryQuietly(
-            ResponseTaskProgress(
-              taskID,
-              executor.progress(taskID),
-              executor.getProgressInfo(taskID)
-            )
+            ResponseTaskProgress(taskID, progress, executor.getProgressInfo(taskID))
           )
         }
       } else {

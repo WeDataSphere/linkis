@@ -23,6 +23,8 @@ object GovernanceCommonConf {
 
   val CONF_FILTER_RM = "wds.linkis.rm"
 
+  val WILDCARD_CONSTANT = "*"
+
   val SPARK_ENGINE_VERSION = CommonVars("wds.linkis.spark.engine.version", "2.4.3")
 
   val HIVE_ENGINE_VERSION = CommonVars("wds.linkis.hive.engine.version", "1.2.1")
@@ -63,6 +65,8 @@ object GovernanceCommonConf {
 
   val ERROR_CODE_DESC_LEN =
     CommonVars("linkis.error.code.desc.len", 512, "Error code description maximum length").getValue
+
+  val FAKE_PROGRESS: Float = CommonVars[Float]("linkis.job.fake.progress", 0.99f).getValue
 
   def getEngineEnvValue(envKey: String): String = {
     CommonVars(envKey, "").getValue
