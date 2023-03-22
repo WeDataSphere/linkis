@@ -22,6 +22,7 @@ import org.apache.linkis.common.utils.Utils
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
 import org.apache.linkis.entrance.exception.EntranceErrorException
+import org.apache.linkis.entrance.utils.CommonLogPathUtils
 import org.apache.linkis.storage.FSFactory
 import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.utils.{FileSystemUtils, StorageUtils}
@@ -52,6 +53,8 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
 
   private var firstWrite = true
 
+  private val lock = new Object
+
   init()
 
   private def init(): Unit = {
@@ -60,10 +63,7 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
       val logFsPath = new FsPath(logPath)
       if (StorageUtils.HDFS == logFsPath.getFsType) {
         val fsPath = logFsPath.getParent.getParent
-        if (!fileSystem.exists(fsPath)) {
-          FileSystemUtils.mkdirs(fileSystem, fsPath, StorageUtils.getJvmUser)
-          fileSystem.setPermission(fsPath, "770")
-        }
+        CommonLogPathUtils.buildCommonPath(fsPath.getPath)
       }
     } { e: Throwable =>
       logger.warn("path check error. log path is: " + logPath, e)
