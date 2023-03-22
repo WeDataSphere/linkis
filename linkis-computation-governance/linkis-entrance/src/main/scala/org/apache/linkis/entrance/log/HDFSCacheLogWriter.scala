@@ -53,8 +53,6 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
 
   private var firstWrite = true
 
-  private val lock = new Object
-
   init()
 
   private def init(): Unit = {
