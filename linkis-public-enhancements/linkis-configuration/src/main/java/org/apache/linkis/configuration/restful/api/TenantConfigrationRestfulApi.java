@@ -268,5 +268,8 @@ public class TenantConfigrationRestfulApi {
     if (StringUtils.isBlank(tenantVo.getTenantValue())) {
       throw new ConfigurationException("Tenant tag can't be empty ");
     }
+    if (tenantVo.getCreator().equals("*")&&tenantVo.getUser().equals("*")) {
+      throw new ConfigurationException("User && Creator cannot be both *");
+    }
   }
 }
