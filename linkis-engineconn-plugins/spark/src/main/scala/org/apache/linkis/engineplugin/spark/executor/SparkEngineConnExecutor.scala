@@ -33,6 +33,7 @@ import org.apache.linkis.engineplugin.spark.extension.{
   SparkPreExecutionHook
 }
 import org.apache.linkis.engineplugin.spark.utils.JobProgressUtil
+import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.exception.LinkisJobRetryException
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
@@ -128,6 +129,31 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     logger.info("Set jobGroup to " + jobGroup)
     sc.setJobGroup(jobGroup, _code, true)
 
+    // print job configuration
+    Utils.tryCatch({
+      val executorNum: Int = sc.getConf.get("spark.executor.instances").toInt
+      val executorMem: Long =
+        ByteTimeUtils.byteStringAsGb(sc.getConf.get("spark.executor.memory")) * executorNum
+      val driverMem: Long = ByteTimeUtils.byteStringAsGb(sc.getConf.get("spark.driver.memory"))
+      val sparkExecutorCores = sc.getConf.get("spark.executor.cores", "2").toInt * executorNum
+      val sparkDriverCores = sc.getConf.get("spark.driver.cores", "1").toInt
+      val queue = sc.getConf.get("spark.yarn.queue")
+
+      val sb = new StringBuilder
+      sb.append(s"spark.executor.instances=$executorNum\n")
+      sb.append(s"spark.executor.memory=${executorMem}G\n")
+      sb.append(s"spark.driver.memory=${driverMem}G\n")
+      sb.append(s"spark.executor.memory=${executorMem}G\n")
+      sb.append(s"spark.executor.cores=$sparkExecutorCores\n")
+      sb.append(s"spark.driver.cores=$sparkDriverCores\n")
+      sb.append(s"spark.yarn.queue=$queue\n")
+      engineExecutionContext.appendStdout(
+        LogUtils.generateInfo(s" Your spark job exec with configs:\n${sb.toString()}")
+      )
+    })(t => {
+      logger.warn("Get actual used resource exception", t)
+    })
+
     val response = Utils.tryFinally(runCode(this, _code, engineExecutorContext, jobGroup)) {
       // Utils.tryAndWarn(this.engineExecutionContext.pushProgress(1, getProgressInfo("")))
       jobGroup = null
@@ -169,7 +195,8 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
       val newProgress =
         (engineExecutionContext.getCurrentParagraph * 1f - 1f) / engineExecutionContext.getTotalParagraph + JobProgressUtil
           .progress(sc, jobGroup) / engineExecutionContext.getTotalParagraph
-      val normalizedProgress = if (newProgress >= 1) newProgress - 0.1f else newProgress
+      val normalizedProgress =
+        if (newProgress >= 1) GovernanceCommonConf.FAKE_PROGRESS else newProgress
       val oldProgress = ProgressUtils.getOldProgress(this.engineExecutionContext)
       if (normalizedProgress < oldProgress) oldProgress
       else {

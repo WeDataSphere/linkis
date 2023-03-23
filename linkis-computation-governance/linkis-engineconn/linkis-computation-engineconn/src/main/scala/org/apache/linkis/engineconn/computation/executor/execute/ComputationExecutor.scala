@@ -26,6 +26,7 @@ import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConst
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.hook.ComputationExecutorHook
+import org.apache.linkis.engineconn.computation.executor.metrics.ComputationEngineConnMetrics
 import org.apache.linkis.engineconn.computation.executor.upstream.event.TaskStatusChangedForUpstreamMonitorEvent
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.executor.ExecutorManager
@@ -34,6 +35,7 @@ import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
 import org.apache.linkis.governance.common.paser.CodeParser
 import org.apache.linkis.governance.common.protocol.task.{EngineConcurrentInfo, RequestTask}
+import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.label.entity.engine.UserCreatorLabel
 import org.apache.linkis.protocol.engine.JobProgressInfo
@@ -256,7 +258,9 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
     }
   }
 
-  def execute(engineConnTask: EngineConnTask): ExecuteResponse = {
+  def execute(engineConnTask: EngineConnTask): ExecuteResponse = Utils.tryFinally {
+    val jobId = JobUtils.getJobIdFromMap(engineConnTask.getProperties)
+    LoggerUtils.setJobIdMDC(jobId)
     logger.info(s"start to execute task ${engineConnTask.getTaskId}")
     updateLastActivityTime()
     beforeExecute(engineConnTask)
@@ -270,6 +274,8 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
     logger.info(s"Finished to execute task ${engineConnTask.getTaskId}")
     // lastTask = null
     response
+  } {
+    LoggerUtils.removeJobIdMDC()
   }
 
   def setCodeParser(codeParser: CodeParser): Unit = this.codeParser = Some(codeParser)
@@ -360,6 +366,11 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
 
   def clearTaskCache(taskId: String): Unit = {
     taskCache.invalidate(taskId)
+  }
+
+  override protected def onStatusChanged(fromStatus: NodeStatus, toStatus: NodeStatus): Unit = {
+    ComputationEngineConnMetrics.updateMetrics(fromStatus, toStatus)
+    super.onStatusChanged(fromStatus, toStatus)
   }
 
 }
