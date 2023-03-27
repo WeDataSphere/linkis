@@ -163,12 +163,12 @@ public class TenantConfigServiceImpl implements TenantConfigService {
 
   @Override
   public Boolean isExist(String user, String creator) {
-    boolean result = false;
+    boolean result = true;
     Map<String, Object> resultMap =
         queryTenantList(user.toLowerCase(), creator.toLowerCase(), null, 1, 20);
     Object tenantList = resultMap.getOrDefault(JobRequestConstants.TOTAL_PAGE(), 0);
     int total = Integer.parseInt(tenantList.toString());
-    if (total == 0) result = true;
+    if (total == 0) result = false;
     return result;
   }
 
