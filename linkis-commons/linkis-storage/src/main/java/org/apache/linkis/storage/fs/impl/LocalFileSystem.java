@@ -274,30 +274,6 @@ public class LocalFileSystem extends FileSystem {
     return null;
   }
 
-  @Override
-  public FsPathListWithError listResultSetPathWithError(FsPath path) throws IOException {
-    File file = new File(path.getPath());
-    File[] files = file.listFiles();
-    LOG.info("Try to list path:" + path.getPath() + " with error msg");
-    if (files != null) {
-      List<FsPath> rtn = new ArrayList();
-      String message = "";
-      for (File f : files) {
-        try {
-          rtn.add(get(f.getPath()));
-        } catch (Throwable e) {
-          LOG.warn("Failed to list path:", e);
-          message =
-              "The file name is garbled. Please go to the shared storage to delete it.(文件名存在乱码，请手动去共享存储进行删除):"
-                  + e.getMessage();
-        }
-      }
-      Collections.sort(rtn, resultSetFileComparator());
-
-      return new FsPathListWithError(rtn, message);
-    }
-    return null;
-  }
   /**
    * FS interface method start
    *

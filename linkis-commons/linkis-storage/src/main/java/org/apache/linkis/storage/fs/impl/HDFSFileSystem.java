@@ -175,25 +175,6 @@ public class HDFSFileSystem extends FileSystem {
     return new FsPathListWithError(fsPaths, "");
   }
 
-  @Override
-  public FsPathListWithError listResultSetPathWithError(FsPath path) throws IOException {
-
-    FileStatus[] stat = fs.listStatus(new Path(checkHDFSPath(path.getPath())));
-
-    List<FsPath> fsPaths = new ArrayList<FsPath>();
-
-    for (FileStatus f : stat) {
-      fsPaths.add(
-          fillStorageFile(
-              new FsPath(StorageUtils.HDFS_SCHEMA() + f.getPath().toUri().getPath()), f));
-    }
-    if (fsPaths.isEmpty()) {
-      return null;
-    }
-    Collections.sort(fsPaths, resultSetFileComparator());
-
-    return new FsPathListWithError(fsPaths, "");
-  }
 
   /** FS interface method start */
   @Override

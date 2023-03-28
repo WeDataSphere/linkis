@@ -23,7 +23,9 @@ import org.apache.linkis.storage.domain.FsPathListWithError;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import static org.apache.linkis.common.io.FsPath.SEPARATOR;
@@ -70,8 +72,14 @@ public abstract class FileSystem implements Fs {
    * @return The file list order by num in the filename
    * @throws IOException
    */
-  public FsPathListWithError listResultSetPathWithError(FsPath path) throws IOException {
-    return null;
+  public  FsPath[] listResultSetPathWithError(FsPath path) throws IOException {
+    FsPathListWithError fsPathListWithError =listPathWithError(path);
+    if (fsPathListWithError == null) {
+      return null;
+    }
+    List<FsPath> fsPathList = fsPathListWithError.getFsPaths();
+    Collections.sort(fsPathList, resultSetFileComparator());
+    return fsPathList.toArray(new FsPath[] {});
   }
 
   public boolean createNewFile(FsPath dest) throws IOException {
@@ -117,10 +125,10 @@ public abstract class FileSystem implements Fs {
   }
 
   // Sort in ascending order by numx in the result set _numx.dolphin file name
-  public Comparator<FsPath> resultSetFileComparator() {
+  protected Comparator<FsPath> resultSetFileComparator() {
 
     Comparator<FsPath> comparator = (o1, o2) -> {
-      // 检查匹配并获取文件名
+      // get the num of file name
       String regx = "\\d+";
 
       String[] res1 = o1.getPath().split(SEPARATOR);
