@@ -32,7 +32,6 @@ import org.apache.linkis.filesystem.validator.PathValidator$;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.apache.linkis.storage.csv.CSVFsWriter;
-import org.apache.linkis.storage.domain.FsPathListWithError;
 import org.apache.linkis.storage.excel.ExcelFsWriter;
 import org.apache.linkis.storage.excel.ExcelStorageReader;
 import org.apache.linkis.storage.excel.StorageMultiExcelWriter;
@@ -837,7 +836,7 @@ public class FsRestfulApi {
         throw WorkspaceExceptionManager.createException(80010, userName, path);
       }
       // list目录下的文件
-      FsPath[] fsPaths  = fileSystem.listResultSetPathWithError(fsPath);
+      FsPath[] fsPaths = fileSystem.listResultSetPathWithError(fsPath);
       if (fsPaths == null) {
         throw WorkspaceExceptionManager.createException(80029);
       }
