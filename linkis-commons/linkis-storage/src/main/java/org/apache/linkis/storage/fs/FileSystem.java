@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import static org.apache.linkis.common.io.FsPath.SEPARATOR;
 
 public abstract class FileSystem implements Fs {
@@ -72,8 +73,8 @@ public abstract class FileSystem implements Fs {
    * @return The file list order by num in the filename
    * @throws IOException
    */
-  public  FsPath[] listResultSetPathWithError(FsPath path) throws IOException {
-    FsPathListWithError fsPathListWithError =listPathWithError(path);
+  public FsPath[] listResultSetPathWithError(FsPath path) throws IOException {
+    FsPathListWithError fsPathListWithError = listPathWithError(path);
     if (fsPathListWithError == null) {
       return null;
     }
@@ -127,22 +128,23 @@ public abstract class FileSystem implements Fs {
   // Sort in ascending order by numx in the result set _numx.dolphin file name
   protected Comparator<FsPath> resultSetFileComparator() {
 
-    Comparator<FsPath> comparator = (o1, o2) -> {
-      // get the num of file name
-      String regx = "\\d+";
+    Comparator<FsPath> comparator =
+        (o1, o2) -> {
+          // get the num of file name
+          String regx = "\\d+";
 
-      String[] res1 = o1.getPath().split(SEPARATOR);
-      String fileName1 = res1[res1.length - 1];
-      Matcher matcher1 = Pattern.compile(regx).matcher(fileName1);
-      int num1 = matcher1.find() ? Integer.parseInt(matcher1.group()) : Integer.MAX_VALUE;
+          String[] res1 = o1.getPath().split(SEPARATOR);
+          String fileName1 = res1[res1.length - 1];
+          Matcher matcher1 = Pattern.compile(regx).matcher(fileName1);
+          int num1 = matcher1.find() ? Integer.parseInt(matcher1.group()) : Integer.MAX_VALUE;
 
-      String[] res2 = o2.getPath().split(SEPARATOR);
-      String fileName2 = res2[res2.length - 1];
-      Matcher matcher2 = Pattern.compile(regx).matcher(fileName2);
-      int num2 = matcher2.find() ? Integer.parseInt(matcher2.group()) : Integer.MAX_VALUE;
+          String[] res2 = o2.getPath().split(SEPARATOR);
+          String fileName2 = res2[res2.length - 1];
+          Matcher matcher2 = Pattern.compile(regx).matcher(fileName2);
+          int num2 = matcher2.find() ? Integer.parseInt(matcher2.group()) : Integer.MAX_VALUE;
 
-      return num1 - num2;
-    };
+          return num1 - num2;
+        };
     return comparator;
   }
 }
