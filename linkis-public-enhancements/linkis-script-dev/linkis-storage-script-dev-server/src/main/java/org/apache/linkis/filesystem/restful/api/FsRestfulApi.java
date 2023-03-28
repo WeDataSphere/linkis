@@ -390,9 +390,9 @@ public class FsRestfulApi {
     }
     dirFileTree.setName(new File(path).getName());
     dirFileTree.setChildren(new ArrayList<>());
-    FsPathListWithError fsPathListWithError = fileSystem.listResultSetPathWithError(fsPath);
-    if (fsPathListWithError != null) {
-      for (FsPath children : fsPathListWithError.getFsPaths()) {
+    FsPath[] fsPathArray = fileSystem.listResultSetPathWithError(fsPath);
+    if (fsPathArray != null) {
+      for (FsPath children : fsPathArray) {
         DirFileTree dirFileTreeChildren = new DirFileTree();
         dirFileTreeChildren.setName(new File(children.getPath()).getName());
         dirFileTreeChildren.setPath(fsPath.getFsType() + "://" + children.getPath());
@@ -837,11 +837,11 @@ public class FsRestfulApi {
         throw WorkspaceExceptionManager.createException(80010, userName, path);
       }
       // list目录下的文件
-      FsPathListWithError fsPathListWithError = fileSystem.listResultSetPathWithError(fsPath);
-      if (fsPathListWithError == null) {
+      FsPath[] fsPaths  = fileSystem.listResultSetPathWithError(fsPath);
+      if (fsPaths == null) {
         throw WorkspaceExceptionManager.createException(80029);
       }
-      FsPath[] fsPaths = fsPathListWithError.getFsPaths().toArray(new FsPath[] {});
+
       boolean isLimitDownloadSize = RESULT_SET_DOWNLOAD_IS_LIMIT.getValue();
       Integer excelDownloadSize = RESULT_SET_DOWNLOAD_MAX_SIZE_EXCEL.getValue();
       if (limit > 0) {
