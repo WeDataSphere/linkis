@@ -374,8 +374,7 @@ object VariableUtils extends Logging {
     code.split("\n").foreach { str =>
       {
 
-        if (customRightRegex.unapplySeq(str).size < customRegex.unapplySeq(str).size)
-        {
+        if (customRightRegex.unapplySeq(str).size < customRegex.unapplySeq(str).size) {
           logger.warn(s"code:$str is wrong custom variable format!!!")
         }
         str match {
