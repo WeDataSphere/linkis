@@ -42,8 +42,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -168,6 +172,26 @@ public class HDFSFileSystem extends FileSystem {
     if (fsPaths.isEmpty()) {
       return null;
     }
+    return new FsPathListWithError(fsPaths, "");
+  }
+
+  @Override
+  public FsPathListWithError listResultSetPathWithError(FsPath path) throws IOException {
+
+    FileStatus[] stat = fs.listStatus(new Path(checkHDFSPath(path.getPath())));
+
+    List<FsPath> fsPaths = new ArrayList<FsPath>();
+
+    for (FileStatus f : stat) {
+      fsPaths.add(
+          fillStorageFile(
+              new FsPath(StorageUtils.HDFS_SCHEMA() + f.getPath().toUri().getPath()), f));
+    }
+    if (fsPaths.isEmpty()) {
+      return null;
+    }
+    Collections.sort(fsPaths, resultSetFileComparator());
+
     return new FsPathListWithError(fsPaths, "");
   }
 

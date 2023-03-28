@@ -18,6 +18,7 @@
 package org.apache.linkis.storage.source
 
 import org.apache.linkis.common.io._
+import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.storage.conf.LinkisStorageConf
 import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary.UNSUPPORTED_OPEN_FILE_TYPE
 import org.apache.linkis.storage.exception.StorageErrorException
@@ -55,7 +56,7 @@ trait FileSource extends Closeable {
   def getFileSplits: Array[FileSplit]
 }
 
-object FileSource {
+object FileSource extends Logging {
 
   private val fileType = LinkisStorageConf.getFileTypeArr
   private val suffixPredicate = (path: String, suffix: String) => path.endsWith(s".$suffix")
@@ -77,7 +78,8 @@ object FileSource {
    */
   def create(fsPaths: Array[FsPath], fs: Fs): FileSource = {
     // 非table结果集的过滤掉
-    val fileSplits = fsPaths.map(createResultSetFileSplit(_, fs)).filter(isTableResultSet)
+    val fileSplits =
+      fsPaths.map(path => createResultSetFileSplit(path, fs)).filter(isTableResultSet)
     new ResultsetFileSource(fileSplits)
   }
 
@@ -124,6 +126,7 @@ object FileSource {
   }
 
   private def createResultSetFileSplit(fsPath: FsPath, fs: Fs): FileSplit = {
+    logger.info(s"try create result set file split with path:${fsPath.getPath}")
     val resultset = ResultSetFactory.getInstance.getResultSetByPath(fsPath, fs)
     val resultsetReader = ResultSetReader.getResultSetReader(resultset, fs.read(fsPath))
     new FileSplit(resultsetReader, resultset.resultSetType())

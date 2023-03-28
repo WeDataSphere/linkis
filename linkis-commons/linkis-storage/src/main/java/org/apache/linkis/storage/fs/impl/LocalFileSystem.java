@@ -48,15 +48,20 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.apache.linkis.common.io.FsPath.SEPARATOR;
 import static org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary.TO_BE_UNKNOW;
 
 public class LocalFileSystem extends FileSystem {
@@ -269,6 +274,30 @@ public class LocalFileSystem extends FileSystem {
     return null;
   }
 
+  @Override
+  public FsPathListWithError listResultSetPathWithError(FsPath path) throws IOException {
+    File file = new File(path.getPath());
+    File[] files = file.listFiles();
+    LOG.info("Try to list path:" + path.getPath() + " with error msg");
+    if (files != null) {
+      List<FsPath> rtn = new ArrayList();
+      String message = "";
+      for (File f : files) {
+        try {
+          rtn.add(get(f.getPath()));
+        } catch (Throwable e) {
+          LOG.warn("Failed to list path:", e);
+          message =
+              "The file name is garbled. Please go to the shared storage to delete it.(文件名存在乱码，请手动去共享存储进行删除):"
+                  + e.getMessage();
+        }
+      }
+      Collections.sort(rtn, resultSetFileComparator());
+
+      return new FsPathListWithError(rtn, message);
+    }
+    return null;
+  }
   /**
    * FS interface method start
    *

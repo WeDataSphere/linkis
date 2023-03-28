@@ -390,7 +390,7 @@ public class FsRestfulApi {
     }
     dirFileTree.setName(new File(path).getName());
     dirFileTree.setChildren(new ArrayList<>());
-    FsPathListWithError fsPathListWithError = fileSystem.listPathWithError(fsPath);
+    FsPathListWithError fsPathListWithError = fileSystem.listResultSetPathWithError(fsPath);
     if (fsPathListWithError != null) {
       for (FsPath children : fsPathListWithError.getFsPaths()) {
         DirFileTree dirFileTreeChildren = new DirFileTree();
@@ -837,7 +837,7 @@ public class FsRestfulApi {
         throw WorkspaceExceptionManager.createException(80010, userName, path);
       }
       // list目录下的文件
-      FsPathListWithError fsPathListWithError = fileSystem.listPathWithError(fsPath);
+      FsPathListWithError fsPathListWithError = fileSystem.listResultSetPathWithError(fsPath);
       if (fsPathListWithError == null) {
         throw WorkspaceExceptionManager.createException(80029);
       }
@@ -855,7 +855,13 @@ public class FsRestfulApi {
       response.setCharacterEncoding(StandardCharsets.UTF_8.name());
       outputStream = response.getOutputStream();
       // 前台传""会自动转为null
-      if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) nullValue = "";
+      if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) {
+        nullValue = "";
+      }
+
+      for (FsPath fspath : fsPaths) {
+        LOGGER.info("fspath:" + fspath.getPath());
+      }
       fileSource =
           FileSource$.MODULE$.create(fsPaths, fileSystem).addParams("nullValue", nullValue);
       if (!FileSource$.MODULE$.isTableResultSet(fileSource)) {
