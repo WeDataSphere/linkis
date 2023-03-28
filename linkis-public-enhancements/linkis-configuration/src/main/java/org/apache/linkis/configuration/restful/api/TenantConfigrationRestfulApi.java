@@ -227,7 +227,7 @@ public class TenantConfigrationRestfulApi {
       @RequestParam(value = "user", required = false) String user,
       @RequestParam(value = "creator", required = false) String creator,
       @RequestParam(value = "id", required = false) String id) {
-    Boolean checkResult = false;
+    Boolean checkResult = true;
     try {
       // Parameter verification
       if (StringUtils.isBlank(creator)) {
@@ -240,10 +240,9 @@ public class TenantConfigrationRestfulApi {
       if (!Configuration.isAdmin(userName)) {
         return Message.error("Failed to check-user-creator,msg: only administrators can configure");
       }
-      checkResult = tenantConfigService.isExist(user, creator);
       // The incoming id represents the update. The update allows user-create exist
       if (StringUtils.isBlank(id)) {
-        checkResult = !checkResult;
+        checkResult = !tenantConfigService.isExist(user, creator);
       }
     } catch (ConfigurationException e) {
       return Message.error("Failed to check-user-creator,msg:" + e.getMessage());
