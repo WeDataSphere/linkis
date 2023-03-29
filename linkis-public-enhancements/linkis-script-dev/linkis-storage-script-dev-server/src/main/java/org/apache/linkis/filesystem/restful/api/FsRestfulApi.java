@@ -20,6 +20,7 @@ package org.apache.linkis.filesystem.restful.api;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.io.FsPath;
 import org.apache.linkis.common.io.FsWriter;
+import org.apache.linkis.common.utils.ResultSetUtils;
 import org.apache.linkis.filesystem.conf.WorkSpaceConfiguration;
 import org.apache.linkis.filesystem.entity.DirFileTree;
 import org.apache.linkis.filesystem.entity.LogLevel;
@@ -32,6 +33,7 @@ import org.apache.linkis.filesystem.validator.PathValidator$;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.apache.linkis.storage.csv.CSVFsWriter;
+import org.apache.linkis.storage.domain.FsPathListWithError;
 import org.apache.linkis.storage.excel.ExcelFsWriter;
 import org.apache.linkis.storage.excel.ExcelStorageReader;
 import org.apache.linkis.storage.excel.StorageMultiExcelWriter;
@@ -389,9 +391,9 @@ public class FsRestfulApi {
     }
     dirFileTree.setName(new File(path).getName());
     dirFileTree.setChildren(new ArrayList<>());
-    FsPath[] fsPathArray = fileSystem.listResultSetPathWithError(fsPath);
-    if (fsPathArray != null) {
-      for (FsPath children : fsPathArray) {
+    FsPathListWithError fsPathListWithError = fileSystem.listPathWithError(fsPath);
+    if (fsPathListWithError != null) {
+      for (FsPath children : fsPathListWithError.getFsPaths()) {
         DirFileTree dirFileTreeChildren = new DirFileTree();
         dirFileTreeChildren.setName(new File(children.getPath()).getName());
         dirFileTreeChildren.setPath(fsPath.getFsType() + "://" + children.getPath());
@@ -836,10 +838,15 @@ public class FsRestfulApi {
         throw WorkspaceExceptionManager.createException(80010, userName, path);
       }
       // list目录下的文件
-      FsPath[] fsPaths = fileSystem.listResultSetPathWithError(fsPath);
-      if (fsPaths == null) {
+      FsPathListWithError fsPathListWithError = fileSystem.listPathWithError(fsPath);
+      if (fsPathListWithError == null) {
         throw WorkspaceExceptionManager.createException(80029);
       }
+
+      List<FsPath> fsPathList = fsPathListWithError.getFsPaths();
+      // sort asc by _num.dolphin of num
+      ResultSetUtils.sortByNameNum(fsPathList);
+      FsPath[] fsPaths = fsPathList.toArray(new FsPath[] {});
 
       boolean isLimitDownloadSize = RESULT_SET_DOWNLOAD_IS_LIMIT.getValue();
       Integer excelDownloadSize = RESULT_SET_DOWNLOAD_MAX_SIZE_EXCEL.getValue();
