@@ -78,8 +78,7 @@ object FileSource extends Logging {
    */
   def create(fsPaths: Array[FsPath], fs: Fs): FileSource = {
     // 非table结果集的过滤掉
-    val fileSplits =
-      fsPaths.map(path => createResultSetFileSplit(path, fs)).filter(isTableResultSet)
+    val fileSplits = fsPaths.map(createResultSetFileSplit(_, fs)).filter(isTableResultSet)
     new ResultsetFileSource(fileSplits)
   }
 

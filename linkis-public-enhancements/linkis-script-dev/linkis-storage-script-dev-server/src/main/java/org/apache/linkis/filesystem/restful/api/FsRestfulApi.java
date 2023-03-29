@@ -864,10 +864,6 @@ public class FsRestfulApi {
       if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) {
         nullValue = "";
       }
-
-      for (FsPath fspath : fsPaths) {
-        LOGGER.info("fspath:" + fspath.getPath());
-      }
       fileSource =
           FileSource$.MODULE$.create(fsPaths, fileSystem).addParams("nullValue", nullValue);
       if (!FileSource$.MODULE$.isTableResultSet(fileSource)) {
