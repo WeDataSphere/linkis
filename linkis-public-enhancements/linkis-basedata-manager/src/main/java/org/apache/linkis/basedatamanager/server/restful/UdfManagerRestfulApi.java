@@ -103,7 +103,12 @@ public class UdfManagerRestfulApi {
       httpMethod = "DELETE")
   @RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
   public Message remove(HttpServletRequest request, @PathVariable("id") Long id) {
-    ModuleUserUtils.getOperationUser(request, "Remove a UDF Manager Record,id:" + id.toString());
+    String username =
+        ModuleUserUtils.getOperationUser(
+            request, "Remove a UDF Manager Record,id:" + id.toString());
+    if (!Configuration.isAdmin(username)) {
+      return Message.error("User '" + username + "' is not admin user[非管理员用户]");
+    }
     boolean result = udfManagerService.removeById(id);
     return Message.ok("").data("result", result);
   }
@@ -121,7 +126,14 @@ public class UdfManagerRestfulApi {
     if (!Configuration.isAdmin(username)) {
       return Message.error("User '" + username + "' is not admin user[非管理员用户]");
     }
-    boolean result = udfManagerService.updateById(udfManagerEntity);
-    return Message.ok("").data("result", result);
+    QueryWrapper<UdfManagerEntity> queryWrapper =
+        new QueryWrapper<>(udfManagerEntity).eq("user_name", udfManagerEntity.getUserName());
+    UdfManagerEntity udfManager = udfManagerService.getOne(queryWrapper);
+    if (udfManager == null) {
+      boolean result = udfManagerService.updateById(udfManagerEntity);
+      return Message.ok("").data("result", result);
+    } else {
+      return Message.error("The username already exists,Please update again!");
+    }
   }
 }
