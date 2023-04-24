@@ -124,12 +124,11 @@ public class UdfTreeRestfulApi {
   @ApiOperation(value = "remove", notes = "Remove a UDF Tree Record by id", httpMethod = "DELETE")
   @RequestMapping(path = "/{id}", method = RequestMethod.DELETE)
   public Message remove(HttpServletRequest request, @PathVariable("id") Long id) {
-    //    String username =
-    //        ModuleUserUtils.getOperationUser(request, "Remove a UDF Tree Record,id:" +
-    // id.toString());
-    //    if (!Configuration.isAdmin(username)) {
-    //      return Message.error("User '" + username + "' is not admin user[非管理员用户]");
-    //    }
+    String username =
+        ModuleUserUtils.getOperationUser(request, "Remove a UDF Tree Record,id:" + id.toString());
+    if (!Configuration.isAdmin(username)) {
+      return Message.error("User '" + username + "' is not admin user[非管理员用户]");
+    }
     UdfTreeEntity entity = udfTreeService.getById(id);
     if (null != entity && entity.getParent() == -1) {
       return Message.error("Root level directory deletion prohibited！");

@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Date;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
@@ -89,6 +91,8 @@ public class UdfManagerRestfulApi {
         new QueryWrapper<>(udfManagerEntity).eq("user_name", udfManagerEntity.getUserName());
     UdfManagerEntity udfManager = udfManagerService.getOne(queryWrapper);
     if (udfManager == null) {
+      udfManagerEntity.setCreateTime(new Date());
+      udfManagerEntity.setUpdateTime(new Date());
       boolean result = udfManagerService.save(udfManagerEntity);
       return Message.ok("").data("result", result);
     } else {
@@ -130,6 +134,7 @@ public class UdfManagerRestfulApi {
         new QueryWrapper<>(udfManagerEntity).eq("user_name", udfManagerEntity.getUserName());
     UdfManagerEntity udfManager = udfManagerService.getOne(queryWrapper);
     if (udfManager == null) {
+      udfManager.setUpdateTime(new Date());
       boolean result = udfManagerService.updateById(udfManagerEntity);
       return Message.ok("").data("result", result);
     } else {
