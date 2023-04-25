@@ -15,20 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.cli.common.entity.job;
+package org.apache.linkis.manager.am.hook
 
-public interface JobData {
-  JobStatus getJobStatus();
+trait AskEngineHook {
 
-  String getJobID();
+  @throws(classOf[Exception])
+  def doHook(ctx: AskEngineHookContext): Unit
 
-  String getUser();
-
-  String getMessage();
-
-  void setMessage(String message);
-
-  Exception getException();
-
-  void setException(Exception e);
 }

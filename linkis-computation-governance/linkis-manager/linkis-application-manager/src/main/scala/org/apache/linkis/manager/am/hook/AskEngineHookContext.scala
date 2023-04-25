@@ -15,9 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.cli.common.entity.job;
+package org.apache.linkis.manager.am.hook
 
-public interface JobSubType {
+import org.apache.linkis.manager.common.protocol.engine.EngineAskRequest
+import org.apache.linkis.rpc.Sender
 
-  String getName();
+class AskEngineHookContext(request: EngineAskRequest, sender: Sender) {
+  def getRequest(): EngineAskRequest = request
+  def getSender(): Sender = sender
 }
