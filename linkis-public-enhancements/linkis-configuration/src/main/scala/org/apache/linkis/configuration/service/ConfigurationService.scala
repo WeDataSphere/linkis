@@ -259,6 +259,12 @@ class ConfigurationService extends Logging {
     combinedLabel.asInstanceOf[CombinedLabelImpl]
   }
 
+  /**
+   * Priority: configs > defaultConfigs
+   * @param configs
+   * @param defaultConfigs
+   * @return
+   */
   def buildTreeResult(
       configs: util.List[ConfigKeyValue],
       defaultConfigs: util.List[ConfigKeyValue] = new util.ArrayList[ConfigKeyValue]()
@@ -269,9 +275,7 @@ class ConfigurationService extends Logging {
         defaultConfig.setIsUserDefined(false)
         configs.asScala.foreach(config => {
           if (config.getKey != null && config.getKey.equals(defaultConfig.getKey)) {
-            if (StringUtils.isNotBlank(config.getConfigValue)) {
-              defaultConfig.setConfigValue(config.getConfigValue)
-            }
+            defaultConfig.setConfigValue(config.getConfigValue)
             defaultConfig.setConfigLabelId(config.getConfigLabelId)
             defaultConfig.setValueId(config.getValueId)
             defaultConfig.setIsUserDefined(true)
