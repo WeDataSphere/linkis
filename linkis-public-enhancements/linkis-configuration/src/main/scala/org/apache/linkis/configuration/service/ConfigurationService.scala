@@ -275,6 +275,7 @@ class ConfigurationService extends Logging {
         defaultConfig.setIsUserDefined(false)
         configs.asScala.foreach(config => {
           if (config.getKey != null && config.getKey.equals(defaultConfig.getKey)) {
+            // configValue also needs to be replaced when the value is empty
             defaultConfig.setConfigValue(config.getConfigValue)
             defaultConfig.setConfigLabelId(config.getConfigLabelId)
             defaultConfig.setValueId(config.getValueId)
