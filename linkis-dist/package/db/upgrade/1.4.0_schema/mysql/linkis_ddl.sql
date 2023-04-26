@@ -28,4 +28,4 @@ ALTER TABLE `linkis_ps_udf_user_load`  ADD COLUMN `create_time` datetime NOT NUL
 ALTER TABLE `linkis_ps_udf_user_load`  ADD COLUMN `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update_time';
 
 
-ALTER TABLE `linkis_ps_udf_version`  ADD COLUMN `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update_time' AFTER `create_time`;
+ALTER TABLE `linkis_ps_udf_version`  ADD COLUMN `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'update_time';

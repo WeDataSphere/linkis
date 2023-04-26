@@ -17,6 +17,7 @@
 
 package org.apache.linkis.basedatamanager.server.restful;
 
+import org.apache.linkis.basedatamanager.server.conf.UdfTreeConf;
 import org.apache.linkis.basedatamanager.server.domain.UdfBaseInfoEntity;
 import org.apache.linkis.basedatamanager.server.domain.UdfTreeEntity;
 import org.apache.linkis.basedatamanager.server.service.UdfBaseInfoService;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -71,6 +73,10 @@ public class UdfTreeRestfulApi {
     return Message.ok("").data("list", pageList);
   }
 
+  @ApiImplicitParams({
+    @ApiImplicitParam(paramType = "query", dataType = "string", name = "searchName"),
+    @ApiImplicitParam(paramType = "query", dataType = "string", name = "category")
+  })
   @ApiOperation(value = "all", notes = "Query all data of UDF Tree", httpMethod = "GET")
   @RequestMapping(path = "/all", method = RequestMethod.GET)
   public Message all(HttpServletRequest request, String searchName, String category) {
@@ -82,7 +88,9 @@ public class UdfTreeRestfulApi {
     QueryWrapper<UdfTreeEntity> querySysWrapper =
         new QueryWrapper<>(entity)
             .eq("category", entity.getCategory())
-            .in("user_name", "sys", "expire", "share", "bdp");
+            .in(
+                "user_name",
+                Arrays.asList(UdfTreeConf.UDF_FUN_SYSTEM_CATEGORY.getValue().split(",")));
     udfTreeEntityList = udfTreeService.list(querySysWrapper);
     if (StringUtils.isNotBlank(searchName) && StringUtils.isNotBlank(category)) {
       entity.setUserName(searchName);
@@ -131,7 +139,7 @@ public class UdfTreeRestfulApi {
     }
     UdfTreeEntity entity = udfTreeService.getById(id);
     if (null != entity && entity.getParent() == -1) {
-      return Message.error("Root level directory deletion prohibited！");
+      return Message.error("The root directory is forbidden to delete[\"根目录禁止删除\"]");
     }
     QueryWrapper<UdfTreeEntity> queryWrapper =
         new QueryWrapper<>(new UdfTreeEntity()).eq("parent", id);
@@ -143,7 +151,7 @@ public class UdfTreeRestfulApi {
       boolean result = udfTreeService.removeById(id);
       return Message.ok("").data("result", result);
     } else {
-      return Message.error("Please manually delete the sub folder or function and try again!");
+      return Message.error("Please delete the subdirectory first[请先删除子目录]");
     }
   }
 
