@@ -93,10 +93,11 @@ class DefaultEngineAskEngineService
                     false
                 }
             }
-            sender.send(
-              EngineCreateError(engineAskAsyncId, ExceptionUtils.getRootCauseMessage(t), retryFlag)
+            return EngineCreateError(
+              engineAskAsyncId,
+              ExceptionUtils.getRootCauseMessage(t),
+              retryFlag
             )
-            return
           }
         }
       )
