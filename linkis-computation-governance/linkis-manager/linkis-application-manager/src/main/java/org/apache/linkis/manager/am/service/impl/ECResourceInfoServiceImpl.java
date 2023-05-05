@@ -165,7 +165,7 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
                     BDPJettyServerHelper.gson()
                         .fromJson(ecNodeinfo.getHeartbeatMsg(), new HashMap<>().getClass());
                 Object lastUnlockTimestampObject =
-                    Optional.ofNullable(heartbeatMap.get("lastUnlockTimestamp")).orElse(0);
+                    heartbeatMap.getOrDefault("lastUnlockTimestamp", 0);
                 BigDecimal lastUnlockTimestampBigDecimal =
                     new BigDecimal(String.valueOf(lastUnlockTimestampObject));
                 lastUnlockTimestamp = lastUnlockTimestampBigDecimal.longValue();
