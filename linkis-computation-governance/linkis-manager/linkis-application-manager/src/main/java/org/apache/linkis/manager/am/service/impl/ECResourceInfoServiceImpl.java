@@ -165,11 +165,11 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
                 Map<String, Object> heartbeatMap = new HashMap<>();
                 if (StringUtils.isNotBlank(heartbeatMsg)) {
                   heartbeatMap =
-                          BDPJettyServerHelper.gson()
-                                  .fromJson(heartbeatMsg, new HashMap<>().getClass());
+                      BDPJettyServerHelper.gson()
+                          .fromJson(heartbeatMsg, new HashMap<>().getClass());
                 }
                 Object lastUnlockTimestampObject =
-                        heartbeatMap.getOrDefault("lastUnlockTimestamp", 0);
+                    heartbeatMap.getOrDefault("lastUnlockTimestamp", 0);
                 BigDecimal lastUnlockTimestampBigDecimal =
                     new BigDecimal(String.valueOf(lastUnlockTimestampObject));
                 lastUnlockTimestamp = lastUnlockTimestampBigDecimal.longValue();
