@@ -24,27 +24,27 @@ import java.util.List;
 
 public class UdfTreeUtils {
 
-  /** BuildTree 构建树形结构 */
+  /** Build tree structure */
   public List<UdfTreeEntity> udfTreeList = new ArrayList<>();
 
-  /** 构造方法 */
+  /** Construction method */
   public UdfTreeUtils(List<UdfTreeEntity> udfTreeList) {
     this.udfTreeList = udfTreeList;
   }
 
   /**
-   * 获取需构建的所有根节点（顶级节点）
+   * Obtain all root nodes (top-level nodes) that need to be built
    *
-   * @return 所有根节点List集合
+   * @return All Root Node List Collection
    */
   public List<UdfTreeEntity> getRootNode() {
-    // 保存所有根节点（所有根节点的数据）
+    // Save all root nodes (data for all root nodes)
     List<UdfTreeEntity> rootudfTreeList = new ArrayList<>();
-    // UdfTreeEntity：查询出的每一条数据（节点）
+    // UdfTreeEntity: Each piece of data (node) found in the query
     for (UdfTreeEntity UdfTreeEntity : udfTreeList) {
-      // 判断当前节点是否为根节点，此处注意：若parentId类型是String，则要采用equals()方法判断。
+      // Determine whether the current node is a root node. Note here that if the parentId type is
+      // String, the equals() method should be used to determine.
       if (-1 == UdfTreeEntity.getParent()) {
-        // 是，添加
         rootudfTreeList.add(UdfTreeEntity);
       }
     }
@@ -52,40 +52,41 @@ public class UdfTreeUtils {
   }
 
   /**
-   * 根据每一个顶级节点（根节点）进行构建树形结构
+   * Build a tree structure according to each top-level node (root node)
    *
-   * @return 构建整棵树
+   * @return Build the entire tree
    */
   public List<UdfTreeEntity> buildTree() {
-    // UdfTreeEntitys：保存一个顶级节点所构建出来的完整树形
+    // UdfTreeEntities: Saves the complete tree structure constructed by a top-level node
     List<UdfTreeEntity> UdfTreeEntitys = new ArrayList<UdfTreeEntity>();
-    // getRootNode()：获取所有的根节点
+    // GetRootNode(): Get all root nodes
     for (UdfTreeEntity treeRootNode : getRootNode()) {
-      // 将顶级节点进行构建子树
+      // Build subtrees from top-level nodes
       treeRootNode = buildChildTree(treeRootNode);
-      // 完成一个顶级节点所构建的树形，增加进来
+      // Complete the tree structure constructed by a top-level node and add it in
       UdfTreeEntitys.add(treeRootNode);
     }
     return UdfTreeEntitys;
   }
 
   /**
-   * 递归-----构建子树形结构
+   * Recursion ----- construct sub tree structure
    *
-   * @param udfTreeEntity 根节点（顶级节点）
-   * @return 整棵树
+   * @param udfTreeEntity Root node (top-level node)
+   * @return Whole tree
    */
   public UdfTreeEntity buildChildTree(UdfTreeEntity udfTreeEntity) {
     List<UdfTreeEntity> childTree = new ArrayList<UdfTreeEntity>();
-    // udfTreeList：所有节点集合（所有数据）
+    // udfTreeList：All node sets (all data)
     for (UdfTreeEntity UdfTreeEntity : udfTreeList) {
-      // 判断当前节点的父节点ID是否等于根节点的ID，即当前节点为其下的子节点
+      // Determine whether the parent node ID of the current node is equal to the ID of the root
+      // node, that is, if the current node is a child node under it
       if (UdfTreeEntity.getParent().equals(udfTreeEntity.getId())) {
-        // 再递归进行判断当前节点的情况，调用自身方法
+        // Recursively judge the current node's situation and call its own method
         childTree.add(buildChildTree(UdfTreeEntity));
       }
     }
-    // for循环结束，即节点下没有任何节点，树形构建结束，设置树结果
+    // Recursively judge the current node's situation and call its own method
     udfTreeEntity.setChildrenList(childTree);
     return udfTreeEntity;
   }
