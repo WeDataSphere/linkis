@@ -189,7 +189,7 @@ public class ECResourceInfoRestfulApi {
     @ApiImplicitParam(name = "engineTypes", dataType = "Array", value = "engine type"),
     @ApiImplicitParam(name = "statuss", dataType = "Array", value = "statuss"),
     @ApiImplicitParam(name = "queueName", dataType = "String", value = "queueName"),
-    @ApiImplicitParam(name = "ecInstances", dataType = "String", value = "ecInstances"),
+    @ApiImplicitParam(name = "ecInstances", dataType = "Array", value = "ecInstances"),
   })
   @RequestMapping(path = "/ecList", method = RequestMethod.POST)
   public Message queryEcList(HttpServletRequest req, @RequestBody JsonNode jsonNode) {
@@ -271,7 +271,7 @@ public class ECResourceInfoRestfulApi {
             JsonUtils.jackson()
                 .readValue(ecInstancesParam.toString(), new TypeReference<List<String>>() {});
       } catch (JsonProcessingException e) {
-        return Message.error("parameters:instanceName parsing failed(请求参数【instanceName】解析失败)");
+        return Message.error("parameters:instanceName parsing failed(请求参数【ecInstances】解析失败)");
       }
     }
     logger.info(

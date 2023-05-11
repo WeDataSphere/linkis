@@ -108,7 +108,7 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
       List<String> engineTypeList,
       List<String> statusStrList,
       String queueName,
-      List<String> instanceNameList) {
+      List<String> ecInstancesList) {
 
     List<Map<String, Object>> resultList = new ArrayList<>();
 
@@ -120,7 +120,7 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
 
     // get engine conn info list filter by creator user list /instance status list
     List<PersistencerEcNodeInfo> ecNodesInfo =
-        nodeManagerMapper.getEMNodeInfoList(creatorUserList, statusIntList, instanceNameList);
+        nodeManagerMapper.getEMNodeInfoList(creatorUserList, statusIntList, ecInstancesList);
 
     // map k:v---> instanceName：PersistencerEcNodeInfo
     Map<String, PersistencerEcNodeInfo> persistencerEcNodeInfoMap =
@@ -150,8 +150,8 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
                       json.writeValueAsString(ecNodeinfo),
                       new TypeReference<Map<String, Object>>() {});
 
-              Integer intStatus = ecNodeinfo.getInstanceStatus();
-              item.put("instanceStatus", NodeStatus.values()[intStatus].name());
+              Integer instanceStatus = ecNodeinfo.getInstanceStatus();
+              item.put("instanceStatus", NodeStatus.values()[instanceStatus].name());
 
               String usedResourceStr = latestRecord.getUsedResource();
               /*
@@ -160,12 +160,16 @@ public class ECResourceInfoServiceImpl implements ECResourceInfoService {
               {"driver":{"instance":1,"memory":"2.0 GB","cpu":1} }
                */
               long lastUnlockTimestamp = 0L;
-              if (NodeStatus.values()[intStatus].name().equals(NodeStatus.Unlock.name())) {
-                HashMap heartbeatMap =
-                    BDPJettyServerHelper.gson()
-                        .fromJson(ecNodeinfo.getHeartbeatMsg(), new HashMap<>().getClass());
+              if (NodeStatus.values()[instanceStatus].name().equals(NodeStatus.Unlock.name())) {
+                String heartbeatMsg = ecNodeinfo.getHeartbeatMsg();
+                Map<String, Object> heartbeatMap = new HashMap<>();
+                if (StringUtils.isNotBlank(heartbeatMsg)) {
+                  heartbeatMap =
+                      BDPJettyServerHelper.gson()
+                          .fromJson(heartbeatMsg, new HashMap<>().getClass());
+                }
                 Object lastUnlockTimestampObject =
-                    Optional.ofNullable(heartbeatMap.get("lastUnlockTimestamp")).orElse(0);
+                    heartbeatMap.getOrDefault("lastUnlockTimestamp", 0);
                 BigDecimal lastUnlockTimestampBigDecimal =
                     new BigDecimal(String.valueOf(lastUnlockTimestampObject));
                 lastUnlockTimestamp = lastUnlockTimestampBigDecimal.longValue();
