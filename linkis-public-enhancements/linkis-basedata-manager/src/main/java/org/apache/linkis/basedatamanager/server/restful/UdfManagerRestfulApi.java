@@ -130,6 +130,7 @@ public class UdfManagerRestfulApi {
     if (!Configuration.isAdmin(username)) {
       return Message.error("User '" + username + "' is not admin user[非管理员用户]");
     }
+    udfManagerEntity.setId(null);
     QueryWrapper<UdfManagerEntity> queryWrapper =
         new QueryWrapper<>(udfManagerEntity).eq("user_name", udfManagerEntity.getUserName());
     UdfManagerEntity udfManager = udfManagerService.getOne(queryWrapper);
