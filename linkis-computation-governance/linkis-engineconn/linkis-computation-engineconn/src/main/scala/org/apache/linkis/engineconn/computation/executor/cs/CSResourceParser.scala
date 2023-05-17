@@ -72,7 +72,7 @@ class CSResourceParser extends Logging {
         parsedResources.add(map)
         preFixNames.append(preFixResourceName)
         parsedNames.append(replacementName)
-        logger.warn("Replace cs file from {} to {}", preFixResourceName, replacementName)
+        logger.warn(s"Replace cs file from {$preFixResourceName} to {$replacementName}")
       }
     }
     props.put(GovernanceConstant.TASK_RESOURCES_STR, parsedResources)
