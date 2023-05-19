@@ -1040,4 +1040,38 @@ public class FsRestfulApi {
     }
     fileSystem.delete(fsPath);
   }
+
+  @ApiOperation(value = "getFileInfo", notes = "get file total line ", response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "Path")
+  })
+  @RequestMapping(path = "/getFileInfo", method = RequestMethod.GET)
+  public Message getFileInfo(
+      HttpServletRequest req, @RequestParam(value = "path", required = false) String path)
+      throws WorkSpaceException, IOException {
+    Message message = Message.ok();
+    if (StringUtils.isEmpty(path)) {
+      throw WorkspaceExceptionManager.createException(80004, path);
+    }
+    String userName = ModuleUserUtils.getOperationUser(req, "getFileInfo" + path);
+    if (!checkIsUsersDirectory(path, userName)) {
+      throw WorkspaceExceptionManager.createException(80010, userName, path);
+    }
+    FsPath fsPath = new FsPath(path);
+    FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
+    // Throws an exception if the file does not have read access(如果文件没读权限，抛出异常)
+    if (!fileSystem.canRead(fsPath)) {
+      throw WorkspaceExceptionManager.createException(80012);
+    }
+    FileSource fileSource = null;
+    try {
+      fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
+      fileSource.collect();
+      IOUtils.closeQuietly(fileSource);
+      message.data("totalLine", fileSource.getTotalLine());
+      return message;
+    } finally {
+      IOUtils.closeQuietly(fileSource);
+    }
+  }
 }
