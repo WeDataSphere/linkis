@@ -518,23 +518,35 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80012);
     }
     FileSource fileSource = null;
+    FileSource fileSource2 = null;
     try {
       Message message = Message.ok();
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
       Pair<Object, Object>[] fileInfo = fileSource.getFileInfo(pageSize);
       IOUtils.closeQuietly(fileSource);
       if (null != fileInfo && fileInfo.length > 0) {
+        int rowNumber = (int) fileInfo[0].getSecond();
         message.data("path", path);
         message.data("colNumber", fileInfo[0].getFirst());
         message.data("rowNumber", fileInfo[0].getSecond());
+        if (rowNumber >= pageSize) {
+          fileSource2 = FileSource$.MODULE$.create(fsPath, fileSystem);
+          fileSource2.collect();
+          message.data("totalLine", fileSource2.getTotalLine());
+          IOUtils.closeQuietly(fileSource2);
+        } else {
+          message.data("totalLine", rowNumber);
+        }
       } else {
         message.data("path", path);
         message.data("colNumber", 0);
         message.data("rowNumber", 0);
+        message.data("totalLine", 0);
       }
       return message;
     } finally {
       IOUtils.closeQuietly(fileSource);
+      IOUtils.closeQuietly(fileSource2);
     }
   }
 
@@ -1039,39 +1051,5 @@ public class FsRestfulApi {
       deleteAllFiles(fileSystem, path);
     }
     fileSystem.delete(fsPath);
-  }
-
-  @ApiOperation(value = "getFileInfo", notes = "get file total line ", response = Message.class)
-  @ApiImplicitParams({
-    @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "Path")
-  })
-  @RequestMapping(path = "/getFileInfo", method = RequestMethod.GET)
-  public Message getFileInfo(
-      HttpServletRequest req, @RequestParam(value = "path", required = false) String path)
-      throws WorkSpaceException, IOException {
-    Message message = Message.ok();
-    if (StringUtils.isEmpty(path)) {
-      throw WorkspaceExceptionManager.createException(80004, path);
-    }
-    String userName = ModuleUserUtils.getOperationUser(req, "getFileInfo" + path);
-    if (!checkIsUsersDirectory(path, userName)) {
-      throw WorkspaceExceptionManager.createException(80010, userName, path);
-    }
-    FsPath fsPath = new FsPath(path);
-    FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
-    // Throws an exception if the file does not have read access(如果文件没读权限，抛出异常)
-    if (!fileSystem.canRead(fsPath)) {
-      throw WorkspaceExceptionManager.createException(80012);
-    }
-    FileSource fileSource = null;
-    try {
-      fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
-      fileSource.collect();
-      IOUtils.closeQuietly(fileSource);
-      message.data("totalLine", fileSource.getTotalLine());
-      return message;
-    } finally {
-      IOUtils.closeQuietly(fileSource);
-    }
   }
 }
