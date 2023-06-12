@@ -22,6 +22,7 @@ import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.storage.FSFactory
 import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.fs.impl.LocalFileSystem
+import org.apache.linkis.storage.source.FileSource
 
 import java.io.IOException
 import java.util
@@ -111,6 +112,17 @@ object FileSystemUtils extends Logging {
       }
     }
     true
+  }
+
+  /**
+   * 返回文件总行数
+   * @param fileSource
+   * @return
+   *   TotalLine
+   */
+  def getTotalLine(fileSource: FileSource): Int = {
+    fileSource.collect()
+    fileSource.getTotalLine
   }
 
 }

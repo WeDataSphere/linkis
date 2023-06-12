@@ -41,6 +41,7 @@ import org.apache.linkis.storage.fs.FileSystem;
 import org.apache.linkis.storage.script.*;
 import org.apache.linkis.storage.source.FileSource;
 import org.apache.linkis.storage.source.FileSource$;
+import org.apache.linkis.storage.utils.FileSystemUtils;
 import org.apache.linkis.storage.utils.StorageUtils;
 
 import org.apache.commons.io.IOUtils;
@@ -531,8 +532,7 @@ public class FsRestfulApi {
         message.data("rowNumber", fileInfo[0].getSecond());
         if (rowNumber >= pageSize) {
           fileSource2 = FileSource$.MODULE$.create(fsPath, fileSystem);
-          fileSource2.collect();
-          message.data("totalLine", fileSource2.getTotalLine());
+          message.data("totalLine", FileSystemUtils.getTotalLine(fileSource2));
           IOUtils.closeQuietly(fileSource2);
         } else {
           message.data("totalLine", rowNumber);
