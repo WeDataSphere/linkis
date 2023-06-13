@@ -23,6 +23,7 @@ import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel;
 import org.apache.linkis.manager.label.entity.engine.UserCreatorLabel;
 
 import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 public class ConfigurationConfiguration {
 
@@ -41,4 +42,8 @@ public class ConfigurationConfiguration {
     PERMIT_LABEL_TYPE.add(new UserCreatorLabel());
     PERMIT_LABEL_TYPE.add(new EngineTypeLabel());
   }
+
+  public static final String CONF_REGEX = "^([1-9]\\d{0,1}|100)(G|g)$";
+
+  public static final Pattern confRegexPattern = Pattern.compile(CONF_REGEX);
 }
