@@ -542,6 +542,7 @@ class RMMonitorRest extends Logging {
     val userList =
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).keys.toList.asJava
     Utils.tryCatch {
+      logger.info("queueresources: userList {} ", userList)
       val nodesList = getEngineNodesByUserList(userList, true)
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).foreach { userAppInfo =>
         var busyResource = Resource.initResource(ResourceType.Yarn).asInstanceOf[YarnResource]
