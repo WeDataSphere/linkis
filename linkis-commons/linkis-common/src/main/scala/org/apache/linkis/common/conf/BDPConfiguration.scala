@@ -36,6 +36,8 @@ private[conf] object BDPConfiguration extends Logging {
 
   val DEFAULT_SERVER_CONF_FILE_NAME = "linkis-server.properties"
 
+  val DEFAULT_VERSION_FILE_NAME = "version.properties"
+
   val DEFAULT_CONFIG_HOT_LOAD_DELAY_MILLS = 3 * 60 * 1000L
 
   private val extractConfig = new Properties
@@ -65,17 +67,17 @@ private[conf] object BDPConfiguration extends Logging {
     }
 
     // load pub linkis conf
-    val serverConf = sysProps.getOrElse("wds.linkis.server.conf", DEFAULT_SERVER_CONF_FILE_NAME)
-    val serverConfFileURL = getClass.getClassLoader.getResource(serverConf)
-    if (serverConfFileURL != null && new File(serverConfFileURL.getPath).exists) {
+    val versionConf = sysProps.getOrElse("wds.linkis.server.conf", DEFAULT_VERSION_FILE_NAME)
+    val versionConfFileURL = getClass.getClassLoader.getResource(versionConf)
+    if (versionConfFileURL != null && new File(versionConfFileURL.getPath).exists) {
       logger.info(
-        s"*********************** Notice: The Linkis serverConf file is $serverConf ! ******************"
+        s"*********************** Notice: The Linkis serverConf file is $versionConfFileURL ! ******************"
       )
-      initConfig(config, serverConfFileURL.getPath)
-      configList.append(serverConfFileURL.getPath)
+      initConfig(config, versionConfFileURL.getPath)
+      configList.append(versionConfFileURL.getPath)
     } else {
       logger.warn(
-        s"**************** Notice: The Linkis serverConf file $serverConf does not exist! *******************"
+        s"**************** Notice: The Linkis serverConf file $versionConfFileURL does not exist! *******************"
       )
     }
 
@@ -98,7 +100,20 @@ private[conf] object BDPConfiguration extends Logging {
         }
       }
     }
-
+    // load  version confs
+    val serverConf = sysProps.getOrElse("linkis.info.app.version.path", DEFAULT_VERSION_FILE_NAME)
+    val serverConfFileURL = getClass.getClassLoader.getResource(serverConf)
+    if (serverConfFileURL != null && new File(serverConfFileURL.getPath).exists) {
+      logger.info(
+        s"*********************** Notice: The Linkis serverConf file is $serverConfFileURL ! ******************"
+      )
+      initConfig(config, serverConfFileURL.getPath)
+      configList.append(serverConfFileURL.getPath)
+    } else {
+      logger.warn(
+        s"**************** Notice: The Linkis serverConf file $serverConfFileURL does not exist! *******************"
+      )
+    }
     // init hot-load config task
     val hotLoadTask = new Runnable {
       override def run(): Unit = {

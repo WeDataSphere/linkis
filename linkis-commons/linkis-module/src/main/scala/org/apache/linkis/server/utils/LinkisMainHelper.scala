@@ -21,6 +21,7 @@ import org.apache.linkis.common.conf.{CommonVars, Configuration}
 import org.apache.linkis.server.conf.ServerConfiguration
 
 import java.io.File
+
 import scala.collection.JavaConverters._
 import scala.io.Source
 
@@ -65,18 +66,9 @@ object LinkisMainHelper {
       }
       resArr = resArr :+ s"--prometheus.endpoint=$prometheusEndpoint"
     }
-    val versionStr = getVersionInfo()
-    resArr = resArr :+ s"--eureka.instance.metadata-map.linkis.app.version=$versionStr"
-    return resArr
+    val version = CommonVars("version", "").getValue
+    resArr = resArr :+ s"--eureka.instance.metadata-map.linkis.app.version=$version"
+    resArr
   }
 
-  def getVersionInfo(): String = {
-    val filePath = ServerConfiguration.LINKIE_APP_VSERSION.getValue
-    val source = Source.fromFile(new File(filePath))
-    val fileContents = source.getLines.mkString("\n")
-    val versionRegex = """version=([\w-]+_\d+\.\d+\.\d+-\d+)""".r
-    val version = versionRegex.findFirstMatchIn(fileContents).map(_.group(1)).getOrElse("Unknown")
-    source.close()
-    version
-  }
 }
