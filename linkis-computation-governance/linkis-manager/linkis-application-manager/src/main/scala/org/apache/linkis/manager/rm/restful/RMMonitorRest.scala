@@ -18,6 +18,7 @@
 package org.apache.linkis.manager.rm.restful
 
 import org.apache.linkis.common.conf.Configuration
+import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
@@ -542,7 +543,7 @@ class RMMonitorRest extends Logging {
     val userList =
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).keys.toList.asJava
     Utils.tryCatch {
-      logger.info("queueresources: userList {} ", userList)
+      LogUtils.generateInfo(s"Will find engine nodes by userList : $userList")
       val nodesList = getEngineNodesByUserList(userList, true)
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).foreach { userAppInfo =>
         var busyResource = Resource.initResource(ResourceType.Yarn).asInstanceOf[YarnResource]
