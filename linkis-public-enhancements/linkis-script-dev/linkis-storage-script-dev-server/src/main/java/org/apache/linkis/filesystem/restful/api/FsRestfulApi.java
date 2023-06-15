@@ -519,7 +519,7 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80012);
     }
     FileSource fileSource = null;
-    FileSource fileSource2 = null;
+    FileSource fileSourceForTotal = null;
     try {
       Message message = Message.ok();
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
@@ -531,9 +531,8 @@ public class FsRestfulApi {
         message.data("colNumber", fileInfo[0].getFirst());
         message.data("rowNumber", fileInfo[0].getSecond());
         if (rowNumber >= pageSize) {
-          fileSource2 = FileSource$.MODULE$.create(fsPath, fileSystem);
-          message.data("totalLine", FileSystemUtils.getTotalLine(fileSource2));
-          IOUtils.closeQuietly(fileSource2);
+          fileSourceForTotal = FileSource$.MODULE$.create(fsPath, fileSystem);
+          message.data("totalLine", FileSystemUtils.getTotalLine(fileSourceForTotal));
         } else {
           message.data("totalLine", rowNumber);
         }
@@ -546,7 +545,7 @@ public class FsRestfulApi {
       return message;
     } finally {
       IOUtils.closeQuietly(fileSource);
-      IOUtils.closeQuietly(fileSource2);
+      IOUtils.closeQuietly(fileSourceForTotal);
     }
   }
 
