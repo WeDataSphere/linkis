@@ -118,7 +118,7 @@ object FileSystemUtils extends Logging {
   }
 
   /**
-   * 返回文件总行数
+   * Return the total number of lines in the file
    *
    * @param fsPath
    * @param fileSystem
