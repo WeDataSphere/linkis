@@ -501,6 +501,7 @@ class RMMonitorRest extends Logging {
       request: HttpServletRequest,
       @RequestBody param: util.Map[String, AnyRef]
   ): Message = {
+    ModuleUserUtils.getOperationUser(request, "getQueueResource")
     val message = Message.ok("")
     val yarnIdentifier = new YarnResourceIdentifier(param.get("queuename").asInstanceOf[String])
     val clusterLabel = labelFactory.createLabel(classOf[ClusterLabel])
@@ -543,7 +544,6 @@ class RMMonitorRest extends Logging {
     val userList =
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).keys.toList.asJava
     Utils.tryCatch {
-      LogUtils.generateInfo(s"Will find engine nodes by userList : $userList")
       val nodesList = getEngineNodesByUserList(userList, true)
       yarnAppsInfo.asScala.groupBy(_.asInstanceOf[YarnAppInfo].user).foreach { userAppInfo =>
         var busyResource = Resource.initResource(ResourceType.Yarn).asInstanceOf[YarnResource]
