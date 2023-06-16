@@ -100,8 +100,8 @@ private[conf] object BDPConfiguration extends Logging {
         }
       }
     }
-    // load  version confs
-    val versionConf = sysProps.getOrElse("wds.linkis.server.conf", DEFAULT_VERSION_FILE_NAME)
+    // load  version conf
+    val versionConf = sysProps.getOrElse("wds.linkis.version.conf", DEFAULT_VERSION_FILE_NAME)
     val versionConfFileURL = getClass.getClassLoader.getResource(versionConf)
     if (versionConfFileURL != null && new File(versionConfFileURL.getPath).exists) {
       logger.info(
