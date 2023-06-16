@@ -26,7 +26,6 @@ import org.apache.linkis.configuration.service.ConfigurationService;
 import org.apache.linkis.configuration.util.ConfigurationConfiguration;
 import org.apache.linkis.configuration.util.JsonNodeUtil;
 import org.apache.linkis.configuration.util.LabelEntityParser;
-import org.apache.linkis.manager.common.conf.RMConfiguration;
 import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel;
 import org.apache.linkis.manager.label.entity.engine.UserCreatorLabel;
 import org.apache.linkis.manager.label.utils.LabelUtils;
@@ -437,10 +436,6 @@ public class ConfigurationRestfulApi {
     if (StringUtils.isBlank(configKey) || StringUtils.isBlank(value)) {
       return Message.error("key or value cannot be empty");
     }
-    if (RMConfiguration.USER_AVAILABLE_MEMORY().key().equals(configKey)
-        && !ConfigurationConfiguration.confRegexPattern.matcher(value).matches()) {
-      return Message.error("The value " + value + " should be in g|G");
-    }
     List labelList =
         LabelEntityParser.generateUserCreatorEngineTypeLabelList(
             username, creator, engineType, version);
@@ -448,7 +443,7 @@ public class ConfigurationRestfulApi {
     ConfigKeyValue configKeyValue = new ConfigKeyValue();
     configKeyValue.setKey(configKey);
     configKeyValue.setConfigValue(value);
-
+    configurationService.paramCheck(configKeyValue);
     ConfigValue configValue = configKeyService.saveConfigValue(configKeyValue, labelList);
     configurationService.clearAMCacheConf(username, creator, engineType, version);
     return Message.ok().data("configValue", configValue);
