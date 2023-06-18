@@ -20,14 +20,9 @@ package org.apache.linkis.server.utils
 import org.apache.linkis.common.conf.{CommonVars, Configuration}
 import org.apache.linkis.server.conf.ServerConfiguration
 
-import java.io.File
-
 import scala.collection.JavaConverters._
-import scala.io.Source
 
 object LinkisMainHelper {
-
-  private val sysProps = sys.props
 
   private val SPRING_STAR = "spring."
 

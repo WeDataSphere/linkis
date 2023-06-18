@@ -101,17 +101,31 @@ private[conf] object BDPConfiguration extends Logging {
       }
     }
     // load  version conf
-    val versionConf = sysProps.getOrElse("wds.linkis.version.conf", DEFAULT_VERSION_FILE_NAME)
-    val versionConfFileURL = getClass.getClassLoader.getResource(versionConf)
-    if (versionConfFileURL != null && new File(versionConfFileURL.getPath).exists) {
+    val versionConf = sysProps.getOrElse("linkis.version.conf", DEFAULT_VERSION_FILE_NAME)
+
+
+    // version conf file path(env LINKIS_VERSION_CONF_FILE_PATH > classpath)
+    var versionConfPath = sysProps.getOrElse("LINKIS_VERSION_CONF_FILE_PATH", "")
+    if(StringUtils.isBlank(versionConfPath)) {
       logger.info(
-        s"*********************** Notice: The Linkis serverConf file is $versionConfFileURL ! ******************"
+        s"LINKIS_VERSION_CONF_FILE_PATH is empty, try to use version.properties file path from classpath"
       )
-      initConfig(config, versionConfFileURL.getPath)
-      configList.append(versionConfFileURL.getPath)
+      val versionConfFileURL = getClass.getClassLoader.getResource(versionConf)
+      if (versionConfFileURL != null) {
+        versionConfPath = versionConfFileURL.getPath
+      }
+    }
+
+
+    if (new File(versionConfPath).exists) {
+      logger.info(
+        s"*********************** Notice: The Linkis version file is $versionConf ! ******************"
+      )
+      initConfig(config, versionConfPath)
+      configList.append(versionConfPath)
     } else {
       logger.warn(
-        s"**************** Notice: The Linkis serverConf file $versionConfFileURL does not exist! *******************"
+        s"**************** Notice: The Linkis version file $versionConf does not exist! *******************"
       )
     }
     // init hot-load config task
