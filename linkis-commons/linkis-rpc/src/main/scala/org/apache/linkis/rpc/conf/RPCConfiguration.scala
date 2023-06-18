@@ -81,11 +81,11 @@ object RPCConfiguration {
       .split(",")
 
   val LINKIS_DATASOURCE_SERVICE_NAME: CommonVars[String] =
-    CommonVars("linkis.gateway.conf.linkispsdatasource.name", "linkis-ps-datasource")
+    CommonVars("linkis.gateway.conf.linkisdatasource.name", "linkis-ps-datasource")
 
   val LINKIS_DATASOURCE_SERVICE_LIST: Array[String] =
     CommonVars(
-      "linkis.gateway.conf.linkispsdatasource.list",
+      "linkis.gateway.conf.linkisdatasource.list",
       "data-source-manager,metadataquery,datasource"
     ).getValue
       .split(",")
