@@ -15,11 +15,15 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.manager.am.hook
+package org.apache.linkis.manager;
 
-trait AskEngineHook {
+import org.apache.linkis.LinkisBaseServerApp;
 
-  @throws(classOf[Exception])
-  def doHook(ctx: AskEngineHookContext): Unit
+/** @date 2020/7/7 16:22 */
+public class LinkisManagerApplication {
 
+  public static void main(String[] args) throws ReflectiveOperationException {
+    LinkisBaseServerApp.main(args);
+    // DataWorkCloudApplication.main(args);
+  }
 }

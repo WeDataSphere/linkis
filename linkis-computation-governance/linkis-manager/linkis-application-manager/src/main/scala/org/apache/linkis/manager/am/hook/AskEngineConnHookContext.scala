@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.ecm.server.service
+package org.apache.linkis.manager.am.hook
 
-import org.apache.linkis.protocol.callback.LogCallbackProtocol
+import org.apache.linkis.manager.common.protocol.engine.EngineAskRequest
+import org.apache.linkis.rpc.Sender
 
-trait LogCallbackService {
-
-  def dealLog(protocol: LogCallbackProtocol): Unit
-
+class AskEngineConnHookContext(request: EngineAskRequest, sender: Sender) {
+  def getRequest(): EngineAskRequest = request
+  def getSender(): Sender = sender
 }
