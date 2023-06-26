@@ -19,7 +19,7 @@ package org.apache.linkis.configuration.service
 
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.configuration.conf.Configuration
-import org.apache.linkis.configuration.dao.{ConfigMapper, LabelMapper}
+import org.apache.linkis.configuration.dao.{ConfigKeyLimitForUserMapper, ConfigMapper, LabelMapper}
 import org.apache.linkis.configuration.entity._
 import org.apache.linkis.configuration.exception.ConfigurationException
 import org.apache.linkis.configuration.util.{LabelEntityParser, LabelParameterParser}
@@ -56,6 +56,8 @@ class ConfigurationService extends Logging {
   @Autowired private var labelMapper: LabelMapper = _
 
   @Autowired private var validatorManager: ValidatorManager = _
+
+  @Autowired private var configKeyLimitForUserMapper: ConfigKeyLimitForUserMapper = _
 
   private val combinedLabelBuilder: CombinedLabelBuilder = new CombinedLabelBuilder
 
@@ -379,6 +381,30 @@ class ConfigurationService extends Logging {
         replaceCreatorToEngine(defaultCreatorConfigs, defaultEngineConfigs)
       }
     }
+
+    // add special config limit info
+    if (configs.size() > 0) {
+      val keyIdList = configs.asScala.toStream
+        .map(e => {
+          e.getId
+        })
+        .toList
+        .asJava
+      val limitList =
+        configKeyLimitForUserMapper.selectByLabelAndKeyIds(combinedLabel.getStringValue, keyIdList)
+      configs.asScala.foreach(entity => {
+        val keyId = entity.getId
+        val res = limitList.asScala.filter(v => v.getKeyId == keyId).toList.asJava
+        if (res.size() > 0) {
+          entity.setConfigKeyLimitForUser(res.get(0))
+        }
+      })
+    } else {
+      logger.warn(
+        s"The configuration is empty. Please check the configuration information in the database table(配置为空,请检查数据库表中关于标签${combinedLabel.getStringValue}的配置信息是否完整)"
+      )
+    }
+
     (configs, defaultEngineConfigs)
   }
 

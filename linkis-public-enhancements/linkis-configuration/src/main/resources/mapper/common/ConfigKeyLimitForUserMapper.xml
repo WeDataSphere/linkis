@@ -223,4 +223,14 @@
     update_time= now()
   </insert>
 
+  <select id="selectByLabelAndKeyIds" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from linkis_ps_configuration_key_limit_for_user
+    where combined_label_value =#{label,jdbcType=VARCHAR}
+    and key_id  in
+    <foreach collection="keyIdList" index="index" item="item" separator="," open="(" close=")">
+      #{item}
+    </foreach>
+  </select>
 </mapper>

@@ -105,4 +105,7 @@ public interface ConfigKeyLimitForUserMapper {
   // === 下方为用户自定义模块,下次生成会保留 ===
 
   int batchInsertOrUpdateList(List<ConfigKeyLimitForUser> list);
+
+  List<ConfigKeyLimitForUser> selectByLabelAndKeyIds(
+          @Param("label") String label, @Param("keyIdList") List<Long> keyIdList);
 }

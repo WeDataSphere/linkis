@@ -61,8 +61,6 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
   @Autowired private ConfigKeyLimitForUserMapper configKeyLimitForUserMapper;
 
-  private CombinedLabelBuilder combinedLabelBuilder = new CombinedLabelBuilder();
-
   @Override
   @Transactional
   public Boolean updateKeyMapping(
@@ -81,11 +79,12 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
     // 待更新的key id 列表
     List<Long> keyIdList = configKeyList.stream().map(e -> e.getId()).collect(Collectors.toList());
     if (configKeyList.size() != itemList.size()) {
+      List<String> dbKeyList = configKeyList.stream().map(e -> e.getKey()).collect(Collectors.toList());
       String msg =
           MessageFormat.format(
-              "The num of config item data from the DB is inconsistent(DB中获取到的配置数据条数不一致) :"
-                  + "engineType:{0}, input keyList size:{1}, db keyList size:{2}",
-              engineType, keyList.size(), configKeyList.size());
+              "The num of configuration item data from the DB is inconsistent with input(从DB中获取到的配置数据条数不一致) :"
+                  + "engineType:{0}, input keys:{1}, db keys:{2}",
+              engineType, String.join( ",",keyList), String.join( ",",dbKeyList));
       throw new ConfigurationException(msg);
     }
     // 组装更新
@@ -110,7 +109,7 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
         String msg =
             MessageFormat.format(
                 "Parameter configValue verification failed(参数configValue校验失败):"
-                    + "key:{0}, ValidateType:{1}, ValidateRange:{3},ConfigValue:{4}",
+                    + "key:{0}, ValidateType:{1}, ValidateRange:{2},ConfigValue:{3}",
                 key, validateType, validateRange, configValue);
         throw new ConfigurationException(msg);
       }
@@ -118,7 +117,7 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
         String msg =
             MessageFormat.format(
                 "Parameter maxValue verification failed(参数maxValue校验失败):"
-                    + "key:{0}, ValidateType:{1}, ValidateRange:{3},ConfigValue:{4}",
+                    + "key:{0}, ValidateType:{1}, ValidateRange:{2}, maxValue:{3}",
                 key, validateType, validateRange, maxValue);
         throw new ConfigurationException(msg);
       }
@@ -146,11 +145,17 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
                   })
               .map(e -> e.getKeyId())
               .collect(Collectors.toList());
-      logger.info(
-          "Try to remove old data:[" + needToRemoveList + "] for templateUid:" + templateUid);
-      templateConfigKeyMapper.deleteByTemplateUuidAndKeyIdList(templateUid, needToRemoveList);
+      if (needToRemoveList.size() > 0) {
+        logger.info(
+            "Try to remove old data:[" + needToRemoveList + "] for templateUid:" + templateUid);
+        templateConfigKeyMapper.deleteByTemplateUuidAndKeyIdList(templateUid, needToRemoveList);
+      }
     }
 
+    if (toUpdateOrInsertList.size() == 0) {
+      String msg = "No key data to update, Please check if the keys are correct";
+      throw new ConfigurationException(msg);
+    }
     templateConfigKeyMapper.batchInsertOrUpdateList(toUpdateOrInsertList);
 
     return true;
@@ -168,7 +173,12 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
             .collect(Collectors.groupingBy(TemplateConfigKey::getTemplateUuid));
 
     List<Long> keyIdList =
-        templateConfigKeyList.stream().map(e -> e.getId()).distinct().collect(Collectors.toList());
+        templateConfigKeyList.stream().map(e -> e.getKeyId()).distinct().collect(Collectors.toList());
+
+    if (keyIdList.size() == 0) {
+      String msg = "can not get any config key info from db, Please check if the keys are correct";
+      throw new ConfigurationException(msg);
+    }
     List<ConfigKey> configKeyList = configMapper.selectKeyByKeyIdList(keyIdList);
     // map k:v---> keyId：ConfigKey
     Map<Long, ConfigKey> configKeyMap =
@@ -193,13 +203,17 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
         temp.put("keyId", templateConfigKey.getKeyId());
 
         ConfigKey info = configKeyMap.get(templateConfigKey.getKeyId());
-        temp.put("key", info.getKey());
-        temp.put("name", info.getName());
-        temp.put("description", info.getDescription());
-        temp.put("engineType", info.getEngineType());
-        temp.put("validateType", info.getValidateType());
-        temp.put("validateRange", info.getValidateRange());
-        temp.put("boundaryType", info.getBoundaryType());
+        if(info !=null)
+        {
+          temp.put("key", info.getKey());
+          temp.put("name", info.getName());
+          temp.put("description", info.getDescription());
+          temp.put("engineType", info.getEngineType());
+          temp.put("validateType", info.getValidateType());
+          temp.put("validateRange", info.getValidateRange());
+          temp.put("boundaryType", info.getBoundaryType());
+        }
+
 
         keys.add(temp);
       }
@@ -208,55 +222,6 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
     }
     return result;
   }
-
-  //    @Override
-  //    public List<Object> apply1(String templateUid, String application, String engineType,
-  //                               String engineVersion, String operator, List<String> userList)
-  // throws ConfigurationException {
-  //        // 确认用户该标签是否都存在
-  //        //  combined_label_value        组合标签 combined_userCreator_engineType  如
-  // hadoop-IDE,spark-2.4.3
-  //        String combinedKey = LabelEntityParser.COMBINED_USERCREATOR_ENGINETYPE;
-  //        String valueFormat = "{}-{},{}-{}";
-  //
-  //        List<ConfigLabel> configLabelList = userList.stream().filter(e ->
-  // StringUtils.isNotBlank(e))
-  //                .map(user -> {
-  ////                    ConfigLabel label = new ConfigLabel();
-  ////                    label.setLabelKey(combinedKey);
-  ////                    String
-  // value=MessageFormat.format(valueFormat,user,application,engineType,engineVersion);
-  ////                    label.setStringValue(value);
-  ////                    label.setFeature(Feature.OPTIONAL);
-  ////                    label.setLabelValueSize();
-  //                    CombinedLabel combinedLabel =
-  //                            configurationService.generateCombinedLabel(engineType,
-  // engineVersion, user, application);
-  //                    ConfigLabel configLabel =
-  // LabelEntityParser.parseToConfigLabel(combinedLabel);
-  //                    return configLabel;
-  //                })
-  //                .collect(Collectors.toList());
-  //        // 尝试批量创建用户label信息
-  //        labelMapper.batchInsertLabel(configLabelList);
-  //        List<String> valueList = configLabelList.stream().map(e ->
-  // e.getStringValue()).collect(Collectors.toList());
-  //        List<ConfigLabel> labelList =
-  // labelMapper.selectUserCreatorEngineTypeLabelList(valueList);
-  //
-  //        //组装批量更新的configvalue
-  //        List<ConfigValue> needUpdataList = new ArrayList<>();
-  //
-  //        ConfigValue configValue = null;
-  //        configValue = new ConfigValue();
-  //        configValue.setConfigKeyId(configKey.getId());
-  //        configValue.setConfigValue(configKeyValue.getConfigValue());
-  //        configValue.setConfigLabelId(configLabel.getId());
-  //        //获取label id
-  //
-  //        //更新对应的配置值
-  //
-  //    }
 
   @Override
   public Map<String, Object> apply(
@@ -286,6 +251,8 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
                 engineType, engineVersion, user, application);
         String conbinedLabelKey = combinedLabel.getLabelKey();
         String conbinedLabelStringValue = combinedLabel.getStringValue();
+        //check lable is ok
+
         ConfigLabel configLabel =
             labelMapper.getLabelByKeyValue(conbinedLabelKey, conbinedLabelStringValue);
         if (null == configLabel || configLabel.getId() < 0) {
@@ -318,12 +285,19 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
           configKeyLimitForUser.setUpdateBy(operator);
           configKeyLimitForUsers.add(configKeyLimitForUser);
         }
-        configMapper.batchInsertOrUpdateValueList(configValues);
 
-        // batch update user ConfigKeyLimitForUserMapper
-        configKeyLimitForUserMapper.batchInsertOrUpdateList(configKeyLimitForUsers);
+        if (configValues.size() == 0) {
+          res.put("msg", "can not get any right key form the db");
+          errorList.add(res);
+        } else {
+          configMapper.batchInsertOrUpdateValueList(configValues);
 
-        successList.add(res);
+          // batch update user ConfigKeyLimitForUserMapper
+          configKeyLimitForUserMapper.batchInsertOrUpdateList(configKeyLimitForUsers);
+
+          successList.add(res);
+        }
+
       } catch (Exception e) {
         logger.warn("try to update configurations for  user:" + user + " with error", e);
         res.put("msg", e.getMessage());

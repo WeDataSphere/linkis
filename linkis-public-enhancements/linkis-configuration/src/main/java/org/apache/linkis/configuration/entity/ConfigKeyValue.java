@@ -53,6 +53,16 @@ public class ConfigKeyValue {
 
   private Boolean isUserDefined;
 
+  private ConfigKeyLimitForUser configKeyLimitForUser;
+
+  public ConfigKeyLimitForUser getConfigKeyLimitForUser() {
+    return configKeyLimitForUser;
+  }
+
+  public void setConfigKeyLimitForUser(ConfigKeyLimitForUser configKeyLimitForUser) {
+    this.configKeyLimitForUser = configKeyLimitForUser;
+  }
+
   public Boolean getIsUserDefined() {
     return isUserDefined;
   }
