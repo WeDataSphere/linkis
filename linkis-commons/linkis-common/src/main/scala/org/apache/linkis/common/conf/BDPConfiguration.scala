@@ -22,7 +22,7 @@ import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 
-import java.io.{File, FileInputStream, InputStream, IOException}
+import java.io._
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -35,6 +35,8 @@ private[conf] object BDPConfiguration extends Logging {
   val DEFAULT_PROPERTY_FILE_NAME = "linkis.properties"
 
   val DEFAULT_SERVER_CONF_FILE_NAME = "linkis-server.properties"
+
+  val DEFAULT_VERSION_FILE_NAME = "version.properties"
 
   val DEFAULT_CONFIG_HOT_LOAD_DELAY_MILLS = 3 * 60 * 1000L
 
@@ -98,7 +100,32 @@ private[conf] object BDPConfiguration extends Logging {
         }
       }
     }
+    // load  version conf
+    val versionConf = sysProps.getOrElse("linkis.version.conf", DEFAULT_VERSION_FILE_NAME)
 
+    // version conf file path(env LINKIS_VERSION_CONF_FILE_PATH > classpath)
+    var versionConfPath = sysProps.getOrElse("LINKIS_VERSION_CONF_FILE_PATH", "")
+    if (StringUtils.isBlank(versionConfPath)) {
+      logger.info(
+        s"LINKIS_VERSION_CONF_FILE_PATH is empty, try to use version.properties file path from classpath"
+      )
+      val versionConfFileURL = getClass.getClassLoader.getResource(versionConf)
+      if (versionConfFileURL != null) {
+        versionConfPath = versionConfFileURL.getPath
+      }
+    }
+
+    if (new File(versionConfPath).exists) {
+      logger.info(
+        s"*********************** Notice: The Linkis version file is $versionConf ! ******************"
+      )
+      initConfig(config, versionConfPath)
+      configList.append(versionConfPath)
+    } else {
+      logger.warn(
+        s"**************** Notice: The Linkis version file $versionConf does not exist! *******************"
+      )
+    }
     // init hot-load config task
     val hotLoadTask = new Runnable {
       override def run(): Unit = {
@@ -140,15 +167,20 @@ private[conf] object BDPConfiguration extends Logging {
 
   private def initConfig(config: Properties, filePath: String) {
     var inputStream: InputStream = null
-
+    var reader: InputStreamReader = null
+    var buff: BufferedReader = null
     Utils.tryFinally {
       Utils.tryCatch {
         inputStream = new FileInputStream(filePath)
-        config.load(inputStream)
+        reader = new InputStreamReader(inputStream, "UTF-8")
+        buff = new BufferedReader(reader)
+        config.load(buff)
       } { case e: IOException =>
         logger.error("Can't load " + filePath, e)
       }
     } {
+      IOUtils.closeQuietly(buff)
+      IOUtils.closeQuietly(reader)
       IOUtils.closeQuietly(inputStream)
     }
   }

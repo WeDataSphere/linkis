@@ -15,12 +15,27 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.ecm.server.service
+package org.apache.linkis.common.conf;
 
-import org.apache.linkis.protocol.callback.LogCallbackProtocol
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
-trait LogCallbackService {
+/** BDPConfiguration Tester */
+public class BDPConfigurationTest {
 
-  def dealLog(protocol: LogCallbackProtocol): Unit
+  @Test
+  public void testGetOption() {
 
+    Assertions.assertEquals(
+        "properties支持中文",
+        BDPConfiguration.getOption(
+                CommonVars.apply("linkis.jobhistory.error.msg.tip", "properties支持中文"))
+            .get());
+
+    Assertions.assertEquals(
+        "properties支持中文(默认)",
+        BDPConfiguration.getOption(
+                CommonVars.apply("linkis.jobhistory.error.msg.tip1", "properties支持中文(默认)"))
+            .get());
+  }
 }
