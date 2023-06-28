@@ -21,6 +21,7 @@ import java.io.Serializable;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -55,6 +56,10 @@ public class GatewayAuthTokenEntity implements Serializable {
 
   /** */
   private String updateBy;
+
+  /** */
+  @TableField(exist = false)
+  private String systemId;
 
   private static final long serialVersionUID = 1L;
 
@@ -146,6 +151,16 @@ public class GatewayAuthTokenEntity implements Serializable {
   /** */
   public void setUpdateBy(String updateBy) {
     this.updateBy = updateBy;
+  }
+
+  /** */
+  public String getSystemId() {
+    return systemId;
+  }
+
+  /** */
+  public void setSystemId(String systemId) {
+    this.systemId = systemId;
   }
 
   @Override
