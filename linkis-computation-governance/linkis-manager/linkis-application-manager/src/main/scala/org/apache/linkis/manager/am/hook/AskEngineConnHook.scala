@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.ecm.server.service
+package org.apache.linkis.manager.am.hook
 
-import org.apache.linkis.governance.common.protocol.task.ResponseEngineConnPid
+trait AskEngineConnHook {
 
-trait EngineConnPidCallbackService {
-
-  def dealPid(protocol: ResponseEngineConnPid): Unit
+  @throws(classOf[Exception])
+  def doHook(ctx: AskEngineConnHookContext): Unit
 
 }

@@ -17,6 +17,7 @@
 
 package org.apache.linkis.configuration.service;
 
+import org.apache.linkis.configuration.entity.ConfigKey;
 import org.apache.linkis.configuration.entity.ConfigKeyValue;
 import org.apache.linkis.configuration.entity.ConfigValue;
 import org.apache.linkis.configuration.exception.ConfigurationException;
@@ -31,6 +32,8 @@ public interface ConfigKeyService {
 
   List<ConfigValue> getConfigValue(String configKey, List<Label<?>> labelList)
       throws ConfigurationException;
+
+  List<ConfigKey> getConfigKeyList(String engineType) throws ConfigurationException;
 
   List<ConfigValue> deleteConfigValue(String configKey, List<Label<?>> labelList)
       throws ConfigurationException;

@@ -22,7 +22,7 @@ import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 
-import java.io.{File, FileInputStream, InputStream, IOException}
+import java.io._
 import java.util.Properties
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -103,10 +103,9 @@ private[conf] object BDPConfiguration extends Logging {
     // load  version conf
     val versionConf = sysProps.getOrElse("linkis.version.conf", DEFAULT_VERSION_FILE_NAME)
 
-
     // version conf file path(env LINKIS_VERSION_CONF_FILE_PATH > classpath)
     var versionConfPath = sysProps.getOrElse("LINKIS_VERSION_CONF_FILE_PATH", "")
-    if(StringUtils.isBlank(versionConfPath)) {
+    if (StringUtils.isBlank(versionConfPath)) {
       logger.info(
         s"LINKIS_VERSION_CONF_FILE_PATH is empty, try to use version.properties file path from classpath"
       )
@@ -115,7 +114,6 @@ private[conf] object BDPConfiguration extends Logging {
         versionConfPath = versionConfFileURL.getPath
       }
     }
-
 
     if (new File(versionConfPath).exists) {
       logger.info(
@@ -169,15 +167,20 @@ private[conf] object BDPConfiguration extends Logging {
 
   private def initConfig(config: Properties, filePath: String) {
     var inputStream: InputStream = null
-
+    var reader: InputStreamReader = null
+    var buff: BufferedReader = null
     Utils.tryFinally {
       Utils.tryCatch {
         inputStream = new FileInputStream(filePath)
-        config.load(inputStream)
+        reader = new InputStreamReader(inputStream, "UTF-8")
+        buff = new BufferedReader(reader)
+        config.load(buff)
       } { case e: IOException =>
         logger.error("Can't load " + filePath, e)
       }
     } {
+      IOUtils.closeQuietly(buff)
+      IOUtils.closeQuietly(reader)
       IOUtils.closeQuietly(inputStream)
     }
   }

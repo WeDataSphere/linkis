@@ -15,15 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.manager.am;
+package org.apache.linkis.manager.am.hook
 
-import org.apache.linkis.LinkisBaseServerApp;
+import org.apache.linkis.manager.common.protocol.engine.EngineAskRequest
+import org.apache.linkis.rpc.Sender
 
-/** @date 2020/7/7 16:22 */
-public class LinkisManagerApplication {
-
-  public static void main(String[] args) throws ReflectiveOperationException {
-    LinkisBaseServerApp.main(args);
-    // DataWorkCloudApplication.main(args);
-  }
+class AskEngineConnHookContext(request: EngineAskRequest, sender: Sender) {
+  def getRequest(): EngineAskRequest = request
+  def getSender(): Sender = sender
 }

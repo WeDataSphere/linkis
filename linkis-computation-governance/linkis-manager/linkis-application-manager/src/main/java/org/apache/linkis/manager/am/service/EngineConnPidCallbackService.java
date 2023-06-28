@@ -15,12 +15,11 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.manager.am.hook
+package org.apache.linkis.manager.am.service;
 
-import org.apache.linkis.manager.common.protocol.engine.EngineAskRequest
-import org.apache.linkis.rpc.Sender
+import org.apache.linkis.governance.common.protocol.task.ResponseEngineConnPid;
 
-class AskEngineHookContext(request: EngineAskRequest, sender: Sender) {
-  def getRequest(): EngineAskRequest = request
-  def getSender(): Sender = sender
+@FunctionalInterface
+public interface EngineConnPidCallbackService {
+  void dealPid(ResponseEngineConnPid protocol);
 }
