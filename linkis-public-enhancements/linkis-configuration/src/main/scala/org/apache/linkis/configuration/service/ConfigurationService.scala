@@ -19,7 +19,12 @@ package org.apache.linkis.configuration.service
 
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.configuration.conf.Configuration
-import org.apache.linkis.configuration.dao.{ConfigKeyLimitForUserMapper, ConfigMapper, LabelMapper}
+import org.apache.linkis.configuration.dao.{
+  ConfigKeyLimitForUserMapper,
+  ConfigMapper,
+  LabelMapper,
+  TemplateConfigKeyMapper
+}
 import org.apache.linkis.configuration.entity._
 import org.apache.linkis.configuration.exception.ConfigurationException
 import org.apache.linkis.configuration.util.{LabelEntityParser, LabelParameterParser}
@@ -57,7 +62,7 @@ class ConfigurationService extends Logging {
 
   @Autowired private var validatorManager: ValidatorManager = _
 
-  @Autowired private var configKeyLimitForUserMapper: ConfigKeyLimitForUserMapper = _
+  @Autowired private var templateConfigKeyMapper: TemplateConfigKeyMapper = _
 
   private val combinedLabelBuilder: CombinedLabelBuilder = new CombinedLabelBuilder
 
@@ -383,20 +388,22 @@ class ConfigurationService extends Logging {
     }
 
     // add special config limit info
-    if (configs.size() > 0) {
-      val keyIdList = configs.asScala.toStream
+    if (defaultEngineConfigs.size() > 0) {
+      val keyIdList = defaultEngineConfigs.asScala.toStream
         .map(e => {
           e.getId
         })
         .toList
         .asJava
       val limitList =
-        configKeyLimitForUserMapper.selectByLabelAndKeyIds(combinedLabel.getStringValue, keyIdList)
-      configs.asScala.foreach(entity => {
+        templateConfigKeyMapper.selectByLabelAndKeyIds(combinedLabel.getStringValue, keyIdList)
+      defaultEngineConfigs.asScala.foreach(entity => {
         val keyId = entity.getId
         val res = limitList.asScala.filter(v => v.getKeyId == keyId).toList.asJava
         if (res.size() > 0) {
-          entity.setConfigKeyLimitForUser(res.get(0))
+          val specialMap = new util.HashMap[String, String]()
+          specialMap.put("maxValue", res.get(0).getMaxValue)
+          entity.setSpecialLimit(specialMap)
         }
       })
     } else {

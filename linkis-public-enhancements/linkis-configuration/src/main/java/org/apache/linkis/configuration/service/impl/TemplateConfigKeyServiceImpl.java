@@ -22,13 +22,15 @@ import org.apache.linkis.configuration.dao.ConfigMapper;
 import org.apache.linkis.configuration.dao.LabelMapper;
 import org.apache.linkis.configuration.dao.TemplateConfigKeyMapper;
 import org.apache.linkis.configuration.entity.*;
+import org.apache.linkis.configuration.enumeration.BoundaryTypeEnum;
 import org.apache.linkis.configuration.exception.ConfigurationException;
 import org.apache.linkis.configuration.service.ConfigurationService;
 import org.apache.linkis.configuration.service.TemplateConfigKeyService;
 import org.apache.linkis.configuration.util.LabelEntityParser;
 import org.apache.linkis.configuration.validate.ValidatorManager;
-import org.apache.linkis.manager.label.builder.CombinedLabelBuilder;
 import org.apache.linkis.manager.label.entity.CombinedLabel;
+
+import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -79,12 +81,13 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
     // 待更新的key id 列表
     List<Long> keyIdList = configKeyList.stream().map(e -> e.getId()).collect(Collectors.toList());
     if (configKeyList.size() != itemList.size()) {
-      List<String> dbKeyList = configKeyList.stream().map(e -> e.getKey()).collect(Collectors.toList());
+      List<String> dbKeyList =
+          configKeyList.stream().map(e -> e.getKey()).collect(Collectors.toList());
       String msg =
           MessageFormat.format(
               "The num of configuration item data from the DB is inconsistent with input(从DB中获取到的配置数据条数不一致) :"
                   + "engineType:{0}, input keys:{1}, db keys:{2}",
-              engineType, String.join( ",",keyList), String.join( ",",dbKeyList));
+              engineType, String.join(",", keyList), String.join(",", dbKeyList));
       throw new ConfigurationException(msg);
     }
     // 组装更新
@@ -97,7 +100,6 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
       String key = item.getKey();
       ConfigKey temp = configKeyMap.get(item.getKey());
-      Long keyId = temp.getId();
       String validateType = temp.getValidateType();
       String validateRange = temp.getValidateRange();
       String configValue = item.getConfigValue();
@@ -113,14 +115,22 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
                 key, validateType, validateRange, configValue);
         throw new ConfigurationException(msg);
       }
-      if (!validatorManager.getOrCreateValidator(validateType).validate(maxValue, validateRange)) {
-        String msg =
-            MessageFormat.format(
-                "Parameter maxValue verification failed(参数maxValue校验失败):"
-                    + "key:{0}, ValidateType:{1}, ValidateRange:{2}, maxValue:{3}",
-                key, validateType, validateRange, maxValue);
-        throw new ConfigurationException(msg);
+
+      if (StringUtils.isNotEmpty(maxValue)
+          && BoundaryTypeEnum.WITH_BOTH.getId().equals(temp.getBoundaryType())) {
+        if (!validatorManager
+            .getOrCreateValidator(validateType)
+            .validate(maxValue, validateRange)) {
+          String msg =
+              MessageFormat.format(
+                  "Parameter maxValue verification failed(参数maxValue校验失败):"
+                      + "key:{0}, ValidateType:{1}, ValidateRange:{2}, maxValue:{3}",
+                  key, validateType, validateRange, maxValue);
+          throw new ConfigurationException(msg);
+        }
       }
+
+      Long keyId = temp.getId();
 
       TemplateConfigKey templateConfigKey = new TemplateConfigKey();
       templateConfigKey.setTemplateName(templateName);
@@ -173,7 +183,10 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
             .collect(Collectors.groupingBy(TemplateConfigKey::getTemplateUuid));
 
     List<Long> keyIdList =
-        templateConfigKeyList.stream().map(e -> e.getKeyId()).distinct().collect(Collectors.toList());
+        templateConfigKeyList.stream()
+            .map(e -> e.getKeyId())
+            .distinct()
+            .collect(Collectors.toList());
 
     if (keyIdList.size() == 0) {
       String msg = "can not get any config key info from db, Please check if the keys are correct";
@@ -203,8 +216,7 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
         temp.put("keyId", templateConfigKey.getKeyId());
 
         ConfigKey info = configKeyMap.get(templateConfigKey.getKeyId());
-        if(info !=null)
-        {
+        if (info != null) {
           temp.put("key", info.getKey());
           temp.put("name", info.getName());
           temp.put("description", info.getDescription());
@@ -213,7 +225,6 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
           temp.put("validateRange", info.getValidateRange());
           temp.put("boundaryType", info.getBoundaryType());
         }
-
 
         keys.add(temp);
       }
@@ -240,7 +251,14 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
     templateUuidList.add(templateUid);
     List<TemplateConfigKey> templateConfigKeyList =
         templateConfigKeyMapper.selectListByTemplateUuidList(templateUuidList);
-
+    if (templateConfigKeyList.size() == 0) {
+      String msg =
+          MessageFormat.format(
+              "The template configuration is empty. Please check the template associated configuration information in the database table"
+                  + "(模板关联的配置为空,请检查数据库表中关于模板id：{0} 关联配置项是否完整)",
+              templateUid);
+      throw new ConfigurationException(msg);
+    }
     for (String user : userList) {
       // try to create combined_userCreator_engineType label for user
       Map res = new HashMap();
@@ -251,7 +269,7 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
                 engineType, engineVersion, user, application);
         String conbinedLabelKey = combinedLabel.getLabelKey();
         String conbinedLabelStringValue = combinedLabel.getStringValue();
-        //check lable is ok
+        // check lable is ok
 
         ConfigLabel configLabel =
             labelMapper.getLabelByKeyValue(conbinedLabelKey, conbinedLabelStringValue);
