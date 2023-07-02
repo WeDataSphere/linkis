@@ -115,4 +115,7 @@ public interface TemplateConfigKeyMapper {
 
   List<TemplateConfigKeyVo> selectByLabelAndKeyIds(
       @Param("label") String label, @Param("keyIdList") List<Long> keyIdList);
+
+  TemplateConfigKeyVo selectByLabelAndKeyId(
+      @Param("label") String label, @Param("keyId") Long keyId);
 }

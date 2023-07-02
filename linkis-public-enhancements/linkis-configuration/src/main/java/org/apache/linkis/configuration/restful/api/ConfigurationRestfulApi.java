@@ -291,6 +291,7 @@ public class ConfigurationRestfulApi {
       Integer userLabelId =
           configurationService.checkAndCreateUserLabel(settings, username, creator);
       for (ConfigKeyValue setting : settings) {
+
         configurationService.updateUserValue(setting, userLabelId, createList, updateList);
       }
     }

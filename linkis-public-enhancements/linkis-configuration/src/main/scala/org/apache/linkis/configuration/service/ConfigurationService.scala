@@ -17,7 +17,7 @@
 
 package org.apache.linkis.configuration.service
 
-import org.apache.linkis.common.utils.Logging
+import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.configuration.conf.Configuration
 import org.apache.linkis.configuration.dao.{
   ConfigKeyLimitForUserMapper,
@@ -179,6 +179,29 @@ class ConfigurationService extends Logging {
       createList: util.List[ConfigValue],
       updateList: util.List[ConfigValue]
   ): Any = {
+
+    val configLabel = labelMapper.getLabelById(setting.getConfigLabelId)
+    val combinedLabel = combinedLabelBuilder
+      .buildFromStringValue(configLabel.getLabelKey, configLabel.getStringValue)
+      .asInstanceOf[CombinedLabel]
+    val templateConfigKeyVo =
+      templateConfigKeyMapper.selectByLabelAndKeyId(combinedLabel.getStringValue, setting.getId)
+    if (templateConfigKeyVo != null && StringUtils.isNotBlank(templateConfigKeyVo.getMaxValue)) {
+      Utils.tryCatch {
+        val maxValue = Integer.valueOf(templateConfigKeyVo.getMaxValue.replaceAll("[^0-9]", ""))
+        val configValue = Integer.valueOf(setting.getConfigValue.replaceAll("[^0-9]", ""))
+        if (configValue > maxValue) {
+          throw new ConfigurationException(
+            s"Parameter verification failed，exceeds the specified maximum value(参数校验失败，超过指定的最大值):" +
+              s"${setting.getKey}--${setting.getValidateType}--${setting.getValidateRange}--${setting.getConfigValue}--${templateConfigKeyVo.getMaxValue}"
+          )
+        }
+      } { case exception: Exception =>
+        logger.warn(
+          s"Failed to check special limit seeting for key:${setting.getKey},config value:${setting.getConfigValue}"
+        )
+      }
+    }
     paramCheck(setting)
     if (setting.getIsUserDefined) {
       val configValue = new ConfigValue
