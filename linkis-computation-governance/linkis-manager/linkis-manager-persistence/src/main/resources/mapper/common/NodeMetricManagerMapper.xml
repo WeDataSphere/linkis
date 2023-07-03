@@ -85,7 +85,8 @@
       update linkis_cg_manager_service_instance_metrics
       set instance_status = #{instanceStatus},
       update_time= now()
-      where instance = #{instance} and instance_status=#{oldStatus}
+      where instance = #{instance}
+      and <foreach collection="oldStatus" item="element" close=")" separator="," open="instance_status in (">#{element}</foreach>
     </update>
 
 

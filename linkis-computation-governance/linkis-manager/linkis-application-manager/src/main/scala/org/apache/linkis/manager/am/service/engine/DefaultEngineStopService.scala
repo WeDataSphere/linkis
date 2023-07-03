@@ -251,7 +251,23 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
 
   override def asyncStopEngine(engineStopRequest: EngineStopRequest): Unit = {
     Future {
-      logger.info(s"Start to async stop engineFailed $engineStopRequest")
+      logger.info(s"Start to async stop EC $engineStopRequest")
+      val oldStatus = new util.ArrayList[Integer]()
+      oldStatus.add(NodeStatus.Unlock.ordinal())
+      oldStatus.add(NodeStatus.Starting.ordinal())
+      oldStatus.add(NodeStatus.Busy.ordinal())
+      oldStatus.add(null)
+      val instance = engineStopRequest.getServiceInstance.getInstance
+      Utils.tryAndWarn {
+        val ok = nodeMetricManagerMapper.updateNodeStatus(
+          instance,
+          NodeStatus.ShuttingDown.ordinal(),
+          oldStatus
+        )
+        if (ok > 0) {
+          logger.info(s"Start to async stop EC $engineStopRequest, and mark ec to ShuttingDown")
+        }
+      }
       Utils.tryAndErrorMsg(
         stopEngine(engineStopRequest, Sender.getSender(Sender.getThisServiceInstance))
       )(s"async stop engineFailed $engineStopRequest")
@@ -267,10 +283,12 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
         //  2. ec node metircs report ignore update Shutingdown node
         val instance = engineStopRequest.getServiceInstance.getInstance
         logger.info(s"Try to update ec node:$engineStopRequest status Unlock --> ShuttingDown")
+        val oldStatus = new util.ArrayList[Integer]()
+        oldStatus.add(NodeStatus.Unlock.ordinal())
         val ok = nodeMetricManagerMapper.updateNodeStatus(
           instance,
           NodeStatus.ShuttingDown.ordinal(),
-          NodeStatus.Unlock.ordinal()
+          oldStatus
         )
         if (ok > 0) {
           logger.info(s"Try to do stop ec node $engineStopRequest action")

@@ -47,5 +47,5 @@ public interface NodeMetricManagerMapper {
   int updateNodeStatus(
       @Param("instance") String instance,
       @Param("instanceStatus") int instanceStatus,
-      @Param("oldStatus") int oldStatus);
+      @Param("oldStatus") List<Integer> oldStatus);
 }
