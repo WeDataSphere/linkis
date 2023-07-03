@@ -449,7 +449,7 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "creator", required = true, dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "configKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "configValue", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "force", required = true, dataType = "String")
+    @ApiImplicitParam(name = "force", required = false, dataType = "Boolean")
   })
   @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/keyvalue", method = RequestMethod.POST)
@@ -462,7 +462,7 @@ public class ConfigurationRestfulApi {
     String creator = (String) json.getOrDefault("creator", "*");
     String configKey = (String) json.get("configKey");
     String value = (String) json.get("configValue");
-    String force = (String) json.get("force");
+    Boolean force = (Boolean) json.getOrDefault("force",false);
     if (engineType.equals("*") && !version.equals("*")) {
       return Message.error("When engineType is any engine, the version must also be any version");
     }
@@ -480,7 +480,7 @@ public class ConfigurationRestfulApi {
     try {
       configurationService.paramCheck(configKeyValue);
     } catch (Exception e) {
-      if (StringUtils.isNotBlank(force) && "force".equals(force)) {
+      if (force) {
         message.data("msg", e.getMessage());
       } else {
         return Message.error(e.getMessage());
