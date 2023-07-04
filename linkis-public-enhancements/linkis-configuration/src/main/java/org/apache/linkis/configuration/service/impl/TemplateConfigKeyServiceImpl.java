@@ -73,12 +73,12 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
       List<TemplateConfigKeyVo> itemList,
       Boolean isFullMode)
       throws ConfigurationException {
-    // isFullMode true
-    // 查询对应的数据 并做数据合法性检查
+
+    // Query the corresponding data and check the validity of the data(查询对应的数据 并做数据合法性检查)
     List<String> keyList = itemList.stream().map(e -> e.getKey()).collect(Collectors.toList());
     List<ConfigKey> configKeyList =
         configMapper.selectKeyByEngineTypeAndKeyList(engineType, keyList);
-    // 待更新的key id 列表
+    // List of key ids to be updated(待更新的key id 列表)
     List<Long> keyIdList = configKeyList.stream().map(e -> e.getId()).collect(Collectors.toList());
     if (configKeyList.size() != itemList.size()) {
       List<String> dbKeyList =
@@ -90,7 +90,7 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
               engineType, String.join(",", keyList), String.join(",", dbKeyList));
       throw new ConfigurationException(msg);
     }
-    // 组装更新
+
     List<TemplateConfigKey> toUpdateOrInsertList = new ArrayList<>();
 
     // map k:v---> key：ConfigKey
@@ -142,9 +142,9 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
       templateConfigKey.setUpdateBy(operator);
       toUpdateOrInsertList.add(templateConfigKey);
     }
-    // 根据不同模式更新数据
+    // Update data according to different mode
     if (isFullMode) {
-      // 之前在数据库中的数据 需要移除的
+      // The data previously in the database needs to be removed
       List<TemplateConfigKey> oldList =
           templateConfigKeyMapper.selectListByTemplateUuid(templateUid);
       List<Long> needToRemoveList =
@@ -204,7 +204,6 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
       List<TemplateConfigKey> group = templateConfigKeyListGroupByUuid.get(uuid);
       for (TemplateConfigKey templateConfigKey : group) {
-        // Map temp = BDPJettyServerHelper.jacksonJson().convertValue(templateConfigKey, Map.class);
         Map temp = new HashMap();
 
         temp.put("configValue", templateConfigKey.getConfigValue());

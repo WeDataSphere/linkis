@@ -47,6 +47,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.CollectionUtils
 
+import java.text.MessageFormat
 import java.util
 
 import scala.collection.JavaConverters._
@@ -192,14 +193,18 @@ class ConfigurationService extends Logging {
         val configValue = Integer.valueOf(setting.getConfigValue.replaceAll("[^0-9]", ""))
         if (configValue > maxValue) {
           throw new ConfigurationException(
-            s"Parameter verification failed，exceeds the specified maximum value(参数校验失败，超过指定的最大值):" +
-              s"${setting.getKey}--${setting.getValidateType}--${setting.getValidateRange}--${setting.getConfigValue}--${templateConfigKeyVo.getMaxValue}"
+            s"Parameter key:${setting.getKey},config value:${setting.getConfigValue} verification failed，exceeds the specified max value:${templateConfigKeyVo.getMaxValue}:(参数校验失败，超过指定的最大值):" +
+              s"${setting.getValidateType}--${setting.getValidateRange}"
           )
         }
       } { case exception: Exception =>
-        logger.warn(
-          s"Failed to check special limit seeting for key:${setting.getKey},config value:${setting.getConfigValue}"
-        )
+        if (exception.isInstanceOf[ConfigurationException]) {
+          throw exception
+        } else {
+          logger.warn(
+            s"Failed to check special limit setting for key:${setting.getKey},config value:${setting.getConfigValue}"
+          )
+        }
       }
     }
     paramCheck(setting)

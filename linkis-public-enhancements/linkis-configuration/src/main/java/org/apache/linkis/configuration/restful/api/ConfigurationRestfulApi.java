@@ -291,7 +291,6 @@ public class ConfigurationRestfulApi {
       Integer userLabelId =
           configurationService.checkAndCreateUserLabel(settings, username, creator);
       for (ConfigKeyValue setting : settings) {
-
         configurationService.updateUserValue(setting, userLabelId, createList, updateList);
       }
     }
@@ -474,7 +473,7 @@ public class ConfigurationRestfulApi {
     ConfigKeyValue configKeyValue = new ConfigKeyValue();
     configKeyValue.setKey(configKey);
     configKeyValue.setConfigValue(value);
-    configurationService.paramCheck(configKeyValue);
+
     ConfigValue configValue = configKeyService.saveConfigValue(configKeyValue, labelList);
     configurationService.clearAMCacheConf(username, creator, engineType, version);
     return Message.ok().data("configValue", configValue);
