@@ -22,8 +22,9 @@ import org.apache.linkis.manager.common.entity.node.EngineNode
 import org.apache.linkis.manager.common.entity.resource.NodeResource
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.rm.{ResourceInfo, ResultResource}
-
 import java.util
+
+import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 
 abstract class ResourceManager {
 
@@ -46,7 +47,7 @@ abstract class ResourceManager {
    * @param resource
    * @return
    */
-  def requestResource(labels: util.List[Label[_]], resource: NodeResource): ResultResource
+  def requestResource(labels: util.List[Label[_]], resource: NodeResource, engineCreateRequest: EngineCreateRequest): ResultResource
 
   /**
    * Request resources and wait for a certain amount of time until the requested resource is met
@@ -60,6 +61,7 @@ abstract class ResourceManager {
   def requestResource(
       labels: util.List[Label[_]],
       resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest,
       wait: Long
   ): ResultResource
 

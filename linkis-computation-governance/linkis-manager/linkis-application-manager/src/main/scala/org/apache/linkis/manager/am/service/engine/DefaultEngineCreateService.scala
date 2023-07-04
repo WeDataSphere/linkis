@@ -303,6 +303,7 @@ class DefaultEngineCreateService
     resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
+      engineCreateRequest,
       timeout
     ) match {
       case AvailableResource(ticketId) =>

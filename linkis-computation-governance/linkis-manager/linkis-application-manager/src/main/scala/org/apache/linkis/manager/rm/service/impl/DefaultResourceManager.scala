@@ -24,12 +24,7 @@ import org.apache.linkis.manager.am.service.engine.EngineStopService
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{AMEMNode, AMEngineNode, EngineNode, InfoRMNode}
-import org.apache.linkis.manager.common.entity.persistence.{
-  PersistenceLabel,
-  PersistenceLock,
-  PersistenceNodeMetrics,
-  PersistenceResource
-}
+import org.apache.linkis.manager.common.entity.persistence.{PersistenceLabel, PersistenceLock, PersistenceNodeMetrics, PersistenceResource}
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.errorcode.ManagerCommonErrorCodeSummary
 import org.apache.linkis.manager.common.exception.{RMErrorException, RMWarnException}
@@ -40,37 +35,19 @@ import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.em.EMInstanceLabel
 import org.apache.linkis.manager.label.entity.engine.EngineInstanceLabel
 import org.apache.linkis.manager.label.service.NodeLabelService
-import org.apache.linkis.manager.persistence.{
-  LabelManagerPersistence,
-  NodeManagerPersistence,
-  NodeMetricManagerPersistence,
-  ResourceManagerPersistence
-}
-import org.apache.linkis.manager.rm.{
-  AvailableResource,
-  NotEnoughResource,
-  ResourceInfo,
-  ResultResource
-}
+import org.apache.linkis.manager.persistence.{LabelManagerPersistence, NodeManagerPersistence, NodeMetricManagerPersistence, ResourceManagerPersistence}
+import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource, ResourceInfo, ResultResource}
 import org.apache.linkis.manager.rm.domain.RMLabelContainer
 import org.apache.linkis.manager.rm.entity.{LabelResourceMapping, ResourceOperationType}
 import org.apache.linkis.manager.rm.entity.ResourceOperationType.{LOCK, USED}
 import org.apache.linkis.manager.rm.exception.{RMErrorCode, RMLockFailedRetryException}
 import org.apache.linkis.manager.rm.external.service.ExternalResourceService
-import org.apache.linkis.manager.rm.service.{
-  LabelResourceService,
-  RequestResourceService,
-  ResourceLockService,
-  ResourceManager
-}
+import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService, ResourceLockService, ResourceManager}
 import org.apache.linkis.manager.rm.utils.RMUtils
-
 import org.apache.commons.lang3.StringUtils
-
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-
 import java.text.MessageFormat
 import java.util
 import java.util.{Date, UUID}
@@ -79,8 +56,8 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-
 import com.google.common.collect.Lists
+import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 
 @Component
 class DefaultResourceManager extends ResourceManager with Logging with InitializingBean {
@@ -247,9 +224,10 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
    */
   override def requestResource(
       labels: util.List[Label[_]],
-      resource: NodeResource
+      resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest
   ): ResultResource = {
-    requestResource(labels, resource, -1)
+    requestResource(labels, resource, engineCreateRequest, -1)
   }
 
   /**
@@ -264,6 +242,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
   override def requestResource(
       labels: util.List[Label[_]],
       resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest,
       wait: Long
   ): ResultResource = {
     val labelContainer = labelResourceService.enrichLabels(labels)
@@ -279,7 +258,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       // check ecm resource if not enough return
       Utils.tryCatch {
         labelContainer.setCurrentLabel(emInstanceLabel)
-        if (!requestResourceService.canRequest(labelContainer, resource)) {
+        if (!requestResourceService.canRequest(labelContainer, resource, engineCreateRequest)) {
           return NotEnoughResource(s"Labels:${emInstanceLabel.getStringValue} not enough resource")
         }
       } {
@@ -297,7 +276,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
       )
       Utils.tryCatch {
         labelContainer.setCurrentLabel(userCreatorEngineTypeLabel)
-        if (!requestResourceService.canRequest(labelContainer, resource)) {
+        if (!requestResourceService.canRequest(labelContainer, resource, engineCreateRequest)) {
           return NotEnoughResource(
             s"Labels:${userCreatorEngineTypeLabel.getStringValue} not enough resource"
           )
