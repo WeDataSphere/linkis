@@ -145,6 +145,7 @@ public class ConfigurationRestfulApi {
     ArrayList<ConfigTree> configTrees =
         configurationService.getFullTreeByLabelList(
             labelList, true, req.getHeader("Content-Language"));
+
     return Message.ok().data("fullTree", configTrees);
   }
 
@@ -171,7 +172,6 @@ public class ConfigurationRestfulApi {
     List<Map> filterResult = new ArrayList<>();
     for (ConfigKey configKey : result) {
       Map temp = new HashMap();
-      temp.put("", configKey.getBoundaryType());
       temp.put("key", configKey.getKey());
       temp.put("name", configKey.getName());
       temp.put("description", configKey.getDescription());
@@ -448,21 +448,18 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "version", required = true, dataType = "String", value = "version"),
     @ApiImplicitParam(name = "creator", required = true, dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "configKey", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "configValue", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "force", required = false, dataType = "Boolean")
+    @ApiImplicitParam(name = "configValue", required = true, dataType = "String")
   })
   @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/keyvalue", method = RequestMethod.POST)
   public Message saveKeyValue(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws ConfigurationException {
-    Message message = Message.ok();
     String username = ModuleUserUtils.getOperationUser(req, "saveKey");
     String engineType = (String) json.getOrDefault("engineType", "*");
     String version = (String) json.getOrDefault("version", "*");
     String creator = (String) json.getOrDefault("creator", "*");
     String configKey = (String) json.get("configKey");
     String value = (String) json.get("configValue");
-    Boolean force = (Boolean) json.getOrDefault("force",false);
     if (engineType.equals("*") && !version.equals("*")) {
       return Message.error("When engineType is any engine, the version must also be any version");
     }
@@ -477,18 +474,9 @@ public class ConfigurationRestfulApi {
     configKeyValue.setKey(configKey);
     configKeyValue.setConfigValue(value);
 
-    try {
-      configurationService.paramCheck(configKeyValue);
-    } catch (Exception e) {
-      if (force) {
-        message.data("msg", e.getMessage());
-      } else {
-        return Message.error(e.getMessage());
-      }
-    }
     ConfigValue configValue = configKeyService.saveConfigValue(configKeyValue, labelList);
     configurationService.clearAMCacheConf(username, creator, engineType, version);
-    return message.data("configValue", configValue);
+    return Message.ok().data("configValue", configValue);
   }
 
   @ApiOperation(value = "deleteKeyValue", notes = "delete key value", response = Message.class)
