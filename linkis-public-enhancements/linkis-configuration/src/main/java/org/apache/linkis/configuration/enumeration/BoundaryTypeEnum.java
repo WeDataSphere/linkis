@@ -6,7 +6,7 @@
  * (the "License"); you may not use this file except in compliance with
  * the License.  You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,8 +15,27 @@
  * limitations under the License.
  */
 
+package org.apache.linkis.configuration.enumeration;
 
+public enum BoundaryTypeEnum {
+  /*
+  0  none
+  1 with mix
+  2 with max
+  3 min and max both
+   */
+  NONE(0),
+  WITH_MIX(1),
+  WITH_MAX(2),
+  WITH_BOTH(3);
 
-ALTER TABLE `linkis_ps_udf_user_load` ADD CONSTRAINT  `uniq_uid_uname` UNIQUE (`udf_id`, `user_name`);
-ALTER TABLE `linkis_ps_bml_resources_version` ADD CONSTRAINT  `uniq_rid_eflag` UNIQUE (`resource_id`, `enable_flag`);
+  private Integer id;
 
+  BoundaryTypeEnum(Integer id) {
+    this.id = id;
+  }
+
+  public Integer getId() {
+    return this.id;
+  }
+}

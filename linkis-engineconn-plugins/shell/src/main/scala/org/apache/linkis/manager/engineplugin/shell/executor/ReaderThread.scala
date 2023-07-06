@@ -20,8 +20,10 @@ package org.apache.linkis.manager.engineplugin.shell.executor
 import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.engineconn.computation.executor.execute.EngineExecutionContext
+
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
+
 import java.io.BufferedReader
 import java.util
 import java.util.concurrent.CountDownLatch
@@ -37,8 +39,7 @@ class ReaderThread extends Thread with Logging {
   private val logListCount = CommonVars[Int]("wds.linkis.engineconn.log.list.count", 50)
   private var counter: CountDownLatch = _
 
-  private var outEvictingQueue: EvictingQueue[String] = EvictingQueue.create(10)
-
+  private var outEvictingQueue: EvictingQueue[String] = EvictingQueue.create(5)
 
   private var isReaderAlive = true
 
