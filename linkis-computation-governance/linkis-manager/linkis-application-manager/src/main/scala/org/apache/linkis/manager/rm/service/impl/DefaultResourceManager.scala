@@ -24,10 +24,16 @@ import org.apache.linkis.manager.am.service.engine.EngineStopService
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{AMEMNode, AMEngineNode, EngineNode, InfoRMNode}
-import org.apache.linkis.manager.common.entity.persistence.{PersistenceLabel, PersistenceLock, PersistenceNodeMetrics, PersistenceResource}
+import org.apache.linkis.manager.common.entity.persistence.{
+  PersistenceLabel,
+  PersistenceLock,
+  PersistenceNodeMetrics,
+  PersistenceResource
+}
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.errorcode.ManagerCommonErrorCodeSummary
 import org.apache.linkis.manager.common.exception.{RMErrorException, RMWarnException}
+import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 import org.apache.linkis.manager.common.utils.{ManagerUtils, ResourceUtils}
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
@@ -35,19 +41,37 @@ import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.em.EMInstanceLabel
 import org.apache.linkis.manager.label.entity.engine.EngineInstanceLabel
 import org.apache.linkis.manager.label.service.NodeLabelService
-import org.apache.linkis.manager.persistence.{LabelManagerPersistence, NodeManagerPersistence, NodeMetricManagerPersistence, ResourceManagerPersistence}
-import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource, ResourceInfo, ResultResource}
+import org.apache.linkis.manager.persistence.{
+  LabelManagerPersistence,
+  NodeManagerPersistence,
+  NodeMetricManagerPersistence,
+  ResourceManagerPersistence
+}
+import org.apache.linkis.manager.rm.{
+  AvailableResource,
+  NotEnoughResource,
+  ResourceInfo,
+  ResultResource
+}
 import org.apache.linkis.manager.rm.domain.RMLabelContainer
 import org.apache.linkis.manager.rm.entity.{LabelResourceMapping, ResourceOperationType}
 import org.apache.linkis.manager.rm.entity.ResourceOperationType.{LOCK, USED}
 import org.apache.linkis.manager.rm.exception.{RMErrorCode, RMLockFailedRetryException}
 import org.apache.linkis.manager.rm.external.service.ExternalResourceService
-import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService, ResourceLockService, ResourceManager}
+import org.apache.linkis.manager.rm.service.{
+  LabelResourceService,
+  RequestResourceService,
+  ResourceLockService,
+  ResourceManager
+}
 import org.apache.linkis.manager.rm.utils.RMUtils
+
 import org.apache.commons.lang3.StringUtils
+
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+
 import java.text.MessageFormat
 import java.util
 import java.util.{Date, UUID}
@@ -56,8 +80,8 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+
 import com.google.common.collect.Lists
-import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 
 @Component
 class DefaultResourceManager extends ResourceManager with Logging with InitializingBean {

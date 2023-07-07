@@ -22,13 +22,13 @@ import org.apache.linkis.manager.common.constant.RMConstant
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.errorcode.ManagerCommonErrorCodeSummary._
 import org.apache.linkis.manager.common.exception.RMWarnException
+import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 import org.apache.linkis.manager.label.entity.em.EMInstanceLabel
 import org.apache.linkis.manager.rm.domain.RMLabelContainer
 import org.apache.linkis.manager.rm.exception.RMErrorCode
 import org.apache.linkis.manager.rm.utils.{RMUtils, UserConfiguration}
-import java.text.MessageFormat
 
-import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
+import java.text.MessageFormat
 
 abstract class RequestResourceService(labelResourceService: LabelResourceService) extends Logging {
 
@@ -36,7 +36,11 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
 
   val enableRequest = RMUtils.RM_REQUEST_ENABLE.getValue
 
-  def canRequest(labelContainer: RMLabelContainer, resource: NodeResource, engineCreateRequest: EngineCreateRequest): Boolean = {
+  def canRequest(
+      labelContainer: RMLabelContainer,
+      resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest
+  ): Boolean = {
 
     labelContainer.getCurrentLabel match {
       case emInstanceLabel: EMInstanceLabel =>

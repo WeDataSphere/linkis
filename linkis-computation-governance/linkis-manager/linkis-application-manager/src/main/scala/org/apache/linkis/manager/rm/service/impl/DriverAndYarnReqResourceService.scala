@@ -29,6 +29,7 @@ import org.apache.linkis.manager.rm.external.service.ExternalResourceService
 import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
 import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService}
 import org.apache.linkis.manager.rm.utils.{AcrossClusterRulesJudgeUtils, RMUtils}
+
 import org.json4s.DefaultFormats
 
 class DriverAndYarnReqResourceService(
@@ -40,7 +41,11 @@ class DriverAndYarnReqResourceService(
 
   override val resourceType: ResourceType = DriverAndYarn
 
-  override def canRequest(labelContainer: RMLabelContainer, resource: NodeResource, engineCreateRequest: EngineCreateRequest): Boolean = {
+  override def canRequest(
+      labelContainer: RMLabelContainer,
+      resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest
+  ): Boolean = {
     if (!super.canRequest(labelContainer, resource, engineCreateRequest)) {
       return false
     }
@@ -71,7 +76,7 @@ class DriverAndYarnReqResourceService(
 
     // 1.判断是否进入跨集群的资源判断
     if (engineCreateRequest.getProperties != null) {
-      val clusterLabel = labelContainer.find(Class[ClusterLabel]).asInstanceOf[ClusterLabel]
+      val clusterLabel = labelContainer.find(classOf[ClusterLabel]).asInstanceOf[ClusterLabel]
       logger.info(
         s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} task enter cross cluster resource judgment"
       )
@@ -79,8 +84,14 @@ class DriverAndYarnReqResourceService(
       if (acrossClusterTask != null && acrossClusterTask.equals("true")) {
         // 2.进行跨集群阈值规则判断
         val properties = engineCreateRequest.getProperties
-        val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(queueLeftResource.asInstanceOf[YarnResource], maxCapacity.asInstanceOf[YarnResource],
-          properties.get("CPUThreshold").toInt, properties.get("MemoryThreshold").toInt, properties.get("CPUPercentageThreshold").toDouble, properties.get("MemoryPercentageThreshold").toDouble)
+        val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
+          queueLeftResource.asInstanceOf[YarnResource],
+          maxCapacity.asInstanceOf[YarnResource],
+          properties.get("CPUThreshold").toInt,
+          properties.get("MemoryThreshold").toInt,
+          properties.get("CPUPercentageThreshold").toDouble,
+          properties.get("MemoryPercentageThreshold").toDouble
+        )
         if (!acrossClusterFlag) {
           logger.info(
             s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} not meet the threshold rule"
