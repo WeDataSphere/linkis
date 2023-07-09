@@ -22,16 +22,27 @@ import org.apache.linkis.manager.common.entity.resource.YarnResource
 
 object AcrossClusterRulesJudgeUtils extends Logging {
 
-  def acrossClusterRuleJudge(leftResource: YarnResource, maxResource: YarnResource,
-                             leftCPUThreshold: Int, leftMemoryThreshold: Long,
-                             UsedCPUPercentageThreshold: Double, UsedMemoryPercentageThreshold: Double): Boolean = {
+  def acrossClusterRuleJudge(
+      leftResource: YarnResource,
+      maxResource: YarnResource,
+      leftCPUThreshold: Int,
+      leftMemoryThreshold: Long,
+      UsedCPUPercentageThreshold: Double,
+      UsedMemoryPercentageThreshold: Double
+  ): Boolean = {
     if (leftResource != null && maxResource != null) {
-      if (leftResource.queueCores <  leftCPUThreshold && leftResource.queueMemory < leftMemoryThreshold) { // 集群的剩余资源小于阈值
-        val usedCPUPercentage = 1 - leftResource.queueCores.asInstanceOf[Double] / maxResource.queueCores.asInstanceOf[Double]
-        val usedMemoryPercentage = 1 - leftResource.queueMemory.asInstanceOf[Double] / maxResource.queueMemory.asInstanceOf[Double]
+      if (
+          leftResource.queueCores < leftCPUThreshold && leftResource.queueMemory < leftMemoryThreshold
+      ) { // 集群的剩余资源小于阈值
+        val usedCPUPercentage = 1 - leftResource.queueCores
+          .asInstanceOf[Double] / maxResource.queueCores.asInstanceOf[Double]
+        val usedMemoryPercentage = 1 - leftResource.queueMemory
+          .asInstanceOf[Double] / maxResource.queueMemory.asInstanceOf[Double]
 
         // 集群的资源使用率小于阈值
-        if (usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold) return true
+        if (
+            usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
+        ) return true
       }
     }
 

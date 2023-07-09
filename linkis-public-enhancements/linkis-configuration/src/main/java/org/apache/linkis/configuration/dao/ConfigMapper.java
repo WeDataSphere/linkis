@@ -23,7 +23,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-public interface ConfigMapper {
+ public interface ConfigMapper {
 
   List<ConfigKeyValue> getConfigKeyByLabelIds(@Param("ids") List<Integer> ids);
 
