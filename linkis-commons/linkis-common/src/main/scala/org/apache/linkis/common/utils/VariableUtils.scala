@@ -53,41 +53,6 @@ object VariableUtils extends Logging {
   private val calReg =
     "(\\s*[A-Za-z][A-Za-z0-9_\\.]*\\s*)([\\+\\-\\*/]?)(\\s*[A-Za-z0-9_\\.]*\\s*)".r
 
-  def replace(replaceStr: String): String = replace(replaceStr, new util.HashMap[String, Any](0))
-
-  def replace(replaceStr: String, variables: util.Map[String, Any]): String = {
-    val nameAndType = mutable.Map[String, variable.VariableType]()
-    var run_date: CustomDateType = null
-    variables.asScala.foreach {
-      case (RUN_DATE, value) if !nameAndType.contains(RUN_DATE) =>
-        val run_date_str = value.asInstanceOf[String]
-        if (StringUtils.isNotEmpty(run_date_str)) {
-          run_date = new CustomDateType(run_date_str, false)
-          nameAndType(RUN_DATE) = variable.DateType(run_date)
-        }
-      case (key, value: String) if !nameAndType.contains(key) && StringUtils.isNotEmpty(value) =>
-        nameAndType(key) =
-          Utils.tryCatch[variable.VariableType](variable.DoubleValue(value.toDouble))(_ =>
-            variable.StringType(value)
-          )
-      case _ =>
-    }
-    if (!nameAndType.contains(RUN_DATE) || null == run_date) {
-      run_date = new CustomDateType(getYesterday(false), false)
-      nameAndType(RUN_DATE) = variable.DateType(new CustomDateType(run_date.toString, false))
-    }
-    if (variables.containsKey(RUN_TODAY_H)) {
-      val runTodayHStr = variables.get(RUN_TODAY_H).asInstanceOf[String]
-      if (StringUtils.isNotBlank(runTodayHStr)) {
-        val runTodayH = new CustomHourType(runTodayHStr, false)
-        nameAndType(RUN_TODAY_H) = HourType(runTodayH)
-      }
-    }
-    initAllDateVars(run_date, nameAndType)
-    val codeOperation = parserVar(replaceStr, nameAndType)
-    parserDate(codeOperation, run_date)
-  }
-
   def replace(code: String, codeType: String, variables: util.Map[String, String]): String = {
     val languageType = CodeAndRunTypeUtils.getLanguageTypeByCodeType(codeType)
     if (StringUtils.isBlank(languageType)) {
@@ -143,13 +108,13 @@ object VariableUtils extends Logging {
     }
     initAllDateVars(run_date, nameAndType)
     val codeOperation = parserVar(code, nameAndType)
-    parserDate(codeOperation, run_date)
+    parserDate(codeType, codeOperation, run_date)
   }
 
-  private def parserDate(code: String, run_date: CustomDateType): String = {
+  private def parserDate(codeType: String, code: String, run_date: CustomDateType): String = {
     if (Configuration.VARIABLE_OPERATION) {
       val zonedDateTime: ZonedDateTime = VariableOperationUtils.toZonedDateTime(run_date.getDate)
-      VariableOperationUtils.replaces(zonedDateTime, code)
+      VariableOperationUtils.replaces(codeType, zonedDateTime, code)
     } else {
       code
     }
