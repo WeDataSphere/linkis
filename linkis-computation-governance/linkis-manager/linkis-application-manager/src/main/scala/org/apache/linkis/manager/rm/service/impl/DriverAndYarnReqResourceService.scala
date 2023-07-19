@@ -76,12 +76,15 @@ class DriverAndYarnReqResourceService(
 
     // 1.判断是否进入跨集群的资源判断
     if (engineCreateRequest.getProperties != null) {
-      val clusterLabel = labelContainer.find(classOf[ClusterLabel]).asInstanceOf[ClusterLabel]
-      logger.info(
-        s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} task enter cross cluster resource judgment"
-      )
       val acrossClusterTask = engineCreateRequest.getProperties.get("acrossClusterTask")
       if (acrossClusterTask != null && acrossClusterTask.equals("true")) {
+
+        val clusterLabel = labelContainer.find(classOf[ClusterLabel]).asInstanceOf[ClusterLabel]
+
+        logger.info(
+          s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} task enter cross cluster resource judgment"
+        )
+
         // 2.进行跨集群阈值规则判断
         val properties = engineCreateRequest.getProperties
         val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(

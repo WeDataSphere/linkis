@@ -110,8 +110,13 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
             s"${mark.getMarkId()} Failed to askEngineAskRequest time taken ($taken), ${t.getMessage}"
           )
           retryException = t
-          // 添加clusterLabelRetryException的标识
+          // 1.添加clusterLabelRetryException的标识
           engineAskRequest.getProperties.put("isClusterLabelRetry", "true")
+          // 2.ClusterLabel去除
+          val acrossClusterTask = engineAskRequest.getProperties.get("acrossClusterTask")
+          if (acrossClusterTask != null && acrossClusterTask.equals("true")) {
+            engineAskRequest.getLabels.remove("cluster")
+          }
         case t: Throwable =>
           val taken = ByteTimeUtils.msDurationToString(System.currentTimeMillis - start)
           logger.warn(s"${mark.getMarkId()} Failed to askEngineAskRequest time taken ($taken)")

@@ -58,7 +58,7 @@
         FROM
             `linkis_cg_lm_across_cluster_rule` acr
         WHERE
-            creator = #{creator} AND user = #{user}
+            acr.creator = #{creator} AND acr.user = #{user}
     </delete>
 
     <update id="updateAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
