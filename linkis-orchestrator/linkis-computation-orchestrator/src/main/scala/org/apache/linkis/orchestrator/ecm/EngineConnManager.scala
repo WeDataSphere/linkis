@@ -130,9 +130,6 @@ abstract class AbstractEngineConnManager extends EngineConnManager with Logging 
       execTask: CodeLogicalUnitExecTask
   ): EngineConnExecutor = {
     logger.info(s"mark ${mark.getMarkId()} start to  getAvailableEngineConnExecutor")
-    logger.info(
-      s"createEngineConnAskReq ${mark.getMarkReq.createEngineConnAskReq()} start to  getAvailableEngineConnExecutor"
-    )
     if (null != mark) {
       tryReuseEngineConnExecutor(mark) match {
         case Some(engineConnExecutor) => return engineConnExecutor
