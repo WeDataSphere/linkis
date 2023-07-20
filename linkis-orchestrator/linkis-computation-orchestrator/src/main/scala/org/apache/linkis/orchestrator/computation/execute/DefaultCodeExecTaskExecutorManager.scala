@@ -136,6 +136,15 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
     if (null == engineConnExecutor) {
       return null
     }
+    engineConnExecutor.getManagerInstance
+    execTask.getPhysicalContext.pushLog(
+      TaskLogEvent(
+        execTask,
+        LogUtils.generateInfo(
+          s"Requerst Manger Service Instance is  ${engineConnExecutor.getManagerInstance}"
+        )
+      )
+    )
     val codeExecTaskExecutor = new CodeExecTaskExecutor(engineConnExecutor, execTask, mark)
     if (null != codeExecTaskExecutor) {
       execTaskToExecutor.put(execTask.getId, codeExecTaskExecutor)
