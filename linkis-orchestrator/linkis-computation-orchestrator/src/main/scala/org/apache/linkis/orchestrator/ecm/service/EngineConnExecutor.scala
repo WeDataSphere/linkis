@@ -76,10 +76,6 @@ trait EngineConnExecutor extends Closeable {
 
   def getTicketId: String
 
-  def setManagerInstance(managerInstance: ServiceInstance): EngineConnExecutor
-
-  def getManagerInstance: ServiceInstance
-
   override def equals(other: Any): Boolean = other match {
     case that: EngineConnExecutor =>
       (that canEqual this) &&
@@ -111,8 +107,6 @@ abstract class AbstractEngineConnExecutor extends EngineConnExecutor with Loggin
 
   private var reuse: Boolean = false
 
-  private var managerInstance: ServiceInstance = _
-
   override def getLastUpdateTime(): Long = lastUpdateTime
 
   override def updateLastUpdateTime(): Unit = lastUpdateTime = System.currentTimeMillis()
@@ -142,15 +136,6 @@ abstract class AbstractEngineConnExecutor extends EngineConnExecutor with Loggin
   override def setReuse(reuse: Boolean): EngineConnExecutor = {
     this.reuse = reuse
     this
-  }
-
-  override def setManagerInstance(managerInstance: ServiceInstance): EngineConnExecutor = {
-    this.managerInstance = managerInstance
-    this
-  }
-
-  override def getManagerInstance: ServiceInstance = {
-    this.managerInstance
   }
 
 }

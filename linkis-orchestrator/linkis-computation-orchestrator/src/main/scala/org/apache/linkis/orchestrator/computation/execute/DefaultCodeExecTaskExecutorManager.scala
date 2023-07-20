@@ -132,19 +132,10 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
           .getIDInfo()} mark id is ${mark.getMarkId()}, it may take several seconds, please wait")
       )
     )
-    val engineConnExecutor = engineConnManager.getAvailableEngineConnExecutor(mark)
+    val engineConnExecutor = engineConnManager.getAvailableEngineConnExecutor(mark, execTask)
     if (null == engineConnExecutor) {
       return null
     }
-    engineConnExecutor.getManagerInstance
-    execTask.getPhysicalContext.pushLog(
-      TaskLogEvent(
-        execTask,
-        LogUtils.generateInfo(
-          s"Requerst Manger Service Instance is  ${engineConnExecutor.getManagerInstance}"
-        )
-      )
-    )
     val codeExecTaskExecutor = new CodeExecTaskExecutor(engineConnExecutor, execTask, mark)
     if (null != codeExecTaskExecutor) {
       execTaskToExecutor.put(execTask.getId, codeExecTaskExecutor)

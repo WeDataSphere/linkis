@@ -19,6 +19,7 @@ package org.apache.linkis.orchestrator.ecm
 
 import org.apache.linkis.common.ServiceInstance
 import org.apache.linkis.common.exception.LinkisRetryException
+import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.manager.common.entity.node.EngineNode
@@ -29,6 +30,7 @@ import org.apache.linkis.manager.common.protocol.engine.{
   EngineCreateSuccess
 }
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
+import org.apache.linkis.orchestrator.computation.physical.CodeLogicalUnitExecTask
 import org.apache.linkis.orchestrator.ecm.cache.EngineAsyncResponseCache
 import org.apache.linkis.orchestrator.ecm.conf.ECMPluginConf
 import org.apache.linkis.orchestrator.ecm.entity.{DefaultMark, Mark, MarkReq, Policy}
@@ -38,6 +40,7 @@ import org.apache.linkis.orchestrator.ecm.service.impl.{
   ComputationConcurrentEngineConnExecutor,
   ComputationEngineConnExecutor
 }
+import org.apache.linkis.orchestrator.listener.task.TaskLogEvent
 import org.apache.linkis.rpc.Sender
 
 import org.apache.commons.lang3.exception.ExceptionUtils
@@ -77,7 +80,8 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
 
   override protected def askEngineConnExecutor(
       engineAskRequest: EngineAskRequest,
-      mark: Mark
+      mark: Mark,
+      execTask: CodeLogicalUnitExecTask
   ): EngineConnExecutor = {
     engineAskRequest.setTimeOut(getEngineConnApplyTime)
     var count = getEngineConnApplyAttempts()
@@ -86,8 +90,8 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
       count = count - 1
       val start = System.currentTimeMillis()
       try {
-        val (engineNode, reuse, managerServiceInstance) =
-          getEngineNodeAskManager(engineAskRequest, mark)
+        val (engineNode, reuse) =
+          getEngineNodeAskManager(engineAskRequest, mark, execTask)
         if (null != engineNode) {
           val engineConnExecutor =
             if (
@@ -102,7 +106,6 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
             engineConnExecutor.setLabels(engineNode.getLabels.asScala.toList.toArray)
           }
           engineConnExecutor.setReuse(reuse)
-          engineConnExecutor.setManagerInstance(managerServiceInstance)
           return engineConnExecutor
         }
       } catch {
@@ -130,8 +133,9 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
 
   private def getEngineNodeAskManager(
       engineAskRequest: EngineAskRequest,
-      mark: Mark
-  ): (EngineNode, Boolean, ServiceInstance) = {
+      mark: Mark,
+      execTask: CodeLogicalUnitExecTask
+  ): (EngineNode, Boolean) = {
     val response = Utils.tryCatch(getManagerSender().ask(engineAskRequest)) { t: Throwable =>
       val baseMsg = s"mark ${mark.getMarkId()}  failed to ask linkis Manager Can be retried "
       ExceptionUtils.getRootCause(t) match {
@@ -145,10 +149,13 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
           throw t
       }
     }
+    execTask.getPhysicalContext.pushLog(
+      TaskLogEvent(execTask, LogUtils.generateInfo(s"Request LinkisManager:${response}"))
+    )
     response match {
       case engineNode: EngineNode =>
         logger.debug(s"Succeed to reuse engineNode $engineNode mark ${mark.getMarkId()}")
-        (engineNode, true, null)
+        (engineNode, true)
       case EngineAskAsyncResponse(id, serviceInstance) =>
         logger.info(
           "{} received EngineAskAsyncResponse id: {} serviceInstance: {}",
@@ -163,7 +170,7 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
               "{} async id: {} success to async get EngineNode {}",
               Array(mark.getMarkId(), id, engineNode): _*
             )
-            (engineNode, false, serviceInstance)
+            (engineNode, false)
           case EngineCreateError(id, exception, retry) =>
             logger.debug(
               "{} async id: {} Failed  to async get EngineNode, {}",
@@ -187,7 +194,7 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
           mark.getMarkId(): Any,
           engineAskRequest: Any
         )
-        (null, false, null)
+        (null, false)
     }
   }
 
