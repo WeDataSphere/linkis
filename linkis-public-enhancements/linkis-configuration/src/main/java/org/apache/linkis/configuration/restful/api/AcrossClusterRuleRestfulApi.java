@@ -69,14 +69,14 @@ public class AcrossClusterRuleRestfulApi {
     }
 
     if (StringUtils.isBlank(creator) || StringUtils.isBlank(user)) {
-      return Message.error("Failed to get tenant: Illegal Input Param");
+      return Message.error("Failed to get acrossClusterRule: Illegal Input Param");
     }
 
     AcrossClusterRule acrossClusterRule = null;
     try {
       acrossClusterRule = acrossClusterRuleService.getAcrossClusterRule(creator, user);
     } catch (Exception e) {
-      return Message.error("get acrossClusterRule failed");
+      return Message.error("get acrossClusterRule failed：" + e.getMessage());
     }
 
     return Message.ok().data("acrossClusterRule", acrossClusterRule);
@@ -103,13 +103,13 @@ public class AcrossClusterRuleRestfulApi {
     }
 
     if (StringUtils.isBlank(creator) || StringUtils.isBlank(user)) {
-      return Message.error("Failed to get tenant: Illegal Input Param");
+      return Message.error("Failed to delete acrossClusterRule: Illegal Input Param");
     }
 
     try {
       acrossClusterRuleService.deleteAcrossClusterRule(creator, user);
     } catch (Exception e) {
-      return Message.error("delete acrossClusterRule failed");
+      return Message.error("delete acrossClusterRule failed：" + e.getMessage());
     }
 
     return Message.ok();
@@ -117,7 +117,7 @@ public class AcrossClusterRuleRestfulApi {
 
   @ApiOperation(
       value = "update-acrossClusterRule",
-      notes = "insert acrossClusterRule ",
+      notes = "update acrossClusterRule ",
       response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = ""),
@@ -143,13 +143,13 @@ public class AcrossClusterRuleRestfulApi {
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
         || StringUtils.isBlank(rules)) {
-      return Message.error("Failed to get tenant: Illegal Input Param");
+      return Message.error("Failed to update acrossClusterRule: Illegal Input Param");
     }
 
     try {
       acrossClusterRuleService.updateAcrossClusterRule(clusterName, creator, user, username, rules);
     } catch (Exception e) {
-      return Message.error("update acrossClusterRule failed");
+      return Message.error("update acrossClusterRule failed：" + e.getMessage());
     }
     return Message.ok();
   }
@@ -182,13 +182,13 @@ public class AcrossClusterRuleRestfulApi {
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
         || StringUtils.isBlank(rules)) {
-      return Message.error("Failed to get tenant: Illegal Input Param");
+      return Message.error("Failed to insert acrossClusterRule: Illegal Input Param");
     }
 
     try {
       acrossClusterRuleService.insertAcrossClusterRule(clusterName, creator, user, username, rules);
     } catch (Exception e) {
-      return Message.error("insert acrossClusterRule failed");
+      return Message.error("insert acrossClusterRule failed：" + e.getMessage());
     }
     return Message.ok();
   }

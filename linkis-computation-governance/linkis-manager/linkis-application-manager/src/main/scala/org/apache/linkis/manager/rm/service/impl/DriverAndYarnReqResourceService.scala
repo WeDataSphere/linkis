@@ -77,12 +77,12 @@ class DriverAndYarnReqResourceService(
     // 1.判断是否进入跨集群的资源判断
     if (engineCreateRequest.getProperties != null) {
       val acrossClusterTask = engineCreateRequest.getProperties.get("acrossClusterTask")
-      if (acrossClusterTask != null && acrossClusterTask.equals("true")) {
+      val user = labelContainer.getUserCreatorLabel.getUser
+      val creator = labelContainer.getUserCreatorLabel.getCreator
 
-        val clusterLabel = labelContainer.find(classOf[ClusterLabel]).asInstanceOf[ClusterLabel]
-
+      if (acrossClusterTask == "true") {
         logger.info(
-          s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} task enter cross cluster resource judgment"
+          s"user: $user, creator: $creator task enter cross cluster resource judgment"
         )
 
         // 2.进行跨集群阈值规则判断
@@ -95,14 +95,22 @@ class DriverAndYarnReqResourceService(
           properties.get("CPUPercentageThreshold").toDouble,
           properties.get("MemoryPercentageThreshold").toDouble
         )
+
         if (!acrossClusterFlag) {
           logger.info(
-            s"user: ${labelContainer.getUserCreatorLabel.getUser} cluster: ${clusterLabel.getClusterName} not meet the threshold rule"
+            s"user: $user, creator: $creator task not meet the threshold rule"
           )
-          val notEnoughMessage =
-            generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
+          val notEnoughMessage = generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
           throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
         }
+
+        logger.info(
+          s"user: $user, creator: $creator task meet the threshold rule"
+        )
+      } else {
+        logger.info(
+          s"user: $user, creator: $creator task skip cross cluster resource judgment"
+        )
       }
     }
 

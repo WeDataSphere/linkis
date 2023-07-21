@@ -43,11 +43,13 @@
             creator = #{creator} AND user = #{user}
     </select>
 
+    <sql id="AcrossClusterRule_insert_Column_List">
+        cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
+    </sql>
 
-    <insert id="insertAcrossClusterRule" flushCache="true" useGeneratedKeys="true" keyProperty="id"
-            parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
+    <insert id="insertAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
         INSERT INTO
-            linkis_cg_lm_across_cluster_rule
+            linkis_cg_lm_across_cluster_rule (<include refid="AcrossClusterRule_insert_Column_List"/>)
         VALUES
             (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator},#{acrossClusterRule.user},#{acrossClusterRule.createTime},
             #{acrossClusterRule.createBy},#{acrossClusterRule.updateTime},#{acrossClusterRule.updateBy},#{acrossClusterRule.rules})
@@ -56,21 +58,21 @@
     <delete id="deleteAcrossClusterRule">
         DELETE
         FROM
-            `linkis_cg_lm_across_cluster_rule` acr
+            `linkis_cg_lm_across_cluster_rule`
         WHERE
-            acr.creator = #{creator} AND acr.user = #{user}
+            creator = #{creator} AND user = #{user}
     </delete>
 
     <update id="updateAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
         UPDATE
-            `linkis_cg_lm_across_cluster_rule` acr
+            `linkis_cg_lm_across_cluster_rule`
         SET
-            acr.cluster_name = #{acrossClusterRule.clusterName}, acr.creator = #{acrossClusterRule.creator},
-            acr.user=#{acrossClusterRule.user}, acr.create_time=#{acrossClusterRule.createTime},
-            acr.create_By=#{acrossClusterRule.createBy}, acr.update_time=#{acrossClusterRule.updateTime},
-            acr.update_BY=#{acrossClusterRule.updateBy}, acr.rules=#{acrossClusterRule.rules}
+            cluster_name = #{acrossClusterRule.clusterName}, creator = #{acrossClusterRule.creator},
+            user=#{acrossClusterRule.user}, create_time=#{acrossClusterRule.createTime},
+            create_By=#{acrossClusterRule.createBy}, update_time=#{acrossClusterRule.updateTime},
+            update_BY=#{acrossClusterRule.updateBy}, rules=#{acrossClusterRule.rules}
         WHERE
-            acr.id = #{acrossClusterRule.id}
+            id = #{acrossClusterRule.id}
     </update>
 
 
