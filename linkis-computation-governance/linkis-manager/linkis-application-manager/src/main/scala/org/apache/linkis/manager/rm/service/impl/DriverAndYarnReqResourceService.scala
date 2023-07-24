@@ -80,11 +80,12 @@ class DriverAndYarnReqResourceService(
       val user = labelContainer.getUserCreatorLabel.getUser
       val creator = labelContainer.getUserCreatorLabel.getCreator
 
-      if (acrossClusterTask == "true") {
-        logger.info(
-          s"user: $user, creator: $creator task enter cross cluster resource judgment"
-        )
+      logger.info(
+        s"user: $user, creator: $creator, acrossClusterTask: $acrossClusterTask, jayceyang test"
+      )
 
+      if (acrossClusterTask == "true") {
+        logger.info(s"user: $user, creator: $creator task enter cross cluster resource judgment")
         // 2.进行跨集群阈值规则判断
         val properties = engineCreateRequest.getProperties
         val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
@@ -97,20 +98,15 @@ class DriverAndYarnReqResourceService(
         )
 
         if (!acrossClusterFlag) {
-          logger.info(
-            s"user: $user, creator: $creator task not meet the threshold rule"
-          )
-          val notEnoughMessage = generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
+          logger.info(s"user: $user, creator: $creator task not meet the threshold rule")
+          val notEnoughMessage =
+            generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
           throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
         }
 
-        logger.info(
-          s"user: $user, creator: $creator task meet the threshold rule"
-        )
+        logger.info(s"user: $user, creator: $creator task meet the threshold rule")
       } else {
-        logger.info(
-          s"user: $user, creator: $creator task skip cross cluster resource judgment"
-        )
+        logger.info(s"user: $user, creator: $creator task skip cross cluster resource judgment")
       }
     }
 

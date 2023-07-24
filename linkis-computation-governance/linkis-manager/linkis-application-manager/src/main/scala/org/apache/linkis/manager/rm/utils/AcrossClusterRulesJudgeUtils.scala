@@ -31,11 +31,17 @@ object AcrossClusterRulesJudgeUtils extends Logging {
       UsedMemoryPercentageThreshold: Double
   ): Boolean = {
     if (leftResource != null && maxResource != null) {
-      if (leftResource.queueCores < leftCPUThreshold && leftResource.queueMemory < leftMemoryThreshold) { // 集群的剩余资源小于阈值
-        val usedCPUPercentage = 1 - leftResource.queueCores.toDouble / maxResource.queueCores.toDouble
-        val usedMemoryPercentage = 1 - leftResource.queueMemory.toDouble / maxResource.queueMemory.toDouble
+      if (
+          leftResource.queueCores < leftCPUThreshold && leftResource.queueMemory < leftMemoryThreshold
+      ) { // 集群的剩余资源小于阈值
+        val usedCPUPercentage =
+          1 - leftResource.queueCores.toDouble / maxResource.queueCores.toDouble
+        val usedMemoryPercentage =
+          1 - leftResource.queueMemory.toDouble / maxResource.queueMemory.toDouble
 
-        if (usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold) { // 集群的资源使用率小于阈值
+        if (
+            usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
+        ) { // 集群的资源使用率小于阈值
           return true
         }
       }
