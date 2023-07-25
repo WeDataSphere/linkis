@@ -111,26 +111,7 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
           )
           retryException = t
           // 1.添加clusterLabelRetryException的标识
-          val properties = engineAskRequest.getProperties
-          properties.put("isClusterLabelRetry", "true")
-          val acrossClusterTask = properties.get("acrossClusterTask")
-          logger.info(s"acrossClusterTask test: $acrossClusterTask")
-          // 2.clusterLabel去除和queueRule去除
-          if (properties.get("acrossClusterTask") == "true") {
-            logger.info(
-              "task Failed to meet across cluster, remove clusterLabel and restore queueRule"
-            )
-            engineAskRequest.getLabels.remove(LabelKeyConstant.YARN_CLUSTER_KEY)
-            val queueRule = properties.get("queueRule")
-            if (queueRule != null && !queueRule.isEmpty) {
-              properties.put(
-                "wds.linkis.rm.yarnqueue",
-                properties.get("wds.linkis.rm.yarnqueue").split("_").head
-              )
-              properties.remove("queueRule")
-            }
-            properties.remove("acrossClusterTask")
-          }
+          engineAskRequest.getProperties.put("isClusterLabelRetry", "true")
         case t: Throwable =>
           val taken = ByteTimeUtils.msDurationToString(System.currentTimeMillis - start)
           logger.warn(s"${mark.getMarkId()} Failed to askEngineAskRequest time taken ($taken)")

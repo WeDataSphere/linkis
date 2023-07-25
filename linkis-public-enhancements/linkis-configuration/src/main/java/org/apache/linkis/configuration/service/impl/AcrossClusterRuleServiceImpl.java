@@ -20,12 +20,15 @@ package org.apache.linkis.configuration.service.impl;
 import org.apache.linkis.configuration.dao.AcrossClusterRuleMapper;
 import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
+import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
+import java.util.*;
 
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,5 +89,29 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     ruleMapper.insertAcrossClusterRule(acrossClusterRule);
     logger.info("insert acrossClusterRule success");
     return;
+  }
+
+  @Override
+  public Map<String, Object> queryAcrossClusterRuleList(
+      String creator, String user, String clusterName, Integer pageNow, Integer pageSize) {
+    Map<String, Object> result = new HashMap<>(2);
+    List<AcrossClusterRule> acrossClusterRules = null;
+    if (Objects.isNull(pageNow)) {
+      pageNow = 1;
+    }
+    if (Objects.isNull(pageSize)) {
+      pageSize = 20;
+    }
+    PageHelper.startPage(pageNow, pageSize);
+
+    try {
+      acrossClusterRules = ruleMapper.queryAcrossClusterRuleList(user, creator, clusterName);
+    } finally {
+      PageHelper.clearPage();
+    }
+    PageInfo<AcrossClusterRule> pageInfo = new PageInfo<>(acrossClusterRules);
+    result.put("acrossClusterRuleList", acrossClusterRules);
+    result.put(JobRequestConstants.TOTAL_PAGE(), pageInfo.getTotal());
+    return result;
   }
 }

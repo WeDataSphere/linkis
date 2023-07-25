@@ -20,6 +20,7 @@ package org.apache.linkis.configuration.restful.api;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
+import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
@@ -80,6 +81,50 @@ public class AcrossClusterRuleRestfulApi {
     }
 
     return Message.ok().data("acrossClusterRule", acrossClusterRule);
+  }
+
+  @ApiOperation(
+      value = "query-acrossClusterRule-list",
+      notes = "query acrossClusterRule list by creator, user, clusterName",
+      response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
+    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
+    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
+    @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
+  })
+  @RequestMapping(path = "/query-acrossClusterRuleList", method = RequestMethod.GET)
+  public Message queryAcrossClusterRuleList(
+      HttpServletRequest req,
+      @RequestParam(value = "creator", required = false) String creator,
+      @RequestParam(value = "user", required = false) String user,
+      @RequestParam(value = "clusterName", required = false) String clusterName,
+      @RequestParam(value = "pageNow", required = false) Integer pageNow,
+      @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+    String username = ModuleUserUtils.getOperationUser(req, "execute query-acrossClusterRuleList");
+    if (!Configuration.isAdmin(username)) {
+      return Message.error(
+          "Failed to query acrossClusterRule List,msg: only administrators can configure");
+    }
+
+    if (StringUtils.isBlank(user)) user = null;
+    if (StringUtils.isBlank(creator)) creator = null;
+    if (StringUtils.isBlank(clusterName)) clusterName = null;
+    if (null == pageNow) pageNow = 1;
+    if (null == pageSize) pageSize = 20;
+
+    Map<String, Object> resultMap = null;
+    try {
+      resultMap =
+          acrossClusterRuleService.queryAcrossClusterRuleList(
+              creator, user, clusterName, pageNow, pageSize);
+    } catch (Exception e) {
+      return Message.error("query acrossClusterRule List failed：" + e.getMessage());
+    }
+
+    return Message.ok()
+        .data("acrossClusterRuleList", resultMap.get("acrossClusterRuleList"))
+        .data(JobRequestConstants.TOTAL_PAGE(), resultMap.get(JobRequestConstants.TOTAL_PAGE()));
   }
 
   @ApiOperation(

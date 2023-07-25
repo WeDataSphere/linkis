@@ -32,6 +32,14 @@
         <result property="rules" column="rules" jdbcType="VARCHAR"/>
     </resultMap>
 
+    <sql id="AcrossClusterRule_Column_List">
+        id,cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
+    </sql>
+
+    <sql id="AcrossClusterRule_insert_Column_List">
+        cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
+    </sql>
+
     <select id="getAcrossClusterRule" resultMap="acrossClusterRuleMap">
         SELECT
             acr.id, acr.cluster_name, acr.creator,
@@ -43,9 +51,16 @@
             creator = #{creator} AND user = #{user}
     </select>
 
-    <sql id="AcrossClusterRule_insert_Column_List">
-        cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
-    </sql>
+    <select id="queryAcrossClusterRuleList" resultMap="acrossClusterRuleMap">
+        select <include refid="AcrossClusterRule_Column_List"/>
+        from `linkis_cg_lm_across_cluster_rule`
+        <where>
+            <if test="user != null"> user = #{user}</if>
+            <if test="creator != null">and creator = #{creator}</if>
+            <if test="clusterName != null">and cluster_name = #{clusterName}</if>
+        </where>
+    </select>
+
 
     <insert id="insertAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
         INSERT INTO

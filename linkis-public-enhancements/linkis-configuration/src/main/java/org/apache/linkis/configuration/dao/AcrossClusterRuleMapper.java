@@ -21,6 +21,8 @@ import org.apache.linkis.configuration.entity.AcrossClusterRule;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+
 public interface AcrossClusterRuleMapper {
 
   AcrossClusterRule getAcrossClusterRule(
@@ -31,4 +33,9 @@ public interface AcrossClusterRuleMapper {
   void updateAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
   void insertAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
+
+  List<AcrossClusterRule> queryAcrossClusterRuleList(
+      @Param("user") String user,
+      @Param("creator") String creator,
+      @Param("clusterName") String clusterName);
 }

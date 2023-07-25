@@ -99,6 +99,9 @@ class DriverAndYarnReqResourceService(
 
         if (!acrossClusterFlag) {
           logger.info(s"user: $user, creator: $creator task not meet the threshold rule")
+          logger.info(
+            s"requestedYarnResource: $requestedYarnResource, queueLeftResource: $queueLeftResource, maxCapacity: $maxCapacity"
+          )
           val notEnoughMessage =
             generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
           throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)

@@ -31,14 +31,25 @@ object AcrossClusterRulesJudgeUtils extends Logging {
       UsedMemoryPercentageThreshold: Double
   ): Boolean = {
     if (leftResource != null && maxResource != null) {
-      if (
-          leftResource.queueCores < leftCPUThreshold && leftResource.queueMemory < leftMemoryThreshold
-      ) { // 集群的剩余资源小于阈值
+      val leftQueueMemory = leftResource.queueMemory / Math.pow(1024, 3).toLong
+
+      logger.info(
+        s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold"
+      )
+      logger.info(s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold")
+      if (leftResource.queueCores < leftCPUThreshold && leftQueueMemory < leftMemoryThreshold) { // 集群的剩余资源小于阈值
+        val maxQueueMemory = maxResource.queueMemory / Math.pow(1024, 3).toLong
         val usedCPUPercentage =
           1 - leftResource.queueCores.toDouble / maxResource.queueCores.toDouble
         val usedMemoryPercentage =
-          1 - leftResource.queueMemory.toDouble / maxResource.queueMemory.toDouble
+          1 - leftQueueMemory.toDouble / maxQueueMemory.toDouble
 
+        logger.info(
+          s"usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold"
+        )
+        logger.info(
+          s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
+        )
         if (
             usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
         ) { // 集群的资源使用率小于阈值
