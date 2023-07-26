@@ -18,7 +18,6 @@
 package org.apache.linkis.configuration.restful.api;
 
 import org.apache.linkis.common.conf.Configuration;
-import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
 import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.server.Message;
@@ -49,43 +48,43 @@ public class AcrossClusterRuleRestfulApi {
 
   private Logger log = LoggerFactory.getLogger(this.getClass());
 
+  //  @ApiOperation(
+  //      value = "get-acrossClusterRule",
+  //      notes = "get acrossClusterRule given creator and user",
+  //      response = Message.class)
+  //  @ApiImplicitParams({
+  //    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
+  //    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
+  //    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
+  //  })
+  //  @RequestMapping(path = "/get-acrossClusterRule", method = RequestMethod.GET)
+  //  public Message getAcrossClusterRule(
+  //      HttpServletRequest req,
+  //      @RequestParam(value = "creator", required = false) String creator,
+  //      @RequestParam(value = "user", required = false) String user) {
+  //    String username = ModuleUserUtils.getOperationUser(req, "execute get-acrossClusterRule");
+  //    if (!Configuration.isAdmin(username)) {
+  //      return Message.error(
+  //          "Failed to get acrossClusterRule,msg: only administrators can configure");
+  //    }
+  //
+  //    if (StringUtils.isBlank(creator) || StringUtils.isBlank(user)) {
+  //      return Message.error("Failed to get acrossClusterRule: Illegal Input Param");
+  //    }
+  //
+  //    AcrossClusterRule acrossClusterRule = null;
+  //    try {
+  //      acrossClusterRule = acrossClusterRuleService.getAcrossClusterRule(creator, user);
+  //    } catch (Exception e) {
+  //      return Message.error("get acrossClusterRule failed：" + e.getMessage());
+  //    }
+  //
+  //    return Message.ok().data("acrossClusterRule", acrossClusterRule);
+  //  }
+
   @ApiOperation(
-      value = "get-acrossClusterRule",
-      notes = "get acrossClusterRule given creator and user",
-      response = Message.class)
-  @ApiImplicitParams({
-    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
-    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
-    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
-  })
-  @RequestMapping(path = "/get-acrossClusterRule", method = RequestMethod.GET)
-  public Message getAcrossClusterRule(
-      HttpServletRequest req,
-      @RequestParam(value = "creator", required = false) String creator,
-      @RequestParam(value = "user", required = false) String user) {
-    String username = ModuleUserUtils.getOperationUser(req, "execute get-acrossClusterRule");
-    if (!Configuration.isAdmin(username)) {
-      return Message.error(
-          "Failed to get acrossClusterRule,msg: only administrators can configure");
-    }
-
-    if (StringUtils.isBlank(creator) || StringUtils.isBlank(user)) {
-      return Message.error("Failed to get acrossClusterRule: Illegal Input Param");
-    }
-
-    AcrossClusterRule acrossClusterRule = null;
-    try {
-      acrossClusterRule = acrossClusterRuleService.getAcrossClusterRule(creator, user);
-    } catch (Exception e) {
-      return Message.error("get acrossClusterRule failed：" + e.getMessage());
-    }
-
-    return Message.ok().data("acrossClusterRule", acrossClusterRule);
-  }
-
-  @ApiOperation(
-      value = "query-acrossClusterRule-list",
-      notes = "query acrossClusterRule list by creator, user, clusterName",
+      value = "query acrossClusterRule list",
+      notes = "query acrossClusterRule list",
       response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
@@ -93,7 +92,7 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
     @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
   })
-  @RequestMapping(path = "/query-acrossClusterRuleList", method = RequestMethod.GET)
+  @RequestMapping(path = "/list", method = RequestMethod.GET)
   public Message queryAcrossClusterRuleList(
       HttpServletRequest req,
       @RequestParam(value = "creator", required = false) String creator,
@@ -101,7 +100,7 @@ public class AcrossClusterRuleRestfulApi {
       @RequestParam(value = "clusterName", required = false) String clusterName,
       @RequestParam(value = "pageNow", required = false) Integer pageNow,
       @RequestParam(value = "pageSize", required = false) Integer pageSize) {
-    String username = ModuleUserUtils.getOperationUser(req, "execute query-acrossClusterRuleList");
+    String username = ModuleUserUtils.getOperationUser(req, "execute query acrossClusterRule List");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
           "Failed to query acrossClusterRule List,msg: only administrators can configure");
@@ -128,20 +127,20 @@ public class AcrossClusterRuleRestfulApi {
   }
 
   @ApiOperation(
-      value = "delete-acrossClusterRule",
-      notes = "delete acrossClusterRule given creator and user",
+      value = "delete acrossClusterRule",
+      notes = "delete acrossClusterRule",
       response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
     @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
   })
-  @RequestMapping(path = "/delete-acrossClusterRule", method = RequestMethod.GET)
+  @RequestMapping(path = "/delete", method = RequestMethod.GET)
   public Message deleteAcrossClusterRule(
       HttpServletRequest req,
       @RequestParam(value = "creator", required = false) String creator,
       @RequestParam(value = "user", required = false) String user) {
-    String username = ModuleUserUtils.getOperationUser(req, "execute delete-acrossClusterRule");
+    String username = ModuleUserUtils.getOperationUser(req, "execute delete acrossClusterRule");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
           "Failed to delete acrossClusterRule,msg: only administrators can configure");
@@ -161,7 +160,7 @@ public class AcrossClusterRuleRestfulApi {
   }
 
   @ApiOperation(
-      value = "update-acrossClusterRule",
+      value = "update acrossClusterRule",
       notes = "update acrossClusterRule ",
       response = Message.class)
   @ApiImplicitParams({
@@ -171,13 +170,13 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
     @ApiImplicitParam(name = "rules", dataType = "String", value = "rules"),
   })
-  @RequestMapping(path = "/update-acrossClusterRule", method = RequestMethod.PUT)
+  @RequestMapping(path = "/update", method = RequestMethod.PUT)
   public Message updateAcrossClusterRule(
       HttpServletRequest req, @RequestBody Map<String, Object> json) {
-    String username = ModuleUserUtils.getOperationUser(req, "execute update-acrossClusterRule");
+    String username = ModuleUserUtils.getOperationUser(req, "execute update acrossClusterRule");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
-          "Failed to update-acrossClusterRule,msg: only administrators can configure");
+          "Failed to update acrossClusterRule,msg: only administrators can configure");
     }
 
     String clusterName = (String) json.get("clusterName");
@@ -200,8 +199,8 @@ public class AcrossClusterRuleRestfulApi {
   }
 
   @ApiOperation(
-      value = "insert-acrossClusterRule",
-      notes = "insert acrossClusterRule ",
+      value = "add acrossClusterRule",
+      notes = "add acrossClusterRule ",
       response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = ""),
@@ -210,13 +209,13 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
     @ApiImplicitParam(name = "rules", dataType = "String", value = "rules"),
   })
-  @RequestMapping(path = "/insert-acrossClusterRule", method = RequestMethod.POST)
+  @RequestMapping(path = "/add", method = RequestMethod.POST)
   public Message insertAcrossClusterRule(
       HttpServletRequest req, @RequestBody Map<String, Object> json) {
-    String username = ModuleUserUtils.getOperationUser(req, "execute insert-acrossClusterRule");
+    String username = ModuleUserUtils.getOperationUser(req, "execute add acrossClusterRule");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
-          "Failed to insert-acrossClusterRule,msg: only administrators can configure");
+          "Failed to add acrossClusterRule,msg: only administrators can configure");
     }
 
     String clusterName = (String) json.get("clusterName");
@@ -227,13 +226,13 @@ public class AcrossClusterRuleRestfulApi {
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
         || StringUtils.isBlank(rules)) {
-      return Message.error("Failed to insert acrossClusterRule: Illegal Input Param");
+      return Message.error("Failed to add acrossClusterRule: Illegal Input Param");
     }
 
     try {
       acrossClusterRuleService.insertAcrossClusterRule(clusterName, creator, user, username, rules);
     } catch (Exception e) {
-      return Message.error("insert acrossClusterRule failed：" + e.getMessage());
+      return Message.error("add acrossClusterRule failed：" + e.getMessage());
     }
     return Message.ok();
   }
