@@ -18,6 +18,7 @@
 package org.apache.linkis.manager.am.service.engine
 
 import org.apache.linkis.common.ServiceInstance
+import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.exception.LinkisRetryException
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.engineplugin.server.service.EngineConnResourceFactoryService
@@ -291,6 +292,15 @@ class DefaultEngineCreateService
         }
       })
     }
+
+    val queueRule = props.get("queueRule")
+    if (queueRule != null && !queueRule.isEmpty) { // 切换队列后缀
+      val queueName = props.getOrDefault("wds.linkis.rm.yarnqueue", "default")
+      // 用户没有配置，在default后面加上规则；用户配置了，在配置的队列后面加上规则
+      props.put("wds.linkis.rm.yarnqueue", queueName + "_" + queueRule)
+      logger.info("Switch queues according to queueRule")
+    }
+
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(
       timeout,
       engineCreateRequest.getUser,
@@ -303,6 +313,7 @@ class DefaultEngineCreateService
     resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
+      engineCreateRequest,
       timeout
     ) match {
       case AvailableResource(ticketId) =>
