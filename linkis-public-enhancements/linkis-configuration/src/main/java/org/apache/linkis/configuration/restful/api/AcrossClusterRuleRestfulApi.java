@@ -169,6 +169,7 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
     @ApiImplicitParam(name = "rules", dataType = "String", value = "rules"),
+    @ApiImplicitParam(name = "isValid", dataType = "String", value = "isValid"),
   })
   @RequestMapping(path = "/update", method = RequestMethod.PUT)
   public Message updateAcrossClusterRule(
@@ -183,15 +184,18 @@ public class AcrossClusterRuleRestfulApi {
     String creator = (String) json.get("creator");
     String user = (String) json.get("user");
     String rules = (String) json.get("rules");
+    String isValid = (String) json.get("isValid");
     if (StringUtils.isBlank(clusterName)
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
-        || StringUtils.isBlank(rules)) {
+        || StringUtils.isBlank(rules)
+        || StringUtils.isBlank(isValid)) {
       return Message.error("Failed to update acrossClusterRule: Illegal Input Param");
     }
 
     try {
-      acrossClusterRuleService.updateAcrossClusterRule(clusterName, creator, user, username, rules);
+      acrossClusterRuleService.updateAcrossClusterRule(
+          clusterName, creator, user, username, rules, isValid);
     } catch (Exception e) {
       return Message.error("update acrossClusterRule failed：" + e.getMessage());
     }
@@ -208,6 +212,7 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
     @ApiImplicitParam(name = "rules", dataType = "String", value = "rules"),
+    @ApiImplicitParam(name = "isValid", dataType = "String", value = "isValid"),
   })
   @RequestMapping(path = "/add", method = RequestMethod.POST)
   public Message insertAcrossClusterRule(
@@ -222,15 +227,18 @@ public class AcrossClusterRuleRestfulApi {
     String creator = (String) json.get("creator");
     String user = (String) json.get("user");
     String rules = (String) json.get("rules");
+    String isValid = (String) json.get("isValid");
     if (StringUtils.isBlank(clusterName)
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
-        || StringUtils.isBlank(rules)) {
+        || StringUtils.isBlank(rules)
+        || StringUtils.isBlank(isValid)) {
       return Message.error("Failed to add acrossClusterRule: Illegal Input Param");
     }
 
     try {
-      acrossClusterRuleService.insertAcrossClusterRule(clusterName, creator, user, username, rules);
+      acrossClusterRuleService.insertAcrossClusterRule(
+          clusterName, creator, user, username, rules, isValid);
     } catch (Exception e) {
       return Message.error("add acrossClusterRule failed：" + e.getMessage());
     }

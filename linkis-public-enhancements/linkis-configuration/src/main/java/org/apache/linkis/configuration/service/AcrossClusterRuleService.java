@@ -27,11 +27,21 @@ public interface AcrossClusterRuleService {
   void deleteAcrossClusterRule(String creator, String user) throws Exception;
 
   void updateAcrossClusterRule(
-      String clusterName, String creator, String user, String updateBy, String rules)
+      String clusterName,
+      String creator,
+      String user,
+      String updateBy,
+      String rules,
+      String isValid)
       throws Exception;
 
   void insertAcrossClusterRule(
-      String clusterName, String creator, String user, String createBy, String rules)
+      String clusterName,
+      String creator,
+      String user,
+      String createBy,
+      String rules,
+      String isValid)
       throws Exception;
 
   Map<String, Object> queryAcrossClusterRuleList(

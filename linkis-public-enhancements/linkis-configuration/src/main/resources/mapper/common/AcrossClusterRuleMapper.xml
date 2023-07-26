@@ -30,14 +30,15 @@
         <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
         <result property="updateBy" column="update_by" jdbcType="VARCHAR"/>
         <result property="rules" column="rules" jdbcType="VARCHAR"/>
+        <result property="isValid" column="is_valid" jdbcType="VARCHAR"/>
     </resultMap>
 
     <sql id="AcrossClusterRule_Column_List">
-        id,cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
+        id,cluster_name,creator,user,create_time,create_by,update_time,update_by,rules,is_valid
     </sql>
 
     <sql id="AcrossClusterRule_insert_Column_List">
-        cluster_name,creator,user,create_time,create_by,update_time,update_by,rules
+        cluster_name,creator,user,create_time,create_by,update_time,update_by,rules,is_valid
     </sql>
 
     <select id="getAcrossClusterRule" resultMap="acrossClusterRuleMap">
@@ -66,8 +67,11 @@
         INSERT INTO
             linkis_cg_lm_across_cluster_rule (<include refid="AcrossClusterRule_insert_Column_List"/>)
         VALUES
-            (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator},#{acrossClusterRule.user},#{acrossClusterRule.createTime},
-            #{acrossClusterRule.createBy},#{acrossClusterRule.updateTime},#{acrossClusterRule.updateBy},#{acrossClusterRule.rules})
+            (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator},
+            #{acrossClusterRule.user},#{acrossClusterRule.createTime},
+            #{acrossClusterRule.createBy},#{acrossClusterRule.updateTime},
+            #{acrossClusterRule.updateBy},#{acrossClusterRule.rules},
+            #{acrossClusterRule.isValid})
     </insert>
 
     <delete id="deleteAcrossClusterRule">
@@ -85,7 +89,8 @@
             cluster_name = #{acrossClusterRule.clusterName}, creator = #{acrossClusterRule.creator},
             user=#{acrossClusterRule.user}, create_time=#{acrossClusterRule.createTime},
             create_By=#{acrossClusterRule.createBy}, update_time=#{acrossClusterRule.updateTime},
-            update_BY=#{acrossClusterRule.updateBy}, rules=#{acrossClusterRule.rules}
+            update_By=#{acrossClusterRule.updateBy}, rules=#{acrossClusterRule.rules},
+            is_valid=#{acrossClusterRule.isValid}
         WHERE
             id = #{acrossClusterRule.id}
     </update>

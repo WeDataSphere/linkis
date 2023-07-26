@@ -53,12 +53,17 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public void updateAcrossClusterRule(
-      String clusterName, String creator, String user, String updateBy, String rules)
+      String clusterName,
+      String creator,
+      String user,
+      String updateBy,
+      String rules,
+      String isValid)
       throws Exception {
     AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(creator, user);
     if (acrossClusterRule == null) {
       logger.info("acrossClusterRule not exit");
-      throw new Exception();
+      throw new Exception("acrossClusterRule not exit");
     }
 
     Date time = new Date();
@@ -67,6 +72,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     acrossClusterRule.setUpdateTime(time);
     acrossClusterRule.setUpdateBy(updateBy);
     acrossClusterRule.setRules(rules);
+    acrossClusterRule.setIsValid(isValid);
     ruleMapper.updateAcrossClusterRule(acrossClusterRule);
     logger.info("update acrossClusterRule success");
     return;
@@ -74,7 +80,12 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public void insertAcrossClusterRule(
-      String clusterName, String creator, String user, String createBy, String rules)
+      String clusterName,
+      String creator,
+      String user,
+      String createBy,
+      String rules,
+      String isValid)
       throws Exception {
     Date time = new Date();
     AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
@@ -86,6 +97,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     acrossClusterRule.setUpdateBy(createBy);
     acrossClusterRule.setUpdateTime(time);
     acrossClusterRule.setRules(rules);
+    acrossClusterRule.setIsValid(isValid);
     ruleMapper.insertAcrossClusterRule(acrossClusterRule);
     logger.info("insert acrossClusterRule success");
     return;

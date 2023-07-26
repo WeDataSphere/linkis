@@ -30,6 +30,7 @@ public class AcrossClusterRule {
   private Date updateTime;
   private String updateBy;
   private String rules;
+  private String isValid;
 
   public AcrossClusterRule() {}
 
@@ -105,33 +106,11 @@ public class AcrossClusterRule {
     this.rules = rules;
   }
 
-  @Override
-  public String toString() {
-    return "AcrossClusterRule{"
-        + "id="
-        + id
-        + ", clusterName='"
-        + clusterName
-        + '\''
-        + ", creator='"
-        + creator
-        + '\''
-        + ", user='"
-        + user
-        + '\''
-        + ", createTime="
-        + createTime
-        + ", createBy='"
-        + createBy
-        + '\''
-        + ", updateTime="
-        + updateTime
-        + ", updateBy='"
-        + updateBy
-        + '\''
-        + ", rules='"
-        + rules
-        + '\''
-        + '}';
+  public String getIsValid() {
+    return isValid;
+  }
+
+  public void setIsValid(String isValid) {
+    this.isValid = isValid;
   }
 }

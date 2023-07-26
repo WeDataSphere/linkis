@@ -37,7 +37,7 @@ object AcrossClusterRulesJudgeUtils extends Logging {
         s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold"
       )
       logger.info(s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold")
-      if (leftResource.queueCores < leftCPUThreshold && leftQueueMemory < leftMemoryThreshold) { // 集群的剩余资源小于阈值
+      if (leftResource.queueCores > leftCPUThreshold && leftQueueMemory > leftMemoryThreshold) { // 目标集群的剩余资源高于阈值，资源充足
         val maxQueueMemory = maxResource.queueMemory / Math.pow(1024, 3).toLong
         val usedCPUPercentage =
           1 - leftResource.queueCores.toDouble / maxResource.queueCores.toDouble
@@ -52,7 +52,7 @@ object AcrossClusterRulesJudgeUtils extends Logging {
         )
         if (
             usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
-        ) { // 集群的资源使用率小于阈值
+        ) { // 目标集群的资源使用率小于阈值，资源充足
           return true
         }
       }
