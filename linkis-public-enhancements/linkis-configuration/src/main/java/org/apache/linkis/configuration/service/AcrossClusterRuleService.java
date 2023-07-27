@@ -17,16 +17,14 @@
 
 package org.apache.linkis.configuration.service;
 
-import org.apache.linkis.configuration.entity.AcrossClusterRule;
-
 import java.util.Map;
 
 public interface AcrossClusterRuleService {
-  AcrossClusterRule getAcrossClusterRule(String creator, String user) throws Exception;
 
   void deleteAcrossClusterRule(String creator, String user) throws Exception;
 
   void updateAcrossClusterRule(
+      String id,
       String clusterName,
       String creator,
       String user,

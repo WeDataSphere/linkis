@@ -49,7 +49,7 @@
         FROM
             `linkis_cg_lm_across_cluster_rule` acr
         WHERE
-            creator = #{creator} AND user = #{user}
+            id = #{id}
     </select>
 
     <select id="queryAcrossClusterRuleList" resultMap="acrossClusterRuleMap">

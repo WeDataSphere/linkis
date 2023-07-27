@@ -25,8 +25,7 @@ import java.util.List;
 
 public interface AcrossClusterRuleMapper {
 
-  AcrossClusterRule getAcrossClusterRule(
-      @Param("creator") String creator, @Param("user") String user);
+  AcrossClusterRule getAcrossClusterRule(@Param("id") Long id);
 
   void deleteAcrossClusterRule(@Param("creator") String creator, @Param("user") String user);
 

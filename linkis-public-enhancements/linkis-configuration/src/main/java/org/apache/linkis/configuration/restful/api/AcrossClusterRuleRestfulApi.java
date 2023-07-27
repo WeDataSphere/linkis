@@ -25,14 +25,12 @@ import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
 import org.apache.commons.lang3.StringUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import io.swagger.annotations.Api;
@@ -42,7 +40,6 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 @Api(tags = "across cluster rule api")
 @RestController
 @RequestMapping(path = "/configuration/acrossClusterRule")
@@ -51,40 +48,6 @@ public class AcrossClusterRuleRestfulApi {
   @Autowired private AcrossClusterRuleService acrossClusterRuleService;
 
   private Logger log = LoggerFactory.getLogger(this.getClass());
-
-  //  @ApiOperation(
-  //      value = "get-acrossClusterRule",
-  //      notes = "get acrossClusterRule given creator and user",
-  //      response = Message.class)
-  //  @ApiImplicitParams({
-  //    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
-  //    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
-  //    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
-  //  })
-  //  @RequestMapping(path = "/get-acrossClusterRule", method = RequestMethod.GET)
-  //  public Message getAcrossClusterRule(
-  //      HttpServletRequest req,
-  //      @RequestParam(value = "creator", required = false) String creator,
-  //      @RequestParam(value = "user", required = false) String user) {
-  //    String username = ModuleUserUtils.getOperationUser(req, "execute get-acrossClusterRule");
-  //    if (!Configuration.isAdmin(username)) {
-  //      return Message.error(
-  //          "Failed to get acrossClusterRule,msg: only administrators can configure");
-  //    }
-  //
-  //    if (StringUtils.isBlank(creator) || StringUtils.isBlank(user)) {
-  //      return Message.error("Failed to get acrossClusterRule: Illegal Input Param");
-  //    }
-  //
-  //    AcrossClusterRule acrossClusterRule = null;
-  //    try {
-  //      acrossClusterRule = acrossClusterRuleService.getAcrossClusterRule(creator, user);
-  //    } catch (Exception e) {
-  //      return Message.error("get acrossClusterRule failed：" + e.getMessage());
-  //    }
-  //
-  //    return Message.ok().data("acrossClusterRule", acrossClusterRule);
-  //  }
 
   @ApiOperation(
       value = "query acrossClusterRule list",
@@ -168,17 +131,24 @@ public class AcrossClusterRuleRestfulApi {
       notes = "update acrossClusterRule ",
       response = Message.class)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
-          @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
-          @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
-          @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
-          @ApiImplicitParam(name = "isValid", dataType = "String", value = "isValid"),
-          @ApiImplicitParam(name = "startTime", dataType = "String", value = "startTime"),
-          @ApiImplicitParam(name = "endTime", dataType = "String", value = "endTime"),
-          @ApiImplicitParam(name = "CPUThreshold", dataType = "String", value = "CPUThreshold"),
-          @ApiImplicitParam(name = "MemoryThreshold", dataType = "String", value = "MemoryThreshold"),
-          @ApiImplicitParam(name = "CPUPercentageThreshold", dataType = "String", value = "CPUPercentageThreshold"),
-          @ApiImplicitParam(name = "MemoryPercentageThreshold", dataType = "String", value = "MemoryPercentageThreshold"),
+    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
+    @ApiImplicitParam(name = "id", dataType = "String", value = "id"),
+    @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
+    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
+    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
+    @ApiImplicitParam(name = "isValid", dataType = "String", value = "isValid"),
+    @ApiImplicitParam(name = "startTime", dataType = "String", value = "startTime"),
+    @ApiImplicitParam(name = "endTime", dataType = "String", value = "endTime"),
+    @ApiImplicitParam(name = "CPUThreshold", dataType = "String", value = "CPUThreshold"),
+    @ApiImplicitParam(name = "MemoryThreshold", dataType = "String", value = "MemoryThreshold"),
+    @ApiImplicitParam(
+        name = "CPUPercentageThreshold",
+        dataType = "String",
+        value = "CPUPercentageThreshold"),
+    @ApiImplicitParam(
+        name = "MemoryPercentageThreshold",
+        dataType = "String",
+        value = "MemoryPercentageThreshold"),
   })
   @RequestMapping(path = "/update", method = RequestMethod.PUT)
   public Message updateAcrossClusterRule(
@@ -189,6 +159,7 @@ public class AcrossClusterRuleRestfulApi {
           "Failed to update acrossClusterRule,msg: only administrators can configure");
     }
 
+    String id = (String) json.get("id");
     String clusterName = (String) json.get("clusterName");
     String creator = (String) json.get("creator");
     String user = (String) json.get("user");
@@ -199,18 +170,31 @@ public class AcrossClusterRuleRestfulApi {
     String MemoryThreshold = (String) json.get("MemoryThreshold");
     String CPUPercentageThreshold = (String) json.get("CPUPercentageThreshold");
     String MemoryPercentageThreshold = (String) json.get("MemoryPercentageThreshold");
-    if (StringUtils.isBlank(clusterName) || StringUtils.isBlank(creator)
-            || StringUtils.isBlank(user) || StringUtils.isBlank(isValid)
-            || StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)
-            || StringUtils.isBlank(CPUThreshold) || StringUtils.isBlank(MemoryThreshold)
-            || StringUtils.isBlank(CPUPercentageThreshold) || StringUtils.isBlank(MemoryPercentageThreshold)) {
+    if (StringUtils.isBlank(id)
+        || StringUtils.isBlank(clusterName)
+        || StringUtils.isBlank(creator)
+        || StringUtils.isBlank(user)
+        || StringUtils.isBlank(isValid)
+        || StringUtils.isBlank(startTime)
+        || StringUtils.isBlank(endTime)
+        || StringUtils.isBlank(CPUThreshold)
+        || StringUtils.isBlank(MemoryThreshold)
+        || StringUtils.isBlank(CPUPercentageThreshold)
+        || StringUtils.isBlank(MemoryPercentageThreshold)) {
       return Message.error("Failed to add acrossClusterRule: Illegal Input Param");
     }
 
     try {
-      String rules = CommonUtils.ruleMap2String(startTime,endTime,CPUThreshold,MemoryThreshold,CPUPercentageThreshold,MemoryPercentageThreshold);
+      String rules =
+          CommonUtils.ruleMap2String(
+              startTime,
+              endTime,
+              CPUThreshold,
+              MemoryThreshold,
+              CPUPercentageThreshold,
+              MemoryPercentageThreshold);
       acrossClusterRuleService.updateAcrossClusterRule(
-          clusterName, creator, user, username, rules, isValid);
+          id, clusterName, creator, user, username, rules, isValid);
     } catch (Exception e) {
       return Message.error("update acrossClusterRule failed：" + e.getMessage());
     }
@@ -231,8 +215,14 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "endTime", dataType = "String", value = "endTime"),
     @ApiImplicitParam(name = "CPUThreshold", dataType = "String", value = "CPUThreshold"),
     @ApiImplicitParam(name = "MemoryThreshold", dataType = "String", value = "MemoryThreshold"),
-    @ApiImplicitParam(name = "CPUPercentageThreshold", dataType = "String", value = "CPUPercentageThreshold"),
-    @ApiImplicitParam(name = "MemoryPercentageThreshold", dataType = "String", value = "MemoryPercentageThreshold"),
+    @ApiImplicitParam(
+        name = "CPUPercentageThreshold",
+        dataType = "String",
+        value = "CPUPercentageThreshold"),
+    @ApiImplicitParam(
+        name = "MemoryPercentageThreshold",
+        dataType = "String",
+        value = "MemoryPercentageThreshold"),
   })
   @RequestMapping(path = "/add", method = RequestMethod.POST)
   public Message insertAcrossClusterRule(
@@ -253,16 +243,28 @@ public class AcrossClusterRuleRestfulApi {
     String MemoryThreshold = (String) json.get("MemoryThreshold");
     String CPUPercentageThreshold = (String) json.get("CPUPercentageThreshold");
     String MemoryPercentageThreshold = (String) json.get("MemoryPercentageThreshold");
-    if (StringUtils.isBlank(clusterName) || StringUtils.isBlank(creator)
-        || StringUtils.isBlank(user) || StringUtils.isBlank(isValid)
-        || StringUtils.isBlank(startTime) || StringUtils.isBlank(endTime)
-        || StringUtils.isBlank(CPUThreshold) || StringUtils.isBlank(MemoryThreshold)
-        || StringUtils.isBlank(CPUPercentageThreshold) || StringUtils.isBlank(MemoryPercentageThreshold)) {
+    if (StringUtils.isBlank(clusterName)
+        || StringUtils.isBlank(creator)
+        || StringUtils.isBlank(user)
+        || StringUtils.isBlank(isValid)
+        || StringUtils.isBlank(startTime)
+        || StringUtils.isBlank(endTime)
+        || StringUtils.isBlank(CPUThreshold)
+        || StringUtils.isBlank(MemoryThreshold)
+        || StringUtils.isBlank(CPUPercentageThreshold)
+        || StringUtils.isBlank(MemoryPercentageThreshold)) {
       return Message.error("Failed to add acrossClusterRule: Illegal Input Param");
     }
 
     try {
-      String rules = CommonUtils.ruleMap2String(startTime,endTime,CPUThreshold,MemoryThreshold,CPUPercentageThreshold,MemoryPercentageThreshold);
+      String rules =
+          CommonUtils.ruleMap2String(
+              startTime,
+              endTime,
+              CPUThreshold,
+              MemoryThreshold,
+              CPUPercentageThreshold,
+              MemoryPercentageThreshold);
       acrossClusterRuleService.insertAcrossClusterRule(
           clusterName, creator, user, username, rules, isValid);
     } catch (Exception e) {

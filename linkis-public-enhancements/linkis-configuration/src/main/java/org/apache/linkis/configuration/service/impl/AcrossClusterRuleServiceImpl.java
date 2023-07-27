@@ -38,12 +38,6 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
   private final Logger logger = LoggerFactory.getLogger(this.getClass());
   @Autowired private AcrossClusterRuleMapper ruleMapper;
 
-  public AcrossClusterRule getAcrossClusterRule(String creator, String user) throws Exception {
-    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(creator, user);
-    logger.info("getAcrossClusterRule acrossClusterRule {} data:", acrossClusterRule);
-    return acrossClusterRule;
-  }
-
   @Override
   public void deleteAcrossClusterRule(String creator, String user) throws Exception {
     ruleMapper.deleteAcrossClusterRule(creator, user);
@@ -53,6 +47,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public void updateAcrossClusterRule(
+      String id,
       String clusterName,
       String creator,
       String user,
@@ -60,7 +55,8 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
       String rules,
       String isValid)
       throws Exception {
-    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(creator, user);
+    Long ruleId = new Long(id);
+    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(ruleId);
     if (acrossClusterRule == null) {
       logger.info("acrossClusterRule not exit");
       throw new Exception("acrossClusterRule not exit");
