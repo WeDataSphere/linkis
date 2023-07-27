@@ -396,6 +396,7 @@
     <select id="getUserConfigValue" resultMap="ConfigUserValueMap">
         SELECT
             config.`key`,
+            config.`name`,
             config.id AS config_key_id ,
             config.description,
             config.default_value,

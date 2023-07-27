@@ -21,6 +21,8 @@ public class ConfigUserValue {
 
   private String key;
 
+  private String name;
+
   private Integer configKeyId;
 
   private String description;
@@ -109,11 +111,22 @@ public class ConfigUserValue {
     this.labelValue = labelValue;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public void setName(String name) {
+    this.name = name;
+  }
+
   @Override
   public String toString() {
     return "ConfigUserValue{"
         + "key='"
         + key
+        + '\''
+        + ", name='"
+        + name
         + '\''
         + ", configKeyId="
         + configKeyId
