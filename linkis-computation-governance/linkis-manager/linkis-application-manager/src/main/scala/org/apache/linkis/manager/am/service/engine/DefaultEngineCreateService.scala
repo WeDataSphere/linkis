@@ -295,10 +295,10 @@ class DefaultEngineCreateService
 
     val queueRule = props.get("queueRule")
     if (queueRule != null && !queueRule.isEmpty) { // 切换队列后缀
+      logger.info("Switch queues according to queueRule")
       val queueName = props.getOrDefault("wds.linkis.rm.yarnqueue", "default")
       // 用户没有配置，在default后面加上规则；用户配置了，在配置的队列后面加上规则
       props.put("wds.linkis.rm.yarnqueue", queueName + "_" + queueRule)
-      logger.info("Switch queues according to queueRule")
     }
 
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(
