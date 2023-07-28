@@ -168,7 +168,7 @@ class CachedTokenService extends TokenService {
   override def doAuth(tokenName: String, userName: String, host: String): Boolean = {
     val tmpToken: Token = loadTokenFromCache(tokenName)
     var ok: Boolean = true
-    // token过期
+    // token expired
     if (!isTokenValid(tmpToken)) {
       ok = false
       throw new TokenAuthException(
