@@ -64,6 +64,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
     Date time = new Date();
     acrossClusterRule.setClusterName(clusterName);
+    acrossClusterRule.setCreator(creator);
     acrossClusterRule.setUser(user);
     acrossClusterRule.setUpdateTime(time);
     acrossClusterRule.setUpdateBy(updateBy);
