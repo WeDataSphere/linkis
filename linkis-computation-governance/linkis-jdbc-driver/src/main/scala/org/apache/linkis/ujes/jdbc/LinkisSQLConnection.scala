@@ -47,6 +47,7 @@ import java.sql.{
 }
 import java.util.Properties
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters._
 
@@ -104,6 +105,8 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
   private val startupParams: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 
   private val runtimeParams: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
+
+  private val idCreator = new AtomicInteger()
 
   private[jdbc] def getEngineType: EngineTypeLabel = {
     val engineType: EngineTypeLabel =
@@ -444,6 +447,7 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
     labelMap.put(LabelKeyConstant.ENGINE_TYPE_KEY, engineTypeLabel.getStringValue)
     labelMap.put(LabelKeyConstant.USER_CREATOR_TYPE_KEY, s"$user-$creator")
     labelMap.put(LabelKeyConstant.CODE_TYPE_KEY, engineToCodeType(engineTypeLabel.getEngineType))
+    labelMap.put(LabelKeyConstant.FIXED_EC_KEY, getUniqId())
 
     val jobSubmitAction = JobSubmitAction.builder
       .addExecuteCode(code)
@@ -460,6 +464,10 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
       throw new SQLException(result.getMessage)
     }
     result
+  }
+
+  def getUniqId(): String = {
+    Utils.getLocalHostname + "_" + idCreator.getAndIncrement()
   }
 
 }
