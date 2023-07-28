@@ -41,6 +41,7 @@ trait ProcessEngineCommandBuilder {
 
   def replaceExpansionMarker(value: String): String
 
+  def setSource(sourcePath: String, target: String): Unit
 }
 
 abstract class ShellProcessEngineCommandBuilder extends ProcessEngineCommandBuilder {
@@ -99,6 +100,13 @@ class UnixProcessEngineCommandBuilder extends ShellProcessEngineCommandBuilder {
   override def mkdir(dir: String): Unit = {
     newLine(Array("mkdir -p ", dir))
     addErrorCheck()
+  }
+
+  override def setSource(sourcePath: String, target: String): Unit = {
+    newLine("if [ -f " + sourcePath + " ]; then")
+    newLine(Array("source ", sourcePath))
+    newLine("echo $" + target)
+    newLine("fi")
   }
 
 }
