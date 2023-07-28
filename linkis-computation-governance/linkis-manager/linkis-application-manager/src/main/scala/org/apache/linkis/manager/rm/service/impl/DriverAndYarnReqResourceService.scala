@@ -17,6 +17,8 @@
 
 package org.apache.linkis.manager.rm.service.impl
 
+
+import org.apache.commons.lang.StringUtils
 import org.apache.linkis.manager.common.constant.RMConstant
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.entity.resource.ResourceType.DriverAndYarn
@@ -29,8 +31,9 @@ import org.apache.linkis.manager.rm.external.service.ExternalResourceService
 import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
 import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService}
 import org.apache.linkis.manager.rm.utils.{AcrossClusterRulesJudgeUtils, RMUtils}
-
 import org.json4s.DefaultFormats
+
+
 
 class DriverAndYarnReqResourceService(
     labelResourceService: LabelResourceService,
@@ -74,27 +77,32 @@ class DriverAndYarnReqResourceService(
       throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
     }
 
-    // 1.判断是否进入跨集群的资源判断
     if (engineCreateRequest.getProperties != null) {
-      val acrossClusterTask = engineCreateRequest.getProperties.get("acrossClusterTask")
       val user = labelContainer.getUserCreatorLabel.getUser
       val creator = labelContainer.getUserCreatorLabel.getCreator
+      val properties = engineCreateRequest.getProperties
+      val acrossClusterTask = properties.get("acrossClusterTask")
+      val CPUThreshold = properties.get("CPUThreshold")
+      val MemoryThreshold = properties.get("MemoryThreshold")
+      val CPUPercentageThreshold = properties.get("CPUPercentageThreshold")
+      val MemoryPercentageThreshold = properties.get("MemoryPercentageThreshold")
 
       logger.info(
-        s"user: $user, creator: $creator, acrossClusterTask: $acrossClusterTask, jayceyang test"
+        s"user: $user, creator: $creator, acrossClusterTask: $acrossClusterTask, cross cluster judge"
       )
 
-      if (acrossClusterTask == "true") {
+      if (acrossClusterTask == "true" && StringUtils.isNotBlank(CPUThreshold) && StringUtils.isNotBlank(MemoryThreshold)
+        && StringUtils.isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)) {
+
         logger.info(s"user: $user, creator: $creator task enter cross cluster resource judgment")
-        // 2.进行跨集群阈值规则判断
-        val properties = engineCreateRequest.getProperties
+
         val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
           queueLeftResource.asInstanceOf[YarnResource],
           maxCapacity.asInstanceOf[YarnResource],
-          properties.get("CPUThreshold").toInt,
-          properties.get("MemoryThreshold").toInt,
-          properties.get("CPUPercentageThreshold").toDouble,
-          properties.get("MemoryPercentageThreshold").toDouble
+          CPUThreshold.toInt,
+          MemoryThreshold.toInt,
+          CPUPercentageThreshold.toDouble,
+          MemoryPercentageThreshold.toDouble
         )
 
         if (!acrossClusterFlag) {
