@@ -65,12 +65,20 @@ object PortUtils extends Logging {
 
   def readFromProperties(propertiesFile: String): Properties = {
     val properties: Properties = new Properties
+    var reader: BufferedReader = null;
     try {
-      val reader: BufferedReader = new BufferedReader(new FileReader(propertiesFile))
+      reader = new BufferedReader(new FileReader(propertiesFile))
       properties.load(reader)
     } catch {
-      case e: Exception => logger.warn("loading vsersion faild")
+      case e: Exception => logger.warn(s"loading vsersion faild with path $propertiesFile  error:$e")
+    } finally {
+      try if (reader != null) reader.close
+      catch {
+        case e: Exception =>
+          logger.warn(s"try to close buffered reader with error:${e.getMessage}")
+      }
     }
     properties
   }
+
 }
