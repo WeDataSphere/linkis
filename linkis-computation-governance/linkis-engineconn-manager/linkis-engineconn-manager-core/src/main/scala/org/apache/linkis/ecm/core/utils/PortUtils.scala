@@ -17,15 +17,16 @@
 
 package org.apache.linkis.ecm.core.utils
 
-import org.apache.linkis.common.utils.Utils
+import org.apache.linkis.common.utils.{Logging, Utils}
 
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 
-import java.io.IOException
+import java.io.{BufferedReader, FileReader, IOException}
 import java.net.ServerSocket
+import java.util.Properties
 
-object PortUtils {
+object PortUtils extends Logging {
 
   /**
    * portRange: '-' is the separator
@@ -62,4 +63,14 @@ object PortUtils {
     Utils.tryFinally(socket.getLocalPort)(IOUtils.closeQuietly(socket))
   }
 
+  def readFromProperties(propertiesFile: String): Properties = {
+    val properties: Properties = new Properties
+    try {
+      val reader: BufferedReader = new BufferedReader(new FileReader(propertiesFile))
+      properties.load(reader)
+    } catch {
+      case e: Exception => logger.warn("loading vsersion faild")
+    }
+    properties
+  }
 }
