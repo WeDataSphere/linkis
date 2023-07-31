@@ -24,7 +24,7 @@ public interface AcrossClusterRuleService {
   void deleteAcrossClusterRule(String creator, String user) throws Exception;
 
   void updateAcrossClusterRule(
-      String id,
+      Long id,
       String clusterName,
       String creator,
       String user,

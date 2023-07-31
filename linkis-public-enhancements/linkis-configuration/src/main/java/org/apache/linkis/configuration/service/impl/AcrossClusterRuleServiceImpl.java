@@ -47,7 +47,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public void updateAcrossClusterRule(
-      String id,
+      Long ruleId,
       String clusterName,
       String creator,
       String user,
@@ -55,7 +55,6 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
       String rules,
       String isValid)
       throws Exception {
-    Long ruleId = new Long(id);
     AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(ruleId);
     if (acrossClusterRule == null) {
       logger.info("acrossClusterRule not exit");

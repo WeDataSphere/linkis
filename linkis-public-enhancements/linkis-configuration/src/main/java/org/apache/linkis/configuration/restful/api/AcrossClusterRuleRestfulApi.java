@@ -159,7 +159,8 @@ public class AcrossClusterRuleRestfulApi {
           "Failed to update acrossClusterRule,msg: only administrators can configure");
     }
 
-    String id = (String) json.get("id");
+    Integer idInt = (Integer) json.get("id");
+    Long id = idInt.longValue();
     String clusterName = (String) json.get("clusterName");
     String creator = (String) json.get("creator");
     String user = (String) json.get("user");
@@ -170,8 +171,7 @@ public class AcrossClusterRuleRestfulApi {
     String MemoryThreshold = (String) json.get("MemoryThreshold");
     String CPUPercentageThreshold = (String) json.get("CPUPercentageThreshold");
     String MemoryPercentageThreshold = (String) json.get("MemoryPercentageThreshold");
-    if (StringUtils.isBlank(id)
-        || StringUtils.isBlank(clusterName)
+    if (StringUtils.isBlank(clusterName)
         || StringUtils.isBlank(creator)
         || StringUtils.isBlank(user)
         || StringUtils.isBlank(isValid)
