@@ -85,7 +85,7 @@ public interface ConfigMapper {
       @Param("creator") String creator,
       @Param("engineType") String engineType);
 
-  void insertKeyByBase(ConfigKey key);
+  void insertKeyByBase(ConfigKey configKey);
 
   void updateConfigKey(ConfigKey configKey);
 }

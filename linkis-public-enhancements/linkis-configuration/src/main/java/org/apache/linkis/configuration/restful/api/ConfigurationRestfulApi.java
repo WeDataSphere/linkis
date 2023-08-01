@@ -37,17 +37,13 @@ import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.beans.BeanMap;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -580,7 +576,7 @@ public class ConfigurationRestfulApi {
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.DELETE)
   public Message deleteBaseKeyValue(HttpServletRequest req, @RequestParam(value = "id") Integer id)
       throws ConfigurationException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "deleteBaseKeyValue"));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "deleteBaseKeyValue  ID:" + id));
     configKeyService.deleteConfigById(id);
     return Message.ok();
   }
@@ -635,14 +631,13 @@ public class ConfigurationRestfulApi {
   })
   @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.POST)
-  public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody Map<String, Object> json)
+  public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody ConfigKey configKey)
       throws ConfigurationException, InstantiationException, IllegalAccessException {
     checkAdmin(ModuleUserUtils.getOperationUser(req, "saveBaseKeyValue"));
-    Long id = Long.valueOf((String) json.getOrDefault("id", "0"));
-    String key = (String) json.get("key");
-    String defaultValue = (String) json.get("defaultValue");
-    String validateType = (String) json.get("validateType");
-    String validateRange = (String) json.get("validateRange");
+    String key = configKey.getKey();
+    String defaultValue = configKey.getDefaultValue();
+    String validateType = configKey.getValidateType();
+    String validateRange = configKey.getValidateRange();
     if (StringUtils.isBlank(key)) {
       return Message.error("key cannot be empty");
     }
@@ -663,8 +658,7 @@ public class ConfigurationRestfulApi {
               key, validateType, validateRange, defaultValue);
       throw new ConfigurationException(msg);
     }
-    ConfigKey configKey = new ConfigKey();
-    BeanMap.create(configKey).putAll(json);
+    Long id = Optional.ofNullable(configKey.getId()).orElse(0L);
     if (id == 0) {
       configKeyService.saveConfigKey(configKey);
     } else {
@@ -691,8 +685,8 @@ public class ConfigurationRestfulApi {
         dataType = "Integer",
         defaultValue = "20"),
   })
-  @RequestMapping(path = "/userkeyvalue", method = RequestMethod.GET)
-  public Message getUserkeyvalue(
+  @RequestMapping(path = "/userKeyValue", method = RequestMethod.GET)
+  public Message getUserKeyValue(
       HttpServletRequest req,
       @RequestParam(value = "engineType", required = false) String engineType,
       @RequestParam(value = "key", required = false) String key,
@@ -701,7 +695,7 @@ public class ConfigurationRestfulApi {
       @RequestParam(value = "pageNow", required = false, defaultValue = "1") Integer pageNow,
       @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize)
       throws ConfigurationException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "getUserkeyvalue"));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "getUserKeyValue"));
     if (StringUtils.isBlank(engineType)) {
       engineType = null;
     }
