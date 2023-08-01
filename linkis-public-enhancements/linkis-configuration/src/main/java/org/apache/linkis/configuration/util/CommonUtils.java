@@ -22,6 +22,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.linkis.configuration.conf.AcrossClusterConfiguration;
 
 public class CommonUtils {
   public static boolean ipCheck(String str) {
@@ -47,7 +48,7 @@ public class CommonUtils {
     Map<String, String> timeRuleMap = new HashMap<>();
     Map<String, String> thresholdRuleMap = new HashMap<>();
     Map<String, Object> ruleMap = new HashMap<>();
-    queueRuleMap.put("profix", "bdap2bdp");
+    queueRuleMap.put("suffix", AcrossClusterConfiguration.ACROSS_CLUSTER_QUEUE_SUFFIX());
     timeRuleMap.put("startTime", startTime);
     timeRuleMap.put("endTime", endTime);
     thresholdRuleMap.put("CPUThreshold", CPUThreshold);

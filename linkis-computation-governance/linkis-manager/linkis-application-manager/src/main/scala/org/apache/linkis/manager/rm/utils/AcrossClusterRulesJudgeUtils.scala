@@ -24,33 +24,32 @@ object AcrossClusterRulesJudgeUtils extends Logging {
 
   def acrossClusterRuleJudge(
       leftResource: YarnResource,
+      usedResource: YarnResource,
       maxResource: YarnResource,
       leftCPUThreshold: Int,
       leftMemoryThreshold: Int,
       UsedCPUPercentageThreshold: Double,
       UsedMemoryPercentageThreshold: Double
   ): Boolean = {
-    if (leftResource != null && maxResource != null) {
+    if (leftResource != null && usedResource != null && maxResource != null) {
       val leftQueueMemory = leftResource.queueMemory / Math.pow(1024, 3).toLong
       logger.info(
-        s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold"
+        s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold," +
+          s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold"
       )
-      logger.info(
-        s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold"
-      )
+
       if (leftResource.queueCores > leftCPUThreshold && leftQueueMemory > leftMemoryThreshold) {
-        val maxQueueMemory = maxResource.queueMemory / Math.pow(1024, 3).toLong
-        val usedCPUPercentage =
-          1 - leftResource.queueCores.toDouble / maxResource.queueCores.toDouble
-        val usedMemoryPercentage =
-          1 - leftQueueMemory.toDouble / maxQueueMemory.toDouble
+
+        val usedCPUPercentage = usedResource.queueCores.asInstanceOf[Double] / maxResource.queueCores
+          .asInstanceOf[Double]
+        val usedMemoryPercentage = usedResource.queueMemory
+          .asInstanceOf[Double] / maxResource.queueMemory.asInstanceOf[Double]
 
         logger.info(
-          s"usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold"
+          s"usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold" +
+            s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
         )
-        logger.info(
-          s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
-        )
+
         if (
             usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
         ) {

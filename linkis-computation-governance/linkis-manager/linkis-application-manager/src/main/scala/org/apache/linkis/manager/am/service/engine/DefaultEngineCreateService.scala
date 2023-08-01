@@ -293,11 +293,11 @@ class DefaultEngineCreateService
       })
     }
 
-    val queueRuleProfix = props.get("queueRuleProfix")
-    if (StringUtils.isNotBlank(queueRuleProfix)) {
+    val queueRuleSuffix = props.get("queueRuleSuffix")
+    if (StringUtils.isNotBlank(queueRuleSuffix)) {
       logger.info("Switch queues according to queueRule")
       val queueName = props.getOrDefault("wds.linkis.rm.yarnqueue", "default")
-      props.put("wds.linkis.rm.yarnqueue", queueName + "_" + queueRuleProfix)
+      props.put("wds.linkis.rm.yarnqueue", queueName + "_" + queueRuleSuffix)
     }
 
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(

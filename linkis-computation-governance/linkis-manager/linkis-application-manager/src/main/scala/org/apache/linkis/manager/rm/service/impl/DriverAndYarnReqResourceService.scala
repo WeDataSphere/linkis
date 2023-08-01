@@ -94,10 +94,15 @@ class DriverAndYarnReqResourceService(
       if (acrossClusterTask == "true" && StringUtils.isNotBlank(CPUThreshold) && StringUtils.isNotBlank(MemoryThreshold)
         && StringUtils.isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)) {
 
-        logger.info(s"user: $user, creator: $creator task enter cross cluster resource judgment")
+        logger.info(
+          s"user: $user, creator: $creator task enter cross cluster resource judgment, " +
+            s"CPUThreshold: $CPUThreshold, MemoryThreshold: $MemoryThreshold," +
+            s"CPUPercentageThreshold: $CPUPercentageThreshold, MemoryPercentageThreshold: $MemoryPercentageThreshold"
+        )
 
         val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
           queueLeftResource.asInstanceOf[YarnResource],
+          usedCapacity.asInstanceOf[YarnResource],
           maxCapacity.asInstanceOf[YarnResource],
           CPUThreshold.toInt,
           MemoryThreshold.toInt,

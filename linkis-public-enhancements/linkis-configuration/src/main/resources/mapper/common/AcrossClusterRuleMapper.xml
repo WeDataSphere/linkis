@@ -53,8 +53,8 @@
     </select>
 
     <select id="queryAcrossClusterRuleList" resultMap="acrossClusterRuleMap">
-        select <include refid="AcrossClusterRule_Column_List"/>
-        from `linkis_cg_lm_across_cluster_rule`
+        SELECT <include refid="AcrossClusterRule_Column_List"/>
+        FROM `linkis_cg_lm_across_cluster_rule`
         <where>
             <if test="user != null"> user = #{user}</if>
             <if test="creator != null">and creator = #{creator}</if>

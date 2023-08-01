@@ -88,9 +88,9 @@ public class AcrossClusterRuleRestfulApi {
       return Message.error("query acrossClusterRule List failed：" + e.getMessage());
     }
 
-    return Message.ok()
-        .data("acrossClusterRuleList", resultMap.get("acrossClusterRuleList"))
-        .data(JobRequestConstants.TOTAL_PAGE(), resultMap.get(JobRequestConstants.TOTAL_PAGE()));
+    Message msg =  Message.ok();
+    msg.getData().putAll(resultMap);
+    return msg;
   }
 
   @ApiOperation(
@@ -102,7 +102,7 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
   })
-  @RequestMapping(path = "/delete", method = RequestMethod.GET)
+  @RequestMapping(path = "/delete", method = RequestMethod.DELETE)
   public Message deleteAcrossClusterRule(
       HttpServletRequest req,
       @RequestParam(value = "creator", required = false) String creator,
