@@ -95,5 +95,16 @@
             id = #{acrossClusterRule.id}
     </update>
 
+    <update id="validAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
+        UPDATE
+            `linkis_cg_lm_across_cluster_rule`
+        SET
+            update_time=#{acrossClusterRule.updateTime},
+            update_By=#{acrossClusterRule.updateBy},
+            is_valid=#{acrossClusterRule.isValid}
+        WHERE
+            id = #{acrossClusterRule.id}
+    </update>
+
 
 </mapper>

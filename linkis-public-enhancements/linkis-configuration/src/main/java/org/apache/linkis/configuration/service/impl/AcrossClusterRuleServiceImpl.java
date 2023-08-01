@@ -122,4 +122,22 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     result.put(JobRequestConstants.TOTAL_PAGE(), pageInfo.getTotal());
     return result;
   }
+
+  @Override
+  public void validAcrossClusterRule(Long id, String isValid, String updateBy) throws Exception{
+    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(id);
+    if (acrossClusterRule == null) {
+      logger.info("acrossClusterRule not exit");
+      throw new Exception("acrossClusterRule not exit");
+    }
+    acrossClusterRule.setIsValid(isValid);
+    acrossClusterRule.setUpdateBy(updateBy);
+    acrossClusterRule.setUpdateTime(new Date());
+    logger.info("delete acrossClusterRule success");
+    ruleMapper.validAcrossClusterRule(acrossClusterRule);
+    logger.info("valid acrossClusterRule success");
+    return;
+  }
+
+
 }

@@ -43,5 +43,8 @@ public interface AcrossClusterRuleService {
       throws Exception;
 
   Map<String, Object> queryAcrossClusterRuleList(
-      String creator, String user, String clusterName, Integer pageNow, Integer pageSize);
+      String creator, String user, String clusterName, Integer pageNow, Integer pageSize) throws Exception;
+
+  void validAcrossClusterRule(Long id, String isValid, String updateBy) throws Exception;
+
 }
