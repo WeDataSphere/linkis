@@ -568,7 +568,7 @@ public class ConfigurationRestfulApi {
     }
     PageInfo<ConfigKey> pageInfo = new PageInfo<>(list);
     long total = pageInfo.getTotal();
-    return Message.ok().data("configKey", list).data("totalPage", total);
+    return Message.ok().data("configKeyList", list).data("totalPage", total);
   }
 
   @ApiOperation(value = "deleteBaseKeyValue", notes = "delete key", response = Message.class)
@@ -658,11 +658,10 @@ public class ConfigurationRestfulApi {
               key, validateType, validateRange, defaultValue);
       throw new ConfigurationException(msg);
     }
-    Long id = Optional.ofNullable(configKey.getId()).orElse(0L);
-    if (id == 0) {
+    if (null == configKey.getId()) {
       configKeyService.saveConfigKey(configKey);
     } else {
-      configKey.setId(id);
+      configKey.setId(configKey.getId());
       configKeyService.updateConfigKey(configKey);
     }
     return Message.ok().data("configKey", configKey);
@@ -717,6 +716,6 @@ public class ConfigurationRestfulApi {
     }
     PageInfo<ConfigUserValue> pageInfo = new PageInfo<>(list);
     long total = pageInfo.getTotal();
-    return Message.ok().data("configValues", list).data("totalPage", total);
+    return Message.ok().data("configValueList", list).data("totalPage", total);
   }
 }
