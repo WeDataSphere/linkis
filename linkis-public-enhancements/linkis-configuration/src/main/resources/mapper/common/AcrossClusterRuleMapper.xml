@@ -68,23 +68,23 @@
             linkis_cg_lm_across_cluster_rule (<include refid="AcrossClusterRule_insert_Column_List"/>)
         VALUES
             (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator}, #{acrossClusterRule.user},
-        <choose>
-            <when test="acrossClusterRule.createTime != null">
-                #{acrossClusterRule.createTime}
-            </when>
-            <otherwise>
-                now()
-            </otherwise>
-        </choose>,
+            <choose>
+                <when test="acrossClusterRule.createTime != null">
+                    #{acrossClusterRule.createTime}
+                </when>
+                <otherwise>
+                    now()
+                </otherwise>
+            </choose>,
             #{acrossClusterRule.createBy},
-        <choose>
-            <when test="acrossClusterRule.updateTime != null">
-                #{acrossClusterRule.updateTime}
-            </when>
-            <otherwise>
-                now()
-            </otherwise>
-        </choose>,
+            <choose>
+                <when test="acrossClusterRule.updateTime != null">
+                    #{acrossClusterRule.updateTime}
+                </when>
+                <otherwise>
+                    now()
+                </otherwise>
+            </choose>,
             #{acrossClusterRule.updateBy},#{acrossClusterRule.rules}, #{acrossClusterRule.isValid})
     </insert>
 
@@ -102,7 +102,15 @@
         SET
             cluster_name = #{acrossClusterRule.clusterName}, creator = #{acrossClusterRule.creator},
             user=#{acrossClusterRule.user}, create_time=#{acrossClusterRule.createTime},
-            create_By=#{acrossClusterRule.createBy}, update_time=#{acrossClusterRule.updateTime},
+            create_By=#{acrossClusterRule.createBy},
+            <choose>
+                <when test="acrossClusterRule.updateTime != null">
+                    update_time=#{acrossClusterRule.updateTime},
+                </when>
+                <otherwise>
+                    update_time = now()
+                </otherwise>
+            </choose>,
             update_By=#{acrossClusterRule.updateBy}, rules=#{acrossClusterRule.rules},
             is_valid=#{acrossClusterRule.isValid}
         WHERE
@@ -113,7 +121,14 @@
         UPDATE
             `linkis_cg_lm_across_cluster_rule`
         SET
-            update_time=#{acrossClusterRule.updateTime},
+            <choose>
+                <when test="acrossClusterRule.updateTime != null">
+                    update_time=#{acrossClusterRule.updateTime},
+                </when>
+                <otherwise>
+                    update_time = now()
+                </otherwise>
+            </choose>,
             update_By=#{acrossClusterRule.updateBy},
             is_valid=#{acrossClusterRule.isValid}
         WHERE
