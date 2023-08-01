@@ -18,6 +18,7 @@
 package org.apache.linkis.configuration.restful.api;
 
 import org.apache.linkis.common.conf.Configuration;
+import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
 import org.apache.linkis.configuration.util.CommonUtils;
 import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
@@ -107,7 +108,6 @@ public class AcrossClusterRuleRestfulApi {
       return Message.error(
               "Failed to query acrossClusterRule List,msg: only administrators can configure");
     }
-
 
     if (StringUtils.isBlank(user)) user = null;
     if (StringUtils.isBlank(creator)) creator = null;
@@ -229,8 +229,15 @@ public class AcrossClusterRuleRestfulApi {
               MemoryThreshold,
               CPUPercentageThreshold,
               MemoryPercentageThreshold);
-      acrossClusterRuleService.updateAcrossClusterRule(
-          id, clusterName, creator, user, username, rules, isValid);
+      AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
+      acrossClusterRule.setId(id);
+      acrossClusterRule.setClusterName(clusterName);
+      acrossClusterRule.setCreator(creator);
+      acrossClusterRule.setUser(user);
+      acrossClusterRule.setUpdateBy(username);
+      acrossClusterRule.setRules(rules);
+      acrossClusterRule.setIsValid(isValid);
+      acrossClusterRuleService.updateAcrossClusterRule(acrossClusterRule);
     } catch (Exception e) {
       return Message.error("update acrossClusterRule failed：" + e.getMessage());
     }
@@ -301,8 +308,15 @@ public class AcrossClusterRuleRestfulApi {
               MemoryThreshold,
               CPUPercentageThreshold,
               MemoryPercentageThreshold);
-      acrossClusterRuleService.insertAcrossClusterRule(
-          clusterName, creator, user, username, rules, isValid);
+      AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
+      acrossClusterRule.setClusterName(clusterName);
+      acrossClusterRule.setCreator(creator);
+      acrossClusterRule.setUser(user);
+      acrossClusterRule.setCreateBy(username);
+      acrossClusterRule.setUpdateBy(username);
+      acrossClusterRule.setRules(rules);
+      acrossClusterRule.setIsValid(isValid);
+      acrossClusterRuleService.insertAcrossClusterRule(acrossClusterRule);
     } catch (Exception e) {
       return Message.error("add acrossClusterRule failed：" + e.getMessage());
     }

@@ -67,11 +67,25 @@
         INSERT INTO
             linkis_cg_lm_across_cluster_rule (<include refid="AcrossClusterRule_insert_Column_List"/>)
         VALUES
-            (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator},
-            #{acrossClusterRule.user},#{acrossClusterRule.createTime},
-            #{acrossClusterRule.createBy},#{acrossClusterRule.updateTime},
-            #{acrossClusterRule.updateBy},#{acrossClusterRule.rules},
-            #{acrossClusterRule.isValid})
+            (#{acrossClusterRule.clusterName},#{acrossClusterRule.creator}, #{acrossClusterRule.user},
+        <choose>
+            <when test="acrossClusterRule.createTime != null">
+                #{acrossClusterRule.createTime}
+            </when>
+            <otherwise>
+                now()
+            </otherwise>
+        </choose>,
+            #{acrossClusterRule.createBy},
+        <choose>
+            <when test="acrossClusterRule.updateTime != null">
+                #{acrossClusterRule.updateTime}
+            </when>
+            <otherwise>
+                now()
+            </otherwise>
+        </choose>,
+            #{acrossClusterRule.updateBy},#{acrossClusterRule.rules}, #{acrossClusterRule.isValid})
     </insert>
 
     <delete id="deleteAcrossClusterRule">

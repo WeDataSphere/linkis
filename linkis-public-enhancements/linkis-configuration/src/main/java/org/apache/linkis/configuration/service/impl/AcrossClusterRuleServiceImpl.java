@@ -22,6 +22,7 @@ import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
 import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -47,53 +48,31 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public void updateAcrossClusterRule(
-      Long ruleId,
-      String clusterName,
-      String creator,
-      String user,
-      String updateBy,
-      String rules,
-      String isValid)
+      AcrossClusterRule newRule)
       throws Exception {
-    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(ruleId);
-    if (acrossClusterRule == null) {
+    AcrossClusterRule beforeRule = ruleMapper.getAcrossClusterRule(newRule.getId());
+    if (beforeRule == null) {
       logger.info("acrossClusterRule not exit");
       throw new Exception("acrossClusterRule not exit");
     }
 
     Date time = new Date();
-    acrossClusterRule.setClusterName(clusterName);
-    acrossClusterRule.setCreator(creator);
-    acrossClusterRule.setUser(user);
-    acrossClusterRule.setUpdateTime(time);
-    acrossClusterRule.setUpdateBy(updateBy);
-    acrossClusterRule.setRules(rules);
-    acrossClusterRule.setIsValid(isValid);
-    ruleMapper.updateAcrossClusterRule(acrossClusterRule);
+    newRule.setCreateBy(beforeRule.getCreateBy());
+    newRule.setCreateTime(beforeRule.getCreateTime());
+    newRule.setUpdateTime(time);
+
+    ruleMapper.updateAcrossClusterRule(newRule);
     logger.info("update acrossClusterRule success");
     return;
   }
 
   @Override
   public void insertAcrossClusterRule(
-      String clusterName,
-      String creator,
-      String user,
-      String createBy,
-      String rules,
-      String isValid)
+          AcrossClusterRule acrossClusterRule)
       throws Exception {
     Date time = new Date();
-    AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
-    acrossClusterRule.setClusterName(clusterName);
-    acrossClusterRule.setCreator(creator);
-    acrossClusterRule.setUser(user);
-    acrossClusterRule.setCreateBy(createBy);
     acrossClusterRule.setCreateTime(time);
-    acrossClusterRule.setUpdateBy(createBy);
     acrossClusterRule.setUpdateTime(time);
-    acrossClusterRule.setRules(rules);
-    acrossClusterRule.setIsValid(isValid);
     ruleMapper.insertAcrossClusterRule(acrossClusterRule);
     logger.info("insert acrossClusterRule success");
     return;

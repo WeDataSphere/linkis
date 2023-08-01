@@ -17,6 +17,8 @@
 
 package org.apache.linkis.configuration.service;
 
+import org.apache.linkis.configuration.entity.AcrossClusterRule;
+
 import java.util.Map;
 
 public interface AcrossClusterRuleService {
@@ -24,22 +26,11 @@ public interface AcrossClusterRuleService {
   void deleteAcrossClusterRule(String creator, String user) throws Exception;
 
   void updateAcrossClusterRule(
-      Long id,
-      String clusterName,
-      String creator,
-      String user,
-      String updateBy,
-      String rules,
-      String isValid)
+          AcrossClusterRule acrossClusterRule)
       throws Exception;
 
   void insertAcrossClusterRule(
-      String clusterName,
-      String creator,
-      String user,
-      String createBy,
-      String rules,
-      String isValid)
+          AcrossClusterRule acrossClusterRule)
       throws Exception;
 
   Map<String, Object> queryAcrossClusterRuleList(
