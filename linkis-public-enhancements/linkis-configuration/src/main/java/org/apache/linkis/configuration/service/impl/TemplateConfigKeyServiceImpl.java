@@ -28,7 +28,9 @@ import org.apache.linkis.configuration.service.ConfigurationService;
 import org.apache.linkis.configuration.service.TemplateConfigKeyService;
 import org.apache.linkis.configuration.util.LabelEntityParser;
 import org.apache.linkis.configuration.validate.ValidatorManager;
+import org.apache.linkis.governance.common.protocol.conf.TemplateConfResponse;
 import org.apache.linkis.manager.label.entity.CombinedLabel;
+import org.apache.linkis.rpc.message.annotation.Receiver;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -396,6 +398,26 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
     result.put("success", successResult);
     result.put("error", errorResult);
+    return result;
+  }
+
+  @Receiver
+  @Override
+  public List<TemplateConfResponse> queryKeyInfoList(String templateUid) {
+    List<TemplateConfResponse> result = new ArrayList<>();
+    List<TemplateConfigKeyVO> voList =
+        templateConfigKeyMapper.selectInfoListByTemplateUuid(templateUid);
+
+    if (voList != null) {
+      for (TemplateConfigKeyVO temp : voList) {
+        TemplateConfResponse item = new TemplateConfResponse();
+        item.setTemplateUuid(temp.getTemplateUuid());
+        item.setKey(temp.getKey());
+        item.setTemplateName(temp.getTemplateName());
+        item.setConfigValue(temp.getConfigValue());
+        result.add(item);
+      }
+    }
     return result;
   }
 }
