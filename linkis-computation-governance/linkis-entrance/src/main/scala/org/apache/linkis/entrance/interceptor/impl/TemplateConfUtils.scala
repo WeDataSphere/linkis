@@ -19,12 +19,12 @@ package org.apache.linkis.entrance.interceptor.impl
 
 import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{Logging, Utils}
+import org.apache.linkis.governance.common.entity.TemplateConfKey
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.governance.common.protocol.conf.{TemplateConfRequest, TemplateConfResponse}
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.protocol.utils.TaskUtils
 import org.apache.linkis.rpc.Sender
-import org.apache.linkis.server.BDPJettyServerHelper
 
 import org.apache.commons.lang3.StringUtils
 
@@ -37,25 +37,29 @@ import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 
 object TemplateConfUtils extends Logging {
 
-  private val templateCache: LoadingCache[String, util.List[TemplateConfResponse]] = CacheBuilder
+  private val templateCache: LoadingCache[String, util.List[TemplateConfKey]] = CacheBuilder
     .newBuilder()
     .maximumSize(1000)
     .expireAfterWrite(5, TimeUnit.MINUTES)
-    .build(new CacheLoader[String, util.List[TemplateConfResponse]]() {
+    .build(new CacheLoader[String, util.List[TemplateConfKey]]() {
 
-      override def load(templateUuid: String): util.List[TemplateConfResponse] = {
+      override def load(templateUuid: String): util.List[TemplateConfKey] = {
         var templateList = Utils.tryAndWarn {
           val sender: Sender = Sender
             .getSender(Configuration.CLOUD_CONSOLE_CONFIGURATION_SPRING_APPLICATION_NAME.getValue)
 
           logger.info(s"load template configuration data templateUuid:$templateUuid")
-          sender.ask(new TemplateConfRequest(templateUuid)) match {
-            case response: util.List[TemplateConfResponse] => response
+          val res = sender.ask(new TemplateConfRequest(templateUuid)) match {
+            case response: TemplateConfResponse =>
+              logger
+                .debug(s"${response.getList()}")
+              response.getList
             case _ =>
               logger
                 .warn(s"load template configuration data templateUuid:$templateUuid loading failed")
-              new util.ArrayList[TemplateConfResponse](0)
+              new util.ArrayList[TemplateConfKey](0)
           }
+          res
         }
         if (templateList.size() == 0) {
           logger.warn(s"template configuration data loading failed, plaese check warn log")
@@ -70,26 +74,27 @@ object TemplateConfUtils extends Logging {
       case requestPersistTask: JobRequest =>
         val params = requestPersistTask.getParams
         val startMap = TaskUtils.getStartupMap(params)
-        logger.debug("jobRequest startMap params :{} ", startMap)
+        logger.info("jobRequest startMap params :{} ", startMap)
         val templateUuid = startMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
-        if (StringUtils.isNotBlank(templateUuid)) {
+        if (StringUtils.isBlank(templateUuid)) {
           logger.debug("jobRequest startMap param template id is empty")
         } else {
           logger.info("try to get template conf list with templateUid:{} ", templateUuid)
-          val templateConflist: util.List[TemplateConfResponse] = templateCache.get(templateUuid)
-          logger.debug(
-            s"Get template conf list: ${BDPJettyServerHelper.gson.toJson(templateConflist)}"
-          )
-
+          logAppender.append(s"try to get template conf list with templateUid:$templateUuid")
+          val templateConflist = templateCache.get(templateUuid)
           if (templateConflist != null && templateConflist.size() > 0) {
             val keyList = new util.HashMap[String, AnyRef]()
             templateConflist.asScala.foreach(ele => {
               val key = ele.getKey
               val oldValue = startMap.get(key)
-              if (oldValue != null && StringUtils.isEmpty(oldValue.toString)) {
+              if (oldValue != null && StringUtils.isNotBlank(oldValue.toString)) {
+                logger.info(s"key:$key value:$oldValue not empty, skip to deal")
+              } else {
                 val newValue = ele.getConfigValue
                 logger.info(s"key:$key value:$newValue will add to startMap params")
-                logAppender.append(s"key:$key value:$newValue will add to startMap params")
+                if(TaskUtils.isWithDebugInfo(params)) {
+                  logAppender.append(s"add $key=$newValue\n")
+                }
                 keyList.put(key, newValue)
               }
 

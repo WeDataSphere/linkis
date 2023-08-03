@@ -28,6 +28,8 @@ import org.apache.linkis.configuration.service.ConfigurationService;
 import org.apache.linkis.configuration.service.TemplateConfigKeyService;
 import org.apache.linkis.configuration.util.LabelEntityParser;
 import org.apache.linkis.configuration.validate.ValidatorManager;
+import org.apache.linkis.governance.common.entity.TemplateConfKey;
+import org.apache.linkis.governance.common.protocol.conf.TemplateConfRequest;
 import org.apache.linkis.governance.common.protocol.conf.TemplateConfResponse;
 import org.apache.linkis.manager.label.entity.CombinedLabel;
 import org.apache.linkis.rpc.message.annotation.Receiver;
@@ -403,21 +405,27 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
   @Receiver
   @Override
-  public List<TemplateConfResponse> queryKeyInfoList(String templateUid) {
-    List<TemplateConfResponse> result = new ArrayList<>();
+  public TemplateConfResponse queryKeyInfoList(TemplateConfRequest templateConfRequest) {
+    TemplateConfResponse result = new TemplateConfResponse();
+    String templateUid = templateConfRequest.getTemplateUuid();
+    if (StringUtils.isBlank(templateUid)) {
+      return result;
+    }
     List<TemplateConfigKeyVO> voList =
         templateConfigKeyMapper.selectInfoListByTemplateUuid(templateUid);
 
+    List<TemplateConfKey> data = new ArrayList<>();
     if (voList != null) {
       for (TemplateConfigKeyVO temp : voList) {
-        TemplateConfResponse item = new TemplateConfResponse();
+        TemplateConfKey item = new TemplateConfKey();
         item.setTemplateUuid(temp.getTemplateUuid());
         item.setKey(temp.getKey());
         item.setTemplateName(temp.getTemplateName());
         item.setConfigValue(temp.getConfigValue());
-        result.add(item);
+        data.add(item);
       }
     }
+    result.setList(data);
     return result;
   }
 }

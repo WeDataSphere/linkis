@@ -17,63 +17,20 @@
 
 package org.apache.linkis.governance.common.protocol.conf;
 
+import org.apache.linkis.governance.common.entity.TemplateConfKey;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class TemplateConfResponse {
 
-  private String templateUuid;
+  private List<TemplateConfKey> list = new ArrayList<>();
 
-  private String key;
-
-  private String templateName;
-
-  private String configValue;
-
-  public String getTemplateUuid() {
-    return templateUuid;
+  public List<TemplateConfKey> getList() {
+    return list;
   }
 
-  public void setTemplateUuid(String templateUuid) {
-    this.templateUuid = templateUuid;
-  }
-
-  public String getKey() {
-    return key;
-  }
-
-  public void setKey(String key) {
-    this.key = key;
-  }
-
-  public String getTemplateName() {
-    return templateName;
-  }
-
-  public void setTemplateName(String templateName) {
-    this.templateName = templateName;
-  }
-
-  public String getConfigValue() {
-    return configValue;
-  }
-
-  public void setConfigValue(String configValue) {
-    this.configValue = configValue;
-  }
-
-  @Override
-  public String toString() {
-    return "TemplateConfResponse{"
-        + "templateUuid='"
-        + templateUuid
-        + '\''
-        + ", key='"
-        + key
-        + '\''
-        + ", templateName='"
-        + templateName
-        + '\''
-        + ", configValue='"
-        + configValue
-        + '\''
-        + '}';
+  public void setList(List<TemplateConfKey> list) {
+    this.list = list;
   }
 }
