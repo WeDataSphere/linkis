@@ -21,7 +21,6 @@ import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.configuration.entity.AcrossClusterRule;
 import org.apache.linkis.configuration.service.AcrossClusterRuleService;
 import org.apache.linkis.configuration.util.CommonUtils;
-import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
@@ -60,9 +59,7 @@ public class AcrossClusterRuleRestfulApi {
     @ApiImplicitParam(name = "isValid", dataType = "String", value = "isValid"),
   })
   @RequestMapping(path = "/isValid", method = RequestMethod.PUT)
-  public Message isValidRule(
-      HttpServletRequest req, @RequestBody Map<String, Object> json
-     ) {
+  public Message isValidRule(HttpServletRequest req, @RequestBody Map<String, Object> json) {
     String username = ModuleUserUtils.getOperationUser(req, "execute valid acrossClusterRule");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
@@ -73,11 +70,11 @@ public class AcrossClusterRuleRestfulApi {
     Long id = idInt.longValue();
     String isValid = (String) json.get("isValid");
 
-    if (StringUtils.isBlank(isValid)){
+    if (StringUtils.isBlank(isValid)) {
       return Message.error("Failed to valid acrossClusterRule: Illegal Input Param");
     }
     try {
-       acrossClusterRuleService.validAcrossClusterRule(id, isValid, username);
+      acrossClusterRuleService.validAcrossClusterRule(id, isValid, username);
     } catch (Exception e) {
       return Message.error("valid acrossClusterRule failed：" + e.getMessage());
     }
@@ -86,27 +83,27 @@ public class AcrossClusterRuleRestfulApi {
   }
 
   @ApiOperation(
-          value = "query acrossClusterRule list",
-          notes = "query acrossClusterRule list",
-          response = Message.class)
+      value = "query acrossClusterRule list",
+      notes = "query acrossClusterRule list",
+      response = Message.class)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
-          @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
-          @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
-          @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
+    @ApiImplicitParam(name = "req", dataType = "HttpServletRequest", value = "req"),
+    @ApiImplicitParam(name = "creator", dataType = "String", value = "creator"),
+    @ApiImplicitParam(name = "user", dataType = "String", value = "user"),
+    @ApiImplicitParam(name = "clusterName", dataType = "String", value = "clusterName"),
   })
   @RequestMapping(path = "/list", method = RequestMethod.GET)
   public Message queryAcrossClusterRuleList(
-          HttpServletRequest req,
-          @RequestParam(value = "creator", required = false) String creator,
-          @RequestParam(value = "user", required = false) String user,
-          @RequestParam(value = "clusterName", required = false) String clusterName,
-          @RequestParam(value = "pageNow", required = false) Integer pageNow,
-          @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+      HttpServletRequest req,
+      @RequestParam(value = "creator", required = false) String creator,
+      @RequestParam(value = "user", required = false) String user,
+      @RequestParam(value = "clusterName", required = false) String clusterName,
+      @RequestParam(value = "pageNow", required = false) Integer pageNow,
+      @RequestParam(value = "pageSize", required = false) Integer pageSize) {
     String username = ModuleUserUtils.getOperationUser(req, "execute query acrossClusterRule List");
     if (!Configuration.isAdmin(username)) {
       return Message.error(
-              "Failed to query acrossClusterRule List,msg: only administrators can configure");
+          "Failed to query acrossClusterRule List,msg: only administrators can configure");
     }
 
     if (StringUtils.isBlank(user)) user = null;
@@ -118,14 +115,14 @@ public class AcrossClusterRuleRestfulApi {
     Map<String, Object> resultMap = null;
     try {
       resultMap =
-              acrossClusterRuleService.queryAcrossClusterRuleList(
-                      creator, user, clusterName, pageNow, pageSize);
+          acrossClusterRuleService.queryAcrossClusterRuleList(
+              creator, user, clusterName, pageNow, pageSize);
     } catch (Exception e) {
       log.info("query acrossClusterRule List failed：" + e.getMessage());
       return Message.error("query acrossClusterRule List failed");
     }
 
-    Message msg =  Message.ok();
+    Message msg = Message.ok();
     msg.getData().putAll(resultMap);
     return msg;
   }
@@ -233,7 +230,7 @@ public class AcrossClusterRuleRestfulApi {
               MemoryPercentageThreshold);
       AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
       acrossClusterRule.setId(id);
-      acrossClusterRule.setClusterName(clusterName);
+      acrossClusterRule.setClusterName(clusterName.toLowerCase());
       acrossClusterRule.setCreator(creator);
       acrossClusterRule.setUser(user);
       acrossClusterRule.setUpdateBy(username);
@@ -312,7 +309,7 @@ public class AcrossClusterRuleRestfulApi {
               CPUPercentageThreshold,
               MemoryPercentageThreshold);
       AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
-      acrossClusterRule.setClusterName(clusterName);
+      acrossClusterRule.setClusterName(clusterName.toLowerCase());
       acrossClusterRule.setCreator(creator);
       acrossClusterRule.setUser(user);
       acrossClusterRule.setCreateBy(username);
@@ -322,11 +319,9 @@ public class AcrossClusterRuleRestfulApi {
       acrossClusterRuleService.insertAcrossClusterRule(acrossClusterRule);
     } catch (Exception e) {
       log.info("add acrossClusterRule failed：" + e.getMessage());
-      return Message.error("add acrossClusterRule failed：history already exist" );
+      return Message.error("add acrossClusterRule failed：history already exist");
     }
 
     return Message.ok();
   }
-
-
 }
