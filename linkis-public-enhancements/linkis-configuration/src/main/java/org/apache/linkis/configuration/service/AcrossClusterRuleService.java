@@ -15,26 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.configuration.dao;
+package org.apache.linkis.configuration.service;
 
-import org.apache.linkis.configuration.entity.ConfigKeyLimitForUser;
-import org.apache.linkis.configuration.entity.ConfigKeyLimitVo;
+import org.apache.linkis.configuration.entity.AcrossClusterRule;
 
-import org.apache.ibatis.annotations.Param;
+import java.util.Map;
 
-import java.util.List;
+public interface AcrossClusterRuleService {
 
-/** for table linkis_ps_configuration_key_limit_for_user @Description */
-public interface ConfigKeyLimitForUserMapper {
+  void deleteAcrossClusterRule(String creator, String user) throws Exception;
 
-  int batchInsertList(List<ConfigKeyLimitForUser> list);
+  void updateAcrossClusterRule(AcrossClusterRule acrossClusterRule) throws Exception;
 
-  int updateByPrimaryKey(ConfigKeyLimitForUser configKeyLimitForUser);
+  void insertAcrossClusterRule(AcrossClusterRule acrossClusterRule) throws Exception;
 
-  int batchInsertOrUpdateList(List<ConfigKeyLimitForUser> list);
+  Map<String, Object> queryAcrossClusterRuleList(
+      String creator, String user, String clusterName, Integer pageNow, Integer pageSize)
+      throws Exception;
 
-  List<ConfigKeyLimitVo> selectByLabelAndKeyIds(
-      @Param("label") String label, @Param("keyIdList") List<Long> keyIdList);
-
-  ConfigKeyLimitVo selectByLabelAndKeyId(@Param("label") String label, @Param("keyId") Long keyId);
+  void validAcrossClusterRule(Long id, String isValid, String updateBy) throws Exception;
 }

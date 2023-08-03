@@ -17,24 +17,26 @@
 
 package org.apache.linkis.configuration.dao;
 
-import org.apache.linkis.configuration.entity.ConfigKeyLimitForUser;
-import org.apache.linkis.configuration.entity.ConfigKeyLimitVo;
+import org.apache.linkis.configuration.entity.AcrossClusterRule;
 
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
-/** for table linkis_ps_configuration_key_limit_for_user @Description */
-public interface ConfigKeyLimitForUserMapper {
+public interface AcrossClusterRuleMapper {
 
-  int batchInsertList(List<ConfigKeyLimitForUser> list);
+  AcrossClusterRule getAcrossClusterRule(@Param("id") Long id);
 
-  int updateByPrimaryKey(ConfigKeyLimitForUser configKeyLimitForUser);
+  void deleteAcrossClusterRule(@Param("creator") String creator, @Param("user") String user);
 
-  int batchInsertOrUpdateList(List<ConfigKeyLimitForUser> list);
+  void updateAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
-  List<ConfigKeyLimitVo> selectByLabelAndKeyIds(
-      @Param("label") String label, @Param("keyIdList") List<Long> keyIdList);
+  void insertAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
-  ConfigKeyLimitVo selectByLabelAndKeyId(@Param("label") String label, @Param("keyId") Long keyId);
+  List<AcrossClusterRule> queryAcrossClusterRuleList(
+      @Param("user") String user,
+      @Param("creator") String creator,
+      @Param("clusterName") String clusterName);
+
+  void validAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 }

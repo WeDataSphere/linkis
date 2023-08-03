@@ -15,26 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.configuration.dao;
+package org.apache.linkis.configuration.conf
 
-import org.apache.linkis.configuration.entity.ConfigKeyLimitForUser;
-import org.apache.linkis.configuration.entity.ConfigKeyLimitVo;
+import org.apache.linkis.common.conf.CommonVars
 
-import org.apache.ibatis.annotations.Param;
+object AcrossClusterConfiguration {
 
-import java.util.List;
+  val ACROSS_CLUSTER_QUEUE_SUFFIX =
+    CommonVars.apply("linkis.configuration.across.cluster.queue.suffix", "_bdap2bdp").getValue
 
-/** for table linkis_ps_configuration_key_limit_for_user @Description */
-public interface ConfigKeyLimitForUserMapper {
-
-  int batchInsertList(List<ConfigKeyLimitForUser> list);
-
-  int updateByPrimaryKey(ConfigKeyLimitForUser configKeyLimitForUser);
-
-  int batchInsertOrUpdateList(List<ConfigKeyLimitForUser> list);
-
-  List<ConfigKeyLimitVo> selectByLabelAndKeyIds(
-      @Param("label") String label, @Param("keyIdList") List<Long> keyIdList);
-
-  ConfigKeyLimitVo selectByLabelAndKeyId(@Param("label") String label, @Param("keyId") Long keyId);
 }
