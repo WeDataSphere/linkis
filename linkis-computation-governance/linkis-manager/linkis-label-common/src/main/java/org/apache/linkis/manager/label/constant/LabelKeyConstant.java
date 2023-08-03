@@ -65,4 +65,7 @@ public class LabelKeyConstant {
   public static final String FIXED_EC_KEY = "fixedEngineConn";
 
   public static final String TEMPLATE_CONF_KEY = "ec.conf.templateId";
+
+  public static final String MANAGER_KEY = "manager";
+
 }
