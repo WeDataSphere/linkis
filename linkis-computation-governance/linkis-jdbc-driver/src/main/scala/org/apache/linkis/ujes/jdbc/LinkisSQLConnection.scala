@@ -25,6 +25,7 @@ import org.apache.linkis.ujes.client.UJESClient
 import org.apache.linkis.ujes.client.request.JobSubmitAction
 import org.apache.linkis.ujes.client.response.JobExecuteResult
 import org.apache.linkis.ujes.jdbc.UJESSQLDriverMain._
+import org.apache.linkis.ujes.jdbc.utils.JDBCUtils
 
 import org.apache.commons.lang3.StringUtils
 
@@ -105,8 +106,6 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
   private val startupParams: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 
   private val runtimeParams: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
-
-  private val idCreator = new AtomicInteger()
 
   private[jdbc] def getEngineType: EngineTypeLabel = {
     val engineType: EngineTypeLabel =
@@ -467,7 +466,7 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
   }
 
   def getUniqId(): String = {
-    Utils.getLocalHostname + "_" + idCreator.getAndIncrement()
+    Utils.getLocalHostname + "_" + JDBCUtils.idCreator.getAndIncrement()
   }
 
 }

@@ -17,9 +17,13 @@
 
 package org.apache.linkis.ujes.jdbc.utils;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class JDBCUtils {
 
   private static final char SEARCH_STRING_ESCAPE = '\\';
+
+  public static final AtomicInteger idCreator = new AtomicInteger();
 
   public static String convertPattern(final String pattern) {
     if (pattern == null) {
