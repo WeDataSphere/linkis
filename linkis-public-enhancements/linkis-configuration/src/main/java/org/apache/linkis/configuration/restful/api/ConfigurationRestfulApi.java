@@ -212,7 +212,7 @@ public class ConfigurationRestfulApi {
   public Message createFirstCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
     String username = ModuleUserUtils.getOperationUser(request, "createFirstCategory");
-    checkAdmin(username);
+    checkAdmin(username, null);
     String categoryName = jsonNode.get("categoryName").asText();
     String description = jsonNode.get("description").asText();
     if (StringUtils.isEmpty(categoryName) || categoryName.equals(NULL)) {
@@ -234,7 +234,7 @@ public class ConfigurationRestfulApi {
   public Message deleteCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
     String username = ModuleUserUtils.getOperationUser(request, "deleteCategory");
-    checkAdmin(username);
+    checkAdmin(username, null);
     Integer categoryId = jsonNode.get("categoryId").asInt();
     categoryService.deleteCategory(categoryId);
     return Message.ok();
@@ -255,7 +255,7 @@ public class ConfigurationRestfulApi {
   public Message createSecondCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
     String username = ModuleUserUtils.getOperationUser(request, "createSecondCategory");
-    checkAdmin(username);
+    checkAdmin(username, null);
     Integer categoryId = jsonNode.get("categoryId").asInt();
     String engineType = jsonNode.get("engineType").asText();
     String version = jsonNode.get("version").asText();
@@ -377,7 +377,7 @@ public class ConfigurationRestfulApi {
   public Message updateCategoryInfo(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
     String username = ModuleUserUtils.getOperationUser(request, "updateCategoryInfo");
-    checkAdmin(username);
+    checkAdmin(username, null);
     String description = null;
     Integer categoryId = null;
     try {
@@ -418,9 +418,18 @@ public class ConfigurationRestfulApi {
     return message;
   }
 
-  private void checkAdmin(String userName) throws ConfigurationException {
+  private void checkAdmin(String userName, String method) throws ConfigurationException {
     if (!org.apache.linkis.common.conf.Configuration.isAdmin(userName)) {
-      throw new ConfigurationException(ONLY_ADMIN_CAN_MODIFY.getErrorDesc());
+      switch (method) {
+        case "GET":
+          throw new ConfigurationException(ONLY_ADMIN_CAN_GET.getErrorDesc());
+        case "POST":
+          throw new ConfigurationException(ONLY_ADMIN_CAN_POST.getErrorDesc());
+        case "DELETE":
+          throw new ConfigurationException(ONLY_ADMIN_CAN_DELETE.getErrorDesc());
+        default:
+          throw new ConfigurationException(ONLY_ADMIN_CAN_MODIFY.getErrorDesc());
+      }
     }
   }
 
@@ -561,7 +570,7 @@ public class ConfigurationRestfulApi {
       @RequestParam(value = "pageNow", required = false, defaultValue = "1") Integer pageNow,
       @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize)
       throws ConfigurationException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "getBaseKeyValue"));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "getBaseKeyValue"), "GET");
     if (StringUtils.isBlank(engineType)) {
       engineType = null;
     }
@@ -585,7 +594,7 @@ public class ConfigurationRestfulApi {
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.DELETE)
   public Message deleteBaseKeyValue(HttpServletRequest req, @RequestParam(value = "id") Integer id)
       throws ConfigurationException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "deleteBaseKeyValue  ID:" + id));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "deleteBaseKeyValue  ID:" + id), "DELETE");
     configKeyService.deleteConfigById(id);
     return Message.ok();
   }
@@ -642,7 +651,7 @@ public class ConfigurationRestfulApi {
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.POST)
   public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody ConfigKey configKey)
       throws ConfigurationException, InstantiationException, IllegalAccessException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "saveBaseKeyValue"));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "saveBaseKeyValue"), "POST");
     String key = configKey.getKey();
     String name = configKey.getName();
     String treeName = configKey.getTreeName();
@@ -725,7 +734,7 @@ public class ConfigurationRestfulApi {
       @RequestParam(value = "pageNow", required = false, defaultValue = "1") Integer pageNow,
       @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize)
       throws ConfigurationException {
-    checkAdmin(ModuleUserUtils.getOperationUser(req, "getUserKeyValue"));
+    checkAdmin(ModuleUserUtils.getOperationUser(req, "getUserKeyValue"), "GET");
     if (StringUtils.isBlank(engineType)) {
       engineType = null;
     }
