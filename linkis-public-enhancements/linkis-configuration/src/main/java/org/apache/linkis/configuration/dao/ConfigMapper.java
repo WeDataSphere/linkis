@@ -52,7 +52,7 @@ public interface ConfigMapper {
   List<ConfigKey> selectKeyByEngineType(@Param("engineType") String engineType);
 
   List<ConfigKey> selectKeyByEngineTypeAndKeyList(
-          @Param("engineType") String engineType, @Param("keyList") List<String> keyList);
+      @Param("engineType") String engineType, @Param("keyList") List<String> keyList);
 
   List<ConfigKey> selectKeyByKeyIdList(@Param("keyIdList") List<Long> keyList);
 
@@ -71,4 +71,21 @@ public interface ConfigMapper {
   void insertKey(ConfigKey key);
 
   List<ConfigKeyValue> getConfigEnKeyValueByLabelId(@Param("labelId") Integer labelId);
+
+  void deleteConfigKey(@Param("id") Integer id);
+
+  List<ConfigKey> getConfigBykey(@Param("engineType") String engineType, @Param("key") String key);
+
+  List<ConfigKey> getConfigEnBykey(
+      @Param("engineType") String engineType, @Param("key") String key);
+
+  List<ConfigUserValue> getUserConfigValue(
+      @Param("key") String key,
+      @Param("user") String user,
+      @Param("creator") String creator,
+      @Param("engineType") String engineType);
+
+  void insertKeyByBase(ConfigKey configKey);
+
+  void updateConfigKey(ConfigKey configKey);
 }
