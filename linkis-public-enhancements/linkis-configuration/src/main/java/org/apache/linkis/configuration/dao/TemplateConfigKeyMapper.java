@@ -18,6 +18,7 @@
 package org.apache.linkis.configuration.dao;
 
 import org.apache.linkis.configuration.entity.TemplateConfigKey;
+import org.apache.linkis.configuration.entity.TemplateConfigKeyVO;
 
 import org.apache.ibatis.annotations.Param;
 
@@ -37,4 +38,7 @@ public interface TemplateConfigKeyMapper {
 
   List<TemplateConfigKey> selectListByTemplateUuidList(
       @Param("templateUuidList") List<String> templateUuidList);
+
+  List<TemplateConfigKeyVO> selectInfoListByTemplateUuid(
+      @Param("templateUuid") String templateUuid);
 }
