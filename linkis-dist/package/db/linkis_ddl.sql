@@ -45,6 +45,7 @@ CREATE TABLE `linkis_ps_configuration_config_key`(
   `en_description` varchar(200) DEFAULT NULL COMMENT 'english description',
   `en_name` varchar(100) DEFAULT NULL COMMENT 'english name',
   `en_treeName` varchar(100) DEFAULT NULL COMMENT 'english treeName',
+  UNIQUE INDEX `uniq_key_ectype` (`key`,`engine_conn_type`)
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
