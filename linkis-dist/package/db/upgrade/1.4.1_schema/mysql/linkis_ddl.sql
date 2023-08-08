@@ -23,4 +23,6 @@ ALTER TABLE `linkis_ps_bml_resources` ADD CONSTRAINT  `uniq_rid_eflag` UNIQUE (`
 
 ALTER TABLE `linkis_ps_configuration_config_key` ADD UNIQUE `uniq_key_ectype` (`key`,`engine_conn_type`);
 
+ALTER TABLE `linkis_ps_configuration_config_key` modify column `engine_conn_type` varchar(50) DEFAULT '' COMMENT 'engine type,such as spark,hive etc';
+
 
