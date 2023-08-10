@@ -28,7 +28,11 @@ import org.apache.linkis.configuration.service.ConfigurationService;
 import org.apache.linkis.configuration.service.TemplateConfigKeyService;
 import org.apache.linkis.configuration.util.LabelEntityParser;
 import org.apache.linkis.configuration.validate.ValidatorManager;
+import org.apache.linkis.governance.common.entity.TemplateConfKey;
+import org.apache.linkis.governance.common.protocol.conf.TemplateConfRequest;
+import org.apache.linkis.governance.common.protocol.conf.TemplateConfResponse;
 import org.apache.linkis.manager.label.entity.CombinedLabel;
+import org.apache.linkis.rpc.message.annotation.Receiver;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -44,6 +48,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -296,13 +301,36 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
       throw new ConfigurationException(msg);
     }
     // check input engineType is same as template key engineType
-    ConfigKey configKey = configMapper.selectKeyByKeyID(templateConfigKeyList.get(0).getKeyId());
-    if (!engineType.equals(configKey.getEngineType())) {
+    List<Long> keyIdList =
+        templateConfigKeyList.stream()
+            .map(e -> e.getKeyId())
+            .distinct()
+            .collect(Collectors.toList());
+
+    if (keyIdList.size() == 0) {
+      String msg = "can not get any config key info from db, Please check if the keys are correct";
+      throw new ConfigurationException(msg);
+    }
+    List<ConfigKey> configKeyList = configMapper.selectKeyByKeyIdList(keyIdList);
+    // map k:v---> keyId：ConfigKey
+    Set<String> configKeyEngineTypeSet =
+        configKeyList.stream().map(ConfigKey::getEngineType).collect(Collectors.toSet());
+
+    if (configKeyEngineTypeSet == null || configKeyEngineTypeSet.size() == 0) {
+      String msg =
+          MessageFormat.format(
+              "Unable to get configuration parameter information associated with template id:{0}, please check whether the parameters are correct"
+                  + "(无法获取模板:{0} 关联的配置参数信息,请检查参数是否正确)",
+              templateUid);
+      throw new ConfigurationException(msg);
+    }
+
+    if (configKeyEngineTypeSet.size() != 1 || !configKeyEngineTypeSet.contains(engineType)) {
       String msg =
           MessageFormat.format(
               "The engineType:{0} associated with the template:{1} does not match the input engineType:{2}, please check whether the parameters are correct"
                   + "(模板关联的引擎类型：{0} 和下发的引擎类型：{2} 不匹配,请检查参数是否正确)",
-              configKey.getEngineType(), templateUid, engineType);
+              String.join(",", configKeyEngineTypeSet), templateUid, engineType);
       throw new ConfigurationException(msg);
     }
     for (String user : userList) {
@@ -396,6 +424,32 @@ public class TemplateConfigKeyServiceImpl implements TemplateConfigKeyService {
 
     result.put("success", successResult);
     result.put("error", errorResult);
+    return result;
+  }
+
+  @Receiver
+  @Override
+  public TemplateConfResponse queryKeyInfoList(TemplateConfRequest templateConfRequest) {
+    TemplateConfResponse result = new TemplateConfResponse();
+    String templateUid = templateConfRequest.getTemplateUuid();
+    if (StringUtils.isBlank(templateUid)) {
+      return result;
+    }
+    List<TemplateConfigKeyVO> voList =
+        templateConfigKeyMapper.selectInfoListByTemplateUuid(templateUid);
+
+    List<TemplateConfKey> data = new ArrayList<>();
+    if (voList != null) {
+      for (TemplateConfigKeyVO temp : voList) {
+        TemplateConfKey item = new TemplateConfKey();
+        item.setTemplateUuid(temp.getTemplateUuid());
+        item.setKey(temp.getKey());
+        item.setTemplateName(temp.getTemplateName());
+        item.setConfigValue(temp.getConfigValue());
+        data.add(item);
+      }
+    }
+    result.setList(data);
     return result;
   }
 }

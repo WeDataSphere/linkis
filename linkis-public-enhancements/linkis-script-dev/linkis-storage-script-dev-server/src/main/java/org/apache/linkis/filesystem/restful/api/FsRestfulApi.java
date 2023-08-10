@@ -44,6 +44,7 @@ import org.apache.linkis.storage.source.FileSource$;
 import org.apache.linkis.storage.utils.StorageUtils;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.commons.math3.util.Pair;
 import org.apache.http.Consts;
 
@@ -559,6 +560,7 @@ public class FsRestfulApi {
       @RequestParam(value = "path", required = false) String path,
       @RequestParam(value = "page", defaultValue = "1") Integer page,
       @RequestParam(value = "pageSize", defaultValue = "5000") Integer pageSize,
+      @RequestParam(value = "nullValue", defaultValue = "NULL") String nullValue,
       @RequestParam(value = "charset", defaultValue = "utf-8") String charset)
       throws IOException, WorkSpaceException {
 
@@ -579,7 +581,11 @@ public class FsRestfulApi {
     FileSource fileSource = null;
     try {
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
+      if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) {
+        nullValue = "";
+      }
       if (FileSource$.MODULE$.isResultSet(fsPath.getPath())) {
+        fileSource.addParams("nullValue", nullValue);
         fileSource = fileSource.page(page, pageSize);
       }
       Pair<Object, ArrayList<String[]>> result = fileSource.collect()[0];
@@ -949,7 +955,10 @@ public class FsRestfulApi {
         res.put("sheetName", info.get(0));
       } else {
         String[][] column = null;
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in, encoding));
+        // fix csv file with utf-8 with bom chart[&#xFEFF]
+        BOMInputStream bomIn = new BOMInputStream(in, false); // don't include the BOM
+        BufferedReader reader = new BufferedReader(new InputStreamReader(bomIn, encoding));
+
         String header = reader.readLine();
         if (StringUtils.isEmpty(header)) {
           throw WorkspaceExceptionManager.createException(80016);
