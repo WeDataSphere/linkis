@@ -479,7 +479,7 @@ public class ConfigurationRestfulApi {
     String value = (String) json.get("configValue");
     boolean force = Boolean.parseBoolean(json.getOrDefault("force", "false").toString());
     if (!org.apache.linkis.common.conf.Configuration.isAdmin(username) && !username.equals(user)) {
-      return Message.error("Non admin are prohibited from modifying others' data");
+      return Message.error("Only admin can modify other user configuration data");
     }
     if (engineType.equals("*") && !version.equals("*")) {
       return Message.error("When engineType is any engine, the version must also be any version");
