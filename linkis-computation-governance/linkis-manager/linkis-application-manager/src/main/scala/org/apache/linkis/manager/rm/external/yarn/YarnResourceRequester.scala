@@ -303,7 +303,11 @@ class YarnResourceRequester extends ExternalResourceRequester with Logging {
 
   override def getResourceType: ResourceType = ResourceType.Yarn
 
-  private def getResponseByUrl(url: String, rmWebAddress: String, provider: ExternalResourceProvider) = {
+  private def getResponseByUrl(
+      url: String,
+      rmWebAddress: String,
+      provider: ExternalResourceProvider
+  ) = {
     val httpGet = new HttpGet(rmWebAddress + "/ws/v1/cluster/" + url)
     httpGet.addHeader("Accept", "application/json")
     val authorEnable: Any = provider.getConfigMap.get("authorEnable");

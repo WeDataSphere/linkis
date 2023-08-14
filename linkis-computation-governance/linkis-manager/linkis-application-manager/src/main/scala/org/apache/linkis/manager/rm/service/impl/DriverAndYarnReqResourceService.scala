@@ -91,10 +91,10 @@ class DriverAndYarnReqResourceService(
       )
 
       if (
-        acrossClusterTask == "true" && StringUtils.isNotBlank(CPUThreshold) && StringUtils
-          .isNotBlank(MemoryThreshold)
+          acrossClusterTask == "true" && StringUtils.isNotBlank(CPUThreshold) && StringUtils
+            .isNotBlank(MemoryThreshold)
           && StringUtils
-          .isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)
+            .isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)
       ) {
 
         logger.info(
