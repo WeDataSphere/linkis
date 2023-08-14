@@ -75,7 +75,7 @@ public class ClusterLabel extends GenericLabel
     if (!StringUtils.isEmpty(stringValue)) {
       if (!stringValue.equals("Yarn-bdp")) {
         throw new LabelErrorException(
-                CLUSTER_LABEL_ERROR_CODE.getErrorCode(), CLUSTER_LABEL_ERROR_CODE.getErrorDesc());
+            CLUSTER_LABEL_ERROR_CODE.getErrorCode(), CLUSTER_LABEL_ERROR_CODE.getErrorDesc());
       }
     }
   }

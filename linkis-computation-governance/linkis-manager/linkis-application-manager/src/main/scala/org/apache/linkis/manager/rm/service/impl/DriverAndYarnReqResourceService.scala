@@ -21,8 +21,7 @@ import org.apache.linkis.manager.common.constant.RMConstant
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.entity.resource.ResourceType.DriverAndYarn
 import org.apache.linkis.manager.common.exception.RMWarnException
-import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
-import org.apache.linkis.manager.label.entity.cluster.ClusterLabel
+import org.apache.linkis.manager.common.protocol.engine.EngineCreateRequest
 import org.apache.linkis.manager.rm.domain.RMLabelContainer
 import org.apache.linkis.manager.rm.exception.RMErrorCode
 import org.apache.linkis.manager.rm.external.service.ExternalResourceService
