@@ -349,6 +349,7 @@ public class ConfigurationRestfulApi {
                       engineVersion);
                 }
               });
+      configurationService.clearAMCacheConf(username, creator, null, null);
     } else {
       configurationService.clearAMCacheConf(username, creator, engine, version);
     }
