@@ -25,8 +25,7 @@ import org.apache.linkis.protocol.label.InsLabelRemoveRequest;
 import org.apache.linkis.publicservice.common.lock.entity.CommonLock;
 import org.apache.linkis.publicservice.common.lock.service.CommonLockService;
 import org.apache.linkis.rpc.Sender;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.availability.AvailabilityState;
@@ -38,6 +37,9 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.springframework.boot.availability.ReadinessState.ACCEPTING_TRAFFIC;
 

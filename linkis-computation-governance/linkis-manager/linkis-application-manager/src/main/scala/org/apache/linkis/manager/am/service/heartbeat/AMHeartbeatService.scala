@@ -28,12 +28,14 @@ import org.apache.linkis.manager.service.common.metrics.MetricsConverter
 import org.apache.linkis.publicservice.common.lock.entity.CommonLock
 import org.apache.linkis.publicservice.common.lock.service.CommonLockService
 import org.apache.linkis.rpc.message.annotation.Receiver
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
+import javax.annotation.{PostConstruct, PreDestroy}
+
 import java.util.Date
 import java.util.concurrent.TimeUnit
-import javax.annotation.{PostConstruct, PreDestroy}
 
 @Service
 class AMHeartbeatService extends HeartbeatService with Logging {
