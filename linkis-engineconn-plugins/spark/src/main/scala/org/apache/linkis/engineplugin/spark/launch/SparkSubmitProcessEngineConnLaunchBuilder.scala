@@ -22,6 +22,7 @@ import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.engineplugin.spark.config.SparkConfiguration.{
   ENGINE_JAR,
   SPARK_APP_NAME,
+  SPARK_CONF,
   SPARK_DEFAULT_EXTERNAL_JARS_PATH,
   SPARK_DRIVER_CLASSPATH,
   SPARK_DRIVER_EXTRA_JAVA_OPTIONS,
@@ -145,6 +146,14 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
     addOpt("--num-executors", numExecutors.toString)
     addOpt("--queue", queue)
 
+//    if (StringUtils.isNotBlank(sparkconf)) {
+//      sparkconf.split(";").foreach { keyAndValue =>
+//        val key = keyAndValue.split("=")(0)
+//        val value = keyAndValue.split("=")(1)
+//        engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
+//      }
+//    }
+
     getConf(engineConnBuildRequest, gcLogDir, logDir).foreach { case (key, value) =>
       addOpt("--conf", s"""$key="$value"""")
     }
@@ -194,6 +203,7 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
       val keyValue = iterator.next()
       if (
           !SPARK_PYTHON_VERSION.key.equals(keyValue.getKey) &&
+          !SPARK_CONF.key.equals(keyValue.getKey) &&
           keyValue.getKey.startsWith("spark.") &&
           StringUtils.isNotBlank(keyValue.getValue)
       ) {
