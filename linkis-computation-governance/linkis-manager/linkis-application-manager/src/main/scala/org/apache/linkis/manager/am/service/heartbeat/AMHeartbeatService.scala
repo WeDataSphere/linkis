@@ -18,7 +18,6 @@
 package org.apache.linkis.manager.am.service.heartbeat
 
 import org.apache.linkis.common.utils.{Logging, Utils}
-import org.apache.linkis.manager.am.conf.ManagerMonitorConf
 import org.apache.linkis.manager.am.service.HeartbeatService
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.metrics.AMNodeMetrics
@@ -26,15 +25,15 @@ import org.apache.linkis.manager.common.monitor.ManagerMonitor
 import org.apache.linkis.manager.common.protocol.node.NodeHeartbeatMsg
 import org.apache.linkis.manager.persistence.{NodeManagerPersistence, NodeMetricManagerPersistence}
 import org.apache.linkis.manager.service.common.metrics.MetricsConverter
+import org.apache.linkis.publicservice.common.lock.entity.CommonLock
+import org.apache.linkis.publicservice.common.lock.service.CommonLockService
 import org.apache.linkis.rpc.message.annotation.Receiver
-import org.apache.linkis.server.toScalaBuffer
-
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
-import javax.annotation.PostConstruct
-
+import java.util.Date
 import java.util.concurrent.TimeUnit
+import javax.annotation.{PostConstruct, PreDestroy}
 
 @Service
 class AMHeartbeatService extends HeartbeatService with Logging {
@@ -51,17 +50,37 @@ class AMHeartbeatService extends HeartbeatService with Logging {
   @Autowired(required = false)
   private var managerMonitor: ManagerMonitor = _
 
+  @Autowired private val commonLockService: CommonLockService = null
+
+  private val _LOCK = "MASTER_AM_HEARTBEAT_MONITOR"
+  val commonLock = new CommonLock
+  private var lock = false
+
   @PostConstruct
   def init(): Unit = {
-    if (null != managerMonitor && ManagerMonitorConf.MONITOR_SWITCH_ON.getValue) {
-      logger.info("start init AMHeartbeatService monitor")
+
+    commonLock.setLockObject(_LOCK)
+    commonLock.setCreateTime(new Date)
+    commonLock.setUpdateTime(new Date)
+    commonLock.setCreator(Utils.getJvmUser)
+    commonLock.setUpdator(Utils.getJvmUser)
+    lock = commonLockService.lock(commonLock, -1)
+    if (null != managerMonitor && lock) {
+      logger.info("The master am start init AMHeartbeatService monitor")
       Utils.defaultScheduler.scheduleAtFixedRate(
         managerMonitor,
         1000,
         RMConfiguration.RM_ENGINE_SCAN_INTERVAL.getValue.toLong,
         TimeUnit.MILLISECONDS
       )
+    }
+  }
 
+  @PreDestroy
+  def destroy(): Unit = {
+    if (lock) {
+      commonLockService.unlock(commonLock)
+      logger.info("The master am has released lock");
     }
   }
 
