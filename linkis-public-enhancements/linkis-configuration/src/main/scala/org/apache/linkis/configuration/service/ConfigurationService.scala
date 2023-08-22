@@ -208,7 +208,15 @@ class ConfigurationService extends Logging {
       if (StringUtils.isEmpty(setting.getConfigValue)) {
         configValue.setConfigValue("")
       } else {
-        configValue.setConfigValue(setting.getConfigValue)
+        val setValue = setting.getConfigValue
+        if (setting.getKey.equals("spark.conf")) {
+          val listSize = setValue.split(";").map(_.split("=")(0).trim).toList.size
+          val setSize = setValue.split(";").map(_.split("=")(0).trim).toSet.size
+          if (listSize != setSize) {
+            throw new ConfigurationException(s"Key has duplicate entries")
+          }
+        }
+        configValue.setConfigValue(setValue)
       }
       configValue.setId(setting.getValueId)
       updateList.add(configValue)

@@ -25,4 +25,4 @@ ALTER TABLE `linkis_ps_configuration_config_key` ADD UNIQUE `uniq_key_ectype` (`
 
 ALTER TABLE `linkis_ps_configuration_config_key` modify column `engine_conn_type` varchar(50) DEFAULT '' COMMENT 'engine type,such as spark,hive etc';
 
-
+ALTER TABLE  linkis_ps_configuration_config_value modify COLUMN  config_value varchar(500);

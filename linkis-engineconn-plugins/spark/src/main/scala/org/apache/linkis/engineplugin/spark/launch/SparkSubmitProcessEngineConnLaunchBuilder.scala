@@ -63,6 +63,15 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
     val executorCores = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_CORES)
     val executorMemory = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_MEMORY)
     val numExecutors = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_INSTANCES)
+    val sparkcsonf = getValueAndRemove(properties, SPARK_CONF)
+    if (StringUtils.isNotBlank(sparkcsonf)) {
+      val strArrary = sparkcsonf.split(";").toList
+      strArrary.foreach { keyAndValue =>
+        val key = keyAndValue.split("=")(0)
+        val value = keyAndValue.split("=")(1)
+        engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
+      }
+    }
 
     val files = getValueAndRemove(properties, "files", "").split(",").filter(isNotBlankPath)
     val jars = new ArrayBuffer[String]()
@@ -146,14 +155,6 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
     addOpt("--num-executors", numExecutors.toString)
     addOpt("--queue", queue)
 
-//    if (StringUtils.isNotBlank(sparkconf)) {
-//      sparkconf.split(";").foreach { keyAndValue =>
-//        val key = keyAndValue.split("=")(0)
-//        val value = keyAndValue.split("=")(1)
-//        engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
-//      }
-//    }
-
     getConf(engineConnBuildRequest, gcLogDir, logDir).foreach { case (key, value) =>
       addOpt("--conf", s"""$key="$value"""")
     }
@@ -203,7 +204,6 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
       val keyValue = iterator.next()
       if (
           !SPARK_PYTHON_VERSION.key.equals(keyValue.getKey) &&
-          !SPARK_CONF.key.equals(keyValue.getKey) &&
           keyValue.getKey.startsWith("spark.") &&
           StringUtils.isNotBlank(keyValue.getValue)
       ) {
