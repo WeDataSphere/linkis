@@ -103,7 +103,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     if (acrossClusterRule == null) {
       logger.info("acrossClusterRule not exit");
       throw new Exception("acrossClusterRule not exit");
-    }else if (acrossClusterRule.getIsValid().equals(isValid)){
+    } else if (acrossClusterRule.getIsValid().equals(isValid)) {
       logger.info("acrossClusterRule no need isValid");
       throw new Exception("acrossClusterRule no need isValid");
     }
@@ -115,5 +115,4 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     logger.info("valid acrossClusterRule success");
     return;
   }
-
 }
