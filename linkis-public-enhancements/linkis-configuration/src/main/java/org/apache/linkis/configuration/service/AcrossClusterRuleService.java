@@ -33,5 +33,5 @@ public interface AcrossClusterRuleService {
       String creator, String user, String clusterName, Integer pageNow, Integer pageSize)
       throws Exception;
 
-  void validAcrossClusterRule(Long id, String isValid, String updateBy) throws Exception;
+  void validAcrossClusterRule(Long id, String isValid) throws Exception;
 }
