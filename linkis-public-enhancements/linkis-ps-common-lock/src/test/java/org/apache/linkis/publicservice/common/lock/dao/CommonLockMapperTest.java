@@ -38,11 +38,44 @@ public class CommonLockMapperTest extends BaseDaoTest {
     Assertions.assertTrue(locks.size() == 1);
   }
 
+  public Boolean reentrantLock(CommonLock commonLock) {
+    CommonLock oldLock = commonLockMapper.getLock(commonLock);
+    if (oldLock != null) {
+      return true;
+    }
+
+    try {
+      commonLockMapper.lock(commonLock, -1L);
+    } catch (Exception e) {
+      return false;
+    }
+    return true;
+  }
+
+  @Test
+  @DisplayName("reentrantLockTest")
+  public void reentrantLockTest() {
+    String lockObject = "hadoop-warehouse4";
+    CommonLock commonLock = new CommonLock();
+    commonLock.setLockObject(lockObject);
+    commonLock.setCreator("test");
+    Boolean lock = reentrantLock(commonLock);
+    Assertions.assertTrue(lock);
+    lock = reentrantLock(commonLock);
+    Assertions.assertTrue(lock);
+    commonLock.setCreator("test1");
+    lock = reentrantLock(commonLock);
+    Assertions.assertFalse(lock);
+  }
+
   @Test
   @DisplayName("unlockTest")
   public void unlockTest() {
     String lockObject = "hadoop-warehouse";
-    commonLockMapper.unlock(lockObject);
+    CommonLock commonLock = new CommonLock();
+    commonLock.setLockObject(lockObject);
+    commonLock.setCreator("test");
+    commonLockMapper.unlock(commonLock);
 
     List<CommonLock> locks = commonLockMapper.getAll();
     Assertions.assertTrue(locks.size() == 0);
@@ -53,8 +86,27 @@ public class CommonLockMapperTest extends BaseDaoTest {
   public void lockTest() {
     String lockObject = "hadoop-warehouse2";
     Long timeOut = 10000L;
-    commonLockMapper.lock(lockObject, timeOut);
+    CommonLock commonLock = new CommonLock();
+    commonLock.setLockObject(lockObject);
+
+    Assertions.assertThrows(
+        RuntimeException.class, () -> commonLockMapper.lock(commonLock, timeOut));
+
+    commonLock.setCreator("test");
+    commonLockMapper.lock(commonLock, timeOut);
     List<CommonLock> locks = commonLockMapper.getAll();
     Assertions.assertTrue(locks.size() == 2);
+  }
+
+  @Test
+  @DisplayName("getLockTest")
+  public void getLockTest() {
+    String lockObject = "hadoop-warehouse3";
+    CommonLock commonLock = new CommonLock();
+    commonLock.setLockObject(lockObject);
+    commonLock.setCreator("test");
+    commonLockMapper.lock(commonLock, -1L);
+    CommonLock lock = commonLockMapper.getLock(commonLock);
+    Assertions.assertTrue(lock != null);
   }
 }

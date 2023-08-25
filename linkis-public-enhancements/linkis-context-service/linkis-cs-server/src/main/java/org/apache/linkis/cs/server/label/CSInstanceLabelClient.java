@@ -58,17 +58,17 @@ public class CSInstanceLabelClient {
     AvailabilityState state = availabilityChangeEvent.getState();
     logger.info("CSInstanceLabelClient app state {}", state);
     if (state instanceof ReadinessState && state == ACCEPTING_TRAFFIC) {
-
       Map<String, Object> labels = new HashMap<>(1);
       commonLock.setLockObject(_LOCK);
       commonLock.setCreateTime(new Date());
       commonLock.setUpdateTime(new Date());
-      commonLock.setCreator(Utils.getJvmUser());
+      commonLock.setCreator(Utils.getLocalHostname());
       commonLock.setUpdator(Utils.getJvmUser());
-      lock = commonLockService.lock(commonLock, -1L);
+      lock = commonLockService.reentrantLock(commonLock, -1L);
       String confLabel = "cs_2_prod";
       if (lock) {
         // master node set cs_1_prod label
+        logger.info("The master ps-cs node get lock by {}-{}.", _LOCK, commonLock.getCreator());
         confLabel = "cs_1_prod";
       }
       logger.info("register label {} to ps-cs node.", confLabel);
@@ -89,7 +89,10 @@ public class CSInstanceLabelClient {
     logger.info("success to send clear label rpc request");
     if (lock) {
       commonLockService.unlock(commonLock);
-      logger.info("ps-cs master node has released lock.");
+      logger.info(
+          "The master ps-cs  node has released lock {}-{}.",
+          commonLock.getLockObject(),
+          commonLock.getCreator());
     }
   }
 }

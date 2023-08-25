@@ -54,21 +54,24 @@ class AMHeartbeatService extends HeartbeatService with Logging {
 
   @Autowired private val commonLockService: CommonLockService = null
 
-  private val _LOCK = "MASTER_AM_HEARTBEAT_MONITOR"
+  private val _LOCK = "_MASTER_AM_HEARTBEAT_MONITOR_LOCK"
   val commonLock = new CommonLock
   private var lock = false
 
   @PostConstruct
   def init(): Unit = {
-
     commonLock.setLockObject(_LOCK)
     commonLock.setCreateTime(new Date)
     commonLock.setUpdateTime(new Date)
-    commonLock.setCreator(Utils.getJvmUser)
+    commonLock.setCreator(Utils.getLocalHostname)
     commonLock.setUpdator(Utils.getJvmUser)
-    lock = commonLockService.lock(commonLock, -1)
+    lock = commonLockService.reentrantLock(commonLock, -1)
     if (null != managerMonitor && lock) {
-      logger.info("The master am start init AMHeartbeatService monitor")
+      logger.info(
+        "The master am get lock by {}-{}. And start to init AMHeartbeatService monitor.",
+        _LOCK,
+        commonLock.getCreator
+      )
       Utils.defaultScheduler.scheduleAtFixedRate(
         managerMonitor,
         1000,
@@ -82,7 +85,11 @@ class AMHeartbeatService extends HeartbeatService with Logging {
   def destroy(): Unit = {
     if (lock) {
       commonLockService.unlock(commonLock)
-      logger.info("The master am has released lock");
+      logger.info(
+        "The master am has released lock {}-{}.",
+        commonLock.getLockObject,
+        commonLock.getCreator
+      );
     }
   }
 

@@ -64,7 +64,7 @@ class DefaultEngineConnResourceService extends EngineConnResourceService with Lo
 
   private val bmlClient = BmlClientFactory.createBmlClient()
   private var isRefreshing: Boolean = false
-  private val _LOCK = "_MASTER_AM_LOAD_ENGINE_CONN_LOCK"
+  private val _LOCK = "_LOAD_ENGINE_CONN_LOCK"
   val commonLock = new CommonLock
   private var lock = false
 
@@ -73,11 +73,15 @@ class DefaultEngineConnResourceService extends EngineConnResourceService with Lo
     commonLock.setLockObject(_LOCK)
     commonLock.setCreateTime(new Date)
     commonLock.setUpdateTime(new Date)
-    commonLock.setCreator(Utils.getJvmUser)
+    commonLock.setCreator(Utils.getLocalHostname)
     commonLock.setUpdator(Utils.getJvmUser)
-    lock = commonLockService.lock(commonLock, -1)
+    lock = commonLockService.reentrantLock(commonLock, -1)
     if (lock) {
-      logger.info("The master am start to refresh all engineconn plugins when inited.")
+      logger.info(
+        "The master LinkisManager node get lock by {}-{}. And start to refresh all engineconn plugins when inited.",
+        _LOCK,
+        commonLock.getCreator
+      )
       refreshAll(false)
     }
   }
@@ -85,7 +89,11 @@ class DefaultEngineConnResourceService extends EngineConnResourceService with Lo
   @PreDestroy
   def destroy(): Unit = {
     if (lock) {
-      logger.info("The master am will release am load engineconn lock.")
+      logger.info(
+        "The master LinkisManager node hase released lock {}-{}.",
+        commonLock.getLockObject,
+        commonLock.getCreator
+      )
       commonLockService.unlock(commonLock)
     }
   }
