@@ -18,6 +18,7 @@
 package org.apache.linkis.cs.server.label;
 
 import org.apache.linkis.common.utils.Utils;
+import org.apache.linkis.cs.server.conf.ContextServerConf;
 import org.apache.linkis.instance.label.client.InstanceLabelClient;
 import org.apache.linkis.manager.label.constant.LabelKeyConstant;
 import org.apache.linkis.protocol.label.InsLabelRefreshRequest;
@@ -37,6 +38,8 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,6 +60,7 @@ public class CSInstanceLabelClient {
   public void init(AvailabilityChangeEvent<AvailabilityState> availabilityChangeEvent) {
     AvailabilityState state = availabilityChangeEvent.getState();
     logger.info("CSInstanceLabelClient app state {}", state);
+
     if (state instanceof ReadinessState && state == ACCEPTING_TRAFFIC) {
       Map<String, Object> labels = new HashMap<>(1);
       commonLock.setLockObject(_LOCK);
@@ -65,11 +69,21 @@ public class CSInstanceLabelClient {
       commonLock.setCreator(Utils.getLocalHostname());
       commonLock.setUpdator(Utils.getJvmUser());
       lock = commonLockService.reentrantLock(commonLock, -1L);
-      String confLabel = "cs_2_prod";
+      String confLabel = ContextServerConf.CS_LABEL_PREFIX;
+      String pattern = "^cs_1_\\w+$";
+
+      Pattern regexPattern = Pattern.compile(pattern);
+      Matcher matcher = regexPattern.matcher(confLabel);
+      if (!matcher.matches()) {
+        logger.warn("ps-cs set error label conf: {}." + confLabel);
+        return;
+      }
+
       if (lock) {
         // master node set cs_1_prod label
         logger.info("The master ps-cs node get lock by {}-{}.", _LOCK, commonLock.getCreator());
-        confLabel = "cs_1_prod";
+      } else {
+        confLabel = confLabel.replace("1", "2");
       }
       logger.info("register label {} to ps-cs node.", confLabel);
       labels.put(LabelKeyConstant.ROUTE_KEY, confLabel);
