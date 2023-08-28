@@ -36,7 +36,7 @@ object ComputationExecutorConf {
   val ENGINE_PROGRESS_FETCH_INTERVAL =
     CommonVars(
       "wds.linkis.engineconn.progresss.fetch.interval-in-seconds",
-      5,
+      3,
       "Progress information push interval"
     )
 
