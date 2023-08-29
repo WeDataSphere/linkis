@@ -26,7 +26,7 @@ treeName, boundary_type, en_treeName,
 en_description, en_name)
 VALUES(
 'spark.conf', 'spark自定义参数配置,多个参数使用分号;分隔', 'spark自定义配置参数',
-null, 'Regex', '([0-9a-zA-Z.]+=[0-9A-Za-z]+)', 'spark',
+null, 'None', NULL, 'spark',
 0, 1, 1,
 'spark资源设置', 0, 'Spark resource settings',
 'Spark custom parameter configuration, using semicolons for multiple parameters; separate', 'Spark custom configuration parameters');
