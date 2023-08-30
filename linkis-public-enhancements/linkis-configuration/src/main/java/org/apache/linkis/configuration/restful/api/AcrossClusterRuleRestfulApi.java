@@ -73,8 +73,9 @@ public class AcrossClusterRuleRestfulApi {
     if (StringUtils.isBlank(isValid)) {
       return Message.error("Failed to valid acrossClusterRule: Illegal Input Param");
     }
+
     try {
-      acrossClusterRuleService.validAcrossClusterRule(id, isValid, username);
+      acrossClusterRuleService.validAcrossClusterRule(id, isValid);
     } catch (Exception e) {
       return Message.error("valid acrossClusterRule failed：" + e.getMessage());
     }

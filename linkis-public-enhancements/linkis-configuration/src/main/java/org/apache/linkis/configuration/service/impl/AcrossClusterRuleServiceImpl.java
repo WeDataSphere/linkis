@@ -98,17 +98,15 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
   }
 
   @Override
-  public void validAcrossClusterRule(Long id, String isValid, String updateBy) throws Exception {
-    AcrossClusterRule acrossClusterRule = ruleMapper.getAcrossClusterRule(id);
-    if (acrossClusterRule == null) {
+  public void validAcrossClusterRule(Long id, String isValid) throws Exception {
+    AcrossClusterRule beforeRule = ruleMapper.getAcrossClusterRule(id);
+
+    if (beforeRule == null) {
       logger.info("acrossClusterRule not exit");
       throw new Exception("acrossClusterRule not exit");
     }
-    acrossClusterRule.setIsValid(isValid);
-    acrossClusterRule.setUpdateBy(updateBy);
-    acrossClusterRule.setUpdateTime(new Date());
-    logger.info("delete acrossClusterRule success");
-    ruleMapper.validAcrossClusterRule(acrossClusterRule);
+
+    ruleMapper.validAcrossClusterRule(isValid, id);
     logger.info("valid acrossClusterRule success");
     return;
   }

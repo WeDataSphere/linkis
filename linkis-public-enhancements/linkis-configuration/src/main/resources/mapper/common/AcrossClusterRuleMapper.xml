@@ -117,22 +117,13 @@
             id = #{acrossClusterRule.id}
     </update>
 
-    <update id="validAcrossClusterRule" parameterType="org.apache.linkis.configuration.entity.AcrossClusterRule">
+    <update id="validAcrossClusterRule">
         UPDATE
             `linkis_cg_lm_across_cluster_rule`
         SET
-            <choose>
-                <when test="acrossClusterRule.updateTime != null">
-                    update_time=#{acrossClusterRule.updateTime}
-                </when>
-                <otherwise>
-                    update_time = now()
-                </otherwise>
-            </choose>,
-            update_By=#{acrossClusterRule.updateBy},
-            is_valid=#{acrossClusterRule.isValid}
+            is_valid = #{isValid}
         WHERE
-            id = #{acrossClusterRule.id}
+            id = #{id}
     </update>
 
 
