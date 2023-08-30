@@ -90,7 +90,7 @@ class DriverAndYarnReqResourceService(
       )
 
       if (
-          acrossClusterTask == "true" && StringUtils.isNotBlank(CPUThreshold) && StringUtils
+          acrossClusterTask.toBoolean && StringUtils.isNotBlank(CPUThreshold) && StringUtils
             .isNotBlank(MemoryThreshold)
           && StringUtils
             .isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)
