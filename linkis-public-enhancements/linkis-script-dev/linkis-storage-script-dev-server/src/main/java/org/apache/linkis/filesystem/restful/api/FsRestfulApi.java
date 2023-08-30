@@ -560,7 +560,7 @@ public class FsRestfulApi {
       @RequestParam(value = "path", required = false) String path,
       @RequestParam(value = "page", defaultValue = "1") Integer page,
       @RequestParam(value = "pageSize", defaultValue = "5000") Integer pageSize,
-      @RequestParam(value = "nullValue", defaultValue = "NULL") String nullValue,
+      @RequestParam(value = "nullValue", defaultValue = "") String nullValue,
       @RequestParam(value = "charset", defaultValue = "utf-8") String charset)
       throws IOException, WorkSpaceException {
 
@@ -585,7 +585,9 @@ public class FsRestfulApi {
         nullValue = "";
       }
       if (FileSource$.MODULE$.isResultSet(fsPath.getPath())) {
-        fileSource.addParams("nullValue", nullValue);
+        if (!StringUtils.isEmpty(nullValue)) {
+          fileSource.addParams("nullValue", nullValue);
+        }
         fileSource = fileSource.page(page, pageSize);
       }
       Pair<Object, ArrayList<String[]>> result = fileSource.collect()[0];

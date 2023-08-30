@@ -424,29 +424,28 @@ class TaskExecutionServiceImpl
   ): Future[_] = {
     val sleepInterval = ComputationExecutorConf.ENGINE_PROGRESS_FETCH_INTERVAL.getValue
     scheduler.submit(new Runnable {
-      override def run(): Unit = Utils.tryAndWarn {
+      override def run(): Unit = {
         Utils.tryQuietly(Thread.sleep(TimeUnit.MILLISECONDS.convert(1, TimeUnit.SECONDS)))
         while (null != taskFuture && !taskFuture.isDone) {
-          if (
-              ExecutionNodeStatus.isCompleted(task.getStatus) || ExecutionNodeStatus
-                .isRunning(task.getStatus)
-          ) {
-            val progressResponse = taskProgress(task.getTaskId)
-            val resourceResponse = buildResourceMap(task)
-            val extraInfoMap = buildExtraInfoMap(task)
-            // todo add other info
-            val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
-
-            val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
-              progressResponse.execId,
-              progressResponse.progress,
-              progressResponse.progressInfo,
-              resourceMap,
-              extraInfoMap
-            )
-            sendToEntrance(task, respRunningInfo)
-            Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepInterval, TimeUnit.SECONDS))
+          if (ExecutionNodeStatus.isCompleted(task.getStatus)) {
+            Utils.tryAndWarn {
+              val progressResponse = Utils.tryAndWarn(taskProgress(task.getTaskId))
+              val resourceResponse = Utils.tryAndWarn(buildResourceMap(task))
+              val extraInfoMap = Utils.tryAndWarn(buildExtraInfoMap(task))
+              val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
+              val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
+                progressResponse.execId,
+                progressResponse.progress,
+                progressResponse.progressInfo,
+                resourceMap,
+                extraInfoMap
+              )
+              sendToEntrance(task, respRunningInfo)
+            }
           }
+          Utils.tryQuietly(
+            Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepInterval, TimeUnit.SECONDS))
+          )
         }
       }
     })
@@ -606,7 +605,7 @@ class TaskExecutionServiceImpl
       logger.warn("Unknown event : " + BDPJettyServerHelper.gson.toJson(event))
   }
 
-  override def onLogUpdate(logUpdateEvent: TaskLogUpdateEvent): Unit = {
+  override def onLogUpdate(logUpdateEvent: TaskLogUpdateEvent): Unit = Utils.tryAndWarn {
     if (EngineConnConf.ENGINE_PUSH_LOG_TO_ENTRANCE.getValue) {
       if (null != logUpdateEvent && StringUtils.isNotBlank(logUpdateEvent.taskId)) {
         val task = getTaskByTaskId(logUpdateEvent.taskId)
@@ -663,32 +662,33 @@ class TaskExecutionServiceImpl
     }
   }
 
-  override def onProgressUpdate(taskProgressUpdateEvent: TaskProgressUpdateEvent): Unit = {
-    if (EngineConnConf.ENGINE_PUSH_LOG_TO_ENTRANCE.getValue) {
-      val task = getTaskByTaskId(taskProgressUpdateEvent.taskId)
-      if (null != task) {
-        val resourceResponse = buildResourceMap(task)
-        val extraInfoMap = buildExtraInfoMap(task)
+  override def onProgressUpdate(taskProgressUpdateEvent: TaskProgressUpdateEvent): Unit =
+    Utils.tryAndWarn {
+      if (EngineConnConf.ENGINE_PUSH_LOG_TO_ENTRANCE.getValue) {
+        val task = getTaskByTaskId(taskProgressUpdateEvent.taskId)
+        if (null != task) {
+          val resourceResponse = buildResourceMap(task)
+          val extraInfoMap = buildExtraInfoMap(task)
 
-        val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
+          val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
 
-        val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
-          taskProgressUpdateEvent.taskId,
-          taskProgressUpdateEvent.progress,
-          taskProgressUpdateEvent.progressInfo,
-          resourceMap,
-          extraInfoMap
-        )
+          val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
+            taskProgressUpdateEvent.taskId,
+            taskProgressUpdateEvent.progress,
+            taskProgressUpdateEvent.progressInfo,
+            resourceMap,
+            extraInfoMap
+          )
 
-        sendToEntrance(task, respRunningInfo)
-      } else {
-        logger.error(
-          "Task cannot null! taskProgressUpdateEvent : " + ComputationEngineUtils.GSON
-            .toJson(taskProgressUpdateEvent)
-        )
+          sendToEntrance(task, respRunningInfo)
+        } else {
+          logger.error(
+            "Task cannot null! taskProgressUpdateEvent : " + ComputationEngineUtils.GSON
+              .toJson(taskProgressUpdateEvent)
+          )
+        }
       }
     }
-  }
 
   override def onResultSetCreated(taskResultCreateEvent: TaskResultCreateEvent): Unit = {
     logger.info(s"start to deal result event ${taskResultCreateEvent.taskId}")
