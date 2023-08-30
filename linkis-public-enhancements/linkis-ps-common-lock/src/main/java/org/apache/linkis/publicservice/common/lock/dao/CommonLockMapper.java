@@ -32,5 +32,5 @@ public interface CommonLockMapper {
 
   List<CommonLock> getAll();
 
-  CommonLock getLockByHost(@Param("commonLock") CommonLock commonLock);
+  CommonLock getLockByHost(@Param("lockObject") String lockObject, @Param("host") String host);
 }

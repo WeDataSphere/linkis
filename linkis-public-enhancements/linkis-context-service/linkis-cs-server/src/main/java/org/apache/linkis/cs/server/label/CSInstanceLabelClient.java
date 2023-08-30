@@ -38,8 +38,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,21 +68,15 @@ public class CSInstanceLabelClient {
       commonLock.setHost(Utils.getLocalHostname());
       commonLock.setUpdator(Utils.getJvmUser());
       lock = commonLockService.reentrantLock(commonLock, -1L);
-      String confLabel = ContextServerConf.CS_LABEL_PREFIX;
-      String pattern = "^cs_1_\\w+$";
-
-      Pattern regexPattern = Pattern.compile(pattern);
-      Matcher matcher = regexPattern.matcher(confLabel);
-      if (!matcher.matches()) {
-        logger.warn("ps-cs set error label conf: {}." + confLabel);
-        return;
-      }
+      String suffix = ContextServerConf.CS_LABEL_PREFIX;
+      String confLabel;
 
       if (lock) {
-        // master node set cs_1_prod label
+        // master node set cs_1_xxx label
         logger.info("The master ps-cs node get lock by {}-{}.", _LOCK, commonLock.getCreator());
+        confLabel = "cs_1_" + suffix;
       } else {
-        confLabel = confLabel.replace("1", "2");
+        confLabel = "cs_2_" + suffix;
       }
       logger.info("register label {} to ps-cs node.", confLabel);
       labels.put(LabelKeyConstant.ROUTE_KEY, confLabel);

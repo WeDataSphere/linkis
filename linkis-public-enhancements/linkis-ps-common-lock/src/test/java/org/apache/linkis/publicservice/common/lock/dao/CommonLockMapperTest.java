@@ -39,7 +39,8 @@ public class CommonLockMapperTest extends BaseDaoTest {
   }
 
   public Boolean reentrantLock(CommonLock commonLock) {
-    CommonLock oldLock = commonLockMapper.getLockByHost(commonLock);
+    CommonLock oldLock =
+        commonLockMapper.getLockByHost(commonLock.getLockObject(), commonLock.getHost());
     if (oldLock != null) {
       return true;
     }
@@ -106,7 +107,8 @@ public class CommonLockMapperTest extends BaseDaoTest {
     commonLock.setLockObject(lockObject);
     commonLock.setHost("test");
     commonLockMapper.lock(commonLock, -1L);
-    CommonLock lock = commonLockMapper.getLockByHost(commonLock);
+    CommonLock lock =
+        commonLockMapper.getLockByHost(commonLock.getLockObject(), commonLock.getHost());
     Assertions.assertTrue(lock != null);
   }
 }

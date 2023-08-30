@@ -36,5 +36,5 @@ public class ContextServerConf {
       CommonVars.apply("wds.linkis.cs.job.wait.mills", 10000).getValue();
 
   public static final String CS_LABEL_PREFIX =
-      CommonVars.apply("wds.linkis.cs.label", "cs_1_dev").getValue();
+      CommonVars.apply("wds.linkis.cs.label.suffix", "").getValue();
 }
