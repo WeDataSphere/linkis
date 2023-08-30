@@ -64,12 +64,17 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
     val executorMemory = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_MEMORY)
     val numExecutors = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_INSTANCES)
     val sparkcsonf = getValueAndRemove(properties, SPARK_CONF)
+    // sparkcsonf DEMO:spark.sql.shuffle.partitions=10;spark.memory.fraction=0.6
     if (StringUtils.isNotBlank(sparkcsonf)) {
       val strArrary = sparkcsonf.split(";").toList
       strArrary.foreach { keyAndValue =>
         val key = keyAndValue.split("=")(0)
         val value = keyAndValue.split("=")(1)
-        engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
+        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
+          engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
+        } else {
+          logger.warn(s"spark conf has empty value, key:${key}, value:${value}")
+        }
       }
     }
 
