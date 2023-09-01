@@ -114,12 +114,8 @@ class DriverAndYarnReqResourceService(
 
         if (!acrossClusterFlag) {
           logger.info(s"user: $user, creator: $creator task not meet the threshold rule")
-          logger.info(
-            s"requestedYarnResource: $requestedYarnResource, queueLeftResource: $queueLeftResource, maxCapacity: $maxCapacity"
-          )
-          val notEnoughMessage =
-            generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
-          throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
+
+          throw new RMWarnException(RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode, RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc)
         }
 
         logger.info(s"user: $user, creator: $creator task meet the threshold rule")
