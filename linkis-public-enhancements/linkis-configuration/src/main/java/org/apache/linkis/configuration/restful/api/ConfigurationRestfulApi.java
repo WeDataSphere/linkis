@@ -380,7 +380,8 @@ public class ConfigurationRestfulApi {
           boolean matchResult =
               settings.stream().anyMatch(settingKey -> key.equals(settingKey.getKey()));
           if (matchResult) {
-            throw new ConfigurationException("Saved key is duplicated with the spark conf key , key :" + key);
+            throw new ConfigurationException(
+                "Saved key is duplicated with the spark conf key , key :" + key);
           }
         }
       }
