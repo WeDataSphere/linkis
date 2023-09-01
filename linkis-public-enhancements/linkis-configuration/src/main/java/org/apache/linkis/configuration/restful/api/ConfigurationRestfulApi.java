@@ -372,16 +372,15 @@ public class ConfigurationRestfulApi {
                 .collect(Collectors.toList())
                 .size();
         if (listSize != setSize) {
-          throw new ConfigurationException("Key has duplicate entries");
+          throw new ConfigurationException("Spark.conf contains duplicate keys");
         }
         // Check if there are any duplicates in the spark.conf configuration and other individual
-        // configurations
         for (String keyValue : split) {
           String key = keyValue.split("=")[0].trim();
           boolean matchResult =
               settings.stream().anyMatch(settingKey -> key.equals(settingKey.getKey()));
           if (matchResult) {
-            throw new ConfigurationException("Key has duplicate entries,key :" + key);
+            throw new ConfigurationException("Saved key is duplicated with the spark conf key , key :" + key);
           }
         }
       }
