@@ -45,6 +45,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -169,16 +171,15 @@ public class ConfigurationRestfulApi {
   public Message getItemList(
       HttpServletRequest req, @RequestParam(value = "engineType") String engineType)
       throws ConfigurationException {
-    String userName =
-        ModuleUserUtils.getOperationUser(req, "getItemList with engineType:" + engineType);
+    ModuleUserUtils.getOperationUser(req, "getItemList with engineType:" + engineType);
     // Adding * represents returning all configuration information
     if ("*".equals(engineType)) {
       engineType = null;
     }
     List<ConfigKey> result = configKeyService.getConfigKeyList(engineType);
-    List<Map> filterResult = new ArrayList<>();
+    List<Map<String, Object>> filterResult = new ArrayList<>();
     for (ConfigKey configKey : result) {
-      Map temp = new HashMap();
+      Map<String, Object> temp = new HashMap<>();
       temp.put("key", configKey.getKey());
       temp.put("name", configKey.getName());
       temp.put("description", configKey.getDescription());
@@ -187,13 +188,11 @@ public class ConfigurationRestfulApi {
       temp.put("validateRange", configKey.getValidateRange());
       temp.put("boundaryType", configKey.getBoundaryType());
       temp.put("defaultValue", configKey.getDefaultValue());
-      // for front-end to judge whether input is required
-      if (StringUtils.isNotEmpty(configKey.getDefaultValue())) {
-        temp.put("require", "true");
+      if (StringUtils.isNotBlank(configKey.getTemplateRequired())) {
+        temp.put("require", configKey.getTemplateRequired().equals("1"));
       } else {
         temp.put("require", "false");
       }
-
       filterResult.add(temp);
     }
 
@@ -303,6 +302,7 @@ public class ConfigurationRestfulApi {
       String s = BDPJettyServerHelper.gson().toJson(o);
       ConfigTree fullTree = BDPJettyServerHelper.gson().fromJson(s, ConfigTree.class);
       List<ConfigKeyValue> settings = fullTree.getSettings();
+      sparkConfCheck(settings);
       Integer userLabelId =
           configurationService.checkAndCreateUserLabel(settings, username, creator);
       for (ConfigKeyValue setting : settings) {
@@ -349,10 +349,35 @@ public class ConfigurationRestfulApi {
                       engineVersion);
                 }
               });
+      configurationService.clearAMCacheConf(username, creator, null, null);
     } else {
       configurationService.clearAMCacheConf(username, creator, engine, version);
     }
     return Message.ok();
+  }
+
+  private void sparkConfCheck(List<ConfigKeyValue> settings) throws ConfigurationException {
+    for (ConfigKeyValue setting : settings) {
+      if (setting.getKey().equals("spark.conf")) {
+        // Check if there are any duplicates in spark. conf
+        String[] split = setting.getConfigValue().split(";");
+        Stream<String> stringStream = Arrays.stream(split).map(s -> s.split("=")[0].trim());
+        int setSize = stringStream.collect(Collectors.toSet()).size();
+        int listSize = (int) stringStream.count();
+        if (listSize != setSize) {
+          throw new ConfigurationException("Key has duplicate entries");
+        }
+        // Check if there are any duplicates in the spark.conf configuration and other individual
+        // configurations
+        for (String key : split) {
+          boolean matchResult =
+              settings.stream().anyMatch(settingKey -> key.equals(settingKey.getKey()));
+          if (matchResult) {
+            throw new ConfigurationException("Key has duplicate entries,key :" + key);
+          }
+        }
+      }
+    }
   }
 
   @ApiOperation(
@@ -502,7 +527,11 @@ public class ConfigurationRestfulApi {
       configurationService.paramCheck(configKeyValue);
     } catch (Exception e) {
       if (force && e instanceof ConfigurationException) {
-        message.data("msg", e.getMessage());
+        message.data(
+            "msg",
+            "The update was successful, but the value verification failed. Please confirm if it has any impact："
+                + "（更新成功，但是值校验失败，请确认是否有影响）\n"
+                + e.getMessage());
       } else {
         return Message.error(e.getMessage());
       }
@@ -639,7 +668,12 @@ public class ConfigurationRestfulApi {
         name = "enTreeName",
         required = false,
         dataType = "String",
-        value = "enTreeName")
+        value = "enTreeName"),
+    @ApiImplicitParam(
+        name = "templateRequired",
+        required = false,
+        dataType = "String",
+        value = "1"),
   })
   @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.POST)
@@ -675,6 +709,9 @@ public class ConfigurationRestfulApi {
     }
     if (null == boundaryType) {
       return Message.error("boundaryType cannot be empty");
+    }
+    if (null == configKey.getTemplateRequired()) {
+      configKey.setTemplateRequired("1");
     }
     if (StringUtils.isNotEmpty(defaultValue)
         && !validatorManager
