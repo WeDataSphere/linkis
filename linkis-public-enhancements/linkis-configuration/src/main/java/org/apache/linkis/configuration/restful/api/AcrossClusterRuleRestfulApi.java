@@ -233,7 +233,7 @@ public class AcrossClusterRuleRestfulApi {
       acrossClusterRule.setId(id);
       acrossClusterRule.setClusterName(clusterName.toLowerCase());
       acrossClusterRule.setCreator(creator);
-      acrossClusterRule.setUser(user);
+      acrossClusterRule.setUserName(user);
       acrossClusterRule.setUpdateBy(username);
       acrossClusterRule.setRules(rules);
       acrossClusterRule.setIsValid(isValid);
@@ -312,7 +312,7 @@ public class AcrossClusterRuleRestfulApi {
       AcrossClusterRule acrossClusterRule = new AcrossClusterRule();
       acrossClusterRule.setClusterName(clusterName.toLowerCase());
       acrossClusterRule.setCreator(creator);
-      acrossClusterRule.setUser(user);
+      acrossClusterRule.setUserName(user);
       acrossClusterRule.setCreateBy(username);
       acrossClusterRule.setUpdateBy(username);
       acrossClusterRule.setRules(rules);

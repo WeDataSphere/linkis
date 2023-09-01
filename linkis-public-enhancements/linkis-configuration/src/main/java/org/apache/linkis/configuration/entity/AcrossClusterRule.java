@@ -24,7 +24,7 @@ public class AcrossClusterRule {
   private Long id;
   private String clusterName;
   private String creator;
-  private String user;
+  private String userName;
   private Date createTime;
   private String createBy;
   private Date updateTime;
@@ -58,12 +58,12 @@ public class AcrossClusterRule {
     this.creator = creator;
   }
 
-  public String getUser() {
-    return user;
+  public String getUserName() {
+    return userName;
   }
 
-  public void setUser(String user) {
-    this.user = user;
+  public void setUserName(String userName) {
+    this.userName = userName;
   }
 
   public Date getCreateTime() {
@@ -125,8 +125,8 @@ public class AcrossClusterRule {
         + ", creator='"
         + creator
         + '\''
-        + ", user='"
-        + user
+        + ", userName='"
+        + userName
         + '\''
         + ", createTime="
         + createTime
