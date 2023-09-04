@@ -27,14 +27,14 @@ public interface AcrossClusterRuleMapper {
 
   AcrossClusterRule getAcrossClusterRule(@Param("id") Long id);
 
-  void deleteAcrossClusterRule(@Param("creator") String creator, @Param("userName") String userName);
+  void deleteAcrossClusterRule(@Param("creator") String creator, @Param("username") String username);
 
   void updateAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
   void insertAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
   List<AcrossClusterRule> queryAcrossClusterRuleList(
-      @Param("userName") String userName,
+      @Param("username") String username,
       @Param("creator") String creator,
       @Param("clusterName") String clusterName);
 
