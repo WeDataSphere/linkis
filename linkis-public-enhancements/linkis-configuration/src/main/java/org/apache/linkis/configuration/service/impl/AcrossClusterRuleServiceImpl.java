@@ -39,8 +39,8 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
   @Autowired private AcrossClusterRuleMapper ruleMapper;
 
   @Override
-  public void deleteAcrossClusterRule(String creator, String user) throws Exception {
-    ruleMapper.deleteAcrossClusterRule(creator, user);
+  public void deleteAcrossClusterRule(String creator, String username) throws Exception {
+    ruleMapper.deleteAcrossClusterRule(creator, username);
     logger.info("delete acrossClusterRule success");
     return;
   }
@@ -75,7 +75,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
 
   @Override
   public Map<String, Object> queryAcrossClusterRuleList(
-      String creator, String user, String clusterName, Integer pageNow, Integer pageSize) {
+      String creator, String username, String clusterName, Integer pageNow, Integer pageSize) {
     Map<String, Object> result = new HashMap<>(2);
     List<AcrossClusterRule> acrossClusterRules = null;
     if (Objects.isNull(pageNow)) {
@@ -87,7 +87,7 @@ public class AcrossClusterRuleServiceImpl implements AcrossClusterRuleService {
     PageHelper.startPage(pageNow, pageSize);
 
     try {
-      acrossClusterRules = ruleMapper.queryAcrossClusterRuleList(user, creator, clusterName);
+      acrossClusterRules = ruleMapper.queryAcrossClusterRuleList(username, creator, clusterName);
     } finally {
       PageHelper.clearPage();
     }
