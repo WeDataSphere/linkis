@@ -101,7 +101,7 @@
             `linkis_cg_lm_across_cluster_rule`
         SET
             cluster_name = #{acrossClusterRule.clusterName}, creator = #{acrossClusterRule.creator},
-            user_name=#{acrossClusterRule.username}, create_time=#{acrossClusterRule.createTime},
+            username=#{acrossClusterRule.username}, create_time=#{acrossClusterRule.createTime},
             create_By=#{acrossClusterRule.createBy},
             <choose>
                 <when test="acrossClusterRule.updateTime != null">
