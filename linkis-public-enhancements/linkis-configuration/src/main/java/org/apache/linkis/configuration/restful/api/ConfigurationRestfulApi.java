@@ -307,7 +307,7 @@ public class ConfigurationRestfulApi {
       for (ConfigKeyValue configKeyValue : settings) {
         if (configKeyValue.getKey().equals("spark.conf")
             && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
-          sparkConf = configKeyValue.getConfigValue().replaceAll("\\s", "");
+          sparkConf = configKeyValue.getConfigValue().trim();
           configKeyValue.setConfigValue(sparkConf);
         }
       }
