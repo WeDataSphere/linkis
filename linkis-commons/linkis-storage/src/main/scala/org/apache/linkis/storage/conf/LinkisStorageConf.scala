@@ -39,7 +39,7 @@ object LinkisStorageConf {
 
   val FILE_TYPE = CommonVars(
     "wds.linkis.storage.file.type",
-    "dolphin,sql,scala,py,hql,python,out,log,text,sh,jdbc,ngql,psql,fql,tsql"
+    "dolphin,sql,scala,py,hql,python,out,log,text,sh,jdbc,ngql,psql,fql,tsql,txt"
   ).getValue
 
   private var fileTypeArr: Array[String] = null
@@ -60,5 +60,5 @@ object LinkisStorageConf {
     fileTypeArr
   }
 
-  val LINKIS_RESULT_ENABLE_NULL = CommonVars("linkis.resultset.enable.null.replace", true).getValue
+  val LINKIS_RESULT_ENABLE_NULL = CommonVars("linkis.resultset.enable.null.replace", false).getValue
 }

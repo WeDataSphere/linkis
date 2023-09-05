@@ -424,29 +424,28 @@ class TaskExecutionServiceImpl
   ): Future[_] = {
     val sleepInterval = ComputationExecutorConf.ENGINE_PROGRESS_FETCH_INTERVAL.getValue
     scheduler.submit(new Runnable {
-      override def run(): Unit = Utils.tryAndWarn {
+      override def run(): Unit = {
         Utils.tryQuietly(Thread.sleep(TimeUnit.MILLISECONDS.convert(1, TimeUnit.SECONDS)))
         while (null != taskFuture && !taskFuture.isDone) {
-          if (
-              ExecutionNodeStatus.isCompleted(task.getStatus) || ExecutionNodeStatus
-                .isRunning(task.getStatus)
-          ) {
-            val progressResponse = taskProgress(task.getTaskId)
-            val resourceResponse = buildResourceMap(task)
-            val extraInfoMap = buildExtraInfoMap(task)
-            // todo add other info
-            val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
-
-            val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
-              progressResponse.execId,
-              progressResponse.progress,
-              progressResponse.progressInfo,
-              resourceMap,
-              extraInfoMap
-            )
-            sendToEntrance(task, respRunningInfo)
-            Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepInterval, TimeUnit.SECONDS))
+          if (!ExecutionNodeStatus.isCompleted(task.getStatus)) {
+            Utils.tryAndWarn {
+              val progressResponse = Utils.tryAndWarn(taskProgress(task.getTaskId))
+              val resourceResponse = Utils.tryAndWarn(buildResourceMap(task))
+              val extraInfoMap = Utils.tryAndWarn(buildExtraInfoMap(task))
+              val resourceMap = if (null != resourceResponse) resourceResponse.resourceMap else null
+              val respRunningInfo: ResponseTaskRunningInfo = ResponseTaskRunningInfo(
+                progressResponse.execId,
+                progressResponse.progress,
+                progressResponse.progressInfo,
+                resourceMap,
+                extraInfoMap
+              )
+              sendToEntrance(task, respRunningInfo)
+            }
           }
+          Utils.tryQuietly(
+            Thread.sleep(TimeUnit.MILLISECONDS.convert(sleepInterval, TimeUnit.SECONDS))
+          )
         }
       }
     })
