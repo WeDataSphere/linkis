@@ -82,7 +82,7 @@ public class StdLabelBuilderFactoryTest {
   @Test
   public void test(){
     Map input= new HashMap<String,String>();
-    input.put("userCreator","janicegong-IDE");
+    input.put("userCreator","username-IDE");
     input.put("yarnCluster","bdp-test");
     input.put("executeOnce","true");
     List<Label> res= stdLabelBuilderFactory.getLabels(input);
