@@ -104,7 +104,6 @@ public class FsRestfulApi {
         WorkspaceUtil.suffixTuning(HDFS_USER_ROOT_PATH_PREFIX.getValue());
     String hdfsUserRootPathSuffix = HDFS_USER_ROOT_PATH_SUFFIX.getValue();
     String localUserRootPath = WorkspaceUtil.suffixTuning(LOCAL_USER_ROOT_PATH.getValue());
-    String path;
 
     String workspacePath = hdfsUserRootPathPrefix + userName + hdfsUserRootPathSuffix;
     String enginconnPath = localUserRootPath + userName;
@@ -240,7 +239,7 @@ public class FsRestfulApi {
       PathValidator$.MODULE$.validate(oldDest, userName);
       PathValidator$.MODULE$.validate(newDest, userName);
     }
-    if (!checkIsUsersDirectory(newDest, userName,false)) {
+    if (!checkIsUsersDirectory(newDest, userName, false)) {
       throw WorkspaceExceptionManager.createException(80010, userName, newDest);
     }
     if (StringUtils.isEmpty(oldDest)) {
@@ -1057,32 +1056,5 @@ public class FsRestfulApi {
       deleteAllFiles(fileSystem, path);
     }
     fileSystem.delete(fsPath);
-  }
-
-  /**
-   * check 权限
-   *
-   * @param requestPath
-   * @param userName
-   * @return
-   */
-  private boolean checkIsUsersDirectoryNoAdmin(String requestPath, String userName) {
-    boolean ownerCheck = WorkSpaceConfiguration.FILESYSTEM_PATH_CHECK_OWNER.getValue();
-    if (!ownerCheck) {
-      LOGGER.debug("not check filesystem owner.");
-      return true;
-    }
-    requestPath = requestPath.toLowerCase().trim() + "/";
-    String hdfsUserRootPathPrefix =
-            WorkspaceUtil.suffixTuning(HDFS_USER_ROOT_PATH_PREFIX.getValue());
-    String hdfsUserRootPathSuffix = HDFS_USER_ROOT_PATH_SUFFIX.getValue();
-    String localUserRootPath = WorkspaceUtil.suffixTuning(LOCAL_USER_ROOT_PATH.getValue());
-    String workspacePath = hdfsUserRootPathPrefix + userName + hdfsUserRootPathSuffix;
-    String enginconnPath = localUserRootPath + userName;
-    LOGGER.debug("requestPath:" + requestPath);
-    LOGGER.debug("workspacePath:" + workspacePath);
-    LOGGER.debug("enginconnPath:" + enginconnPath);
-    LOGGER.debug("adminUser:" + String.join(",", Configuration.getJobHistoryAdmin()));
-    return (requestPath.contains(workspacePath)) || (requestPath.contains(enginconnPath));
   }
 }
