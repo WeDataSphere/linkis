@@ -84,8 +84,6 @@ public class FsRestfulApi {
 
   private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-
-
   /**
    * check 权限
    *
@@ -119,9 +117,8 @@ public class FsRestfulApi {
   }
 
   private boolean checkIsUsersDirectory(String requestPath, String userName) {
-    return  checkIsUsersDirectory(requestPath, userName, true);
+    return checkIsUsersDirectory(requestPath, userName, true);
   }
-
 
   @ApiOperation(value = "getUserRootPath", notes = "get user root path", response = Message.class)
   @ApiImplicitParams({

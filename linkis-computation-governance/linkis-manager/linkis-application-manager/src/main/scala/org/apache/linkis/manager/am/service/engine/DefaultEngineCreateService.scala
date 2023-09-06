@@ -35,7 +35,10 @@ import org.apache.linkis.manager.common.entity.node.{EMNode, EngineNode}
 import org.apache.linkis.manager.common.entity.resource.NodeResource
 import org.apache.linkis.manager.common.protocol.engine.{EngineCreateRequest, EngineStopRequest}
 import org.apache.linkis.manager.common.utils.ManagerUtils
-import org.apache.linkis.manager.engineplugin.common.launch.entity.{EngineConnBuildRequestImpl, EngineConnCreationDescImpl}
+import org.apache.linkis.manager.engineplugin.common.launch.entity.{
+  EngineConnBuildRequestImpl,
+  EngineConnCreationDescImpl
+}
 import org.apache.linkis.manager.engineplugin.common.resource.TimeoutEngineResourceRequest
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
@@ -50,13 +53,14 @@ import org.apache.linkis.manager.service.common.label.{LabelChecker, LabelFilter
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 import org.apache.linkis.server.BDPJettyServerHelper
+
 import org.apache.commons.lang3.StringUtils
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
+
 import java.util
-import java.util.concurrent.{TimeUnit, TimeoutException}
-
-
+import java.util.concurrent.{TimeoutException, TimeUnit}
 
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
@@ -294,7 +298,9 @@ class DefaultEngineCreateService
       val queueName = props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "default")
       val newQueueName = queueName + "_" + queueRuleSuffix
       props.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, newQueueName)
-      logger.info(s"Switch queues according to queueRule with queue name : $queueName to $newQueueName")
+      logger.info(
+        s"Switch queues according to queueRule with queue name : $queueName to $newQueueName"
+      )
     }
 
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(

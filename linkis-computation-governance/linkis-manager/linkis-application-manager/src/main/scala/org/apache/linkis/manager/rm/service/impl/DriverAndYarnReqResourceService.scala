@@ -17,6 +17,7 @@
 
 package org.apache.linkis.manager.rm.service.impl
 
+import org.apache.linkis.manager.am.conf.AMConfiguration
 import org.apache.linkis.manager.common.constant.RMConstant
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.entity.resource.ResourceType.DriverAndYarn
@@ -28,8 +29,9 @@ import org.apache.linkis.manager.rm.external.service.ExternalResourceService
 import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
 import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService}
 import org.apache.linkis.manager.rm.utils.{AcrossClusterRulesJudgeUtils, RMUtils}
+
 import org.apache.commons.lang3.StringUtils
-import org.apache.linkis.manager.am.conf.AMConfiguration
+
 import org.json4s.DefaultFormats
 
 class DriverAndYarnReqResourceService(
@@ -81,11 +83,14 @@ class DriverAndYarnReqResourceService(
       val acrossClusterTask = properties.getOrDefault(AMConfiguration.ACROSS_CLUSTER_TASK, "false")
       val CPUThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_CPU_THRESHOLD)
       val MemoryThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_MEMORY_THRESHOLD)
-      val CPUPercentageThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_CPU_PERCENTAGE_THRESHOLD)
-      val MemoryPercentageThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_MEMORY_PERCENTAGE_THRESHOLD)
+      val CPUPercentageThreshold =
+        properties.get(AMConfiguration.ACROSS_CLUSTER_CPU_PERCENTAGE_THRESHOLD)
+      val MemoryPercentageThreshold =
+        properties.get(AMConfiguration.ACROSS_CLUSTER_MEMORY_PERCENTAGE_THRESHOLD)
 
       if (
-        StringUtils.isNotBlank(acrossClusterTask) && acrossClusterTask.toBoolean && StringUtils.isNotBlank(CPUThreshold) && StringUtils
+          StringUtils.isNotBlank(acrossClusterTask) && acrossClusterTask.toBoolean && StringUtils
+            .isNotBlank(CPUThreshold) && StringUtils
             .isNotBlank(MemoryThreshold)
           && StringUtils
             .isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)
@@ -98,11 +103,20 @@ class DriverAndYarnReqResourceService(
         )
 
         if (
-          !AcrossClusterRulesJudgeUtils.StringToIntJudge(CPUThreshold) || !AcrossClusterRulesJudgeUtils.StringToIntJudge(MemoryThreshold) ||
-          !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(CPUPercentageThreshold) || !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(MemoryPercentageThreshold)
+            !AcrossClusterRulesJudgeUtils.StringToIntJudge(
+              CPUThreshold
+            ) || !AcrossClusterRulesJudgeUtils.StringToIntJudge(MemoryThreshold) ||
+            !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(
+              CPUPercentageThreshold
+            ) || !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(MemoryPercentageThreshold)
         ) {
-          logger.info(s"user: $user, creator: $creator task not meet the threshold rule, because invalid argument")
-          throw new RMWarnException(RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode, RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc)
+          logger.info(
+            s"user: $user, creator: $creator task not meet the threshold rule, because invalid argument"
+          )
+          throw new RMWarnException(
+            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
+            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc
+          )
         }
 
         val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
@@ -116,8 +130,13 @@ class DriverAndYarnReqResourceService(
         )
 
         if (!acrossClusterFlag) {
-          logger.info(s"user: $user, creator: $creator task not meet the threshold rule, because insufficient resources")
-          throw new RMWarnException(RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode, RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc)
+          logger.info(
+            s"user: $user, creator: $creator task not meet the threshold rule, because insufficient resources"
+          )
+          throw new RMWarnException(
+            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
+            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc
+          )
         }
 
         logger.info(s"user: $user, creator: $creator task meet the threshold rule")
