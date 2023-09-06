@@ -17,11 +17,15 @@
 
 package org.apache.linkis.manager.label.conf
 
-import org.apache.linkis.common.conf.CommonVars
+import org.junit.jupiter.api.Test
 
-object LabelManagerConf {
-
-  val LONG_LIVED_LABEL =
-    CommonVars("wds.linkis.label.node.long.lived.label.keys", "tenant|yarnCluster").getValue
-
+class LabelManagerConfTest {
+  @Test def testRandomFiltering(): Unit = {
+    var label = "tenant"
+    assert(LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+    label = "yarnCluster"
+    assert(LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+    label = "test"
+    assert(!LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+  }
 }
