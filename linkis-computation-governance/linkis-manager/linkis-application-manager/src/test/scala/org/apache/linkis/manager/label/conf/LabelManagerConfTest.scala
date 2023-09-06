@@ -20,6 +20,7 @@ package org.apache.linkis.manager.label.conf
 import org.junit.jupiter.api.Test
 
 class LabelManagerConfTest {
+
   @Test def testRandomFiltering(): Unit = {
     var label = "tenant"
     assert(LabelManagerConf.LONG_LIVED_LABEL.contains(label))
@@ -28,4 +29,5 @@ class LabelManagerConfTest {
     label = "test"
     assert(!LabelManagerConf.LONG_LIVED_LABEL.contains(label))
   }
+
 }
