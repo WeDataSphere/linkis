@@ -33,33 +33,53 @@ object AcrossClusterRulesJudgeUtils extends Logging {
   ): Boolean = {
     if (leftResource != null && usedResource != null && maxResource != null) {
       val leftQueueMemory = leftResource.queueMemory / Math.pow(1024, 3).toLong
-      logger.info(
-        s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold," +
-          s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold"
-      )
 
       if (leftResource.queueCores > leftCPUThreshold && leftQueueMemory > leftMemoryThreshold) {
-
         val usedCPUPercentage =
           usedResource.queueCores.asInstanceOf[Double] / maxResource.queueCores
             .asInstanceOf[Double]
         val usedMemoryPercentage = usedResource.queueMemory
           .asInstanceOf[Double] / maxResource.queueMemory.asInstanceOf[Double]
 
-        logger.info(
-          s"usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold" +
-            s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
-        )
-
         if (
             usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
         ) {
           return true
+        } else {
+          logger.info(
+            s"Across cluster resources insufficient, usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold" +
+              s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
+          )
         }
+      } else {
+        logger.info(
+          s"Across cluster resources insufficient, leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold," +
+            s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold"
+        )
       }
     }
 
     false
+  }
+
+  def StringToIntJudge(number: String): Boolean = {
+    try {
+      val num = number.toInt
+    } catch {
+      case t: NumberFormatException =>
+        return false
+    }
+    true
+  }
+
+  def StringToDoubleJudge(number: String): Boolean = {
+    try {
+      val num = number.toDouble
+    } catch {
+      case t: NumberFormatException =>
+        return false
+    }
+    true
   }
 
 }
