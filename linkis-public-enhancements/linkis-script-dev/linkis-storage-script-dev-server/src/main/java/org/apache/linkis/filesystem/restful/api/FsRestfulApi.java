@@ -84,8 +84,6 @@ public class FsRestfulApi {
 
   private final Logger LOGGER = LoggerFactory.getLogger(getClass());
 
-
-
   /**
    * check 权限
    *
@@ -107,6 +105,10 @@ public class FsRestfulApi {
 
     String workspacePath = hdfsUserRootPathPrefix + userName + hdfsUserRootPathSuffix;
     String enginconnPath = localUserRootPath + userName;
+    // 管理员修改其他用户文件目录时，会导致用户无法使用文件，故此优化管理员不能修改(When administrators modify the file directory of other
+    // users,
+    // it will cause users to be unable to use the file, so the optimization administrator cannot
+    // modify it)
     if (withAdmin && Configuration.isJobHistoryAdmin(userName)) {
       workspacePath = hdfsUserRootPathPrefix;
       enginconnPath = localUserRootPath;
@@ -119,9 +121,8 @@ public class FsRestfulApi {
   }
 
   private boolean checkIsUsersDirectory(String requestPath, String userName) {
-    return  checkIsUsersDirectory(requestPath, userName, true);
+    return checkIsUsersDirectory(requestPath, userName, true);
   }
-
 
   @ApiOperation(value = "getUserRootPath", notes = "get user root path", response = Message.class)
   @ApiImplicitParams({
