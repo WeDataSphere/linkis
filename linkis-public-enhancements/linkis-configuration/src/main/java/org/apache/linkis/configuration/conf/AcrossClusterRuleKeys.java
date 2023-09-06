@@ -4,6 +4,8 @@ public class AcrossClusterRuleKeys {
 
     public static final String KEY_QUEUE_SUFFIX = "suffix";
 
+    public static final String KEY_ACROSS_CLUSTER_QUEUE_SUFFIX = "bdap2bdp";
+
     public static final String KEY_START_TIME = "startTime";
 
     public static final String KEY_END_TIME = "endTime";

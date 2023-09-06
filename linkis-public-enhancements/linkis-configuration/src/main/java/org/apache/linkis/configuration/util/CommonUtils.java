@@ -17,8 +17,6 @@
 
 package org.apache.linkis.configuration.util;
 
-import org.apache.linkis.configuration.conf.AcrossClusterConfiguration;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -52,7 +50,7 @@ public class CommonUtils {
     Map<String, String> timeRuleMap = new HashMap<>();
     Map<String, String> thresholdRuleMap = new HashMap<>();
     Map<String, Object> ruleMap = new HashMap<>();
-    queueRuleMap.put(KEY_QUEUE_SUFFIX, AcrossClusterConfiguration.ACROSS_CLUSTER_QUEUE_SUFFIX());
+    queueRuleMap.put(KEY_QUEUE_SUFFIX, KEY_ACROSS_CLUSTER_QUEUE_SUFFIX);
     timeRuleMap.put(KEY_START_TIME, startTime);
     timeRuleMap.put(KEY_END_TIME, endTime);
     thresholdRuleMap.put(KEY_CPU_THRESHOLD, CPUThreshold);
