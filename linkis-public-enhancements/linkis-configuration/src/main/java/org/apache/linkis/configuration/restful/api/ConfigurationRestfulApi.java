@@ -367,7 +367,7 @@ public class ConfigurationRestfulApi {
       throws ConfigurationException {
     if (StringUtils.isNotBlank(sparkConf)) {
       // Check if there are any duplicates in spark. conf
-      // spark.conf : spark.shuffle.spill=true;spark.executor.memory=4g
+      // spark.conf : spark.shuffle.compress=ture;spark.executor.memory=4g
       String[] split = sparkConf.split(";");
       int setSize =
           Arrays.stream(split).map(s -> s.split("=")[0].trim()).collect(Collectors.toSet()).size();

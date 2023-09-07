@@ -41,7 +41,7 @@ VALUES(
 null, 'None', NULL, 'spark',
 0, 1, 1,
 'spark资源设置', 0, 'Spark Resource Settings',
-'Multiple parameters are separated by semicolons [;] For example, spark.shuffle.spill=true;', 'Spark Custom Configuration Parameters');
+'Multiple parameters are separated by semicolons [;] For example, spark.shuffle.compress=ture;', 'Spark Custom Configuration Parameters');
 
 INSERT INTO `linkis_ps_configuration_key_engine_relation` (`config_key_id`, `engine_type_label_id`)
 (
