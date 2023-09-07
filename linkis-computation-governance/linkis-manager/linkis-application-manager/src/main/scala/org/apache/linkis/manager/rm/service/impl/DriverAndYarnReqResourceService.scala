@@ -101,7 +101,6 @@ class DriverAndYarnReqResourceService(
             s"CPUThreshold: $CPUThreshold, MemoryThreshold: $MemoryThreshold," +
             s"CPUPercentageThreshold: $CPUPercentageThreshold, MemoryPercentageThreshold: $MemoryPercentageThreshold"
         )
-
         try {
           AcrossClusterRulesJudgeUtils.acrossClusterRuleCheck(
             queueLeftResource.asInstanceOf[YarnResource],
