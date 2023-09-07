@@ -102,40 +102,21 @@ class DriverAndYarnReqResourceService(
             s"CPUPercentageThreshold: $CPUPercentageThreshold, MemoryPercentageThreshold: $MemoryPercentageThreshold"
         )
 
-        if (
-            !AcrossClusterRulesJudgeUtils.StringToIntJudge(
-              CPUThreshold
-            ) || !AcrossClusterRulesJudgeUtils.StringToIntJudge(MemoryThreshold) ||
-            !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(
-              CPUPercentageThreshold
-            ) || !AcrossClusterRulesJudgeUtils.StringToDoubleJudge(MemoryPercentageThreshold)
-        ) {
-          logger.info(
-            s"user: $user, creator: $creator task not meet the threshold rule, because invalid argument"
+        try {
+          AcrossClusterRulesJudgeUtils.acrossClusterRuleCheck(
+            queueLeftResource.asInstanceOf[YarnResource],
+            usedCapacity.asInstanceOf[YarnResource],
+            maxCapacity.asInstanceOf[YarnResource],
+            CPUThreshold.toInt,
+            MemoryThreshold.toInt,
+            CPUPercentageThreshold.toDouble,
+            MemoryPercentageThreshold.toDouble
           )
-          throw new RMWarnException(
+        } catch {
+          case ex: Exception =>
+            throw new RMWarnException(
             RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
-            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc
-          )
-        }
-
-        val acrossClusterFlag = AcrossClusterRulesJudgeUtils.acrossClusterRuleJudge(
-          queueLeftResource.asInstanceOf[YarnResource],
-          usedCapacity.asInstanceOf[YarnResource],
-          maxCapacity.asInstanceOf[YarnResource],
-          CPUThreshold.toInt,
-          MemoryThreshold.toInt,
-          CPUPercentageThreshold.toDouble,
-          MemoryPercentageThreshold.toDouble
-        )
-
-        if (!acrossClusterFlag) {
-          logger.info(
-            s"user: $user, creator: $creator task not meet the threshold rule, because insufficient resources"
-          )
-          throw new RMWarnException(
-            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
-            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorDesc
+            ex.getMessage
           )
         }
 

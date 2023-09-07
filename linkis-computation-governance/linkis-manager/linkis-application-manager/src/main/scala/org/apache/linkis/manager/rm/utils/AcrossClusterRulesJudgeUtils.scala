@@ -19,18 +19,20 @@ package org.apache.linkis.manager.rm.utils
 
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.manager.common.entity.resource.YarnResource
+import org.apache.linkis.manager.common.exception.RMWarnException
+import org.apache.linkis.manager.rm.exception.RMErrorCode
 
 object AcrossClusterRulesJudgeUtils extends Logging {
 
-  def acrossClusterRuleJudge(
+  def acrossClusterRuleCheck(
       leftResource: YarnResource,
       usedResource: YarnResource,
       maxResource: YarnResource,
       leftCPUThreshold: Int,
       leftMemoryThreshold: Int,
-      UsedCPUPercentageThreshold: Double,
-      UsedMemoryPercentageThreshold: Double
-  ): Boolean = {
+      CPUPercentageThreshold: Double,
+      MemoryPercentageThreshold: Double
+  ): Unit = {
     if (leftResource != null && usedResource != null && maxResource != null) {
       val leftQueueMemory = leftResource.queueMemory / Math.pow(1024, 3).toLong
 
@@ -42,44 +44,24 @@ object AcrossClusterRulesJudgeUtils extends Logging {
           .asInstanceOf[Double] / maxResource.queueMemory.asInstanceOf[Double]
 
         if (
-            usedCPUPercentage < UsedCPUPercentageThreshold && usedMemoryPercentage < UsedMemoryPercentageThreshold
+            usedCPUPercentage < CPUPercentageThreshold && usedMemoryPercentage < MemoryPercentageThreshold
         ) {
-          return true
+          return
         } else {
-          logger.info(
-            s"Across cluster resources insufficient, usedCPUPercentage: $usedCPUPercentage, UsedCPUPercentageThreshold: $UsedCPUPercentageThreshold" +
-              s"usedMemoryPercentage: $usedMemoryPercentage, UsedMemoryPercentageThreshold: $UsedMemoryPercentageThreshold"
+          throw new RMWarnException(
+            RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
+              s"usedCPUPercentage: $usedCPUPercentage, CPUPercentageThreshold: $CPUPercentageThreshold" +
+                s"usedMemoryPercentage: $usedMemoryPercentage, MemoryPercentageThreshold: $MemoryPercentageThreshold"
           )
         }
       } else {
-        logger.info(
-          s"Across cluster resources insufficient, leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold," +
+        throw new RMWarnException(
+          RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
+          s"leftResource.queueCores: ${leftResource.queueCores}, leftCPUThreshold: $leftCPUThreshold," +
             s"leftQueueMemory: $leftQueueMemory, leftMemoryThreshold: $leftMemoryThreshold"
         )
       }
     }
-
-    false
-  }
-
-  def StringToIntJudge(number: String): Boolean = {
-    try {
-      val num = number.toInt
-    } catch {
-      case t: NumberFormatException =>
-        return false
-    }
-    true
-  }
-
-  def StringToDoubleJudge(number: String): Boolean = {
-    try {
-      val num = number.toDouble
-    } catch {
-      case t: NumberFormatException =>
-        return false
-    }
-    true
   }
 
 }
