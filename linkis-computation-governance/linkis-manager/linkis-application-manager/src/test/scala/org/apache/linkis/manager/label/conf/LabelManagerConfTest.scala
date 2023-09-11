@@ -15,13 +15,19 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.configuration.conf
+package org.apache.linkis.manager.label.conf
 
-import org.apache.linkis.common.conf.CommonVars
+import org.junit.jupiter.api.Test
 
-object AcrossClusterConfiguration {
+class LabelManagerConfTest {
 
-  val ACROSS_CLUSTER_QUEUE_SUFFIX =
-    CommonVars.apply("linkis.configuration.across.cluster.queue.suffix", "_bdap2bdp").getValue
+  @Test def testRandomFiltering(): Unit = {
+    var label = "tenant"
+    assert(LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+    label = "yarnCluster"
+    assert(LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+    label = "test"
+    assert(!LabelManagerConf.LONG_LIVED_LABEL.contains(label))
+  }
 
 }

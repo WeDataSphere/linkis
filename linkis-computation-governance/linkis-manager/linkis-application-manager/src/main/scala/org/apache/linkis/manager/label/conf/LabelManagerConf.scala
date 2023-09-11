@@ -22,6 +22,6 @@ import org.apache.linkis.common.conf.CommonVars
 object LabelManagerConf {
 
   val LONG_LIVED_LABEL =
-    CommonVars("wds.linkis.label.node.long.lived.label.keys", "tenant").getValue
+    CommonVars("wds.linkis.label.node.long.lived.label.keys", "tenant|yarnCluster").getValue
 
 }
