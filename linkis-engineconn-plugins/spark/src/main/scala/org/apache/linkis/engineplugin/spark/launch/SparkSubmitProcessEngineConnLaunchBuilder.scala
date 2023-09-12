@@ -21,8 +21,8 @@ import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.engineplugin.spark.config.SparkConfiguration.{
   ENGINE_JAR,
+  LINKIS_SPARK_CONF,
   SPARK_APP_NAME,
-  SPARK_CONF,
   SPARK_DEFAULT_EXTERNAL_JARS_PATH,
   SPARK_DRIVER_CLASSPATH,
   SPARK_DRIVER_EXTRA_JAVA_OPTIONS,
@@ -53,23 +53,14 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
       gcLogDir: String,
       logDir: String
   ): Array[String] = {
-    val userEngineResource = engineConnBuildRequest.engineResource
-    val darResource = userEngineResource.getLockedResource.asInstanceOf[DriverAndYarnResource]
     val properties = engineConnBuildRequest.engineConnCreationDesc.properties
-
-    val className = getValueAndRemove(properties, "className", mainClass)
-    val driverCores = getValueAndRemove(properties, LINKIS_SPARK_DRIVER_CORES)
-    val driverMemory = getValueAndRemove(properties, LINKIS_SPARK_DRIVER_MEMORY)
-    val executorCores = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_CORES)
-    val executorMemory = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_MEMORY)
-    val numExecutors = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_INSTANCES)
-    val sparkcsonf = getValueAndRemove(properties, SPARK_CONF)
+    val sparkConf = getValueAndRemove(properties, LINKIS_SPARK_CONF)
     // sparkcsonf DEMO:spark.sql.shuffle.partitions=10;spark.memory.fraction=0.6
-    if (StringUtils.isNotBlank(sparkcsonf)) {
-      val strArrary = sparkcsonf.split(";").toList
+    if (StringUtils.isNotBlank(sparkConf)) {
+      val strArrary = sparkConf.split(";").toList
       strArrary.foreach { keyAndValue =>
-        val key = keyAndValue.split("=")(0)
-        val value = keyAndValue.split("=")(1)
+        val key = keyAndValue.split("=")(0).trim
+        val value = keyAndValue.split("=")(1).trim
         if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
           engineConnBuildRequest.engineConnCreationDesc.properties.put(key, value)
         } else {
@@ -77,7 +68,15 @@ class SparkSubmitProcessEngineConnLaunchBuilder(builder: JavaProcessEngineConnLa
         }
       }
     }
+    val className = getValueAndRemove(properties, "className", mainClass)
+    val driverCores = getValueAndRemove(properties, LINKIS_SPARK_DRIVER_CORES)
+    val driverMemory = getValueAndRemove(properties, LINKIS_SPARK_DRIVER_MEMORY)
+    val executorCores = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_CORES)
+    val executorMemory = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_MEMORY)
+    val numExecutors = getValueAndRemove(properties, LINKIS_SPARK_EXECUTOR_INSTANCES)
 
+    val userEngineResource = engineConnBuildRequest.engineResource
+    val darResource = userEngineResource.getLockedResource.asInstanceOf[DriverAndYarnResource]
     val files = getValueAndRemove(properties, "files", "").split(",").filter(isNotBlankPath)
     val jars = new ArrayBuffer[String]()
     jars ++= getValueAndRemove(properties, "jars", "").split(",").filter(isNotBlankPath)

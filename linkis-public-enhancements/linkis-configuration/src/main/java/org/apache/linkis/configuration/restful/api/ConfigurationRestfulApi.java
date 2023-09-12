@@ -187,11 +187,7 @@ public class ConfigurationRestfulApi {
       temp.put("validateRange", configKey.getValidateRange());
       temp.put("boundaryType", configKey.getBoundaryType());
       temp.put("defaultValue", configKey.getDefaultValue());
-      if (StringUtils.isNotBlank(configKey.getTemplateRequired())) {
-        temp.put("require", configKey.getTemplateRequired().equals("1"));
-      } else {
-        temp.put("require", "false");
-      }
+      temp.put("require", configKey.getTemplateRequired());
       filterResult.add(temp);
     }
 
@@ -297,11 +293,23 @@ public class ConfigurationRestfulApi {
     String username = ModuleUserUtils.getOperationUser(req, "saveFullTree");
     ArrayList<ConfigValue> createList = new ArrayList<>();
     ArrayList<ConfigValue> updateList = new ArrayList<>();
+    ArrayList<List<ConfigKeyValue>> chekList = new ArrayList<>();
+    String sparkConf = "";
     for (Object o : fullTrees) {
       String s = BDPJettyServerHelper.gson().toJson(o);
       ConfigTree fullTree = BDPJettyServerHelper.gson().fromJson(s, ConfigTree.class);
       List<ConfigKeyValue> settings = fullTree.getSettings();
-      sparkConfCheck(settings);
+      chekList.add(settings);
+      for (ConfigKeyValue configKeyValue : settings) {
+        if (configKeyValue.getKey().equals("spark.conf")
+            && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
+          sparkConf = configKeyValue.getConfigValue().trim();
+          configKeyValue.setConfigValue(sparkConf);
+        }
+      }
+    }
+    for (List<ConfigKeyValue> settings : chekList) {
+      sparkConfCheck(settings, sparkConf);
       Integer userLabelId =
           configurationService.checkAndCreateUserLabel(settings, username, creator);
       for (ConfigKeyValue setting : settings) {
@@ -355,34 +363,27 @@ public class ConfigurationRestfulApi {
     return Message.ok();
   }
 
-  private void sparkConfCheck(List<ConfigKeyValue> settings) throws ConfigurationException {
-    for (ConfigKeyValue setting : settings) {
-      if (setting.getKey().equals("spark.conf")
-          && StringUtils.isNotBlank(setting.getConfigValue())) {
-        // Check if there are any duplicates in spark. conf
-        String[] split = setting.getConfigValue().split(";");
-        int setSize =
-            Arrays.stream(split)
-                .map(s -> s.split("=")[0].trim())
-                .collect(Collectors.toSet())
-                .size();
-        int listSize =
-            Arrays.stream(split)
-                .map(s -> s.split("=")[0].trim())
-                .collect(Collectors.toList())
-                .size();
-        if (listSize != setSize) {
-          throw new ConfigurationException("Spark.conf contains duplicate keys");
-        }
-        // Check if there are any duplicates in the spark.conf configuration and other individual
-        for (String keyValue : split) {
-          String key = keyValue.split("=")[0].trim();
-          boolean matchResult =
-              settings.stream().anyMatch(settingKey -> key.equals(settingKey.getKey()));
-          if (matchResult) {
-            throw new ConfigurationException(
-                "Saved key is duplicated with the spark conf key , key :" + key);
-          }
+  private void sparkConfCheck(List<ConfigKeyValue> settings, String sparkConf)
+      throws ConfigurationException {
+    if (StringUtils.isNotBlank(sparkConf)) {
+      // Check if there are any duplicates in spark. conf
+      // spark.conf : spark.shuffle.compress=ture;spark.executor.memory=4g
+      String[] split = sparkConf.split(";");
+      int setSize =
+          Arrays.stream(split).map(s -> s.split("=")[0].trim()).collect(Collectors.toSet()).size();
+      int listSize =
+          Arrays.stream(split).map(s -> s.split("=")[0].trim()).collect(Collectors.toList()).size();
+      if (listSize != setSize) {
+        throw new ConfigurationException("Spark.conf contains duplicate keys");
+      }
+      // Check if there are any duplicates in the spark.conf configuration and other individual
+      for (String keyValue : split) {
+        String key = keyValue.split("=")[0].trim();
+        boolean matchResult =
+            settings.stream().anyMatch(settingKey -> key.equals(settingKey.getKey()));
+        if (matchResult) {
+          throw new ConfigurationException(
+              "Saved key is duplicated with the spark conf key , key :" + key);
         }
       }
     }
@@ -717,9 +718,6 @@ public class ConfigurationRestfulApi {
     }
     if (null == boundaryType) {
       return Message.error("boundaryType cannot be empty");
-    }
-    if (null == configKey.getTemplateRequired()) {
-      configKey.setTemplateRequired("1");
     }
     if (StringUtils.isNotEmpty(defaultValue)
         && !validatorManager

@@ -91,9 +91,11 @@ public class FsRestfulApi {
    * @param userName
    * @return
    */
-  private boolean checkIsUsersDirectory(String requestPath, String userName) {
+  private boolean checkIsUsersDirectory(String requestPath, String userName, Boolean withAdmin) {
+    // 配置文件默认关闭检查，withadmin默认true，特殊情况传false 开启权限检查（
+    // The configuration file defaults to disable checking, with admin defaulting to true, and in special cases, false is passed to enable permission checking）
     boolean ownerCheck = WorkSpaceConfiguration.FILESYSTEM_PATH_CHECK_OWNER.getValue();
-    if (!ownerCheck) {
+    if (!ownerCheck && withAdmin) {
       LOGGER.debug("not check filesystem owner.");
       return true;
     }
@@ -102,11 +104,14 @@ public class FsRestfulApi {
         WorkspaceUtil.suffixTuning(HDFS_USER_ROOT_PATH_PREFIX.getValue());
     String hdfsUserRootPathSuffix = HDFS_USER_ROOT_PATH_SUFFIX.getValue();
     String localUserRootPath = WorkspaceUtil.suffixTuning(LOCAL_USER_ROOT_PATH.getValue());
-    String path;
 
     String workspacePath = hdfsUserRootPathPrefix + userName + hdfsUserRootPathSuffix;
     String enginconnPath = localUserRootPath + userName;
-    if (Configuration.isJobHistoryAdmin(userName)) {
+    // 管理员修改其他用户文件目录时，会导致用户无法使用文件，故此优化管理员不能修改(When administrators modify the file directory of other
+    // users,
+    // it will cause users to be unable to use the file, so the optimization administrator cannot
+    // modify it)
+    if (withAdmin && Configuration.isJobHistoryAdmin(userName)) {
       workspacePath = hdfsUserRootPathPrefix;
       enginconnPath = localUserRootPath;
     }
@@ -115,6 +120,10 @@ public class FsRestfulApi {
     LOGGER.debug("enginconnPath:" + enginconnPath);
     LOGGER.debug("adminUser:" + String.join(",", Configuration.getJobHistoryAdmin()));
     return (requestPath.contains(workspacePath)) || (requestPath.contains(enginconnPath));
+  }
+
+  private boolean checkIsUsersDirectory(String requestPath, String userName) {
+    return checkIsUsersDirectory(requestPath, userName, true);
   }
 
   @ApiOperation(value = "getUserRootPath", notes = "get user root path", response = Message.class)
@@ -233,7 +242,7 @@ public class FsRestfulApi {
       PathValidator$.MODULE$.validate(oldDest, userName);
       PathValidator$.MODULE$.validate(newDest, userName);
     }
-    if (!checkIsUsersDirectory(newDest, userName)) {
+    if (!checkIsUsersDirectory(newDest, userName, false)) {
       throw WorkspaceExceptionManager.createException(80010, userName, newDest);
     }
     if (StringUtils.isEmpty(oldDest)) {
