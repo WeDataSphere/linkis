@@ -23,13 +23,13 @@
       fix/>
     <Row class="search-bar">
       <Col span="6" class="search-item">
-        <span class="search-label">{{$t('message.linkis.ipListManagement.engineType')}}</span>
+        <span :title="$t('message.linkis.ipListManagement.engineType')" class="search-label">{{$t('message.linkis.ipListManagement.engineType')}}</span>
         <Select v-model="queryData.engineType" style="width: 290px">
           <Option v-for="(item) in getEngineTypes" :label="item === 'all' ? $t('message.linkis.engineTypes.all'): item" :value="item" :key="item" />
         </Select>
       </Col>
       <Col span="6" class="search-item">
-        <span class="search-label">{{$t('message.linkis.ipListManagement.key')}}</span>
+        <span :title="$t('message.linkis.ipListManagement.key')" class="search-label">{{$t('message.linkis.ipListManagement.key')}}</span>
         <Input
           v-model="queryData.key"
           style="width: 290px"
@@ -108,6 +108,12 @@
             <Select class="input" v-model="modalData.engineType">
               <Option v-for="(item) in getEngineTypes" :label="item === 'all' ? $t('message.linkis.engineTypes.all'): item" :value="item" :key="item" />
             </Select>
+          </FormItem>
+          <FormItem :label="$t('message.linkis.ipListManagement.templateRequired')" prop="templateRequired">
+            <RadioGroup v-model="modalData.templateRequired">
+              <Radio label="1">{{$t('message.linkis.ipListManagement.yes')}}</Radio>
+              <Radio label="0">{{$t('message.linkis.ipListManagement.no')}}</Radio>
+            </RadioGroup>
           </FormItem>
           <FormItem v-if="mode !== 'edit'" :label="$t('message.linkis.ipListManagement.enName')" prop="enName">
             <Input class="input" v-model="modalData.enName"></Input>
@@ -223,6 +229,18 @@ export default {
           align: 'center',
         },
         {
+          title: this.$t('message.linkis.ipListManagement.templateRequired'),
+          key: 'templateRequired',
+          width: 200,
+          tooltip: true,
+          align: 'center',
+          render: (h, params) => {
+            return h('div', [
+              h('span', params.row.templateRequired === '1' ? this.$t('message.linkis.ipListManagement.yes') : this.$t('message.linkis.ipListManagement.no'))
+            ]);
+          }
+        },
+        {
           title: this.$t('message.linkis.ipListManagement.action'),
           key: 'action',
           width: 200,
@@ -272,7 +290,8 @@ export default {
         treeName: '',
         enName: '',
         enDescription: '',
-        enTreeName: ''
+        enTreeName: '',
+        templateRequired: '0',
       },
       modalDataRule: {
         key: [
@@ -351,13 +370,13 @@ export default {
           
         this.datalist = res.configKeyList.map((item) => {
           item.formatBoundaryType = this.boundaryTypeMap[item.boundaryType]
-          item.formatValidateType = this.validateTypeList.find(p => p.value === item.validateType).label
+          item.formatValidateType = this.validateTypeList.find(p => p.value === item.validateType)?.label || ''
+          item.templateRequired = item.templateRequired ? '1' : '0'
           return item
         });
         this.page.totalPage = res.totalPage;
         this.tableLoading = false;
       } catch(err) {
-        window.console.log(err);
         this.tableLoading = false;
       }
 
@@ -407,7 +426,7 @@ export default {
       const target = '/configuration/baseKeyValue'
       this.$refs.createTenantForm.validate(async (valid) => {
         if(valid) {
-          this.clearSearch();
+          
           try {
             if(this.mode !== 'edit') {
               this.page.pageNow = 1;
@@ -415,15 +434,15 @@ export default {
             this.isRequesting = true
             const body = cloneDeep(this.modalData);
             if(!body.engineType || body.engineType === 'all') delete body.engineType
+            body.templateRequired = body.templateRequired === '1'
             await api.fetch(target, body, "post")
-            await this.getTableData();
+            await this.clearSearch();
             this.cancel();
             this.$Message.success(this.$t('message.linkis.udf.success'));
            
             this.isRequesting = false
           } catch(err) {
             this.isRequesting = false
-            window.console.log(err);
           }
         } else {
           this.$Message.error(this.$t('message.linkis.error.validate'));
@@ -445,7 +464,8 @@ export default {
         enName,
         enDescription,
         enTreeName,
-        engineType
+        engineType,
+        templateRequired
       } = data
       this.modalData = {
         id,
@@ -460,7 +480,8 @@ export default {
         enName,
         enDescription,
         enTreeName,
-        engineType
+        engineType,
+        templateRequired
       };
       this.showCreateModal = true;
       this.modalTitle = this.$t('message.linkis.ipListManagement.editRules')
@@ -475,16 +496,13 @@ export default {
           await this.confirmDelete(data);
           await this.getTableData();
         },
-        onCancel: () => {
-          window.console.log('cancel');
-        }
       })
     },
     async confirmDelete(data) {
       try {
         await api.fetch('/configuration/baseKeyValue', {id: data.id}, 'delete');
       } catch(err) {
-        window.console.log(err);
+        return;
       }
     },
     async changePage(val) {
