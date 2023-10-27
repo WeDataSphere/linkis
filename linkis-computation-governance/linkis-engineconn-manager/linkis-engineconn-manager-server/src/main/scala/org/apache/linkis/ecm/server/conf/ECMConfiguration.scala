@@ -59,7 +59,7 @@ object ECMConfiguration {
 
   val ECM_PROTECTED_MEMORY: Long = CommonVars[Long](
     "wds.linkis.ecm.protected.memory",
-    ByteTimeUtils.byteStringAsBytes("4g")
+    ByteTimeUtils.byteStringAsBytes("10g")
   ).getValue
 
   val ECM_PROTECTED_CPU_LOAD: Double =
@@ -80,7 +80,7 @@ object ECMConfiguration {
     GovernanceCommonConf.ENGINE_CONN_MANAGER_SPRING_NAME.getValue
 
   val ECM_HEALTH_REPORT_PERIOD: Long =
-    CommonVars("wds.linkis.ecm.health.report.period", 30).getValue
+    CommonVars("wds.linkis.ecm.health.report.period", 10).getValue
 
   val ECM_HEALTH_REPORT_DELAY: Long =
     CommonVars("wds.linkis.ecm.health.report.delay", 10).getValue
