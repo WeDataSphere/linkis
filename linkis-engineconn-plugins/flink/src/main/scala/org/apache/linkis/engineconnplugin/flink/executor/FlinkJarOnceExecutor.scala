@@ -18,9 +18,6 @@
 package org.apache.linkis.engineconnplugin.flink.executor
 
 import org.apache.linkis.common.exception.ErrorException
-import java.util.concurrent.{Future, TimeUnit}
-
-import org.apache.commons.lang3.StringUtils
 import org.apache.linkis.common.utils.Utils
 import org.apache.linkis.engineconn.acessible.executor.service.ExecutorHeartbeatServiceHolder
 import org.apache.linkis.engineconn.executor.service.ManagerService
@@ -161,7 +158,9 @@ class FlinkJarOnceExecutor(
           if (!StatusOperator.isHandshaked) {
             StatusOperator.addHandshake()
           } else {
-            logger.info("submit to yarn, report heartbeat to LinkisManager, and add handshake succeed, now exit this detach ec.")
+            logger.info(
+              "submit to yarn, report heartbeat to LinkisManager, and add handshake succeed, now exit this detach ec."
+            )
             trySucceed()
           }
         }
