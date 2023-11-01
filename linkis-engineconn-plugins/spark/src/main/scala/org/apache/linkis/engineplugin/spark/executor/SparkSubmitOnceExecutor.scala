@@ -18,25 +18,25 @@
 package org.apache.linkis.engineplugin.spark.executor
 
 import org.apache.linkis.common.utils.{ByteTimeUtils, Utils}
-import org.apache.linkis.engineconn.once.executor.{
-  OnceExecutorExecutionContext,
-  OperableOnceExecutor
-}
+import org.apache.linkis.engineconn.once.executor.{OnceExecutorExecutionContext, OperableOnceExecutor}
 import org.apache.linkis.engineplugin.spark.client.deployment.YarnApplicationClusterDescriptorAdapter
-import org.apache.linkis.engineplugin.spark.config.SparkConfiguration.{
-  SPARK_APP_CONF,
-  SPARK_APPLICATION_ARGS,
-  SPARK_APPLICATION_MAIN_CLASS
-}
+import org.apache.linkis.engineplugin.spark.config.SparkConfiguration.{SPARK_APPLICATION_ARGS, SPARK_APPLICATION_MAIN_CLASS, SPARK_APP_CONF}
 import org.apache.linkis.engineplugin.spark.context.SparkEngineConnContext
 import org.apache.linkis.engineplugin.spark.utils.SparkJobProgressUtil
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.utils.ResourceUtils
 import org.apache.linkis.protocol.engine.JobProgressInfo
-
 import org.apache.commons.lang3.StringUtils
-
 import java.util
+import java.util.concurrent.{Future, TimeUnit}
+
+import org.apache.linkis.engineconn.acessible.executor.service.ExecutorHeartbeatServiceHolder
+import org.apache.linkis.engineconn.executor.service.ManagerService
+import org.apache.linkis.engineconn.launch.EngineConnServer
+import org.apache.linkis.engineplugin.spark.config.SparkConfiguration
+import org.apache.linkis.governance.common.conf.GovernanceCommonConf
+import org.apache.linkis.governance.common.constant.ec.ECConstants
+import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 
 import scala.concurrent.duration.Duration
 
@@ -46,6 +46,8 @@ class SparkSubmitOnceExecutor(
 ) extends SparkOnceExecutor[YarnApplicationClusterDescriptorAdapter]
     with OperableOnceExecutor {
 
+  private var daemonThread: Future[_] = _
+  private var firstReportAppIdTimestampMills: Long = 0L
   private var oldProgress: Float = 0f
 
   override def doSubmit(
@@ -79,7 +81,59 @@ class SparkSubmitOnceExecutor(
     // Synchronize applicationId to EC SparkOnceExecutor to facilitate user operations,
     // such as obtaining progress and killing jobs(将applicationId同步给EC执行器，方便用户操作，如获取进度，kill任务等)
     setApplicationId(clusterDescriptorAdapter.getApplicationId)
-    super.waitToRunning()
+    if(isDetach) {
+      tryToHeartbeat()
+    } else {
+      super.waitToRunning()
+    }
+  }
+
+  private def isDetach: Boolean = {
+    val clientType = GovernanceCommonConf.EC_APP_MANAGE_MODE.getValue(EngineConnServer.getEngineCreationContext.getOptions)
+    logger.info(s"clientType : $clientType")
+    clientType.toLowerCase() == ECConstants.EC_CLIENT_TYPE_DETACH
+  }
+
+  private def tryToHeartbeat(): Unit = {
+    // upload applicationId to manager and then exit
+    logger.info(s"try to send heartbeat to LinkisManager with applicationId: $getApplicationId.")
+    daemonThread = Utils.defaultScheduler.scheduleWithFixedDelay(
+      new Runnable {
+        override def run(): Unit = Utils.tryAndWarn {
+          val heartbeatService = ExecutorHeartbeatServiceHolder.getDefaultHeartbeatService()
+          if (null == heartbeatService) {
+            logger.warn("HeartbeatService is not inited.")
+            return
+          }
+          val heartbeatMsg = heartbeatService.generateHeartBeatMsg(SparkSubmitOnceExecutor.this)
+          ManagerService.getManagerService.heartbeatReport(heartbeatMsg)
+          logger.info(
+            s"Succeed to report heartbeatMsg: ${heartbeatMsg.getHeartBeatMsg}, will add handshake."
+          )
+          if (0L >= firstReportAppIdTimestampMills) {
+            firstReportAppIdTimestampMills = System.currentTimeMillis()
+          } else {
+            logger.info("submit to yarn, report heartbeat to LinkisManager, and add handshake succeed, now exit this detach ec.")
+            trySucceed()
+          }
+        }
+      },
+      1000,
+      SparkConfiguration.SPARK_ONCE_JAR_APP_REPORT_APPLICATIONID_INTERVAL.getValue.toLong,
+      TimeUnit.MILLISECONDS
+    )
+  }
+
+  override def close(): Unit = {
+    if (isDetach && getStatus == NodeStatus.Success) {
+      // do not close clusterDescriptorAdapter, since isDetach is true and application is submitted to yarn.
+      logger.info("do not close clusterDescriptorAdapter, since isDetach is true and ec is Success, we think application is submitted to yarn successfully.")
+      clusterDescriptorAdapter = null
+    }
+    super.close()
+    if (null != daemonThread) {
+      daemonThread.cancel(true)
+    }
   }
 
   override def getApplicationURL: String = ""

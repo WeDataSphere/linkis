@@ -146,6 +146,9 @@ object SparkConfiguration extends Logging {
 
   val SPARK_ONCE_YARN_RESTFUL_URL = CommonVars[String]("linkis.spark.once.yarn.restful.url", "")
 
+  val SPARK_ONCE_JAR_APP_REPORT_APPLICATIONID_INTERVAL =
+    CommonVars("linkis.spark.report.appid.interval", new TimeType("60s"))
+
   private def getMainJarName(): String = {
     val somePath = ClassUtils.jarOfClass(classOf[SparkEngineConnFactory])
     if (somePath.isDefined) {
