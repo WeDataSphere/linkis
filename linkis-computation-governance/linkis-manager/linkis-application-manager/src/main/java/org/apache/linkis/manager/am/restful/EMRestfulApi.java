@@ -19,6 +19,7 @@ package org.apache.linkis.manager.am.restful;
 
 import org.apache.linkis.common.ServiceInstance;
 import org.apache.linkis.common.conf.Configuration;
+import org.apache.linkis.common.utils.ByteTimeUtils;
 import org.apache.linkis.common.utils.JsonUtils;
 import org.apache.linkis.manager.am.conf.AMConfiguration;
 import org.apache.linkis.manager.am.converter.DefaultMetricsConverter;
@@ -28,23 +29,41 @@ import org.apache.linkis.manager.am.manager.EngineNodeManager;
 import org.apache.linkis.manager.am.service.ECResourceInfoService;
 import org.apache.linkis.manager.am.service.em.ECMOperateService;
 import org.apache.linkis.manager.am.service.em.EMInfoService;
+import org.apache.linkis.manager.am.util.EMUtils;
 import org.apache.linkis.manager.am.utils.AMUtils;
+import org.apache.linkis.manager.am.vo.ConfigVo;
 import org.apache.linkis.manager.am.vo.EMNodeVo;
 import org.apache.linkis.manager.common.entity.enumeration.NodeHealthy;
 import org.apache.linkis.manager.common.entity.metrics.NodeHealthyInfo;
 import org.apache.linkis.manager.common.entity.node.EMNode;
 import org.apache.linkis.manager.common.entity.node.EngineNode;
 import org.apache.linkis.manager.common.entity.persistence.ECResourceInfoRecord;
+import org.apache.linkis.manager.common.entity.persistence.PersistenceLabelRel;
+import org.apache.linkis.manager.common.entity.persistence.PersistenceResource;
+import org.apache.linkis.manager.common.entity.resource.NodeResource;
+import org.apache.linkis.manager.common.entity.resource.ResourceType;
+import org.apache.linkis.manager.common.entity.resource.YarnResource;
+import org.apache.linkis.manager.common.exception.RMErrorException;
 import org.apache.linkis.manager.common.protocol.OperateRequest$;
 import org.apache.linkis.manager.common.protocol.em.ECMOperateRequest;
 import org.apache.linkis.manager.common.protocol.em.ECMOperateRequest$;
 import org.apache.linkis.manager.common.protocol.em.ECMOperateResponse;
+import org.apache.linkis.manager.exception.PersistenceErrorException;
+import org.apache.linkis.manager.label.LabelManagerUtils;
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactory;
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext;
 import org.apache.linkis.manager.label.entity.Label;
 import org.apache.linkis.manager.label.entity.UserModifiable;
+import org.apache.linkis.manager.label.entity.cluster.ClusterLabel;
 import org.apache.linkis.manager.label.exception.LabelErrorException;
 import org.apache.linkis.manager.label.service.NodeLabelService;
+import org.apache.linkis.manager.persistence.LabelManagerPersistence;
+import org.apache.linkis.manager.persistence.ResourceManagerPersistence;
+import org.apache.linkis.manager.rm.domain.RMLabelContainer;
+import org.apache.linkis.manager.rm.external.service.ExternalResourceService;
+import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier;
+import org.apache.linkis.manager.rm.restful.vo.UserResourceVo;
+import org.apache.linkis.manager.rm.utils.RMUtils;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
@@ -68,6 +87,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.google.common.collect.Lists;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -95,6 +115,13 @@ public class EMRestfulApi {
   @Autowired private ECMOperateService ecmOperateService;
 
   @Autowired private ECResourceInfoService ecResourceInfoService;
+
+  @Autowired private ResourceManagerPersistence resourceManagerPersistence;
+
+  @Autowired private LabelManagerPersistence labelManagerPersistence;
+
+  @Autowired private ExternalResourceService externalResourceService;
+
   private LabelBuilderFactory stdLabelBuilderFactory =
       LabelBuilderFactoryContext.getLabelBuilderFactory();
 
@@ -491,5 +518,144 @@ public class EMRestfulApi {
         .data("result", engineOperateResponse.getResult())
         .data("errorMsg", engineOperateResponse.errorMsg())
         .data("isError", engineOperateResponse.isError());
+  }
+
+  @ApiOperation(
+      value = "taskprediction",
+      notes = "linkis task taskprediction",
+      response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "username", dataType = "String", example = "hadoop"),
+    @ApiImplicitParam(name = "engineType", dataType = "String", example = "spark/hive"),
+    @ApiImplicitParam(name = "creator", dataType = "String", value = "ide"),
+    @ApiImplicitParam(name = "clustername", dataType = "String", example = "clustername"),
+    @ApiImplicitParam(name = "queueName", dataType = "String", example = "queueName"),
+    @ApiImplicitParam(name = "tenant", dataType = "String", defaultValue = "tenant"),
+  })
+  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
+  @RequestMapping(path = "/taskprediction", method = RequestMethod.GET)
+  public Message taskprediction(
+      HttpServletRequest req,
+      @RequestParam(value = "username", required = false) String username,
+      @RequestParam(value = "engineType", required = false) String engineType,
+      @RequestParam(value = "creator", required = false) String creator,
+      @RequestParam(value = "clustername", required = false) String clusterName,
+      @RequestParam(value = "queueName", required = false) String queueName,
+      @RequestParam(value = "tenant", required = false) String tenant)
+          throws PersistenceErrorException, RMErrorException {
+    String tokenName = ModuleUserUtils.getOperationUser(req, "taskprediction");
+    if (StringUtils.isBlank(username)) {
+      username = tokenName;
+    }
+    if (StringUtils.isBlank(engineType)) {
+      Message.error("parameters:engineType can't be null (请求参数【engineType】不能为空)");
+    }
+    if (StringUtils.isBlank(creator)) {
+      Message.error("parameters:creator can't be null (请求参数【creator】不能为空)");
+    }
+
+    // 获取用户配置信息
+    List<ConfigVo> configlist = EMUtils.getUserConf(username, creator, engineType);
+    configlist.addAll(EMUtils.getUserConf(username, "全局设置", engineType));
+
+    // 获取租户标签数据
+    if (StringUtils.isBlank(tenant)) {
+      tenant = EMUtils.getTenant(username, creator);
+    }
+    if (StringUtils.isBlank(clusterName)) {
+      clusterName = "default";
+    }
+
+    // 获取用户资源数据
+    String labelValuePattern =
+        MessageFormat.format("%{0}%,%{1}%,%{2}%,%", creator, username, engineType);
+    List<PersistenceLabelRel> userLabels =
+        labelManagerPersistence.getLabelByPattern(
+            labelValuePattern, RMUtils.getCombinedLabel(), 0, 0);
+    List<PersistenceResource> resources =
+        resourceManagerPersistence.getResourceByLabels(userLabels);
+    ArrayList<UserResourceVo> userResources = RMUtils.getUserResources(userLabels, resources);
+
+    Map<String, Object> yarnResource = new HashMap<>();
+    boolean checkYarnResult = false;
+    if (engineType.toLowerCase().contains("spark")) {
+      if (StringUtils.isBlank(queueName)) {
+        // 如果没有传 队列名称，从用户配置获取
+        queueName = EMUtils.getConfValue(configlist, AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY());
+      }
+      // 获取yarn资源数据
+      ClusterLabel clusterLabel = LabelManagerUtils.labelFactory().createLabel(ClusterLabel.class);
+      clusterLabel.setClusterName(clusterName);
+      RMLabelContainer labelContainer = new RMLabelContainer(Lists.newArrayList(clusterLabel));
+      YarnResourceIdentifier yarnIdentifier = new YarnResourceIdentifier(queueName);
+      NodeResource providedYarnResource =
+          externalResourceService.getResource(ResourceType.Yarn, labelContainer, yarnIdentifier);
+      YarnResource maxResource = (YarnResource) providedYarnResource.getMaxResource();
+      YarnResource usedResource = (YarnResource) providedYarnResource.getUsedResource();
+      yarnResource.put("maxResource", maxResource.toJson());
+      yarnResource.put("usedResource", usedResource.toJson());
+      // 获取用户配置值于对比yarn资源进行对比
+      long confMemory = Long.parseLong(EMUtils.getConfValue(configlist, "spark.executor.memory"));
+      int confInstances =
+          Integer.parseInt(EMUtils.getConfValue(configlist, "spark.executor.instances"));
+      int confCores = Integer.parseInt(EMUtils.getConfValue(configlist, "spark.executor.cores"));
+      long maxMemory = ByteTimeUtils.negativeByteStringAsGb(maxResource.queueMemory() + "b");
+      long usedMemory = ByteTimeUtils.negativeByteStringAsGb(usedResource.queueMemory() + "b");
+      boolean yarnMemoryResult = maxMemory - usedMemory > confMemory * confInstances;
+      boolean yarnCoresResult =
+          maxResource.queueCores() - usedResource.queueCores() > confCores * confInstances;
+      checkYarnResult = yarnCoresResult && yarnMemoryResult;
+    }
+    // 获取ecm列表数据
+    List<EMNodeVo> emNodeVos = AMUtils.copyToEMVo(emInfoService.getAllEM());
+    String finalTenant = tenant;
+    List<EMNodeVo> ecmResource =
+        emNodeVos.stream()
+            .filter(
+                emNodeVo -> {
+                  Stream<Label> labelStream = emNodeVo.getLabels().stream();
+                  if (StringUtils.isNotBlank(finalTenant)) {
+                    return labelStream.anyMatch(
+                        label ->
+                            KEY_TENANT.equals(label.getLabelKey())
+                                && label.getStringValue().contains(finalTenant));
+                  } else {
+                    return labelStream.noneMatch(label -> KEY_TENANT.equals(label.getLabelKey()));
+                  }
+                })
+            .filter(emNodeVo -> emNodeVo.getNodeHealthy().equals(NodeHealthy.Healthy))
+            .collect(Collectors.toList());
+    // 数据对比（ecm内存资源的比对)，内存剩余资源 > 引擎启动配置，剩余核心>0，剩余实例>0
+    long ecmMemory = 0L;
+    long ecmCores = 0L;
+    if (engineType.toLowerCase().equals("spark")) {
+      ecmMemory = Long.parseLong(EMUtils.getConfValue(configlist, "spark.executor.memory"));
+      ecmCores = Integer.parseInt(EMUtils.getConfValue(configlist, "spark.driver.cores"));
+    } else {
+      ecmMemory =
+          Long.parseLong(
+              EMUtils.getConfValue(configlist, "wds.linkis.engineconn.java.driver.memory"));
+
+      ecmCores =
+          Integer.parseInt(
+              EMUtils.getConfValue(configlist, "wds.linkis.engineconn.java.driver.cores"));
+    }
+    boolean ecmResult = false;
+    boolean ecmResults = false;
+    for (EMNodeVo emNodeVo : ecmResource) {
+      Map leftResource = emNodeVo.getLeftResource();
+      long memory =
+          ByteTimeUtils.negativeByteStringAsGb(leftResource.get("memory").toString() + "b");
+      int cores = (int) leftResource.get("cores");
+      ecmResult = memory > ecmMemory;
+      ecmResults = cores > ecmCores;
+    }
+    return Message.ok()
+        .data("tenant", tenant)
+        .data("userConf", configlist)
+        .data("userResource", userResources)
+        .data("ecmResource", ecmResource)
+        .data("yarnResource", yarnResource)
+        .data("checkResult", checkYarnResult && ecmResult && ecmResults);
   }
 }
