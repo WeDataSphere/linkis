@@ -689,25 +689,22 @@ public class ConfigurationRestfulApi {
   public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody ConfigKey configKey)
       throws ConfigurationException, InstantiationException, IllegalAccessException {
     checkAdmin(ModuleUserUtils.getOperationUser(req, "saveBaseKeyValue"));
-    String key = configKey.getKey().trim();
-    String name = configKey.getName().trim();
-    String treeName = configKey.getTreeName().trim();
-    String description = configKey.getDescription().trim();
-    Integer boundaryType = configKey.getBoundaryType();
-    String defaultValue = configKey.getDefaultValue().trim();
-    String validateType = configKey.getValidateType().trim();
-    String validateRange = configKey.getValidateRange().trim();
-    String engineType = configKey.getEngineType().trim();
+    String key = configKey.getKey();
+    String defaultValue = configKey.getDefaultValue();
+    String validateType = configKey.getValidateType();
+    String validateRange = configKey.getValidateRange();
+    String engineType = configKey.getEngineType();
     if (StringUtils.isBlank(key)) {
       return Message.error("key cannot be empty");
     }
-    if (StringUtils.isBlank(name)) {
+    configKey.setKey(configKey.getKey().trim());
+    if (StringUtils.isBlank(configKey.getName())) {
       return Message.error("name cannot be empty");
     }
-    if (StringUtils.isBlank(description)) {
+    if (StringUtils.isBlank(configKey.getDescription())) {
       return Message.error("description cannot be empty");
     }
-    if (StringUtils.isBlank(treeName)) {
+    if (StringUtils.isBlank(configKey.getTreeName())) {
       return Message.error("treeName cannot be empty");
     }
     if (StringUtils.isBlank(validateType)) {
@@ -716,7 +713,7 @@ public class ConfigurationRestfulApi {
     if (!validateType.equals("None") && StringUtils.isBlank(validateRange)) {
       return Message.error("validateRange cannot be empty");
     }
-    if (null == boundaryType) {
+    if (null == configKey.getBoundaryType()) {
       return Message.error("boundaryType cannot be empty");
     }
     if (StringUtils.isNotEmpty(defaultValue)
@@ -730,6 +727,7 @@ public class ConfigurationRestfulApi {
               key, validateType, validateRange, defaultValue);
       throw new ConfigurationException(msg);
     }
+    configKey.setDefaultValue(configKey.getDefaultValue().trim());
     if (null == configKey.getId()) {
       List<ConfigKey> configBykey =
           configKeyService.getConfigBykey(engineType, key, req.getHeader("Content-Language"));
