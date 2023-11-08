@@ -689,15 +689,15 @@ public class ConfigurationRestfulApi {
   public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody ConfigKey configKey)
       throws ConfigurationException, InstantiationException, IllegalAccessException {
     checkAdmin(ModuleUserUtils.getOperationUser(req, "saveBaseKeyValue"));
-    String key = configKey.getKey();
-    String name = configKey.getName();
-    String treeName = configKey.getTreeName();
-    String description = configKey.getDescription();
+    String key = configKey.getKey().trim();
+    String name = configKey.getName().trim();
+    String treeName = configKey.getTreeName().trim();
+    String description = configKey.getDescription().trim();
     Integer boundaryType = configKey.getBoundaryType();
-    String defaultValue = configKey.getDefaultValue();
-    String validateType = configKey.getValidateType();
-    String validateRange = configKey.getValidateRange();
-    String engineType = configKey.getEngineType();
+    String defaultValue = configKey.getDefaultValue().trim();
+    String validateType = configKey.getValidateType().trim();
+    String validateRange = configKey.getValidateRange().trim();
+    String engineType = configKey.getEngineType().trim();
     if (StringUtils.isBlank(key)) {
       return Message.error("key cannot be empty");
     }
