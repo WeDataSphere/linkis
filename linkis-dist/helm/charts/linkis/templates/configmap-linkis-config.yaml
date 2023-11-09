@@ -75,7 +75,7 @@ data:
     dss-AUTH=*
     QUALITIS-AUTH=*
 
-  application-linkis.yml: |
+  application-linkis.properties: |
     debug: {{ .Values.linkis.featureGates.testMode }}
     eureka:
       instance:
