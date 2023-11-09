@@ -1158,4 +1158,32 @@ public class FsRestfulApi {
     }
     fileSystem.delete(fsPath);
   }
+
+  @ApiOperation(value = "chmod", notes = "file chmod", response = Message.class)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = "filepath", required = false, dataType = "String", value = "filepath"),
+          @ApiImplicitParam(name = "isRecursion", required = false, dataType = "String", value = "isRecursion"),
+          @ApiImplicitParam(name = "filePermission", required = false, dataType = "String", value = "filePermission"),
+  })
+  @RequestMapping(path = "/chmod", method = RequestMethod.GET)
+  public Message chmod(HttpServletRequest req,
+                       @RequestParam(value = "filepath", required = false) String filePath,
+                       @RequestParam(value = "isRecursion", required = false) Boolean isRecursion,
+                       @RequestParam(value = "filePermission", required = false) String filePermission) throws WorkSpaceException, IOException {
+    String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
+    if (StringUtils.isEmpty(filePath)) {
+      throw WorkspaceExceptionManager.createException(80032, filePath);
+    }
+    if (StringUtils.isEmpty(filePermission)) {
+      throw WorkspaceExceptionManager.createException(80032, filePermission);
+    }
+    if (null == isRecursion) {
+      isRecursion = false;
+    }
+    FsPath fsPath = new FsPath(filePath);
+    FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
+    fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
+
+    return Message.ok();
+  }
 }

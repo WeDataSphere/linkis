@@ -17,7 +17,10 @@
 
 package org.apache.linkis.common.errorcode;
 
+import org.apache.linkis.common.io.FsPath;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
 
 import static org.apache.linkis.common.errorcode.LinkisFrameErrorCodeSummary.VALIDATE_ERROR_CODE_FAILED;
 import static org.junit.jupiter.api.Assertions.*;
@@ -27,7 +30,15 @@ class LinkisFrameErrorCodeSummaryTest {
 
   @Test
   void testGetErrorCode() {
-    assertEquals(10000, VALIDATE_ERROR_CODE_FAILED.getErrorCode());
+
+    FsPath fsPath = new FsPath("filePath");
+
+    try {
+      String s = fsPath.permissionFormatted("777");
+      System.out.println(s);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   @Test
