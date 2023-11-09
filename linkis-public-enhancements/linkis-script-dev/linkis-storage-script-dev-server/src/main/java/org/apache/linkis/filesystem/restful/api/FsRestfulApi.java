@@ -1180,10 +1180,14 @@ public class FsRestfulApi {
     if (null == isRecursion) {
       isRecursion = false;
     }
-    FsPath fsPath = new FsPath(filePath);
-    FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
-    fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
-
-    return Message.ok();
+    boolean b = checkIsUsersDirectory(filePath, userName, Configuration.isAdmin(userName));
+    if (!b) {
+      return Message.error("sssss");
+    } else {
+      FsPath fsPath = new FsPath(filePath);
+      FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
+      fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
+      return Message.ok();
+    }
   }
 }
