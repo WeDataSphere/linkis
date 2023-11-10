@@ -18,7 +18,6 @@
 package org.apache.linkis.ecm.restful;
 
 import org.apache.linkis.common.conf.Configuration;
-import org.apache.linkis.ecm.server.conf.ECMConfiguration;
 import org.apache.linkis.ecm.server.util.ECMUtils;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
@@ -57,8 +56,10 @@ public class ECMRestfulApi {
 
   private final Logger logger = LoggerFactory.getLogger(ECMRestfulApi.class);
 
-  /***
-   * Reason for using the get method: Added gateway forwarding rules, which only support get requests
+  /**
+   * * Reason for using the get method: Added gateway forwarding rules, which only support get
+   * requests
+   *
    * @param req
    * @param response
    * @param emInstance
@@ -72,8 +73,16 @@ public class ECMRestfulApi {
       notes = "download engine log",
       response = Message.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "emInstance", required = true, dataType = "String",example = "xxx0002:9102"),
-    @ApiImplicitParam(name = "instance", required = true, dataType = "String",example = "xxx0002:35873"),
+    @ApiImplicitParam(
+        name = "emInstance",
+        required = true,
+        dataType = "String",
+        example = "xxx0002:9102"),
+    @ApiImplicitParam(
+        name = "instance",
+        required = true,
+        dataType = "String",
+        example = "xxx0002:35873"),
     @ApiImplicitParam(name = "logDirSuffix", required = true, dataType = "String"),
     @ApiImplicitParam(name = "logType", required = true, dataType = "String")
   })
