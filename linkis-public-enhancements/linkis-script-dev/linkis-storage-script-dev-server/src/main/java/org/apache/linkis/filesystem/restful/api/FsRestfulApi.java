@@ -59,6 +59,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1161,33 +1162,67 @@ public class FsRestfulApi {
 
   @ApiOperation(value = "chmod", notes = "file chmod", response = Message.class)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = "filepath", required = false, dataType = "String", value = "filepath"),
-          @ApiImplicitParam(name = "isRecursion", required = false, dataType = "String", value = "isRecursion"),
-          @ApiImplicitParam(name = "filePermission", required = false, dataType = "String", value = "filePermission"),
+    @ApiImplicitParam(name = "filepath", required = false, dataType = "String", value = "filepath"),
+    @ApiImplicitParam(
+        name = "isRecursion",
+        required = false,
+        dataType = "String",
+        value = "isRecursion"),
+    @ApiImplicitParam(
+        name = "filePermission",
+        required = false,
+        dataType = "String",
+        value = "filePermission"),
   })
   @RequestMapping(path = "/chmod", method = RequestMethod.GET)
-  public Message chmod(HttpServletRequest req,
-                       @RequestParam(value = "filepath", required = false) String filePath,
-                       @RequestParam(value = "isRecursion", required = false) Boolean isRecursion,
-                       @RequestParam(value = "filePermission", required = false) String filePermission) throws WorkSpaceException, IOException {
+  public Message chmod(
+      HttpServletRequest req,
+      @RequestParam(value = "filepath", required = false) String filePath,
+      @RequestParam(value = "isRecursion", required = false) Boolean isRecursion,
+      @RequestParam(value = "filePermission", required = false) String filePermission)
+      throws WorkSpaceException, IOException {
     String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
     if (StringUtils.isEmpty(filePath)) {
-      throw WorkspaceExceptionManager.createException(80032, filePath);
+      return Message.error( MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
     }
     if (StringUtils.isEmpty(filePermission)) {
-      throw WorkspaceExceptionManager.createException(80032, filePermission);
+      return Message.error( MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
     }
     if (null == isRecursion) {
-      isRecursion = false;
+      isRecursion = true;
     }
-    boolean b = checkIsUsersDirectory(filePath, userName, Configuration.isAdmin(userName));
-    if (!b) {
-      return Message.error("sssss");
+    if (!checkIsUsersDirectory(filePath, userName, Configuration.isAdmin(userName))) {
+      return Message.error(MessageFormat.format(FILEPATH_ILLEGALITY, filePath));
     } else {
-      FsPath fsPath = new FsPath(filePath);
-      FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
-      fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
+      List<String> pathList = new ArrayList<>();
+      if (isRecursion) {
+        traverseFolder(new FsPath(filePath).toFile(), pathList);
+      } else {
+        pathList.add(filePath);
+      }
+      for (String path : pathList) {
+        FsPath fsPath = new FsPath(path);
+        FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
+        fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
+      }
       return Message.ok();
     }
+  }
+
+  private static List<String> traverseFolder(File folder, List<String> pathList) {
+    File[] files = folder.listFiles();
+    pathList.add(folder.getAbsolutePath());
+    if (files != null) {
+      for (File file : files) {
+        if (file.isDirectory()) {
+          // 如果是文件夹，则递归遍历
+          traverseFolder(file, pathList);
+        } else {
+          // 如果是文件，则保存输出文件地址
+          pathList.add(file.getAbsolutePath());
+        }
+      }
+    }
+    return pathList;
   }
 }
