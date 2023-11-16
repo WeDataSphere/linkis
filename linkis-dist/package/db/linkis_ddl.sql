@@ -1050,7 +1050,7 @@ CREATE TABLE `linkis_org_user` (
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE=utf8mb4_bin COMMENT ='用户部门统计INC表';
 
 -- ----------------------------
--- Table structure for linkis_org_user
+-- Table structure for linkis_cg_tenant_department_config
 -- ----------------------------
 DROP TABLE IF EXISTS `linkis_cg_tenant_department_config`;
 CREATE TABLE `linkis_cg_tenant_department_config` (
