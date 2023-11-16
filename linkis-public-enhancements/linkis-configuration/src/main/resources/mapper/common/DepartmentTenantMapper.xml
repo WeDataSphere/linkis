@@ -60,6 +60,7 @@
     </select>
 
 
+
     <update id="updateTenant" parameterType="org.apache.linkis.configuration.entity.DepartmentTenantVo">
         UPDATE linkis_cg_tenant_department_config
         <trim prefix="set" suffixOverrides=",">
@@ -78,4 +79,12 @@
         WHERE id =  #{id}
     </delete>
 
+    <select id="queryTenant" resultType="org.apache.linkis.configuration.entity.DepartmentTenantVo">
+        select <include refid="Tenant_Column_List"/>
+        from linkis_cg_tenant_department_config
+        <where>
+            <if test="creator != null"> `creator` = #{creator}</if>
+            <if test="department != null"> and `department` = #{department}</if>
+        </where>
+    </select>
 </mapper>

@@ -44,4 +44,6 @@ public interface TenantConfigService {
       String department, String creator, String tenantValue, Integer pageNow, Integer pageSize);
 
   void deleteDepartmentTenant(Integer id) throws ConfigurationException;
+
+  DepartmentTenantVo queryDepartTenant(String creator, String department);
 }
