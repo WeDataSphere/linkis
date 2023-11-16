@@ -17,11 +17,18 @@
 
 package org.apache.linkis.configuration.dao;
 
+import org.apache.ibatis.annotations.MapKey;
 import org.apache.linkis.configuration.entity.DepartmentVo;
 
 import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
+import java.util.Map;
+
 public interface DepartmentMapper {
 
   DepartmentVo getDepartmentByUser(@Param("user") String user);
+
+  @MapKey("org_id")
+  Map<String, String> queryDepartmentList();
 }

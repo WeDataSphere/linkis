@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Map;
 
 import io.swagger.annotations.Api;
@@ -265,6 +266,23 @@ public class TenantConfigrationRestfulApi {
     }
   }
 
+  @ApiImplicitParams({
+          @ApiImplicitParam(
+                  paramType = "query",
+                  dataType = "HttpServletRequest",
+                  name = "req",
+                  value = ""),
+          @ApiImplicitParam(
+                  paramType = "body",
+                  dataType = "DepartmentTenantVo",
+                  name = "departmentTenantVo",
+                  value = "departmentTenantVo")
+  })
+  @ApiOperation(
+          value = "save-department-tenant",
+          notes = "save department tenant",
+          httpMethod = "POST",
+          response = Message.class)
   @RequestMapping(path = "/save-department-tenant", method = RequestMethod.POST)
   public Message saveDepartmentTenant(
       HttpServletRequest req, @RequestBody DepartmentTenantVo departmentTenantVo) {
@@ -279,17 +297,40 @@ public class TenantConfigrationRestfulApi {
     if (StringUtils.isBlank(departmentTenantVo.getCreator())) {
       return Message.error("creator can't be empty");
     }
-    if (StringUtils.isBlank(departmentTenantVo.getDepartment())) {
-      return Message.error("department tag can't be empty");
+    if (StringUtils.isBlank(departmentTenantVo.getDepartmentId())) {
+      return Message.error("departmentId tag can't be empty");
     }
     tenantConfigService.saveDepartmentTenant(departmentTenantVo);
     return Message.ok();
   }
 
+  @ApiImplicitParams({
+          @ApiImplicitParam(
+                  paramType = "query",
+                  dataType = "HttpServletRequest",
+                  name = "req",
+                  value = ""),
+          @ApiImplicitParam(paramType = "query", dataType = "string", name = "department", value = "department"),
+          @ApiImplicitParam(
+                  paramType = "query",
+                  dataType = "string",
+                  name = "creator",
+                  value = "creator"),
+          @ApiImplicitParam(
+                  paramType = "query",
+                  dataType = "string",
+                  name = "tenantValue",
+                  value = "tenantValue")
+  })
+  @ApiOperation(
+          value = "query-department-tenant",
+          notes = "query department tenant list",
+          httpMethod = "GET",
+          response = Message.class)
   @RequestMapping(path = "/query-department-tenant", method = RequestMethod.GET)
   public Message queryDepartmentTenant(
       HttpServletRequest req,
-      @RequestParam(value = "department", required = false) String department,
+      @RequestParam(value = "departmentId", required = false) String departmentId,
       @RequestParam(value = "creator", required = false) String creator,
       @RequestParam(value = "tenantValue", required = false) String tenantValue,
       @RequestParam(value = "pageNow", required = false) Integer pageNow,
@@ -298,19 +339,33 @@ public class TenantConfigrationRestfulApi {
     if (!Configuration.isAdmin(userName)) {
       return Message.error("Failed to query-tenant-list,msg: only administrators can configure");
     }
-    if (StringUtils.isBlank(department)) department = null;
+    if (StringUtils.isBlank(departmentId)) departmentId = null;
     if (StringUtils.isBlank(creator)) creator = null;
     if (StringUtils.isBlank(tenantValue)) tenantValue = null;
     if (null == pageNow) pageNow = 1;
     if (null == pageSize) pageSize = 20;
     Map<String, Object> resultMap =
         tenantConfigService.queryDepartmentTenant(
-            department, creator, tenantValue, pageNow, pageSize);
+                departmentId, creator, tenantValue, pageNow, pageSize);
     return Message.ok()
         .data("tenantList", resultMap.get("tenantList"))
         .data(JobRequestConstants.TOTAL_PAGE(), resultMap.get(JobRequestConstants.TOTAL_PAGE()));
   }
 
+
+  @ApiImplicitParams({
+          @ApiImplicitParam(
+                  paramType = "query",
+                  dataType = "HttpServletRequest",
+                  name = "req",
+                  value = ""),
+          @ApiImplicitParam(paramType = "query", dataType = "int", name = "id", value = "id")
+  })
+  @ApiOperation(
+          value = "delete-department-tenant",
+          notes = "delete department tenant",
+          httpMethod = "GET",
+          response = Message.class)
   @RequestMapping(path = "/delete-department-tenant", method = RequestMethod.GET)
   public Message deleteDepartmentTenant(
       HttpServletRequest req, @RequestParam(value = "id") Integer id) {
@@ -323,8 +378,15 @@ public class TenantConfigrationRestfulApi {
       }
       tenantConfigService.deleteDepartmentTenant(id);
     } catch (ConfigurationException e) {
-      return Message.error("Failed to delete-tenant,msg:" + e.getMessage());
+      return Message.error("Failed to delete-department-tenant ,msg:" + e.getMessage());
     }
     return Message.ok();
+  }
+
+
+
+  @RequestMapping(path = "/query-department", method = RequestMethod.GET)
+  public Message queryDepartmentList() {
+    return Message.ok().data("department",tenantConfigService.queryDepartmentList());
   }
 }

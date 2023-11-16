@@ -33,6 +33,9 @@ public class DepartmentTenantVo {
   @ApiModelProperty("department")
   private String department;
 
+  @ApiModelProperty("department_id")
+  private String departmentId;
+
   @ApiModelProperty("tenantValue")
   private String tenantValue;
 
@@ -61,12 +64,12 @@ public class DepartmentTenantVo {
     this.creator = creator;
   }
 
-  public String getDepartment() {
-    return department;
+  public String getDepartmentId() {
+    return departmentId;
   }
 
-  public void setDepartment(String department) {
-    this.department = department;
+  public void setDepartmentId(String departmentId) {
+    this.departmentId = departmentId;
   }
 
   public String getTenantValue() {
@@ -99,5 +102,27 @@ public class DepartmentTenantVo {
 
   public void setBussinessUser(String bussinessUser) {
     this.bussinessUser = bussinessUser;
+  }
+
+  public String getDepartment() {
+    return department;
+  }
+
+  public void setDepartment(String department) {
+    this.department = department;
+  }
+
+  @Override
+  public String toString() {
+    return "DepartmentTenantVo{" +
+            "id='" + id + '\'' +
+            ", creator='" + creator + '\'' +
+            ", department='" + department + '\'' +
+            ", departmentId='" + departmentId + '\'' +
+            ", tenantValue='" + tenantValue + '\'' +
+            ", createTime=" + createTime +
+            ", updateTime=" + updateTime +
+            ", bussinessUser='" + bussinessUser + '\'' +
+            '}';
   }
 }

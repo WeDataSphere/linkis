@@ -25,6 +25,6 @@ case class TenantRequest(user: String, creator: String) extends TenantConf
 
 case class TenantResponse(user: String, creator: String, tenant: String)
 
-case class DepartTenantRequest(creator: String, department: String) extends TenantConf
+case class DepartTenantRequest(creator: String, departmentId: String) extends TenantConf
 
-case class DepartTenantResponse(creator: String, department: String, tenant: String)
+case class DepartTenantResponse(creator: String, departmentId: String, tenant: String)

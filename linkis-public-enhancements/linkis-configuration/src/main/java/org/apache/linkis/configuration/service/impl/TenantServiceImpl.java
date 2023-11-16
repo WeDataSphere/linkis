@@ -59,16 +59,16 @@ public class TenantServiceImpl implements TenantService {
   @Override
   public DepartTenantResponse getDepartTenantData(DepartTenantRequest request, Sender sender) {
     DepartmentTenantVo tenantVo =
-        tenantConfigService.queryDepartTenant(request.creator(), request.department());
+        tenantConfigService.queryDepartTenant(request.creator(), request.departmentId());
     if (null == tenantVo) {
       logger.warn(
           "DepartTenantCache creator {} department {} data loading failed",
           request.creator(),
-          request.department());
-      return new DepartTenantResponse(request.creator(), request.department(), "");
+          request.departmentId());
+      return new DepartTenantResponse(request.creator(), request.departmentId(), "");
     } else {
       return new DepartTenantResponse(
-          tenantVo.getCreator(), tenantVo.getDepartment(), tenantVo.getTenantValue());
+          tenantVo.getCreator(), tenantVo.getDepartmentId(), tenantVo.getTenantValue());
     }
   }
 }
