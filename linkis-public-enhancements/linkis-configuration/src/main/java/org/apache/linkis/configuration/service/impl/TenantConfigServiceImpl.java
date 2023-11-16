@@ -232,4 +232,9 @@ public class TenantConfigServiceImpl implements TenantConfigService {
     }
     departmentTenantMapper.deleteTenant(id);
   }
+
+  @Override
+  public DepartmentTenantVo queryDepartTenant(String creator, String department) {
+    return departmentTenantMapper.queryTenant(creator, department);
+  }
 }

@@ -15,27 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.configuration.dao;
+package org.apache.linkis.governance.common.protocol.conf
 
-import org.apache.linkis.configuration.entity.DepartmentTenantVo;
+import org.apache.linkis.protocol.message.RequestProtocol
 
-import org.apache.ibatis.annotations.Param;
+trait DepartmentConf extends RequestProtocol
 
-import java.util.List;
+case class DepartmentRequest(user: String) extends DepartmentConf
 
-public interface DepartmentTenantMapper {
-
-  void insertTenant(DepartmentTenantVo departmentTenantVo);
-
-  void updateTenant(DepartmentTenantVo departmentTenantVo);
-
-  List<DepartmentTenantVo> queryTenantList(
-      @Param("creator") String creator,
-      @Param("department") String department,
-      @Param("tenant_value") String tenant_value);
-
-  void deleteTenant(@Param("id") Integer id);
-
-  DepartmentTenantVo queryTenant(
-      @Param("creator") String creator, @Param("department") String department);
-}
+case class DepartmentResponse(user: String, departmentId: String, departmentName: String)
