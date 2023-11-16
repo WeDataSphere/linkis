@@ -17,9 +17,11 @@
 
 package org.apache.linkis.configuration.service.impl;
 
+import org.apache.linkis.configuration.dao.DepartmentMapper;
 import org.apache.linkis.configuration.dao.DepartmentTenantMapper;
 import org.apache.linkis.configuration.dao.UserTenantMapper;
 import org.apache.linkis.configuration.entity.DepartmentTenantVo;
+import org.apache.linkis.configuration.entity.DepartmentVo;
 import org.apache.linkis.configuration.entity.TenantVo;
 import org.apache.linkis.configuration.exception.ConfigurationException;
 import org.apache.linkis.configuration.service.TenantConfigService;
@@ -35,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -49,6 +52,8 @@ public class TenantConfigServiceImpl implements TenantConfigService {
   @Autowired private UserTenantMapper userTenantMapper;
 
   @Autowired private DepartmentTenantMapper departmentTenantMapper;
+
+  @Autowired private DepartmentMapper departmentMapper;
 
   /**
    * * Querying the tenant configuration table
@@ -195,7 +200,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
   /**
    * *
    *
-   * @param department
+   * @param departmentId
    * @param creator
    * @param tenantValue
    * @param pageNow
@@ -204,7 +209,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
    */
   @Override
   public Map<String, Object> queryDepartmentTenant(
-      String department, String creator, String tenantValue, Integer pageNow, Integer pageSize) {
+      String departmentId, String creator, String tenantValue, Integer pageNow, Integer pageSize) {
     Map<String, Object> result = new HashMap<>(2);
     List<DepartmentTenantVo> tenantVos = null;
     if (Objects.isNull(pageNow)) {
@@ -215,7 +220,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
     }
     PageHelper.startPage(pageNow, pageSize);
     try {
-      tenantVos = departmentTenantMapper.queryTenantList(creator, department, tenantValue);
+      tenantVos = departmentTenantMapper.queryTenantList(creator, departmentId, tenantValue);
     } finally {
       PageHelper.clearPage();
     }
@@ -237,4 +242,12 @@ public class TenantConfigServiceImpl implements TenantConfigService {
   public DepartmentTenantVo queryDepartTenant(String creator, String department) {
     return departmentTenantMapper.queryTenant(creator, department);
   }
+
+
+  @Override
+  public Map<String, String> queryDepartmentList() {
+    return departmentMapper.queryDepartmentList();
+  }
+
+
 }

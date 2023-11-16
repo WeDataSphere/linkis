@@ -31,11 +31,11 @@ public interface DepartmentTenantMapper {
 
   List<DepartmentTenantVo> queryTenantList(
       @Param("creator") String creator,
-      @Param("department") String department,
+      @Param("departmentId") String departmentId,
       @Param("tenant_value") String tenant_value);
 
   void deleteTenant(@Param("id") Integer id);
 
   DepartmentTenantVo queryTenant(
-      @Param("creator") String creator, @Param("department") String department);
+      @Param("creator") String creator, @Param("departmentId") String departmentId);
 }
