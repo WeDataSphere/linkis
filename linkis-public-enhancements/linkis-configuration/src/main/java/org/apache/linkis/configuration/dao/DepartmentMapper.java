@@ -17,25 +17,11 @@
 
 package org.apache.linkis.configuration.dao;
 
-import org.apache.linkis.configuration.entity.DepartmentTenantVo;
+import org.apache.linkis.configuration.entity.DepartmentVo;
 
 import org.apache.ibatis.annotations.Param;
 
-import java.util.List;
+public interface DepartmentMapper {
 
-public interface DepartmentTenantMapper {
-
-  void insertTenant(DepartmentTenantVo departmentTenantVo);
-
-  void updateTenant(DepartmentTenantVo departmentTenantVo);
-
-  List<DepartmentTenantVo> queryTenantList(
-      @Param("creator") String creator,
-      @Param("department") String department,
-      @Param("tenant_value") String tenant_value);
-
-  void deleteTenant(@Param("id") Integer id);
-
-  DepartmentTenantVo queryTenant(
-      @Param("creator") String creator, @Param("department") String department);
+  DepartmentVo getDepartmentByUser(@Param("user") String user);
 }
