@@ -73,7 +73,7 @@ public class WorkspaceExceptionManager {
           put("80031", "User: {0} not initialized(用户:{0}未初始化)");
           put(
               "80032",
-              "File size exceeds 30M, please download and view it, or view it in a shared directory(文件大小超过30M,请下载查看，或在共享目录中查看)");
+              "The file size exceeds 30M and page viewing is currently not supported. Please download to view or view in a shared directory(文件大小超过30M，暂不支持页面查看。请下载查看或在共享目录中查看)");
         }
       };
 
