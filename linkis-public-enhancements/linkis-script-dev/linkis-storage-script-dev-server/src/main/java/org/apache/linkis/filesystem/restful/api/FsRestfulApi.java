@@ -61,6 +61,8 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -1177,16 +1179,21 @@ public class FsRestfulApi {
   @RequestMapping(path = "/chmod", method = RequestMethod.GET)
   public Message chmod(
       HttpServletRequest req,
-      @RequestParam(value = "filepath", required = false) String filePath,
+      @RequestParam(value = "filepath", required = true) String filePath,
       @RequestParam(value = "isRecursion", required = false) Boolean isRecursion,
-      @RequestParam(value = "filePermission", required = false) String filePermission)
+      @RequestParam(value = "filePermission", required = true) String filePermission)
       throws WorkSpaceException, IOException {
     String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
     if (StringUtils.isEmpty(filePath)) {
-      return Message.error( MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
     }
     if (StringUtils.isEmpty(filePermission)) {
-      return Message.error( MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
+    } else {
+      Matcher matcher = Pattern.compile("[0-7]{3}").matcher(filePermission);
+      if (matcher.matches()) {
+        return Message.error(MessageFormat.format(PERMISSION_FORMAT_ERROR, filePermission));
+      }
     }
     if (null == isRecursion) {
       isRecursion = true;
@@ -1203,7 +1210,7 @@ public class FsRestfulApi {
       for (String path : pathList) {
         FsPath fsPath = new FsPath(path);
         FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
-        fileSystem.setPermission(fsPath, FsPath.permissionFormatted(filePermission));
+        fileSystem.setPermission(fsPath, filePermission);
       }
       return Message.ok();
     }
