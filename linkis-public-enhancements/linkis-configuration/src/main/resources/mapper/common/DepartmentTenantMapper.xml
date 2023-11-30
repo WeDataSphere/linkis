@@ -54,9 +54,9 @@
         select <include refid="Tenant_Column_List"/>
         from linkis_cg_tenant_department_config
         <where>
-            <if test="creator != null"> `creator` = #{creator}</if>
-            <if test="departmentId != null">and `departmentId` = #{departmentId}</if>
-            <if test="tenant_value != null">and `tenant_value` = #{tenant_value}</if>
+            <if test="creator != null"> creator = #{creator}</if>
+            <if test="departmentId != null">and departmentId = #{departmentId}</if>
+            <if test="tenant_value != null">and tenant_value = #{tenant_value}</if>
         </where>
     </select>
 
@@ -84,8 +84,8 @@
         select <include refid="Tenant_Column_List"/>
         from linkis_cg_tenant_department_config
         <where>
-            <if test="creator != null"> `creator` = #{creator}</if>
-            <if test="departmentId != null"> and `department_id` = #{departmentId}</if>
+            <if test="creator != null"> creator = #{creator}</if>
+            <if test="departmentId != null"> and department_id = #{departmentId}</if>
         </where>
     </select>
 </mapper>

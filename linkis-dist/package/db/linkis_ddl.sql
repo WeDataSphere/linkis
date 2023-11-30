@@ -1052,7 +1052,7 @@ CREATE TABLE `linkis_org_user` (
 -- ----------------------------
 -- Table structure for linkis_org_user
 -- ----------------------------
-DROP TABLE IF EXISTS `linkis_org_user`;
+DROP TABLE IF EXISTS `linkis_cg_tenant_department_config`;
 CREATE TABLE `linkis_cg_tenant_department_config` (
   `id` int(20) NOT NULL AUTO_INCREMENT  COMMENT 'ID',
   `creator` varchar(50) COLLATE utf8_bin NOT NULL  COMMENT '应用',

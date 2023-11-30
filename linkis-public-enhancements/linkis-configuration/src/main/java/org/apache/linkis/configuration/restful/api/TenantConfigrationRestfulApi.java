@@ -34,7 +34,6 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-import java.util.List;
 import java.util.Map;
 
 import io.swagger.annotations.Api;
@@ -266,23 +265,11 @@ public class TenantConfigrationRestfulApi {
     }
   }
 
-  @ApiImplicitParams({
-          @ApiImplicitParam(
-                  paramType = "query",
-                  dataType = "HttpServletRequest",
-                  name = "req",
-                  value = ""),
-          @ApiImplicitParam(
-                  paramType = "body",
-                  dataType = "DepartmentTenantVo",
-                  name = "departmentTenantVo",
-                  value = "departmentTenantVo")
-  })
   @ApiOperation(
-          value = "save-department-tenant",
-          notes = "save department tenant",
-          httpMethod = "POST",
-          response = Message.class)
+      value = "save-department-tenant",
+      notes = "save department tenant",
+      httpMethod = "POST",
+      response = Message.class)
   @RequestMapping(path = "/save-department-tenant", method = RequestMethod.POST)
   public Message saveDepartmentTenant(
       HttpServletRequest req, @RequestBody DepartmentTenantVo departmentTenantVo) {
@@ -305,36 +292,37 @@ public class TenantConfigrationRestfulApi {
   }
 
   @ApiImplicitParams({
-          @ApiImplicitParam(
-                  paramType = "query",
-                  dataType = "HttpServletRequest",
-                  name = "req",
-                  value = ""),
-          @ApiImplicitParam(paramType = "query", dataType = "string", name = "department", value = "department"),
-          @ApiImplicitParam(
-                  paramType = "query",
-                  dataType = "string",
-                  name = "creator",
-                  value = "creator"),
-          @ApiImplicitParam(
-                  paramType = "query",
-                  dataType = "string",
-                  name = "tenantValue",
-                  value = "tenantValue")
+    @ApiImplicitParam(
+        paramType = "query",
+        dataType = "string",
+        name = "department",
+        value = "department"),
+    @ApiImplicitParam(
+        paramType = "query",
+        dataType = "string",
+        name = "creator",
+        value = "creator"),
+    @ApiImplicitParam(
+        paramType = "query",
+        dataType = "string",
+        name = "tenantValue",
+        value = "tenantValue"),
+    @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageNow", value = "pageNow"),
+    @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "pageSize")
   })
   @ApiOperation(
-          value = "query-department-tenant",
-          notes = "query department tenant list",
-          httpMethod = "GET",
-          response = Message.class)
+      value = "query-department-tenant",
+      notes = "query department tenant list",
+      httpMethod = "GET",
+      response = Message.class)
   @RequestMapping(path = "/query-department-tenant", method = RequestMethod.GET)
   public Message queryDepartmentTenant(
       HttpServletRequest req,
       @RequestParam(value = "departmentId", required = false) String departmentId,
       @RequestParam(value = "creator", required = false) String creator,
       @RequestParam(value = "tenantValue", required = false) String tenantValue,
-      @RequestParam(value = "pageNow", required = false) Integer pageNow,
-      @RequestParam(value = "pageSize", required = false) Integer pageSize) {
+      @RequestParam(value = "pageNow", required = false, defaultValue = "1") Integer pageNow,
+      @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
     String userName = ModuleUserUtils.getOperationUser(req, "execute queryTenantList");
     if (!Configuration.isAdmin(userName)) {
       return Message.error("Failed to query-tenant-list,msg: only administrators can configure");
@@ -342,30 +330,27 @@ public class TenantConfigrationRestfulApi {
     if (StringUtils.isBlank(departmentId)) departmentId = null;
     if (StringUtils.isBlank(creator)) creator = null;
     if (StringUtils.isBlank(tenantValue)) tenantValue = null;
-    if (null == pageNow) pageNow = 1;
-    if (null == pageSize) pageSize = 20;
     Map<String, Object> resultMap =
         tenantConfigService.queryDepartmentTenant(
-                departmentId, creator, tenantValue, pageNow, pageSize);
+            departmentId, creator, tenantValue, pageNow, pageSize);
     return Message.ok()
         .data("tenantList", resultMap.get("tenantList"))
         .data(JobRequestConstants.TOTAL_PAGE(), resultMap.get(JobRequestConstants.TOTAL_PAGE()));
   }
 
-
   @ApiImplicitParams({
-          @ApiImplicitParam(
-                  paramType = "query",
-                  dataType = "HttpServletRequest",
-                  name = "req",
-                  value = ""),
-          @ApiImplicitParam(paramType = "query", dataType = "int", name = "id", value = "id")
+    @ApiImplicitParam(
+        paramType = "query",
+        dataType = "HttpServletRequest",
+        name = "req",
+        value = ""),
+    @ApiImplicitParam(paramType = "query", dataType = "int", name = "id", value = "id")
   })
   @ApiOperation(
-          value = "delete-department-tenant",
-          notes = "delete department tenant",
-          httpMethod = "GET",
-          response = Message.class)
+      value = "delete-department-tenant",
+      notes = "delete department tenant",
+      httpMethod = "GET",
+      response = Message.class)
   @RequestMapping(path = "/delete-department-tenant", method = RequestMethod.GET)
   public Message deleteDepartmentTenant(
       HttpServletRequest req, @RequestParam(value = "id") Integer id) {
@@ -383,10 +368,8 @@ public class TenantConfigrationRestfulApi {
     return Message.ok();
   }
 
-
-
   @RequestMapping(path = "/query-department", method = RequestMethod.GET)
   public Message queryDepartmentList() {
-    return Message.ok().data("department",tenantConfigService.queryDepartmentList());
+    return Message.ok().data("department", tenantConfigService.queryDepartmentList());
   }
 }

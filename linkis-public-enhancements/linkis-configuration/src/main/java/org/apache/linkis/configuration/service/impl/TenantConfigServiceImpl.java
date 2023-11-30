@@ -21,7 +21,6 @@ import org.apache.linkis.configuration.dao.DepartmentMapper;
 import org.apache.linkis.configuration.dao.DepartmentTenantMapper;
 import org.apache.linkis.configuration.dao.UserTenantMapper;
 import org.apache.linkis.configuration.entity.DepartmentTenantVo;
-import org.apache.linkis.configuration.entity.DepartmentVo;
 import org.apache.linkis.configuration.entity.TenantVo;
 import org.apache.linkis.configuration.exception.ConfigurationException;
 import org.apache.linkis.configuration.service.TenantConfigService;
@@ -37,7 +36,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -212,12 +210,6 @@ public class TenantConfigServiceImpl implements TenantConfigService {
       String departmentId, String creator, String tenantValue, Integer pageNow, Integer pageSize) {
     Map<String, Object> result = new HashMap<>(2);
     List<DepartmentTenantVo> tenantVos = null;
-    if (Objects.isNull(pageNow)) {
-      pageNow = 1;
-    }
-    if (Objects.isNull(pageSize)) {
-      pageSize = 20;
-    }
     PageHelper.startPage(pageNow, pageSize);
     try {
       tenantVos = departmentTenantMapper.queryTenantList(creator, departmentId, tenantValue);
@@ -231,7 +223,7 @@ public class TenantConfigServiceImpl implements TenantConfigService {
   }
 
   public void deleteDepartmentTenant(Integer id) throws ConfigurationException {
-    logger.info("deleteUserIP : id:{}", id);
+    logger.info("deleteDepartmentTenant : id:{}", id);
     if (StringUtils.isBlank(id.toString())) {
       throw new ConfigurationException("id can't be empty ");
     }
@@ -243,11 +235,8 @@ public class TenantConfigServiceImpl implements TenantConfigService {
     return departmentTenantMapper.queryTenant(creator, department);
   }
 
-
   @Override
   public Map<String, String> queryDepartmentList() {
     return departmentMapper.queryDepartmentList();
   }
-
-
 }
