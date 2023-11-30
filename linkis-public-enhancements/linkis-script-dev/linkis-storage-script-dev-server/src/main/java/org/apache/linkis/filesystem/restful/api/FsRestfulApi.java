@@ -1180,7 +1180,7 @@ public class FsRestfulApi {
   public Message chmod(
       HttpServletRequest req,
       @RequestParam(value = "filepath", required = true) String filePath,
-      @RequestParam(value = "isRecursion", required = false) Boolean isRecursion,
+      @RequestParam(value = "isRecursion", required = false, defaultValue = "true") Boolean isRecursion,
       @RequestParam(value = "filePermission", required = true) String filePermission)
       throws WorkSpaceException, IOException {
     String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
@@ -1194,9 +1194,6 @@ public class FsRestfulApi {
       if (matcher.matches()) {
         return Message.error(MessageFormat.format(PERMISSION_FORMAT_ERROR, filePermission));
       }
-    }
-    if (null == isRecursion) {
-      isRecursion = true;
     }
     if (!checkIsUsersDirectory(filePath, userName, Configuration.isAdmin(userName))) {
       return Message.error(MessageFormat.format(FILEPATH_ILLEGALITY, filePath));
