@@ -18,11 +18,9 @@
 package org.apache.linkis.configuration.service;
 
 import org.apache.linkis.configuration.entity.DepartmentTenantVo;
-import org.apache.linkis.configuration.entity.DepartmentVo;
 import org.apache.linkis.configuration.entity.TenantVo;
 import org.apache.linkis.configuration.exception.ConfigurationException;
 
-import java.util.List;
 import java.util.Map;
 
 public interface TenantConfigService {
