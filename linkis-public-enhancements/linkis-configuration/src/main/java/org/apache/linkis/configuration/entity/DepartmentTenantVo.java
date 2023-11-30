@@ -114,15 +114,29 @@ public class DepartmentTenantVo {
 
   @Override
   public String toString() {
-    return "DepartmentTenantVo{" +
-            "id='" + id + '\'' +
-            ", creator='" + creator + '\'' +
-            ", department='" + department + '\'' +
-            ", departmentId='" + departmentId + '\'' +
-            ", tenantValue='" + tenantValue + '\'' +
-            ", createTime=" + createTime +
-            ", updateTime=" + updateTime +
-            ", bussinessUser='" + bussinessUser + '\'' +
-            '}';
+    return "DepartmentTenantVo{"
+        + "id='"
+        + id
+        + '\''
+        + ", creator='"
+        + creator
+        + '\''
+        + ", department='"
+        + department
+        + '\''
+        + ", departmentId='"
+        + departmentId
+        + '\''
+        + ", tenantValue='"
+        + tenantValue
+        + '\''
+        + ", createTime="
+        + createTime
+        + ", updateTime="
+        + updateTime
+        + ", bussinessUser='"
+        + bussinessUser
+        + '\''
+        + '}';
   }
 }
