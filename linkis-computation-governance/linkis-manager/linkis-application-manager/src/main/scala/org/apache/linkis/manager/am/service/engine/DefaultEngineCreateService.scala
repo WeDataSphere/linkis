@@ -149,18 +149,20 @@ class DefaultEngineCreateService
     // 2. Get all available ECMs by labels
     val emScoreNodeList =
       getEMService().getEMNodes(emLabelList.asScala.filter(!_.isInstanceOf[EngineTypeLabel]).asJava)
-
-    // 3. Get the ECM with the lowest load by selection algorithm
-    val choseNode =
-      if (null == emScoreNodeList || emScoreNodeList.isEmpty) null
-      else {
-        logger.info(s"Suitable ems size is ${emScoreNodeList.length}")
-        nodeSelector.choseNode(emScoreNodeList.toArray)
-      }
-    if (null == choseNode || choseNode.isEmpty) {
+    if (null == emScoreNodeList || emScoreNodeList.isEmpty) {
       throw new LinkisRetryException(
         AMConstant.EM_ERROR_CODE,
         s" The em of labels ${engineCreateRequest.getLabels} not found"
+      )
+    }
+
+    // 3. Get the ECM with the lowest load by selection algorithm
+    logger.info(s"Suitable ems size is ${emScoreNodeList.length}")
+    val choseNode = nodeSelector.choseNode(emScoreNodeList.toArray)
+    if (null == choseNode || choseNode.isEmpty) {
+      throw new LinkisRetryException(
+        AMConstant.EM_ERROR_CODE,
+        s" There are corresponding ECM tenant labels ${engineCreateRequest.getLabels}, but none of them are healthy"
       )
     }
     val emNode = choseNode.get.asInstanceOf[EMNode]
@@ -293,13 +295,12 @@ class DefaultEngineCreateService
       })
     }
 
-    val queueRuleSuffix = props.get(AMConfiguration.ACROSS_CLUSTER_QUEUE_SUFFIX)
-    if (StringUtils.isNotBlank(queueRuleSuffix)) {
+    val crossQueue = props.get(AMConfiguration.ACROSS_CLUSTER_QUEUE_NAME)
+    if (StringUtils.isNotBlank(crossQueue)) {
       val queueName = props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "default")
-      val newQueueName = queueName + "_" + queueRuleSuffix
-      props.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, newQueueName)
+      props.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, crossQueue)
       logger.info(
-        s"Switch queues according to queueRule with queue name : $queueName to $newQueueName"
+        s"Switch queues according to queueRule with crossQueue : $queueName to $crossQueue"
       )
     }
 
