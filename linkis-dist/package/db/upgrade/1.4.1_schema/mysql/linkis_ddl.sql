@@ -33,11 +33,6 @@ ALTER TABLE linkis_ps_configuration_config_value modify COLUMN  config_value var
 
 INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('01006','没有健康可用的ecm节点，可能任务量大,导致节点资源处于不健康状态，尝试kill空闲引擎释放资源','There are corresponding ECM tenant labels',0);
 
-
-ALTER TABLE  linkis_cg_tenant_label_config ADD COLUMN department VARCHAR(50) NOT NULL DEFAULT "*" COMMENT 'user department' AFTER `creator`;
-
-
-
 -- ----------------------------
 -- Table structure for linkis_cg_tenant_department_config
 -- ----------------------------
