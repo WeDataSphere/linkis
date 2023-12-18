@@ -57,10 +57,9 @@ object ECMConfiguration {
   val ECM_MAX_CREATE_INSTANCES: Int =
     CommonVars[Integer]("wds.linkis.ecm.engineconn.instances.max", 50).getValue
 
-  val ECM_PROTECTED_MEMORY: Long = CommonVars[Long](
-    "wds.linkis.ecm.protected.memory",
-    ByteTimeUtils.byteStringAsBytes("10g")
-  ).getValue
+  val ECM_PROTECTED_MEMORY: Long = ByteTimeUtils.byteStringAsBytes(
+    CommonVars[String]("wds.linkis.ecm.protected.memory", "10g").getValue
+  )
 
   val ECM_PROTECTED_CPU_LOAD: Double =
     CommonVars[Double]("wds.linkis.ecm.protected.cpu.load", 0.98d).getValue
@@ -115,7 +114,5 @@ object ECMConfiguration {
 
   val ECM_PROCESS_SCRIPT_KILL: Boolean =
     CommonVars[Boolean]("wds.linkis.ecm.script.kill.engineconn", true).getValue
-
-  val ECM_ADMIN_OPERATIONS = CommonVars("wds.linkis.governance.admin.operations", "")
 
 }
