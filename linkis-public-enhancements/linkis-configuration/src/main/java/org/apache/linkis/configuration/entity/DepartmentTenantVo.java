@@ -33,7 +33,7 @@ public class DepartmentTenantVo {
   @ApiModelProperty("department")
   private String department;
 
-  @ApiModelProperty("department_id")
+  @ApiModelProperty("departmentId")
   private String departmentId;
 
   @ApiModelProperty("tenantValue")
