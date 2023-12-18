@@ -39,7 +39,7 @@ ALTER TABLE  linkis_cg_tenant_label_config ADD COLUMN department VARCHAR(50) NOT
 
 
 -- ----------------------------
--- Table structure for linkis_org_user
+-- Table structure for linkis_cg_tenant_department_config
 -- ----------------------------
 DROP TABLE IF EXISTS `linkis_cg_tenant_department_config`;
 CREATE TABLE `linkis_cg_tenant_department_config` (
