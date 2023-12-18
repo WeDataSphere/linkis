@@ -1190,8 +1190,8 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(filePermission)) {
       return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
     } else {
-      Matcher matcher = Pattern.compile("[0-7]{3}").matcher(filePermission);
-      if (matcher.matches()) {
+      Matcher matcher = Pattern.compile("^[0-7]{3}$").matcher(filePermission.trim());
+      if (!matcher.matches()) {
         return Message.error(MessageFormat.format(PERMISSION_FORMAT_ERROR, filePermission));
       }
     }
