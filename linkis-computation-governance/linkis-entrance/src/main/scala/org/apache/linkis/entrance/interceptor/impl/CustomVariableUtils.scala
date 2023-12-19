@@ -65,8 +65,24 @@ object CustomVariableUtils extends Logging {
       .getVariableMap(jobRequest.getParams)
       .asInstanceOf[util.HashMap[String, String]]
     variables.putAll(variableMap)
-    if (!variables.containsKey("user")) {
-      variables.put("user", jobRequest.getExecuteUser)
+    variables.put("user", jobRequest.getExecuteUser)
+    // User customization is not supported. If the user has customized it, add a warning log and replace it
+    if (variables.containsKey("submit_user")) {
+      logger.warn(
+        s"User defined replacement parameter: submitUser :" + variables
+          .get("submit_user") + "jobRequest submit_user:" + jobRequest.getSubmitUser
+      )
+    } else {
+      variables.put("submit_user", jobRequest.getSubmitUser)
+    }
+
+    if (variables.containsKey("execute_user")) {
+      logger.warn(
+        s"User defined replacement parameter: executeUser :" + variables
+          .get("execute_user") + "jobRequest execute_user:" + jobRequest.getExecuteUser
+      )
+    } else {
+      variables.put("execute_user", jobRequest.getExecuteUser)
     }
     VariableUtils.replace(jobRequest.getExecutionCode, runType, variables)
   }
