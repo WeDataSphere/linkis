@@ -18,6 +18,7 @@
 package org.apache.linkis.entrance.interceptor.impl
 
 import org.apache.linkis.common.conf.Configuration
+import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils, VariableUtils}
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.utils.LabelUtil
@@ -42,7 +43,11 @@ object CustomVariableUtils extends Logging {
    *   : requestPersistTask
    * @return
    */
-  def replaceCustomVar(jobRequest: JobRequest, runType: String): String = {
+  def replaceCustomVar(
+      jobRequest: JobRequest,
+      runType: String,
+      logAppender: java.lang.StringBuilder
+  ): String = {
     val variables: util.Map[String, String] = new util.HashMap[String, String]()
     val sender =
       Sender.getSender(Configuration.CLOUD_CONSOLE_VARIABLE_SPRING_APPLICATION_NAME.getValue)
@@ -70,7 +75,13 @@ object CustomVariableUtils extends Logging {
     if (variables.containsKey("submit_user")) {
       logger.warn(
         s"User defined replacement parameter: submitUser :" + variables
-          .get("submit_user") + "jobRequest submit_user:" + jobRequest.getSubmitUser
+          .get("submit_user") + " JobRequest submit_user:" + jobRequest.getSubmitUser
+      )
+      logAppender.append(
+        LogUtils.generateInfo(
+          "User defined replacement parameter: submitUser :" + variables
+            .get("submit_user") + " JobRequest submit_user:" + jobRequest.getSubmitUser
+        ) + "\n"
       )
     } else {
       variables.put("submit_user", jobRequest.getSubmitUser)
@@ -79,7 +90,13 @@ object CustomVariableUtils extends Logging {
     if (variables.containsKey("execute_user")) {
       logger.warn(
         s"User defined replacement parameter: executeUser :" + variables
-          .get("execute_user") + "jobRequest execute_user:" + jobRequest.getExecuteUser
+          .get("execute_user") + " JobRequest execute_user:" + jobRequest.getExecuteUser
+      )
+      logAppender.append(
+        LogUtils.generateInfo(
+          "User defined replacement parameter: executeUser :" + variables
+            .get("execute_user") + " JobRequest execute_user:" + jobRequest.getExecuteUser
+        ) + "\n"
       )
     } else {
       variables.put("execute_user", jobRequest.getExecuteUser)
