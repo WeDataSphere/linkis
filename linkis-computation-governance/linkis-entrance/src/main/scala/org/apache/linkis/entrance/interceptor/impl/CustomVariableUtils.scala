@@ -74,14 +74,14 @@ object CustomVariableUtils extends Logging {
     // User customization is not supported. If the user has customized it, add a warning log and replace it
     if (variables.containsKey("submit_user")) {
       logger.warn(
-        s"User defined replacement parameter: submitUser :" + variables
-          .get("submit_user") + " JobRequest submit_user:" + jobRequest.getSubmitUser
+        s"submitUser variable will be replaced by system value:" + jobRequest.getSubmitUser + " -> " + variables
+          .get("submit_user")
       )
       logAppender.append(
         LogUtils.generateInfo(
-          "User defined replacement parameter: submitUser :" + variables
-            .get("submit_user") + " JobRequest submit_user:" + jobRequest.getSubmitUser
-        ) + "\n"
+          "submitUser variable will be replaced by system value:" + jobRequest.getSubmitUser + " -> " + variables
+            .get("submit_user") + "\n"
+        )
       )
     } else {
       variables.put("submit_user", jobRequest.getSubmitUser)
@@ -89,14 +89,14 @@ object CustomVariableUtils extends Logging {
 
     if (variables.containsKey("execute_user")) {
       logger.warn(
-        s"User defined replacement parameter: executeUser :" + variables
-          .get("execute_user") + " JobRequest execute_user:" + jobRequest.getExecuteUser
+        s"execute_user variable will be replaced by system value:" + jobRequest.getExecuteUser + " -> " + variables
+          .get("execute_user")
       )
       logAppender.append(
         LogUtils.generateInfo(
-          "User defined replacement parameter: executeUser :" + variables
-            .get("execute_user") + " JobRequest execute_user:" + jobRequest.getExecuteUser
-        ) + "\n"
+          "executeUser variable will be replaced by system value:" + jobRequest.getExecuteUser + " -> " + variables
+            .get("execute_user") + "\n"
+        )
       )
     } else {
       variables.put("execute_user", jobRequest.getExecuteUser)
