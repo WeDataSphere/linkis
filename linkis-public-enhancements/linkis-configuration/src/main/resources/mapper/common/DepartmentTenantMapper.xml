@@ -23,6 +23,7 @@
     <resultMap id="TenantMap" type="org.apache.linkis.configuration.entity.DepartmentTenantVo">
         <id column="id" property="id" jdbcType="INTEGER"/>
         <result column="creator" property="creator" jdbcType="VARCHAR"/>
+        <result column="department" property="department" jdbcType="VARCHAR"/>
         <result column="department_id" property="departmentId" jdbcType="VARCHAR"/>
         <result column="tenant_value" property="tenantValue" jdbcType="VARCHAR"/>
         <result column="create_time" property="createTime" jdbcType="TIMESTAMP"/>
@@ -66,6 +67,7 @@
         UPDATE linkis_cg_tenant_department_config
         <trim prefix="set" suffixOverrides=",">
             <if test="creator != null">creator = #{creator},</if>
+            <if test="department != null ">department = #{department},</if>
             <if test="departmentId != null ">department_id = #{departmentId},</if>
             <if test="tenantValue != null">tenant_value = #{tenantValue},</if>
             <if test="createTime != null">create_time = #{createTime},</if>
