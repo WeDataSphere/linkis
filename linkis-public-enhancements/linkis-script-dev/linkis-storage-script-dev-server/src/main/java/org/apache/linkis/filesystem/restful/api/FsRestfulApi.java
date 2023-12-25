@@ -1164,7 +1164,7 @@ public class FsRestfulApi {
 
   @ApiOperation(value = "chmod", notes = "file chmod", response = Message.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "filepath", required = false, dataType = "String", value = "filepath"),
+    @ApiImplicitParam(name = "filepath", required = true, dataType = "String", value = "filepath"),
     @ApiImplicitParam(
         name = "isRecursion",
         required = false,
@@ -1172,7 +1172,7 @@ public class FsRestfulApi {
         value = "isRecursion"),
     @ApiImplicitParam(
         name = "filePermission",
-        required = false,
+        required = true,
         dataType = "String",
         value = "filePermission"),
   })
