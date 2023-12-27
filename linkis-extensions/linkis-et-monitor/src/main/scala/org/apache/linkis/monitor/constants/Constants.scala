@@ -90,4 +90,7 @@ object Constants {
   val BML_TRASH_PATH_PREFIX: CommonVars[String] =
     CommonVars[String]("linkis.monitor.bml.trash.prefix.path", "hdfs:///tmp/linkis/trash/bml_trash")
 
+  val LINKIS_CLUSTER_NAME =
+    CommonVars.properties.getProperty("linkis.cluster.name", "")
+
 }

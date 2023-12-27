@@ -119,7 +119,8 @@ object MonitorAlertUtils extends Logging {
         }
 
         val subSystemId = repaceParams.getOrDefault("subSystemId", Constants.ALERT_SUB_SYSTEM_ID)
-        val alertTitle = repaceParams.getOrDefault("title", data.alertTitle)
+        val alertTitle = "集群[" + Constants.LINKIS_CLUSTER_NAME + "]" + repaceParams
+          .getOrDefault("title", data.alertTitle)
         val alertLevel =
           if (StringUtils.isNotBlank(data.alertLevel)) {
             ImsAlertLevel.withName(repaceParams.getOrDefault("monitorLevel", data.alertLevel))
