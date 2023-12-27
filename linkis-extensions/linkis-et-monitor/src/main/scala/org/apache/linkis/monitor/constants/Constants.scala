@@ -47,7 +47,7 @@ object Constants {
   )
 
   val ALERT_SUB_SYSTEM_ID =
-    CommonVars.properties.getProperty("linkis.alert.sub_system_id", "10001")
+    CommonVars.properties.getProperty("linkis.alert.sub_system_id", "5435")
 
   val ALERT_DEFAULT_RECEIVERS = CommonVars.properties
     .getProperty("linkis.alert.receiver.default", "")
