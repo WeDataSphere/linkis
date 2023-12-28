@@ -61,8 +61,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -1162,7 +1160,7 @@ public class FsRestfulApi {
     fileSystem.delete(fsPath);
   }
 
-  @ApiOperation(value = "chmod", notes = "file chmod", response = Message.class)
+  @ApiOperation(value = "chmod", notes = "file permission chmod", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "filepath", required = true, dataType = "String", value = "filepath"),
     @ApiImplicitParam(
@@ -1180,7 +1178,8 @@ public class FsRestfulApi {
   public Message chmod(
       HttpServletRequest req,
       @RequestParam(value = "filepath", required = true) String filePath,
-      @RequestParam(value = "isRecursion", required = false, defaultValue = "true") Boolean isRecursion,
+      @RequestParam(value = "isRecursion", required = false, defaultValue = "true")
+          Boolean isRecursion,
       @RequestParam(value = "filePermission", required = true) String filePermission)
       throws WorkSpaceException, IOException {
     String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
@@ -1189,13 +1188,11 @@ public class FsRestfulApi {
     }
     if (StringUtils.isEmpty(filePermission)) {
       return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
-    } else {
-      Matcher matcher = Pattern.compile("^[0-7]{3}$").matcher(filePermission.trim());
-      if (!matcher.matches()) {
-        return Message.error(MessageFormat.format(PERMISSION_FORMAT_ERROR, filePermission));
-      }
     }
-    if (!checkIsUsersDirectory(filePath, userName, Configuration.isAdmin(userName))) {
+    if (!filePath.startsWith("file://") || !filePath.startsWith("hdfs://")) {
+      filePath = "file://" + filePath;
+    }
+    if (!checkIsUsersDirectory(filePath, userName, false)) {
       return Message.error(MessageFormat.format(FILEPATH_ILLEGALITY, filePath));
     } else {
       List<String> pathList = new ArrayList<>();
@@ -1219,10 +1216,10 @@ public class FsRestfulApi {
     if (files != null) {
       for (File file : files) {
         if (file.isDirectory()) {
-          // 如果是文件夹，则递归遍历
+          // If it is a folder, recursively traverse
           traverseFolder(file, pathList);
         } else {
-          // 如果是文件，则保存输出文件地址
+          // If it is a file, save the output file address
           pathList.add(file.getAbsolutePath());
         }
       }
