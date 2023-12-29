@@ -19,6 +19,7 @@ package org.apache.linkis.engineconnplugin.flink.config
 
 import org.apache.linkis.common.conf.{CommonVars, TimeType}
 import org.apache.linkis.engineconnplugin.flink.client.config.entries.ExecutionEntry
+import org.apache.linkis.engineconnplugin.flink.constants.FlinkECConstant
 
 object FlinkEnvConfiguration {
 
@@ -91,6 +92,8 @@ object FlinkEnvConfiguration {
   val FLINK_SQL_DEV_RESULT_MAX_WAIT_TIME =
     CommonVars("flink.dev.sql.result.wait.time.max", new TimeType("1m"))
 
+  val LINKIS_FLINK_LOG4J_CHECK_ENABLE = CommonVars("linkis.flink.log4j.check.enable", true)
+  val LINKIS_FLINK_LOG4J_CHECK_KEYWORDS = CommonVars("linkis.flink.log4j.check.keywords", "")
   val FLINK_APPLICATION_ARGS = CommonVars("flink.app.args", "")
   val FLINK_APPLICATION_MAIN_CLASS = CommonVars("flink.app.main.class", "")
   val FLINK_APPLICATION_MAIN_CLASS_JAR = CommonVars("flink.app.main.class.jar", "")
@@ -137,10 +140,17 @@ object FlinkEnvConfiguration {
   val FLINK_MANAGER_CLIENT_EXPIRE_MILLS =
     CommonVars("linkis.flink.client.expire.mills", 3600 * 1000)
 
+  // default NONE
+  val FLINK_MANAGER_HIGHAVAILABLE_MODE =
+    CommonVars("linkis.flink.manager.highavailable.mode", FlinkECConstant.HIGH_AVAILABLE_MODE_NONE)
+
   val FLINK_HANDSHAKE_WAIT_TIME_MILLS =
     CommonVars("linkis.flink.handshake.wait.time.mills", 60 * 1000)
 
   val FLINK_ENV_JAVA_OPTS =
     CommonVars("flink.env.java.opts", "env.java.opts")
+
+  val FLINK_CONSTANT_CONFIGURATION =
+    CommonVars("flink.constant.configuration", "log4j.properties")
 
 }

@@ -110,6 +110,11 @@ public class MdqServiceImpl implements MdqService {
         mdqFieldList.remove(collect.get(1));
       }
     }
+    if (!table.getPartitionTable()) {
+      mdqFieldList.stream()
+          .filter(MdqField::getPartitionField)
+          .forEach(mdqField -> mdqField.setPartitionField(false));
+    }
     mdqDao.insertFields(mdqFieldList);
     if (mdqTableBO.getImportInfo() != null) {
       MdqTableImportInfoBO importInfo = mdqTableBO.getImportInfo();
@@ -151,7 +156,7 @@ public class MdqServiceImpl implements MdqService {
       if (isImport
           && (importType == MdqImportType.Csv.ordinal()
               || importType == MdqImportType.Excel.ordinal())) {
-        String destination = mdqTableBO.getImportInfo().getArgs().get("destination");
+        String destination = mdqTableBO.getImportInfo().getDestination();
         HashMap hashMap = new Gson().fromJson(destination, HashMap.class);
         if (Boolean.valueOf(hashMap.get("importData").toString())) {
           logger.info(
