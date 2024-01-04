@@ -246,7 +246,6 @@ public class HDFSFileSystem extends FileSystem {
       return fs.append(new Path(path));
     } else {
       OutputStream out = fs.create(new Path(path), true);
-      this.setPermission(dest, this.getDefaultFilePerm());
       return out;
     }
   }
@@ -467,6 +466,7 @@ public class HDFSFileSystem extends FileSystem {
 
   @Override
   public long getLength(FsPath dest) throws IOException {
-    return 0;
+    FileStatus fileStatus = fs.getFileStatus(new Path(checkHDFSPath(dest.getPath())));
+    return fileStatus.getLen();
   }
 }
