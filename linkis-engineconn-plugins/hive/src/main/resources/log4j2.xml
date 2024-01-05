@@ -101,7 +101,6 @@
         </logger>
         <logger name="org.apache.hadoop.mapreduce.Job" level="INFO" additivity="true">
             <appender-ref ref="YarnAppIdOutputFile"/>
-            <appender-ref ref="Send"/>
         </logger>
         <logger name="org.apache.hadoop.hive.conf.HiveConf" level="ERROR" additivity="true">
             <appender-ref ref="Send"/>
