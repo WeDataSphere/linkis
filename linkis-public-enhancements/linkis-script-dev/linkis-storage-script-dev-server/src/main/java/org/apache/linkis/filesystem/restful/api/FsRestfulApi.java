@@ -59,6 +59,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -1163,5 +1164,68 @@ public class FsRestfulApi {
       deleteAllFiles(fileSystem, path);
     }
     fileSystem.delete(fsPath);
+  }
+
+  @ApiOperation(value = "chmod", notes = "file permission chmod", response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "filepath", required = true, dataType = "String", value = "filepath"),
+    @ApiImplicitParam(
+        name = "isRecursion",
+        required = false,
+        dataType = "String",
+        value = "isRecursion"),
+    @ApiImplicitParam(
+        name = "filePermission",
+        required = true,
+        dataType = "String",
+        value = "filePermission"),
+  })
+  @RequestMapping(path = "/chmod", method = RequestMethod.GET)
+  public Message chmod(
+      HttpServletRequest req,
+      @RequestParam(value = "filepath", required = true) String filePath,
+      @RequestParam(value = "isRecursion", required = false, defaultValue = "true")
+          Boolean isRecursion,
+      @RequestParam(value = "filePermission", required = true) String filePermission)
+      throws WorkSpaceException, IOException {
+    String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
+    if (StringUtils.isEmpty(filePath)) {
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
+    }
+    if (StringUtils.isEmpty(filePermission)) {
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
+    }
+    if (!filePath.startsWith("file://") && !filePath.startsWith("hdfs://")) {
+      filePath = "file://" + filePath;
+    }
+    if (!checkIsUsersDirectory(filePath, userName, false)) {
+      return Message.error(MessageFormat.format(FILEPATH_ILLEGALITY, filePath));
+    } else {
+      FileSystem fileSystem = fsService.getFileSystem(userName, new FsPath(filePath));
+      Stack<FsPath> dirsToChmod = new Stack<>();
+      dirsToChmod.push(new FsPath(filePath));
+      if (isRecursion) {
+        traverseFolder(new FsPath(filePath), fileSystem, dirsToChmod);
+      }
+      while (!dirsToChmod.empty()) {
+        fileSystem.setPermission(dirsToChmod.pop(), filePermission);
+      }
+      return Message.ok();
+    }
+  }
+
+  private static void traverseFolder(
+      FsPath fsPath, FileSystem fileSystem, Stack<FsPath> dirsToChmod) throws IOException {
+    List<FsPath> list = fileSystem.list(fsPath);
+    if (list == null) {
+      return;
+    }
+    for (FsPath path : list) {
+      if (path.isdir()) {
+        traverseFolder(path, fileSystem, dirsToChmod);
+      } else {
+        dirsToChmod.push(path);
+      }
+    }
   }
 }

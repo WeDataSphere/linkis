@@ -279,7 +279,8 @@ public class TenantConfigrationRestfulApi {
       response = Message.class)
   @RequestMapping(path = "/save-department-tenant", method = RequestMethod.POST)
   public Message saveDepartmentTenant(
-      HttpServletRequest req, @RequestBody DepartmentTenantVo departmentTenantVo) {
+      HttpServletRequest req, @RequestBody DepartmentTenantVo departmentTenantVo)
+      throws ConfigurationException {
     String userName = ModuleUserUtils.getOperationUser(req, "execute saveDepartmentTenant");
     if (!Configuration.isAdmin(userName)) {
       return Message.error("Failed to save-department-tenant,msg: only administrator users to use");
@@ -292,6 +293,14 @@ public class TenantConfigrationRestfulApi {
     }
     if (StringUtils.isBlank(departmentTenantVo.getDepartmentId())) {
       return Message.error("departmentId tag can't be empty");
+    }
+    if (StringUtils.isBlank(departmentTenantVo.getId())) {
+      DepartmentTenantVo departTenant =
+          tenantConfigService.queryDepartTenant(
+              departmentTenantVo.getCreator(), departmentTenantVo.getDepartmentId());
+      if (departTenant != null) {
+        return Message.error("department creator is exist");
+      }
     }
     tenantConfigService.saveDepartmentTenant(departmentTenantVo);
     return Message.ok();
@@ -329,7 +338,7 @@ public class TenantConfigrationRestfulApi {
       @RequestParam(value = "tenantValue", required = false) String tenantValue,
       @RequestParam(value = "pageNow", required = false, defaultValue = "1") Integer pageNow,
       @RequestParam(value = "pageSize", required = false, defaultValue = "20") Integer pageSize) {
-    String userName = ModuleUserUtils.getOperationUser(req, "execute queryTenantList");
+    String userName = ModuleUserUtils.getOperationUser(req, "execute queryDepartmentTenantList");
     if (!Configuration.isAdmin(userName)) {
       return Message.error("Failed to query-tenant-list,msg: only administrator users to use");
     }
