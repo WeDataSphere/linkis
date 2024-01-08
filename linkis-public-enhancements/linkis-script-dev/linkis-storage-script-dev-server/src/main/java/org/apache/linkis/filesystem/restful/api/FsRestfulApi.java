@@ -59,6 +59,7 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.MessageFormat;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -586,10 +587,7 @@ public class FsRestfulApi {
     if (!fileSystem.canRead(fsPath)) {
       throw WorkspaceExceptionManager.createException(80012);
     }
-    // Increase file size limit, making it easy to OOM without limitation
-    if (fileSystem.getLength(fsPath) > FILESYSTEM_FILE_CHECK_SIZE.getValue()) {
-      throw WorkspaceExceptionManager.createException(80032);
-    }
+
     FileSource fileSource = null;
     try {
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
@@ -601,6 +599,9 @@ public class FsRestfulApi {
           fileSource.addParams("nullValue", nullValue);
         }
         fileSource = fileSource.page(page, pageSize);
+      } else if (fileSystem.getLength(fsPath) > FILESYSTEM_FILE_CHECK_SIZE.getValue()) {
+        // Increase file size limit, making it easy to OOM without limitation
+        throw WorkspaceExceptionManager.createException(80032);
       }
       Pair<Object, ArrayList<String[]>> result = fileSource.collect()[0];
       IOUtils.closeQuietly(fileSource);
@@ -1051,7 +1052,7 @@ public class FsRestfulApi {
     }
     String suffix = path.substring(path.lastIndexOf("."));
     FsPath fsPath = new FsPath(path);
-    Map<String, Map<String, String>> sheetInfo;
+    Map<String, List<Map<String, String>>> sheetInfo;
     FileSystem fileSystem = fsService.getFileSystem(userName, fsPath);
     try (InputStream in = fileSystem.read(fsPath)) {
       if (".xlsx".equalsIgnoreCase(suffix)) {
@@ -1059,7 +1060,7 @@ public class FsRestfulApi {
       } else if (".xls".equalsIgnoreCase(suffix)) {
         sheetInfo = XlsUtils.getSheetsInfo(in, hasHeader);
       } else if (".csv".equalsIgnoreCase(suffix)) {
-        HashMap<String, String> csvMap = new LinkedHashMap<>();
+        List<Map<String, String>> csvMapList = new ArrayList<>();
         String[][] column = null;
         // fix csv file with utf-8 with bom chart[&#xFEFF]
         BOMInputStream bomIn = new BOMInputStream(in, false); // don't include the BOM
@@ -1074,6 +1075,7 @@ public class FsRestfulApi {
         column = new String[2][colNum];
         if (hasHeader) {
           for (int i = 0; i < colNum; i++) {
+            HashMap<String, String> csvMap = new HashMap<>();
             column[0][i] = line[i];
             if (escapeQuotes) {
               try {
@@ -1084,14 +1086,17 @@ public class FsRestfulApi {
             } else {
               csvMap.put(column[0][i], "string");
             }
+            csvMapList.add(csvMap);
           }
         } else {
           for (int i = 0; i < colNum; i++) {
+            HashMap<String, String> csvMap = new HashMap<>();
             csvMap.put("col_" + (i + 1), "string");
+            csvMapList.add(csvMap);
           }
         }
         sheetInfo = new HashMap<>(1);
-        sheetInfo.put("sheet_csv", csvMap);
+        sheetInfo.put("sheet_csv", csvMapList);
       } else {
         throw WorkspaceExceptionManager.createException(80004, path);
       }
@@ -1125,6 +1130,9 @@ public class FsRestfulApi {
     if (!fileSystem.canRead(fsPath)) {
       throw WorkspaceExceptionManager.createException(80018);
     }
+    if (fileSystem.getLength(fsPath) > FILESYSTEM_FILE_CHECK_SIZE.getValue()) {
+      throw WorkspaceExceptionManager.createException(80033);
+    }
     try (FileSource fileSource =
         FileSource$.MODULE$.create(fsPath, fileSystem).addParams("ifMerge", "false")) {
       Pair<Object, ArrayList<String[]>> collect = fileSource.collect()[0];
@@ -1156,5 +1164,83 @@ public class FsRestfulApi {
       deleteAllFiles(fileSystem, path);
     }
     fileSystem.delete(fsPath);
+  }
+
+  @ApiOperation(value = "chmod", notes = "file permission chmod", response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "filepath", required = true, dataType = "String", value = "filepath"),
+    @ApiImplicitParam(
+        name = "isRecursion",
+        required = false,
+        dataType = "String",
+        value = "isRecursion"),
+    @ApiImplicitParam(
+        name = "filePermission",
+        required = true,
+        dataType = "String",
+        value = "filePermission"),
+  })
+  @RequestMapping(path = "/chmod", method = RequestMethod.GET)
+  public Message chmod(
+      HttpServletRequest req,
+      @RequestParam(value = "filepath", required = true) String filePath,
+      @RequestParam(value = "isRecursion", required = false, defaultValue = "true")
+          Boolean isRecursion,
+      @RequestParam(value = "filePermission", required = true) String filePermission)
+      throws WorkSpaceException, IOException {
+    String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
+    if (StringUtils.isEmpty(filePath)) {
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
+    }
+    if (StringUtils.isEmpty(filePermission)) {
+      return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePermission));
+    }
+    if (!filePath.startsWith("file://") && !filePath.startsWith("hdfs://")) {
+      filePath = "file://" + filePath;
+    }
+    if (!checkIsUsersDirectory(filePath, userName, false)) {
+      return Message.error(MessageFormat.format(FILEPATH_ILLEGALITY, filePath));
+    } else {
+      if (checkFilePermissions(filePermission)) {
+        FileSystem fileSystem = fsService.getFileSystem(userName, new FsPath(filePath));
+        Stack<FsPath> dirsToChmod = new Stack<>();
+        dirsToChmod.push(new FsPath(filePath));
+        if (isRecursion) {
+          traverseFolder(new FsPath(filePath), fileSystem, dirsToChmod);
+        }
+        while (!dirsToChmod.empty()) {
+          fileSystem.setPermission(dirsToChmod.pop(), filePermission);
+        }
+        return Message.ok();
+      } else {
+        return Message.error(MessageFormat.format(FILE_PERMISSION_ERROR, filePermission));
+      }
+    }
+  }
+
+  private static boolean checkFilePermissions(String filePermission) {
+    boolean result = false;
+    if (org.apache.commons.lang3.StringUtils.isNumeric(filePermission)) {
+      char[] ps = filePermission.toCharArray();
+      int ownerPermissions = Integer.parseInt(String.valueOf(ps[0]));
+      if (ownerPermissions >= 4) {
+        result = true;
+      }
+    }
+    return result;
+  }
+
+  private static void traverseFolder(
+      FsPath fsPath, FileSystem fileSystem, Stack<FsPath> dirsToChmod) throws IOException {
+    List<FsPath> list = fileSystem.list(fsPath);
+    if (list == null) {
+      return;
+    }
+    for (FsPath path : list) {
+      if (path.isdir()) {
+        traverseFolder(path, fileSystem, dirsToChmod);
+      }
+      dirsToChmod.push(path);
+    }
   }
 }
