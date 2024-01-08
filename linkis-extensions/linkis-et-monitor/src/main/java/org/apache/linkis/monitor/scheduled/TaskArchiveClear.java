@@ -34,7 +34,7 @@ import java.util.List;
 public class TaskArchiveClear {
     private static final Logger logger = LogUtils.stdOutLogger();
 
-    @Scheduled(cron = "${linkis.monitor.task.archive.cron}")
+    @Scheduled(cron = "${linkis.monitor.task.archive.cron:0 30 12 * * ?}")
     public void taskLogClear() {
         logger.info("Start to linkis_task_archive shell");
         List<String> cmdlist = new ArrayList<>();
