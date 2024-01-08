@@ -28,7 +28,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-/** * Task: clean up logs, file data of ec materials */
+/** * Task log, result set archived and deleted, retention period: linkis: two months ago, dots: one week */
 @Component
 @PropertySource(value = "classpath:linkis-et-monitor.properties", encoding = "UTF-8")
 public class TaskArchiveClear {
