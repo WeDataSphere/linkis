@@ -412,7 +412,7 @@ CREATE TABLE `linkis_ps_cs_context_map` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_key_cid_ctype` (`key`,`context_id`,`context_type`),
   KEY `idx_keywords` (`keywords`(191))
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 ROW_FORMAT=DYNAMIC;
 
 -- ----------------------------
 -- Table structure for linkis_ps_cs_context_map_listener

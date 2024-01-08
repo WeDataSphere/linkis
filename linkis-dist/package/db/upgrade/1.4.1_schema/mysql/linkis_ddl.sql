@@ -70,3 +70,9 @@ CREATE TABLE `linkis_org_user` (
   `user_itsm_no` varchar(64) COMMENT '用户创建单号',
   PRIMARY KEY (`user_name`)
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE=utf8mb4_bin COMMENT ='用户部门统计INC表';
+
+ALTER TABLE linkis_ps_cs_context_map row_format=dynamic;
+
+ALTER TABLE linkis_ps_cs_context_map modify column `key` varchar(220) DEFAULT NULL;
+
+ALTER TABLE linkis_ps_cs_context_map modify column `keywords` varchar(310) DEFAULT NULL;
