@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -243,6 +244,13 @@ public class TenantConfigServiceImpl implements TenantConfigService {
 
   @Override
   public List<DepartmentVo> queryDepartmentList() {
-    return departmentMapper.queryDepartmentList();
+    return new ArrayList<>(
+        departmentMapper.queryDepartmentList().stream()
+            .collect(
+                Collectors.toMap(
+                    DepartmentVo::getOrgId,
+                    department -> department,
+                    (existing, replacement) -> existing))
+            .values());
   }
 }
