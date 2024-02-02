@@ -146,6 +146,9 @@ object AMUtils {
           EMNodeVo.setMsg(node.getNodeHealthyInfo.getMsg)
         }
       }
+      if (node != null) {
+        EMNodeVo.setDescription(node.getNodeDescription)
+      }
       EMNodeVos.add(EMNodeVo)
     })
     EMNodeVos
