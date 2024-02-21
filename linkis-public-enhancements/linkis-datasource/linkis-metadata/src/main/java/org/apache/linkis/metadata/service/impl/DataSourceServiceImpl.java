@@ -119,8 +119,8 @@ public class DataSourceServiceImpl implements DataSourceService {
       tableNode.put("isView", table.get("TYPE").equals("VIRTUAL_VIEW"));
       tableNode.put("databaseName", queryParam.getDbName());
       tableNode.put("createdBy", (String) table.get("OWNER"));
-      tableNode.put("createdAt", (Long) table.get("CREATE_TIME"));
-      tableNode.put("lastAccessAt", (Long) table.get("LAST_ACCESS_TIME"));
+      tableNode.put("createdAt", (Integer) table.get("CREATE_TIME"));
+      tableNode.put("lastAccessAt", (Integer) table.get("LAST_ACCESS_TIME"));
       tables.add(tableNode);
     }
     return tables;

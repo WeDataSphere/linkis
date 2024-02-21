@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Licensed to the Apache Software Foundation (ASF) under one or more
   ~ contributor license agreements.  See the NOTICE file distributed with
@@ -15,26 +15,28 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
 <mapper namespace="org.apache.linkis.metadata.dao.MdqDao">
 
     <sql id="table_List">
-        "database", "name", "alias", "creator", "comment","create_time",
-        "product_name","project_name","usage","lifecycle","use_way","is_import","model_level","is_external_use",
-        "is_partition_table","is_available"
+        id, `database`, `name`, `alias`, `creator`, `comment`,`create_time`,
+        `product_name`,`project_name`,`usage`,`lifecycle`,`use_way`,`is_import`,`model_level`,`is_external_use`,
+        `is_partition_table`,`is_available`
     </sql>
 
     <sql id="field_List">
-        "table_id", "name", "alias", "type", "comment","express",
-        "rule","is_partition_field","is_primary","length","mode_info"
+        id, `table_id`, `name`, `alias`, `type`, `comment`,`express`,
+        `rule`,`is_partition_field`,`is_primary`,`length`,`mode_info`
     </sql>
 
     <sql id="import_List">
-        "table_id", "import_type", "args"
+        id, `table_id`, `import_type`, `args`
     </sql>
 
     <sql id="lineage_List">
-        "table_id", "source_table", "update_time"
+        id, `table_id`, `source_table`, `update_time`
     </sql>
 
     <update id="activateTable">
@@ -43,7 +45,7 @@
 
     <select id="selectTableByName" resultType="org.apache.linkis.metadata.domain.mdq.po.MdqTable">
         select * from linkis_ps_datasource_table
-        WHERE "database" = #{database} AND "name" = #{tableName} AND creator = #{user} AND is_available = true
+        WHERE `database` = #{database} AND `name` = #{tableName} AND creator = #{user} AND is_available = true
     </select>
 
     <select id="listMdqFieldByTableId" resultType="org.apache.linkis.metadata.domain.mdq.po.MdqField">
@@ -52,8 +54,8 @@
     </select>
 
     <insert id="insertTable" useGeneratedKeys="true" keyProperty="id" parameterType="org.apache.linkis.metadata.domain.mdq.po.MdqTable">
-        INSERT INTO linkis_ps_datasource_table(<include refid="table_List"/>) VALUES (
-        #{database},#{name},#{alias},#{creator},#{comment},#{createTime},#{productName},#{projectName},#{usage},
+      INSERT INTO linkis_ps_datasource_table(<include refid="table_List"/>) VALUES (
+        #{id},#{database},#{name},#{alias},#{creator},#{comment},#{createTime},#{productName},#{projectName},#{usage},
         #{lifecycle},#{useWay},#{isImport},#{modelLevel},#{isExternalUse},#{isPartitionTable},#{isAvailable}
         )
     </insert>
@@ -63,25 +65,25 @@
         (<include refid="field_List"/>)
         VALUES
         <foreach collection="mdqFieldList" item="fields"  separator="," >
-            (#{fields.tableId},#{fields.name},#{fields.alias},#{fields.type},#{fields.comment},
+            (#{fields.id},#{fields.tableId},#{fields.name},#{fields.alias},#{fields.type},#{fields.comment},
             #{fields.express},#{fields.rule},#{fields.isPartitionField},#{fields.isPrimary},#{fields.length},#{fields.modeInfo})
         </foreach>
     </insert>
 
     <insert id="insertImport" parameterType="org.apache.linkis.metadata.domain.mdq.po.MdqImport">
         INSERT INTO linkis_ps_datasource_import(<include refid="import_List"/>) VALUES (
-        #{tableId},#{importType},#{args}
+        #{id},#{tableId},#{importType},#{args}
         )
     </insert>
 
     <insert id="insertLineage" parameterType="org.apache.linkis.metadata.domain.mdq.po.MdqLineage">
         INSERT INTO linkis_ps_datasource_lineage(<include refid="lineage_List"/>) VALUES (
-        #{tableId},#{sourceTable},#{updateTime}
+        #{id},#{tableId},#{sourceTable},#{updateTime}
         )
     </insert>
 
     <select id="selectTableForUpdate" resultType="org.apache.linkis.metadata.domain.mdq.po.MdqTable">
-        select * from linkis_ps_datasource_table  WHERE "database" = #{database} AND "name" = #{tableName} for UPDATE;
+        select * from linkis_ps_datasource_table  WHERE `database` = #{database} AND `name` = #{tableName} for UPDATE;
     </select>
 
     <delete id="deleteTableBaseInfo">

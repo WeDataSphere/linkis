@@ -69,34 +69,34 @@
     </resultMap>
 
     <sql id="data_source_insert_columns">
-        datasource_name
-        , datasource_type_id, datasource_desc,
-        create_identify, create_system, create_user, parameter, create_time,
-        modify_user, modify_time, labels
+        `datasource_name`
+        , `datasource_type_id`, `datasource_desc`,
+        `create_identify`, `create_system`, `create_user`, `parameter`, `create_time`,
+        `modify_user`, `modify_time`, `labels`
     </sql>
 
     <sql id="data_source_query_columns">
-        id
-        , datasource_name, datasource_type_id, datasource_desc,
-        create_identify, create_system, create_user, parameter, expire, create_time,
-        modify_user, modify_time
+        `id`
+        , `datasource_name`, `datasource_type_id`, `datasource_desc`,
+        `create_identify`, `create_system`, `create_user`, `parameter`, `expire`, `create_time`,
+        `modify_user`, `modify_time`
     </sql>
 
     <sql id="data_source_query_page">
-        d.id
-        , d.datasource_name, d.datasource_type_id, t.name, d.datasource_desc,
-        d.create_identify, d.create_system, d.create_user, d.create_time,
-        d.modify_user, d.modify_time, d.labels, d.version_id,d.published_version_id, d.expire
+        d.`id`
+        , d.`datasource_name`, d.`datasource_type_id`, t.`name`, d.`datasource_desc`,
+        d.`create_identify`, d.`create_system`, d.`create_user`, d.`create_time`,
+        d.`modify_user`, d.`modify_time`, d.`labels`, d.`version_id`,d.`published_version_id`, d.`expire`
     </sql>
     <sql id="data_source_join_type">
-        t.name, t.icon,
-        d.id, d.datasource_name, d.datasource_type_id, d.datasource_desc,
-        d.create_identify, d.create_system, d.create_user, d.parameter, d.create_time,
-        d.modify_user, d.modify_time, d.version_id,d.published_version_id, d.labels, d.expire
+        t.`name`, t.`icon`,
+        d.`id`, d.`datasource_name`, d.`datasource_type_id`, d.`datasource_desc`,
+        d.`create_identify`, d.`create_system`, d.`create_user`, d.`parameter`, d.`create_time`,
+        d.`modify_user`, d.`modify_time`, d.`version_id`,d.`published_version_id`, d.`labels`, d.`expire`
     </sql>
 
     <insert id="insertOne" useGeneratedKeys="true" keyProperty="id" parameterType="org.apache.linkis.datasourcemanager.common.domain.DataSource">
-        INSERT INTO linkis_ps_dm_datasource(
+        INSERT INTO `linkis_ps_dm_datasource`(
         <include refid="data_source_insert_columns"/>
         ) VALUES(#{dataSourceName}, #{dataSourceTypeId},
         #{dataSourceDesc,jdbcType=VARCHAR}, #{createIdentify}, #{createSystem}, #{createUser},
@@ -125,146 +125,146 @@
     </insert>
 
     <select id="selectOneDetail" resultMap="dataSourceDetailMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_join_type"/>
-         FROM linkis_ps_dm_datasource_type t
-        INNER JOIN linkis_ps_dm_datasource d ON t.id = d.datasource_type_id
+        <![CDATA[ FROM `linkis_ps_dm_datasource_type` t
+        INNER JOIN `linkis_ps_dm_datasource` d ON t.`id` = d.`datasource_type_id`]]>
         <where>
-            d.id = #{dataSourceId}
+            d.`id` = #{dataSourceId}
         </where>
     </select>
 
     <select id="selectOneDetailByName" resultMap="dataSourceDetailMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_join_type"/>
-         FROM linkis_ps_dm_datasource_type t
-        INNER JOIN linkis_ps_dm_datasource d ON t.id = d.datasource_type_id
+        <![CDATA[ FROM `linkis_ps_dm_datasource_type` t
+        INNER JOIN `linkis_ps_dm_datasource` d ON t.`id` = d.`datasource_type_id`]]>
         <where>
-            d.datasource_name = #{dataSourceName} LIMIT 1
+            d.`datasource_name` = #{dataSourceName} LIMIT 1
         </where>
     </select>
     <select id="selectOne" resultMap="dataSourceMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_query_columns"/>
-         FROM linkis_ps_dm_datasource
+        <![CDATA[ FROM `linkis_ps_dm_datasource` ]]>
         <where>
-            id = #{dataSourceId}
+            `id` = #{dataSourceId}
         </where>
     </select>
 
     <select id="selectOneByName" resultMap="dataSourceMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_query_columns"/>
-         FROM linkis_ps_dm_datasource
+        <![CDATA[ FROM `linkis_ps_dm_datasource` ]]>
         <where>
-            datasource_name = #{dataSourceName}
+            `datasource_name` = #{dataSourceName}
         </where>
-         LIMIT 1;
+        <![CDATA[ LIMIT 1; ]]>
     </select>
     <select id="selectEnvById" resultType="DataSourceEnv">
-
-        SELECT env_name, parameter AS env_parameter
-        FROM linkis_ps_dm_datasource_env
-        WHERE id = #{id};
-
+        <![CDATA[
+        SELECT `env_name`, `parameter` AS `env_parameter`
+        FROM `linkis_ps_dm_datasource_env`
+        WHERE `id` = #{id};
+        ]]>
     </select>
 
     <delete id="removeOne">
-        DELETE FROM linkis_ps_dm_datasource
+        <![CDATA[DELETE FROM `linkis_ps_dm_datasource`]]>
         <where>
-            id = #{dataSourceId}
+            `id` = #{dataSourceId}
         </where>
     </delete>
 
     <update id="updateOne">
-        UPDATE linkis_ps_dm_datasource
+        <![CDATA[UPDATE `linkis_ps_dm_datasource`]]>
         <set>
-            datasource_name = #{dataSourceName},
-            datasource_desc = #{dataSourceDesc,jdbcType=VARCHAR},
+            <![CDATA[`datasource_name` = #{dataSourceName},]]>
+            <![CDATA[`datasource_desc` = #{dataSourceDesc,jdbcType=VARCHAR},]]>
             <if test="dataSourceTypeId != null and dataSourceTypeId > 0">
-                datasource_type_id = #{dataSourceTypeId},
+                <![CDATA[`datasource_type_id` = #{dataSourceTypeId},]]>
             </if>
-            parameter = #{parameter},
-            create_identify = #{createIdentify,jdbcType=VARCHAR},
-            create_system = #{createSystem,jdbcType=VARCHAR},
+            <![CDATA[`parameter` = #{parameter},]]>
+            <![CDATA[`create_identify` = #{createIdentify,jdbcType=VARCHAR},]]>
+            <![CDATA[`create_system` = #{createSystem,jdbcType=VARCHAR},]]>
             <choose>
                 <when test="modifyTime == null">
-                    modify_time = now(),
+                    <![CDATA[`modify_time` = now(),]]>
                 </when>
                 <otherwise>
-                    modify_time = #{modifyTime,jdbcType=TIMESTAMP},
+                    <![CDATA[`modify_time` = #{modifyTime,jdbcType=TIMESTAMP},]]>
                 </otherwise>
             </choose>
-            modify_user = #{modifyUser,jdbcType=VARCHAR},
-            labels = #{labels,jdbcType=VARCHAR}
+            <![CDATA[`modify_user` = #{modifyUser,jdbcType=VARCHAR},]]>
+            <![CDATA[`labels` = #{labels,jdbcType=VARCHAR}]]>
         </set>
         <where>
-            id = #{id}
+            `id` = #{id}
         </where>
     </update>
 
     <update id="expireOne">
-        UPDATE linkis_ps_dm_datasource
+        <![CDATA[UPDATE `linkis_ps_dm_datasource`]]>
         <set>
-            expire = true
+            <![CDATA[`expire` = true]]>
         </set>
         <where>
-            id = #{dataSourceId}
+            `id` = #{dataSourceId}
         </where>
     </update>
 
     <select id="selectByIds" resultMap="dataSourceMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_query_page"/>
-         FROM linkis_ps_dm_datasource_type t
-        INNER JOIN linkis_ps_dm_datasource d ON t.id = d.datasource_type_id
+        <![CDATA[ FROM `linkis_ps_dm_datasource_type` t
+        INNER JOIN `linkis_ps_dm_datasource` d ON t.`id` = d.`datasource_type_id`]]>
         <where>
             <if test="ids != null and ids.size > 0">
-                AND d.id in
+                <![CDATA[AND d.`id` in ]]>
                 <foreach collection="ids" index="index" item="id" separator="," open="(" close=")">
                     #{id}
                 </foreach>
             </if>
         </where>
-         ORDER BY create_time DESC
+        <![CDATA[ ORDER BY create_time DESC ]]>
     </select>
 
     <select id="selectByPageVo" resultMap="dataSourceMap">
-        SELECT
+        <![CDATA[SELECT ]]>
         <include refid="data_source_query_page"/>
-         FROM linkis_ps_dm_datasource_type t
-    INNER JOIN linkis_ps_dm_datasource d ON t.id = d.datasource_type_id
+        <![CDATA[ FROM `linkis_ps_dm_datasource_type` t
+    INNER JOIN `linkis_ps_dm_datasource` d ON t.`id` = d.`datasource_type_id`]]>
         <where>
             <if test="dataSourceName != null and dataSourceName != ''">
-                AND datasource_name like concat('%', #{dataSourceName}::text, '%')
+                <![CDATA[AND `datasource_name` like concat('%', #{dataSourceName}, '%')]]>
             </if>
             <if test="dataSourceTypeId != null and dataSourceTypeId > 0">
-                AND datasource_type_id = #{dataSourceTypeId}
+                <![CDATA[AND `datasource_type_id` = #{dataSourceTypeId}]]>
             </if>
             <if test="permissionUser != null and permissionUser != ''">
-                AND create_user = #{permissionUser}
+                <![CDATA[AND `create_user` = #{permissionUser}]]>
             </if>
         </where>
-         ORDER BY create_time DESC
+        <![CDATA[ ORDER BY create_time DESC ]]>
     </select>
 
     <update id="setPublishedVersionId">
-        UPDATE linkis_ps_dm_datasource
+        UPDATE `linkis_ps_dm_datasource`
         <set>
-            published_version_id = #{versionId}
+            <![CDATA[`published_version_id` = #{versionId}]]>
         </set>
         <where>
-            id = #{dataSourceId}
+            `id` = #{dataSourceId}
         </where>
     </update>
 
     <update id="updateVersionId">
-        UPDATE linkis_ps_dm_datasource
+        UPDATE `linkis_ps_dm_datasource`
         <set>
-            version_id = #{versionId}
+            <![CDATA[`version_id` = #{versionId}]]>
         </set>
         <where>
-            id = #{dataSourceId}
+            `id` = #{dataSourceId}
         </where>
     </update>
 </mapper>
