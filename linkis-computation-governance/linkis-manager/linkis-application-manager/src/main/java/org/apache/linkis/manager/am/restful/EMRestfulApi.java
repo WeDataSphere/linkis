@@ -313,9 +313,9 @@ public class EMRestfulApi {
       nodeLabelService.updateLabelsToNode(serviceInstance, newLabelList);
       logger.info("success to update label of instance: " + serviceInstance.getInstance());
     }
-    String description = jsonNode.get("description").asText();
-    if (StringUtils.isNotBlank(description)) {
-      nodeMetricManagerPersistence.updateNodeMetricDescription(description, instance);
+    JsonNode description = jsonNode.get("description");
+    if (null != description && StringUtils.isNotBlank(description.asText())) {
+      nodeMetricManagerPersistence.updateNodeMetricDescription(description.asText(), instance);
     }
     return Message.ok("success");
   }

@@ -30,6 +30,8 @@ import org.apache.linkis.manager.common.serializer.NodeResourceSerializer
 import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
 import org.apache.linkis.server.BDPJettyServerHelper
 
+import org.apache.commons.lang3.StringUtils
+
 import java.util
 
 import scala.collection.JavaConverters._
@@ -146,7 +148,7 @@ object AMUtils {
           EMNodeVo.setMsg(node.getNodeHealthyInfo.getMsg)
         }
       }
-      if (node != null) {
+      if (StringUtils.isNotBlank(node.getNodeDescription)) {
         EMNodeVo.setDescription(node.getNodeDescription)
       }
       EMNodeVos.add(EMNodeVo)
