@@ -574,6 +574,7 @@ CREATE TABLE if not exists `linkis_ps_bml_resources_task` (
   `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Starting time',
   `end_time` datetime DEFAULT NULL COMMENT 'End Time',
   `last_update_time` datetime NOT NULL COMMENT 'Last update time',
+   unique key `uniq_uresources_uversion` (`resource_id`, `version`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
