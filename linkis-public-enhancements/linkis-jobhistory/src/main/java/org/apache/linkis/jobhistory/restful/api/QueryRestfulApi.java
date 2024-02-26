@@ -431,8 +431,9 @@ public class QueryRestfulApi {
     }
     List<String> taskidList =
         Arrays.stream(taskids.split(",")).distinct().collect(Collectors.toList());
-    if (!CollectionUtils.isEmpty(taskidList) && taskidList.size() > 10) {
-      return Message.error("TaskID size cannot exceed 10");
+    if (!CollectionUtils.isEmpty(taskidList)
+        && taskidList.size() > JobhistoryConfiguration.JOB_HISTORY_QUERY_LIMIT().getValue()) {
+      return Message.error("TaskID size cannot exceed 30");
     }
     List<JobHistory> jobHistories = jobHistoryQueryService.searchByTasks(taskidList, username);
     return Message.ok().data(JobRequestConstants.JOB_HISTORY_LIST(), jobHistories);
