@@ -436,6 +436,12 @@ public class QueryRestfulApi {
       return Message.error("TaskID size cannot exceed 30");
     }
     List<JobHistory> jobHistories = jobHistoryQueryService.searchByTasks(taskidList, username);
-    return Message.ok().data(JobRequestConstants.JOB_HISTORY_LIST(), jobHistories);
+    List<QueryTaskVO> vos = new ArrayList<>();
+    for (JobHistory jobHistory : jobHistories) {
+      QueryUtils.exchangeExecutionCode(jobHistory);
+      QueryTaskVO taskVO = TaskConversions.jobHistory2TaskVO(jobHistory, null);
+      vos.add(taskVO);
+    }
+    return Message.ok().data(JobRequestConstants.JOB_HISTORY_LIST(), vos);
   }
 }
