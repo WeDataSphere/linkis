@@ -57,15 +57,15 @@ object UJESClientUtils {
 
   def toMataType(setResult: ResultSetResult): ResultSetResult = {
     val metaData = setResult.getMetadata.asInstanceOf[util.List[util.Map[String, String]]]
-    val filecontent = setResult.getFileContent.asInstanceOf[util.ArrayList[util.ArrayList[Any]]]
+    val fileContent = setResult.getFileContent.asInstanceOf[util.ArrayList[util.ArrayList[Any]]]
     for (metaDataColnum <- 1 to metaData.size()) {
       val col = metaData.get(metaDataColnum - 1)
       if (!col.get("dataType").equals("string")) {
-        for (cursor <- 1 to filecontent.size()) {
-          val coldatalist = filecontent.get(cursor - 1)
-          var coldata = coldatalist.get(metaDataColnum - 1)
-          coldata = evaluate(col.get("dataType"), coldata.toString)
-          coldatalist.set(metaDataColnum - 1, coldata)
+        for (cursor <- 1 to fileContent.size()) {
+          val colDataList = fileContent.get(cursor - 1)
+          var colData = colDataList.get(metaDataColnum - 1)
+          colData = evaluate(col.get("dataType"), colData.toString)
+          colDataList.set(metaDataColnum - 1, colData)
         }
       }
     }
