@@ -15,25 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.governance.common.constant.job
+package org.apache.linkis.governance.common.protocol.conf
 
-/**
- * @date
- *   2021/3/17
- * @description
- */
-object JobRequestConstants {
+import org.apache.linkis.protocol.message.RequestProtocol
 
-  val JOB_ID = "jobId"
+trait AcrossClusterConf extends RequestProtocol
 
-  val JOB_HISTORY_LIST = "jobHistoryList"
+case class AcrossClusterRequest(username: String) extends AcrossClusterConf
 
-  val JOB_REQUEST_LIST = "jobRequestList"
+case class AcrossClusterResponse(clusterName: String, queueName: String)
 
-  val TOTAL_PAGE = "totalPage"
-
-  val JOB_DETAIL_LIST = "jobDetailList"
-
-  val JOB_SOURCE_TAGS = "job.source.tags"
-
-}

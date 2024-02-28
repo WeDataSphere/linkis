@@ -579,6 +579,7 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
     String userName = ModuleUserUtils.getOperationUser(req, "openFile " + path);
+    Long startTime = System.currentTimeMillis();
     if (!checkIsUsersDirectory(path, userName)) {
       throw WorkspaceExceptionManager.createException(80010, userName, path);
     }
@@ -599,12 +600,18 @@ public class FsRestfulApi {
         if (!StringUtils.isEmpty(nullValue)) {
           fileSource.addParams("nullValue", nullValue);
         }
+        if (pageSize > FILESYSTEM_RESULTSET_ROW_LIMIT.getValue()) {
+          throw WorkspaceExceptionManager.createException(80034);
+        }
         fileSource = fileSource.page(page, pageSize);
-      } else if (fileSystem.getLength(fsPath) > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
+      } else if (fileSystem.getLength(fsPath)
+          > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
         // Increase file size limit, making it easy to OOM without limitation
         throw WorkspaceExceptionManager.createException(80032);
       }
       Pair<Object, ArrayList<String[]>> result = fileSource.collect()[0];
+      LOGGER.info(
+          "Finished to open File {}, taken {} ms", path, System.currentTimeMillis() - startTime);
       IOUtils.closeQuietly(fileSource);
       message.data("metadata", result.getFirst()).data("fileContent", result.getSecond());
       message.data("type", fileSource.getFileSplits()[0].type());
@@ -1131,7 +1138,8 @@ public class FsRestfulApi {
     if (!fileSystem.canRead(fsPath)) {
       throw WorkspaceExceptionManager.createException(80018);
     }
-    if (fileSystem.getLength(fsPath) > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
+    if (fileSystem.getLength(fsPath)
+        > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
       throw WorkspaceExceptionManager.createException(80033, path);
     }
     try (FileSource fileSource =
@@ -1220,9 +1228,10 @@ public class FsRestfulApi {
     }
   }
 
-  /***
-   * @param filePermission: 700,744
-   * Prohibit users from modifying their own unreadable content
+  /**
+   * *
+   *
+   * @param filePermission: 700,744 Prohibit users from modifying their own unreadable content
    */
   private static boolean checkFilePermissions(String filePermission) {
     boolean result = false;

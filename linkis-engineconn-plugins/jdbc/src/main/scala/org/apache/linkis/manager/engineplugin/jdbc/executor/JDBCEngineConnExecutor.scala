@@ -19,6 +19,7 @@ package org.apache.linkis.manager.engineplugin.jdbc.executor
 
 import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{OverloadUtils, Utils}
+import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ConcurrentComputationExecutor,
   EngineExecutionContext
@@ -370,8 +371,6 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
   override def supportCallBackLogs(): Boolean = false
 
   override def getId: String = Sender.getThisServiceInstance.getInstance + s"_$id"
-
-  override def getConcurrentLimit: Int = JDBCConfiguration.JDBC_CONCURRENT_LIMIT.getValue
 
   override def killAll(): Unit = {
     logger.info("Killing all query task.")

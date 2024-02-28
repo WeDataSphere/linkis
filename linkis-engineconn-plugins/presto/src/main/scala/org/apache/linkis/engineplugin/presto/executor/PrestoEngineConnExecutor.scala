@@ -21,6 +21,7 @@ import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{OverloadUtils, Utils}
 import org.apache.linkis.engineconn.acessible.executor.listener.event.TaskLogUpdateEvent
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
+import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ConcurrentComputationExecutor,
@@ -205,8 +206,6 @@ class PrestoEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
   }
 
   override def getId(): String = Sender.getThisServiceInstance.getInstance + s"_$id"
-
-  override def getConcurrentLimit: Int = ENGINE_CONCURRENT_LIMIT.getValue
 
   private def getClientSession(
       user: String,

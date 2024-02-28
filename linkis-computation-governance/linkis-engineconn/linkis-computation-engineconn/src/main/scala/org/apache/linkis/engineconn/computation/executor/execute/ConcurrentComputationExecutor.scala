@@ -17,6 +17,7 @@
 
 package org.apache.linkis.engineconn.computation.executor.execute
 
+import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.executor.entity.ConcurrentExecutor
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
@@ -66,6 +67,28 @@ abstract class ConcurrentComputationExecutor(override val outputPrintLimit: Int 
 
   override def hasTaskRunning(): Boolean = {
     getRunningTask > 0
+  }
+
+  override def transition(toStatus: NodeStatus): Unit = {
+    if (getRunningTask >= getConcurrentLimit && NodeStatus.Unlock == toStatus) {
+      logger.info(
+        s"running task($getRunningTask) > concurrent limit:$getConcurrentLimit, can not to mark EC to Unlock"
+      )
+      return
+    }
+    super.transition(toStatus)
+  }
+
+  override def getConcurrentLimit: Int = {
+    var maxTaskNum = ComputationExecutorConf.ENGINE_CONCURRENT_THREAD_NUM.getValue - 5
+    if (maxTaskNum <= 0) {
+      logger.error(
+        s"max task num  cannot ${maxTaskNum} < 0, should set linkis.engineconn.concurrent.thread.num > 6"
+      )
+      maxTaskNum = 1
+    }
+    logger.info(s"max task num $maxTaskNum")
+    maxTaskNum
   }
 
 }
