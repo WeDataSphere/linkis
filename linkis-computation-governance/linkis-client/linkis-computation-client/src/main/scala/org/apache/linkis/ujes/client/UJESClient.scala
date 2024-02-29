@@ -99,10 +99,8 @@ abstract class UJESClient extends Closeable {
     executeUJESJob(jobInfoAction).asInstanceOf[JobInfoResult]
   }
 
-  def resultSet(resultSetAction: ResultSetAction): ResultSetResult = {
-    val setResult = executeUJESJob(resultSetAction).asInstanceOf[ResultSetResult]
-    UJESClientUtils.toMataType(setResult)
-  }
+  def resultSet(resultSetAction: ResultSetAction): ResultSetResult =
+    executeUJESJob(resultSetAction).asInstanceOf[ResultSetResult]
 
   def getDBS(getDBSAction: GetDBSAction): GetDBSResult = {
     executeUJESJob(getDBSAction).asInstanceOf[GetDBSResult]
@@ -144,6 +142,10 @@ abstract class UJESClient extends Closeable {
     executeUJESJob(jobDeleteObserveAction).asInstanceOf[JobDeleteObserveResult]
   }
 
+  def resultSetFormat(resultSetAction: ResultSetAction): ResultSetResult = {
+    val setResult = executeUJESJob(resultSetAction).asInstanceOf[ResultSetResult]
+    UJESClientUtils.toMataType(setResult)
+  }
 }
 
 object UJESClient {
