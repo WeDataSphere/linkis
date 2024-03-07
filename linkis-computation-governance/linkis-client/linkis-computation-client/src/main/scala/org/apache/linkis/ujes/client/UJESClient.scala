@@ -24,6 +24,7 @@ import org.apache.linkis.httpclient.response.Result
 import org.apache.linkis.ujes.client.request._
 import org.apache.linkis.ujes.client.request.JobExecIdAction.JobServiceType
 import org.apache.linkis.ujes.client.response._
+import org.apache.linkis.ujes.client.utils.UJESClientUtils
 
 import java.io.Closeable
 import java.util.concurrent.TimeUnit
@@ -139,6 +140,11 @@ abstract class UJESClient extends Closeable {
 
   def deleteJobObserve(jobDeleteObserveAction: JobDeleteObserveAction): JobDeleteObserveResult = {
     executeUJESJob(jobDeleteObserveAction).asInstanceOf[JobDeleteObserveResult]
+  }
+
+  def resultSetFormat(resultSetAction: ResultSetAction): ResultSetResult = {
+    val setResult = executeUJESJob(resultSetAction).asInstanceOf[ResultSetResult]
+    UJESClientUtils.toMataType(setResult)
   }
 
 }

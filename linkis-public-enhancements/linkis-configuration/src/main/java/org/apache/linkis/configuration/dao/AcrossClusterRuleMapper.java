@@ -29,11 +29,17 @@ public interface AcrossClusterRuleMapper {
 
   void deleteAcrossClusterRule(@Param("id") Long id);
 
+  void deleteAcrossClusterRuleByBatch(@Param("ids") List<Long> ids);
+
   void deleteAcrossClusterRuleByUsername(@Param("username") String username);
 
   void deleteAcrossClusterRuleByCrossQueue(@Param("crossQueue") String crossQueue);
 
   void updateAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
+
+  void updateAcrossClusterRuleByBatch(
+      @Param("ids") List<Long> ids,
+      @Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
   void insertAcrossClusterRule(@Param("acrossClusterRule") AcrossClusterRule acrossClusterRule);
 
@@ -44,4 +50,15 @@ public interface AcrossClusterRuleMapper {
 
   void validAcrossClusterRule(
       @Param("isValid") String isValid, @Param("id") Long id, @Param("username") String username);
+
+  /**
+   * Query across cluster resource rule by username.
+   *
+   * @param username
+   * @return
+   */
+  AcrossClusterRule queryAcrossClusterRuleByUserName(@Param("username") String username);
+
+  void validAcrossClusterRuleByBatch(
+      @Param("ids") List<Long> ids, @Param("isValid") String isValid);
 }

@@ -56,7 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable.ArrayBuffer
 import scala.concurrent.ExecutionContextExecutorService
 
-class ShellEngineConnConcurrentExecutor(id: Int, maxRunningNumber: Int)
+class ShellEngineConnConcurrentExecutor(id: Int)
     extends ConcurrentComputationExecutor
     with Logging {
 
@@ -191,7 +191,6 @@ class ShellEngineConnConcurrentExecutor(id: Int, maxRunningNumber: Int)
       val jobTags = JobUtils.getJobSourceTagsFromObjectMap(engineExecutionContext.getProperties)
       if (StringUtils.isAsciiPrintable(jobTags)) {
         env.put(ECConstants.HIVE_OPTS, s" --hiveconf mapreduce.job.tags=$jobTags")
-        env.put(ECConstants.SPARK_SUBMIT_OPTS, s" -Dspark.yarn.tags=$jobTags")
       }
 
       processBuilder.redirectErrorStream(false)
@@ -367,10 +366,6 @@ class ShellEngineConnConcurrentExecutor(id: Int, maxRunningNumber: Int)
       Utils.tryAndWarn(killTask(shellECTaskInfo.taskId))
     }
     shellECTaskInfoCache.clear()
-  }
-
-  override def getConcurrentLimit: Int = {
-    maxRunningNumber
   }
 
 }

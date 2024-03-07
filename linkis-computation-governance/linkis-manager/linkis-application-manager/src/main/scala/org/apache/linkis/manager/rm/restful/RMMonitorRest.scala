@@ -18,8 +18,12 @@
 package org.apache.linkis.manager.rm.restful
 
 import org.apache.linkis.common.conf.Configuration
-import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
+import org.apache.linkis.governance.common.protocol.conf.{
+  AcrossClusterRequest,
+  AcrossClusterResponse
+}
+import org.apache.linkis.manager.am.conf.ManagerMonitorConf
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.EngineNode
@@ -50,6 +54,7 @@ import org.apache.linkis.manager.rm.service.{LabelResourceService, ResourceManag
 import org.apache.linkis.manager.rm.service.impl.UserResourceService
 import org.apache.linkis.manager.rm.utils.{RMUtils, UserConfiguration}
 import org.apache.linkis.manager.service.common.metrics.MetricsConverter
+import org.apache.linkis.rpc.Sender
 import org.apache.linkis.server.{toScalaBuffer, BDPJettyServerHelper, Message}
 import org.apache.linkis.server.security.SecurityFilter
 import org.apache.linkis.server.utils.ModuleUserUtils
@@ -465,6 +470,7 @@ class RMMonitorRest extends Logging {
     val message = Message.ok()
     val userName = ModuleUserUtils.getOperationUser(request, "get queues")
     val clusters = new mutable.ArrayBuffer[Any]()
+
     val clusterInfo = new mutable.HashMap[String, Any]()
     val queues = new mutable.LinkedHashSet[String]()
     val userConfiguration = UserConfiguration.getGlobalConfig(userName)
@@ -474,6 +480,30 @@ class RMMonitorRest extends Logging {
     queues.add(RMConfiguration.USER_AVAILABLE_YARN_QUEUE_NAME.getValue)
     clusterInfo.put("queues", queues)
     clusters.append(clusterInfo)
+
+    if (ManagerMonitorConf.ACROSS_QUEUES_RESOURCE_SHOW_SWITCH_ON.getValue) {
+      val sender: Sender = Sender
+        .getSender(Configuration.CLOUD_CONSOLE_CONFIGURATION_SPRING_APPLICATION_NAME.getValue)
+      val responseObject: Any = sender.ask(AcrossClusterRequest(userName))
+      if (responseObject == null) {
+        logger.info("response object is null")
+      } else {
+        if (responseObject.isInstanceOf[AcrossClusterResponse]) {
+          val response: AcrossClusterResponse = responseObject.asInstanceOf[AcrossClusterResponse]
+          logger.info(
+            s"across cluster info: cluster name: ${response.clusterName}, queue: ${response.queueName}"
+          )
+          val acrossClusterInfo = new mutable.HashMap[String, Any]()
+          acrossClusterInfo.put("clustername", response.clusterName)
+          val acrossQueues = new mutable.LinkedHashSet[String]()
+          acrossQueues.add(response.queueName)
+          acrossClusterInfo.put("queues", acrossQueues)
+          clusters.append(acrossClusterInfo)
+        } else {
+          logger.warn(s"get ${userName} across cluster info failed.")
+        }
+      }
+    }
     appendMessageData(message, "queues", clusters)
   }
 
