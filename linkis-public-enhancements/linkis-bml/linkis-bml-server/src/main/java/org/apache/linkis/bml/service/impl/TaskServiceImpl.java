@@ -407,11 +407,10 @@ public class TaskServiceImpl implements TaskService {
   }
 
   private String generateNewVersion(String version) {
+    int next = 1;
     if (StringUtils.isNotBlank(version)) {
-      int next = Integer.parseInt(version.substring(1, version.length())) + 1;
-      return Constant.VERSION_PREFIX + String.format(Constant.VERSION_FORMAT, next);
-    } else {
-      return "v000001";
+      next = Integer.parseInt(version.substring(1, version.length())) + 1;
     }
+    return Constant.VERSION_PREFIX + String.format(Constant.VERSION_FORMAT, next);
   }
 }
