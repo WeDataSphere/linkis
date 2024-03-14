@@ -331,6 +331,7 @@ class RMMonitorRest extends Logging {
     val crossCluster = java.lang.Boolean.parseBoolean(
       param.getOrDefault("crossCluster", "false").asInstanceOf[String]
     )
+    // For DSS increases cross cluster resource queries,when crossCluster is true clustername will become bdp
     if (crossCluster) {
       clustername = AMConfiguration.PRIORITY_CLUSTER_TARGET
     }
