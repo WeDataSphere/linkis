@@ -132,8 +132,7 @@ object SecurityFilter extends Logging {
           if (Configuration.IS_TEST_MODE.getValue) None
           else if (GatewayConfiguration.ENABLE_SSO_LOGIN.getValue) {
             None
-          }
-          else {
+          } else {
             filterResponse(
               gatewayContext,
               Message.noLogin(n.getMessage) << gatewayContext.getRequest.getRequestURI
