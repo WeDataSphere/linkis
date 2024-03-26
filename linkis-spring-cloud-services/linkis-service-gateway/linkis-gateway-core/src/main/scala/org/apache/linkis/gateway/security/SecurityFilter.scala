@@ -130,6 +130,9 @@ object SecurityFilter extends Logging {
       val userName = Utils.tryCatch(GatewaySSOUtils.getLoginUser(gatewayContext)) {
         case n @ (_: NonLoginException | _: LoginExpireException) =>
           if (Configuration.IS_TEST_MODE.getValue) None
+          else if (GatewayConfiguration.ENABLE_SSO_LOGIN.getValue) {
+            None
+          }
           else {
             filterResponse(
               gatewayContext,
