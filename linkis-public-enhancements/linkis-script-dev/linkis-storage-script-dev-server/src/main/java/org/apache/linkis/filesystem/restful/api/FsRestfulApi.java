@@ -47,11 +47,11 @@ import org.apache.linkis.storage.utils.StorageUtils;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.BOMInputStream;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Pair;
 import org.apache.http.Consts;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -584,7 +584,7 @@ public class FsRestfulApi {
       @RequestParam(value = "page", defaultValue = "1") Integer page,
       @RequestParam(value = "pageSize", defaultValue = "5000") Integer pageSize,
       @RequestParam(value = "nullValue", defaultValue = "") String nullValue,
-      @RequestParam(value = "charset", defaultValue = "utf-8") String charset)
+      @RequestParam(value = "enableLimit", defaultValue = "") String enableLimit)
       throws IOException, WorkSpaceException {
 
     Message message = Message.ok();
@@ -614,16 +614,17 @@ public class FsRestfulApi {
       }
       if (FileSource$.MODULE$.isResultSet(fsPath.getPath())) {
         if (!StringUtils.isEmpty(nullValue)) {
-          if ("dataServiceFlag".equals(nullValue)) {
-            LOGGER.info("set dataServiceFlag for thread: {}", Thread.currentThread().getName());
-            LinkisStorageConf.dataServiceFlag().set(true);
-          }
           fileSource.addParams("nullValue", nullValue);
         }
         if (pageSize > FILESYSTEM_RESULTSET_ROW_LIMIT.getValue()) {
           throw WorkspaceExceptionManager.createException(
               80034, FILESYSTEM_RESULTSET_ROW_LIMIT.getValue());
         }
+        if (StringUtils.isNotBlank(enableLimit)) {
+          LOGGER.info("set enable limit for thread: {}", Thread.currentThread().getName());
+          LinkisStorageConf.enableLimitThreadLocal().set(enableLimit);
+        }
+
         fileSource = fileSource.page(page, pageSize);
       } else if (fileSystem.getLength(fsPath)
           > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
@@ -647,9 +648,8 @@ public class FsRestfulApi {
         message.data(
             "zh_msg",
             MessageFormat.format(
-                "结果集存在字段值字符数超过{0}或者列数超过{1}，如需查看请使用结果集导出功能",
-                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
-                LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE()));
+                "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
+                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
         message.data(
             "en_msg",
             MessageFormat.format(
@@ -660,9 +660,8 @@ public class FsRestfulApi {
       }
     } finally {
       // 移除标识
-      if ("dataServiceFlag".equals(nullValue)) {
-        LinkisStorageConf.dataServiceFlag().remove();
-        LOGGER.info("remove dataServiceFlag for thread: {}", Thread.currentThread().getName());
+      if (StringUtils.isNotBlank(enableLimit)) {
+        LinkisStorageConf.enableLimitThreadLocal().remove();
       }
       LoggerUtils.removeJobIdMDC();
       IOUtils.closeQuietly(fileSource);
