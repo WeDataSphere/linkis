@@ -134,7 +134,7 @@ UPDATE linkis_ps_error_code SET error_desc = "任务实际运行内存超过了�
 
 DELETE FROM  linkis_ps_error_code WHERE  error_code  = "43007";
 
-INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('43019','执行失败：%s 无权限访问','Permission denied.*inode="(\\S+)',0);
+UPDATE linkis_ps_error_code SET  error_regex='Permission denied:\\s*user=[a-zA-Z0-9_]+,\\s*access=[a-zA-Z0-9_]+\\s*,\\s*inode="([a-zA-Z0-9/_\\.]+)"'  WHERE  error_code  = "22001";
 
 INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('13010','任务实际运行内存超过了设置的内存限制，请在管理台增加executor内存或在提交任务时通过spark.executor.memory增加内存','Container exited with a non-zero exit code',0);
 
