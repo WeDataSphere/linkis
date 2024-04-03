@@ -17,9 +17,10 @@
 
 package org.apache.linkis.engineconn.computation.executor.exception;
 
-import org.apache.linkis.common.exception.ErrorException;
+import org.apache.linkis.common.exception.ExceptionLevel;
+import org.apache.linkis.common.exception.LinkisRuntimeException;
 
-public class HookExecuteException extends ErrorException {
+public class HookExecuteException extends LinkisRuntimeException {
 
   public HookExecuteException(int errCode, String desc) {
     super(errCode, desc);
@@ -27,5 +28,10 @@ public class HookExecuteException extends ErrorException {
 
   public HookExecuteException(int errCode, String desc, String ip, int port, String serviceKind) {
     super(errCode, desc, ip, port, serviceKind);
+  }
+
+  @Override
+  public ExceptionLevel getLevel() {
+    return ExceptionLevel.ERROR;
   }
 }

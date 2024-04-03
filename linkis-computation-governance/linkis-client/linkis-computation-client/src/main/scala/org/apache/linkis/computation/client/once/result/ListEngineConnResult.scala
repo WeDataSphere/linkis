@@ -15,9 +15,21 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.jobhistory.util;
+package org.apache.linkis.computation.client.once.result
 
-public class Constants {
-  public static final String APPLICATION_NAME = "linkis-ps-publicservice";
-  public static final String YARN_APPLICATION = "/cluster/app/";
+import org.apache.linkis.httpclient.dws.annotation.DWSHttpMessageResult
+
+import java.util
+
+@DWSHttpMessageResult("/api/rest_j/v\\d+/linkisManager/listUserEngines")
+class ListEngineConnResult extends LinkisManagerResult {
+
+  private var engines: util.List[util.Map[String, AnyRef]] = _
+
+  def setEngines(engines: util.List[util.Map[String, AnyRef]]): Unit = {
+    this.engines = engines
+  }
+
+  def getEngines: util.List[util.Map[String, AnyRef]] = engines
+
 }
