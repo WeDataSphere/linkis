@@ -105,7 +105,7 @@
   <properties>
     <revision>1.1.18-wedatasphere</revision>
     <jedis.version>2.9.2</jedis.version>
-    <spark.version>2.4.3</spark.version>
+    <spark.version>3.2.4</spark.version>
     <hadoop.version>3.1.4</hadoop.version>
     <hadoop-hdfs-client.artifact>hadoop-hdfs-client</hadoop-hdfs-client.artifact>
     <hadoop-hdfs-client-shade.version>3.1.4</hadoop-hdfs-client-shade.version>
