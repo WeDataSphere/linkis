@@ -1388,7 +1388,7 @@
       <id>spark-3.2</id>
       <properties>
         <json4s.version>3.7.0-M11</json4s.version>
-        <spark.version>3.2.1</spark.version>
+        <spark.version>3.2.4</spark.version>
         <scala.version>2.12.15</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
       </properties>
