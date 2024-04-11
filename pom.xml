@@ -103,7 +103,7 @@
     </snapshotRepository>
   </distributionManagement>
   <properties>
-    <revision>1.1.18-wedatasphere</revision>
+    <revision>1.1.18-vh</revision>
     <jedis.version>2.9.2</jedis.version>
     <spark.version>3.2.4</spark.version>
     <hadoop.version>3.1.4</hadoop.version>
