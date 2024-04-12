@@ -23,11 +23,10 @@ import org.apache.linkis.storage.domain.{Column, DataType, Dolphin}
 import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary
 import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary.PARSING_METADATA_FAILED
 import org.apache.linkis.storage.exception.{ColLengthExceedException, StorageErrorException}
-
 import org.apache.commons.lang3.StringUtils
+import org.apache.linkis.common.utils.Logging
 
 import java.text.MessageFormat
-
 import scala.collection.mutable.ArrayBuffer
 
 class TableResultDeserializer extends ResultDeserializer[TableMetaData, TableRecord] with Logging {
