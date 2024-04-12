@@ -36,7 +36,22 @@ object UJESClientFactory extends Logging {
     val host = props.getProperty(HOST)
     val port = props.getProperty(PORT)
     val user = props.getProperty(USER)
-    val serverUrl = if (StringUtils.isNotBlank(port)) s"http://$host:$port" else "http://" + host
+    val sslEnabled =
+      if (
+          props
+            .containsKey(USE_SSL) && "false".equalsIgnoreCase(props.getProperty(USE_SSL))
+      ) {
+        false
+      } else {
+        true
+      }
+    val prefix = if (sslEnabled) {
+      "https"
+    } else {
+      "http"
+    }
+    val serverUrl =
+      if (StringUtils.isNotBlank(port)) s"$prefix://$host:$port" else "$prefix://" + host
     val uniqueKey = s"${serverUrl}_$user"
     if (ujesClients.containsKey(uniqueKey)) {
       logger.info("Clients with the same JDBC unique key({}) will get it directly", uniqueKey)
@@ -51,14 +66,18 @@ object UJESClientFactory extends Logging {
           "The same Client does not exist for the JDBC unique key({}), a new Client will be created",
           uniqueKey
         )
-        val ujesClient = createUJESClient(serverUrl, props)
+        val ujesClient = createUJESClient(serverUrl, props, sslEnabled)
         ujesClients.put(uniqueKey, ujesClient)
         ujesClient
       }
     }
   }
 
-  private def createUJESClient(serverUrl: String, props: Properties): UJESClient = {
+  private def createUJESClient(
+      serverUrl: String,
+      props: Properties,
+      sslEnabled: Boolean
+  ): UJESClient = {
     val clientConfigBuilder = DWSClientConfigBuilder.newBuilder()
     clientConfigBuilder.addServerUrl(serverUrl)
     clientConfigBuilder.setAuthTokenKey(props.getProperty(USER))
@@ -89,15 +108,7 @@ object UJESClientFactory extends Logging {
       }
     }
     if (!versioned) clientConfigBuilder.setDWSVersion("v" + DEFAULT_VERSION)
-    val sslEnabled =
-      if (
-          props
-            .containsKey(USE_SSL) && "false".equalsIgnoreCase(props.getProperty(USE_SSL))
-      ) {
-        false
-      } else {
-        true
-      }
+
     if (sslEnabled) {
       clientConfigBuilder.setSSL(sslEnabled)
     }
