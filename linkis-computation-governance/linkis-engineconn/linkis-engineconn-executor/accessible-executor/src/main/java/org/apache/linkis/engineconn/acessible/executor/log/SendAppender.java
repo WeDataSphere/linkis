@@ -85,7 +85,6 @@ public class SendAppender extends AbstractAppender {
       return;
     }
     String logStr = new String(getLayout().toByteArray(event));
-    logStr = matchLog(logStr);
     if (event.getLevel().intLevel() == Level.INFO.intLevel()) {
       boolean flag = false;
       for (String ignoreLog : IGNORE_WORD_ARR) {
@@ -101,6 +100,7 @@ public class SendAppender extends AbstractAppender {
         }
       }
       if (!flag) {
+        logStr = matchLog(logStr);
         logCache.cacheLog(logStr);
       }
     } else {
@@ -125,16 +125,13 @@ public class SendAppender extends AbstractAppender {
   }
 
   public String matchLog(String logLine) {
-    EngineCreationContext engineCreationContext = EngineConnObject.getEngineCreationContext();
-    if (null != engineCreationContext) {
-      String yarnUrl = EngineConnConf.JOB_YARN_TASK_URL().getValue();
-      if (StringUtils.isNotBlank(yarnUrl)) {
-        Matcher hiveMatcher = Pattern.compile(EngineConnConstant.hiveLogReg()).matcher(logLine);
-        if (hiveMatcher.find()) {
-          logLine =
-              hiveMatcher.replaceAll(
-                  EngineConnConstant.YARN_LOG_URL() + yarnUrl + hiveMatcher.group(1));
-        }
+    String yarnUrl = EngineConnConf.JOB_YARN_TASK_URL().getValue();
+    if (StringUtils.isNotBlank(yarnUrl)) {
+      Matcher hiveMatcher = Pattern.compile(EngineConnConstant.hiveLogReg()).matcher(logLine);
+      if (hiveMatcher.find()) {
+        logLine =
+                hiveMatcher.replaceAll(
+                        EngineConnConstant.YARN_LOG_URL() + yarnUrl + hiveMatcher.group(1));
       }
     }
     return logLine;
