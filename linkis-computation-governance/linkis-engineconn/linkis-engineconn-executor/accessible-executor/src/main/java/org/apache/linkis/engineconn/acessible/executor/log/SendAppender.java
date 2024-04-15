@@ -20,6 +20,7 @@ package org.apache.linkis.engineconn.acessible.executor.log;
 import org.apache.linkis.engineconn.acessible.executor.conf.AccessibleExecutorConfiguration;
 import org.apache.linkis.engineconn.common.conf.EngineConnConf;
 import org.apache.linkis.engineconn.common.conf.EngineConnConstant;
+import org.apache.linkis.engineconn.common.creation.EngineCreationContext;
 import org.apache.linkis.engineconn.core.EngineConnObject;
 import org.apache.linkis.engineconn.executor.listener.EngineConnSyncListenerBus;
 import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext;
@@ -126,24 +127,16 @@ public class SendAppender extends AbstractAppender {
   }
 
   public String matchLog(String logLine) {
-    List<Label<?>> labels = EngineConnObject.getEngineCreationContext().getLabels();
-    String yarnUrl = "";
-    if (labels.stream().anyMatch(d -> d.getLabelKey().equals("yarnCluster"))) {
-      yarnUrl = EngineConnConf.JOB_YARN_CLUSTER_TASK_URL().getValue();
-    } else {
-      yarnUrl = EngineConnConf.JOB_YARN_TASK_URL().getValue();
-    }
-    if (StringUtils.isNotBlank(yarnUrl)) {
-      Matcher sparkMatcher = Pattern.compile(EngineConnConstant.sparkLogReg()).matcher(logLine);
-      Matcher hiveMatcher = Pattern.compile(EngineConnConstant.hiveLogReg()).matcher(logLine);
-      if (sparkMatcher.find()) {
-        logLine =
-            sparkMatcher.replaceAll(
-                EngineConnConstant.YARN_LOG_URL() + yarnUrl + sparkMatcher.group(1));
-      } else if (hiveMatcher.find()) {
-        logLine =
-            hiveMatcher.replaceAll(
-                EngineConnConstant.YARN_LOG_URL() + yarnUrl + hiveMatcher.group(1));
+    EngineCreationContext engineCreationContext = EngineConnObject.getEngineCreationContext();
+    if (null != engineCreationContext) {
+      String yarnUrl = EngineConnConf.JOB_YARN_TASK_URL().getValue();
+      if (StringUtils.isNotBlank(yarnUrl)) {
+        Matcher hiveMatcher = Pattern.compile(EngineConnConstant.hiveLogReg()).matcher(logLine);
+        if (hiveMatcher.find()) {
+          logLine =
+              hiveMatcher.replaceAll(
+                  EngineConnConstant.YARN_LOG_URL() + yarnUrl + hiveMatcher.group(1));
+        }
       }
     }
     return logLine;
