@@ -24,7 +24,6 @@ import org.apache.linkis.engineconn.common.creation.EngineCreationContext;
 import org.apache.linkis.engineconn.core.EngineConnObject;
 import org.apache.linkis.engineconn.executor.listener.EngineConnSyncListenerBus;
 import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext;
-import org.apache.linkis.manager.label.entity.Label;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.Level;
@@ -39,7 +38,6 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

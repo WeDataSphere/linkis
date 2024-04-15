@@ -107,13 +107,16 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
       var yarnUrl = ""
       val engineContext = EngineConnObject.getEngineCreationContext
       if (null != engineContext) {
-        engineContext.getLabels().asScala.foreach(label => {
-          if (label.getLabelKey.equals(LabelKeyConstant.YARN_CLUSTER_KEY)) {
-            yarnUrl = EngineConnConf.JOB_YARN_CLUSTER_TASK_URL.getValue
-          } else {
-            yarnUrl = EngineConnConf.JOB_YARN_TASK_URL.getValue
-          }
-        })
+        engineContext
+          .getLabels()
+          .asScala
+          .foreach(label => {
+            if (label.getLabelKey.equals(LabelKeyConstant.YARN_CLUSTER_KEY)) {
+              yarnUrl = EngineConnConf.JOB_YARN_CLUSTER_TASK_URL.getValue
+            } else {
+              yarnUrl = EngineConnConf.JOB_YARN_TASK_URL.getValue
+            }
+          })
       }
       engineExecutorContext.appendStdout(
         LogUtils.generateInfo(EngineConnConstant.YARN_LOG_URL + yarnUrl + s"${sc.applicationId}")
