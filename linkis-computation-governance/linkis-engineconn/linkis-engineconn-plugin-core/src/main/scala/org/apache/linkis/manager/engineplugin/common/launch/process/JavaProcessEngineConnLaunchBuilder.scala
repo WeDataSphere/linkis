@@ -120,12 +120,14 @@ abstract class JavaProcessEngineConnLaunchBuilder
     addPathToClassPath(environment, Seq(variable(PWD), ENGINE_CONN_CONF_DIR_NAME))
     // then, add LINKIS_CONF_DIR conf dirs.
     addPathToClassPath(environment, Seq(EnvConfiguration.LINKIS_CONF_DIR.getValue))
-    // then, add engineconn libs.
-    addPathToClassPath(environment, Seq(variable(PWD), ENGINE_CONN_LIB_DIR_NAME + "/*"))
+
     // then, add public modules.
     if (!enablePublicModule) {
       addPathToClassPath(environment, Seq(LINKIS_PUBLIC_MODULE_PATH.getValue + "/*"))
     }
+    // then, add engineconn libs.
+    addPathToClassPath(environment, Seq(variable(PWD), ENGINE_CONN_LIB_DIR_NAME + "/*"))
+
     // finally, add the suitable properties key to classpath
     engineConnBuildRequest.engineConnCreationDesc.properties.asScala.foreach { case (key, value) =>
       if (
@@ -143,9 +145,9 @@ abstract class JavaProcessEngineConnLaunchBuilder
         def addFiles(files: String): Unit = if (StringUtils.isNotBlank(files)) {
           files
             .split(",")
-            .foreach(file =>
+            .foreach(file => {
               addPathToClassPath(environment, Seq(variable(PWD), new File(file).getName))
-            )
+            })
         }
 
         val configs: util.Map[String, String] =
