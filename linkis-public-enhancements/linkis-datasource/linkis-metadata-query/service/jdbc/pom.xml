@@ -27,7 +27,7 @@
   <artifactId>linkis-metadata-query-service-jdbc</artifactId>
 
   <properties>
-    <postgresql.version>42.3.9</postgresql.version>
+<!--    <postgresql.version>42.3.9</postgresql.version>-->
     <clickhouse.version>0.3.2-patch11</clickhouse.version>
   </properties>
 
@@ -66,11 +66,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>org.postgresql</groupId>
-      <artifactId>postgresql</artifactId>
-      <version>${postgresql.version}</version>
-    </dependency>
+<!--    <dependency>-->
+<!--      <groupId>org.postgresql</groupId>-->
+<!--      <artifactId>postgresql</artifactId>-->
+<!--      <version>${postgresql.version}</version>-->
+<!--    </dependency>-->
   </dependencies>
 
   <build>
