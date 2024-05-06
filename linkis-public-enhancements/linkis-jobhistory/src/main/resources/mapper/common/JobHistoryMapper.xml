@@ -94,7 +94,7 @@
             <if test="status != null">and <foreach collection="status" item="element" close=")" separator="," open="job.status in (">#{element}</foreach></if>
             <if test="startId != null">and job.id >= #{startId}</if>
             <if test="instances != null">and job.instances = #{instances}</if>
-            <if test="departmentId != null">and dept.org_id = #{departmentId}</if>
+            <if test="departmentId != null">and <foreach collection="departmentId" item="element" close=")" separator="," open="dept.org_id in (">#{element}</foreach></if>
         </where>
         ORDER BY job.created_time DESC
     </select>
@@ -125,7 +125,7 @@
             </if>
             <if test="startId != null">and job.id >= #{startId}</if>
             <if test="instances != null">and job.instances = #{instances}</if>
-            <if test="departmentId != null">and dept.org_id = #{departmentId}</if>
+            <if test="departmentId != null">and <foreach collection="departmentId" item="element" close=")" separator="," open="dept.org_id in (">#{element}</foreach></if>
         </where>
         ORDER BY job.created_time DESC
     </select>
@@ -146,7 +146,7 @@
             </if>
             <if test="startId != null">and job.id >= #{startId}</if>
             <if test="instances != null">and job.instances = #{instances}</if>
-            <if test="departmentId != null">and dept.org_id = #{departmentId}</if>
+            <if test="departmentId != null">and <foreach collection="departmentId" item="element" close=")" separator="," open="dept.org_id in (">#{element}</foreach></if>
         </where>
         ORDER BY job.created_time DESC
     </select>
