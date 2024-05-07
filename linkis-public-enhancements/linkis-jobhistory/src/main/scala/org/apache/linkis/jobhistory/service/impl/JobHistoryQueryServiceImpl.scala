@@ -265,6 +265,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
       engineType: String,
       startJobId: lang.Long,
       instance: String,
+      departmentId: String,
       engineInstance: String
   ): util.List[JobHistory] = {
 
@@ -279,6 +280,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
+        departmentId,
         engineInstance
       )
     } else if (StringUtils.isBlank(username)) {
@@ -294,6 +296,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
+        departmentId,
         engineInstance
       )
     } else {
@@ -316,6 +319,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
+        departmentId,
         engineInstance
       )
     }
@@ -338,7 +342,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
 
   override def searchOne(jobId: lang.Long, sDate: Date, eDate: Date): JobHistory = {
     Iterables.getFirst(
-      jobHistoryMapper.search(jobId, null, null, sDate, eDate, null, null, null, null), {
+      jobHistoryMapper.search(jobId, null, null, sDate, eDate, null, null, null, null, null), {
         val queryJobHistory = new QueryJobHistory
         queryJobHistory.setId(jobId)
         queryJobHistory.setStatus(TaskStatus.Inited.toString)
@@ -461,6 +465,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         null,
         null,
         request.instance,
+        null,
         null
       )
     val idlist = jobHistoryList.asScala.map(_.getId).asJava
