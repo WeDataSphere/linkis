@@ -139,3 +139,6 @@ UPDATE linkis_ps_error_code SET  error_regex='Permission denied:\\s*user=[a-zA-Z
 
 INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('13010','任务实际运行内存超过了设置的内存限制，请在管理台增加executor内存或在提交任务时通过spark.executor.memory增加内存','Container exited with a non-zero exit code',0);
 
+INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('43042','插入数据表动态分区数超过配置值 %s ，请优化sql或调整配置hive.exec.max.dynamic.partitions后重试','hive.exec.max.dynamic.partitions.pernode.Maximum was set to (\\S+) partitions per-node',0);
+
+INSERT INTO linkis_ps_error_code (error_code,error_desc,error_regex,error_type) VALUES ('43043','执行任务消耗内存超过限制，hive任务请修改map或reduce的内存，spark任务请修改executor端内存','Error：java heap space',0);
