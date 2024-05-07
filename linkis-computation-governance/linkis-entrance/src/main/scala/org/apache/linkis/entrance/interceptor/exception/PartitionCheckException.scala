@@ -15,22 +15,9 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.governance.common.constant.job
+package org.apache.linkis.entrance.interceptor.exception
 
-object JobRequestConstants {
+import org.apache.linkis.common.exception.ErrorException
 
-  val JOB_ID = "jobId"
-
-  val JOB_HISTORY_LIST = "jobHistoryList"
-
-  val JOB_REQUEST_LIST = "jobRequestList"
-
-  val TOTAL_PAGE = "totalPage"
-
-  val JOB_DETAIL_LIST = "jobDetailList"
-
-  val JOB_SOURCE_TAGS = "job.source.tags"
-
-  val LINKIS_JDBC_DEFAULT_DB = "linkis.jdbc.default.db"
-
-}
+case class PartitionCheckException(errCode: Int, errDesc: String)
+    extends ErrorException(errCode, errDesc) {}

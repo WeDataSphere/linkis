@@ -15,22 +15,23 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.governance.common.constant.job
+package org.apache.linkis.governance.common.protocol.conf;
 
-object JobRequestConstants {
+import org.apache.linkis.protocol.message.RequestProtocol;
 
-  val JOB_ID = "jobId"
+public class PartitionCheckConfRequest implements RequestProtocol {
 
-  val JOB_HISTORY_LIST = "jobHistoryList"
+  String code;
 
-  val JOB_REQUEST_LIST = "jobRequestList"
+  public PartitionCheckConfRequest(String code) {
+    this.code = code;
+  }
 
-  val TOTAL_PAGE = "totalPage"
+  public void setCode(String code) {
+    this.code = code;
+  }
 
-  val JOB_DETAIL_LIST = "jobDetailList"
-
-  val JOB_SOURCE_TAGS = "job.source.tags"
-
-  val LINKIS_JDBC_DEFAULT_DB = "linkis.jdbc.default.db"
-
+  public String getCode() {
+    return code;
+  }
 }

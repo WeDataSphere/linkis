@@ -35,6 +35,11 @@ object EntranceConfiguration {
   val JOBHISTORY_SPRING_APPLICATION_NAME =
     CommonVars("wds.linkis.jobhistory.application.name", "linkis-ps-jobhistory")
 
+  val VALIDATOR_APPLICATION_NAME =
+    CommonVars("linkis.validator.application.name", "linkis-et-validator")
+
+  val VALIDATOR_PARTITION_CHECK_ENABLE = CommonVars("linkis.validator.partition.check.enable", false)
+
   /**
    * DEFAULT_LOGPATH_PREFIX is the prefix that represents the default log storage path
    * DEFAULT_LOGPATH_PREFIX 是表示默认的日志存储路径的前缀
@@ -223,8 +228,11 @@ object EntranceConfiguration {
   val TEMPLATE_CONF_SWITCH =
     CommonVars("wds.linkis.entrance.template.conf.interceptor.switch", true)
 
-  val ENABLE_ENTRANCE_DIRTY_DATA_CLEAR =
-    CommonVars("linkis.entrance.auto.clean.dirty.data.enable", true)
+  val TEMPLATE_CONF_ADD_ONCE_LABEL_ENABLE =
+    CommonVars("wds.linkis.entrance.template.add.once.label.enable", false)
+
+  val ENABLE_ENTRANCE_DIRTY_DATA_CLEAR: CommonVars[Boolean] =
+    CommonVars[Boolean]("linkis.entrance.auto.clean.dirty.data.enable", true)
 
   val ENTRANCE_CREATOR_JOB_LIMIT: CommonVars[Int] =
     CommonVars[Int](

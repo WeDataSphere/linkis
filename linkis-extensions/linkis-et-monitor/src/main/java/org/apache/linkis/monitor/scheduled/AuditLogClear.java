@@ -20,7 +20,7 @@ package org.apache.linkis.monitor.scheduled;
 import org.apache.linkis.monitor.config.MonitorConfig;
 import org.apache.linkis.monitor.until.ThreadUtils;
 import org.apache.linkis.monitor.utils.log.LogUtils;
-
+import org.slf4j.Logger;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -28,25 +28,22 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-
-/** * Task: clean up linkis_ps_job_history_group_history data */
+/** * Task: Upload audit logs from Linkis to HDFS and delete them */
 @Component
 @PropertySource(value = "classpath:linkis-et-monitor.properties", encoding = "UTF-8")
-public class JobHistoryClear {
+public class AuditLogClear {
 
   private static final Logger logger = LogUtils.stdOutLogger();
 
-  @Scheduled(cron = "${linkis.monitor.clear.history.task.cron}")
-  public void historyTaskClear() {
-    logger.info("Start to clear_history_task shell");
+  @Scheduled(cron = "${linkis.monitor.clear.audit.log.cron:0 30 12 * * ?}")
+  public void ecRecordClear() {
+    logger.info("Start to linkis-audit-log-clear shell");
     List<String> cmdlist = new ArrayList<>();
     cmdlist.add("sh");
-    cmdlist.add(MonitorConfig.shellPath + "clear_history_task.sh");
-    cmdlist.add(MonitorConfig.JOBHISTORY_CLEAR_DAY.getValue());
-    logger.info("clear_history_task  shell command {}", cmdlist);
-    String exec = ThreadUtils.run(cmdlist, "clear_history_task.sh");
+    cmdlist.add(MonitorConfig.shellPath + "linkis-audit-log-clear.sh");
+    logger.info("linkis-audit-log-clear  shell command {}", cmdlist);
+    String exec = ThreadUtils.run(cmdlist, "linkis-audit-log-clear.sh");
     logger.info("shell log  {}", exec);
-    logger.info("End to clear_history_task shell ");
+    logger.info("End to linkis-audit-log-clear shell ");
   }
 }

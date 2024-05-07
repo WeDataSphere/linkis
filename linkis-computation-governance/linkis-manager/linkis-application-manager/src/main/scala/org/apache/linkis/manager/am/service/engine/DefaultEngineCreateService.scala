@@ -41,6 +41,7 @@ import org.apache.linkis.manager.engineplugin.common.launch.entity.{
   EngineConnCreationDescImpl
 }
 import org.apache.linkis.manager.engineplugin.common.resource.TimeoutEngineResourceRequest
+import org.apache.linkis.manager.errorcode.LinkisManagerPersistenceErrorCodeSummary
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
 import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
@@ -107,11 +108,11 @@ class DefaultEngineCreateService
 
   private val labelBuilderFactory = LabelBuilderFactoryContext.getLabelBuilderFactory
 
-  private def buildLabel(engineCreateRequest: EngineCreateRequest): util.List[Label[_]] = {
+  def buildLabel(labels: util.Map[String, AnyRef], user: String): util.List[Label[_]] = {
     // 1. Check if Label is valid
     var labelList: util.List[Label[_]] = LabelUtils.distinctLabel(
-      labelBuilderFactory.getLabels(engineCreateRequest.getLabels),
-      userLabelService.getUserLabels(engineCreateRequest.getUser)
+      labelBuilderFactory.getLabels(labels),
+      userLabelService.getUserLabels(user)
     )
 
     // label chooser
@@ -179,13 +180,21 @@ class DefaultEngineCreateService
       } else engineCreateRequest.getTimeout
 
     // 1 build label
-    val labelList = buildLabel(engineCreateRequest)
+    val labelList = buildLabel(engineCreateRequest.getLabels, engineCreateRequest.getUser)
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
     // 3. generate Resource
+    if (engineCreateRequest.getProperties == null) {
+      engineCreateRequest.setProperties(new util.HashMap[String, String]())
+    }
     val resource =
-      generateResource(engineCreateRequest, labelFilter.choseEngineLabel(labelList), timeout)
+      generateResource(
+        engineCreateRequest.getProperties,
+        engineCreateRequest.getUser,
+        labelFilter.choseEngineLabel(labelList),
+        timeout
+      )
     // 4. request resource
     val resourceTicketId = resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
@@ -244,9 +253,16 @@ class DefaultEngineCreateService
     // 7.Update persistent information: including inserting engine/metrics
     Utils.tryCatch(getEngineNodeManager.updateEngineNode(oldServiceInstance, engineNode)) { t =>
       logger.warn(s"Failed to update engineNode $engineNode", t)
-      val stopEngineRequest =
-        new EngineStopRequest(engineNode.getServiceInstance, ManagerUtils.getAdminUser)
-      engineStopService.asyncStopEngine(stopEngineRequest)
+      t match {
+        case linkisRetryException: LinkisRetryException =>
+          logger.warn(
+            s"node $oldServiceInstance update failed,caused by retry Exception, do not to stop ec"
+          )
+        case _ =>
+          val stopEngineRequest =
+            new EngineStopRequest(engineNode.getServiceInstance, ManagerUtils.getAdminUser)
+          engineStopService.asyncStopEngine(stopEngineRequest)
+      }
       val failedEcNode = getEngineNodeManager.getEngineNode(oldServiceInstance)
       if (null == failedEcNode) {
         logger.info(s" engineConn does not exist in db: $oldServiceInstance ")
@@ -298,13 +314,17 @@ class DefaultEngineCreateService
 
   def canCreateEC(engineCreateRequest: EngineCreateRequest): CanCreateECRes = {
     // 1 build label
-    val labelList = buildLabel(engineCreateRequest)
+    val labelList = buildLabel(engineCreateRequest.getLabels, engineCreateRequest.getUser)
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
     // 3. generate Resource
+    if (engineCreateRequest.getProperties == null) {
+      engineCreateRequest.setProperties(new util.HashMap[String, String]())
+    }
     val resource = generateResource(
-      engineCreateRequest,
+      engineCreateRequest.getProperties,
+      engineCreateRequest.getUser,
       labelFilter.choseEngineLabel(labelList),
       AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
     )
@@ -326,16 +346,13 @@ class DefaultEngineCreateService
    * @param timeout
    * @return
    */
-  private def generateResource(
-      engineCreateRequest: EngineCreateRequest,
+  def generateResource(
+      props: util.Map[String, String],
+      user: String,
       labelList: util.List[Label[_]],
       timeout: Long
   ): NodeResource = {
-    if (engineCreateRequest.getProperties == null) {
-      engineCreateRequest.setProperties(new util.HashMap[String, String]())
-    }
     val configProp = engineConnConfigurationService.getConsoleConfiguration(labelList)
-    val props = engineCreateRequest.getProperties
     if (null != configProp && configProp.asScala.nonEmpty) {
       configProp.asScala.foreach(keyValue => {
         if (!props.containsKey(keyValue._1)) {
@@ -353,12 +370,7 @@ class DefaultEngineCreateService
       )
     }
 
-    val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(
-      timeout,
-      engineCreateRequest.getUser,
-      labelList,
-      engineCreateRequest.getProperties
-    )
+    val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(timeout, user, labelList, props)
     engineConnResourceFactoryService.createEngineResource(timeoutEngineResourceRequest)
   }
 
