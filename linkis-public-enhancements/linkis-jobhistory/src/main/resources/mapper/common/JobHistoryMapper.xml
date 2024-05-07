@@ -91,7 +91,7 @@
             <if test="status != null">and <foreach collection="status" item="element" close=")" separator="," open="status in (">#{element}</foreach></if>
             <if test="startId != null">and id >= #{startId}</if>
             <if test="instances != null">and LOWER(instances) = LOWER(#{instances})</if>
-            <if test="ecmInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{ecmInstance}, '%')</if>
+            <if test="engineInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{engineInstance}, '%')</if>
         </where>
         ORDER BY linkis_ps_job_history_group_history.created_time DESC
     </select>
@@ -119,7 +119,7 @@
             </if>
             <if test="startId != null">and id >= #{startId}</if>
             <if test="instances != null">and LOWER(instances) = LOWER(#{instances})</if>
-            <if test="ecmInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{ecmInstance}, '%')</if>
+            <if test="engineInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{engineInstance}, '%')</if>
         </where>
         ORDER BY linkis_ps_job_history_group_history.created_time DESC
     </select>
@@ -137,7 +137,7 @@
             </if>
             <if test="startId != null">and id >= #{startId}</if>
             <if test="instances != null">and LOWER(instances) = LOWER(#{instances})</if>
-            <if test="ecmInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{ecmInstance}, '%')</if>
+            <if test="engineInstance != null">and metrics LIKE CONCAT('%"engineInstance":"', #{engineInstance}, '%')</if>
         </where>
         ORDER BY linkis_ps_job_history_group_history.created_time DESC
     </select>

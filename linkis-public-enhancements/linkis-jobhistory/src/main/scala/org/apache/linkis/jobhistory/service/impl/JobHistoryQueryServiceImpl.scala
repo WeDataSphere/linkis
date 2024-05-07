@@ -265,7 +265,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
       engineType: String,
       startJobId: lang.Long,
       instance: String,
-      ecmInstance: String
+      engineInstance: String
   ): util.List[JobHistory] = {
 
     val split: util.List[String] = if (status != null) status.split(",").toList.asJava else null
@@ -279,7 +279,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
-        ecmInstance
+        engineInstance
       )
     } else if (StringUtils.isBlank(username)) {
       val fakeLabel = new UserCreatorLabel
@@ -294,7 +294,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
-        ecmInstance
+        engineInstance
       )
     } else {
       val fakeLabel = new UserCreatorLabel
@@ -316,7 +316,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
         engineType,
         startJobId,
         instance,
-        ecmInstance
+        engineInstance
       )
     }
     result

@@ -145,7 +145,7 @@ public class QueryRestfulApi {
       @RequestParam(value = "proxyUser", required = false) String proxyUser,
       @RequestParam(value = "isAdminView", required = false) Boolean isAdminView,
       @RequestParam(value = "instance", required = false) String instance,
-      @RequestParam(value = "ecmInstance", required = false) String ecmInstance)
+      @RequestParam(value = "engineInstance", required = false) String engineInstance)
       throws IOException, QueryException {
     String username = SecurityFilter.getLoginUsername(req);
     if (StringUtils.isEmpty(status)) {
@@ -204,11 +204,11 @@ public class QueryRestfulApi {
         return Message.error("Invalid instances : " + instance);
       }
     }
-    if (StringUtils.isEmpty(ecmInstance)) {
-      ecmInstance = null;
+    if (StringUtils.isEmpty(engineInstance)) {
+      engineInstance = null;
     } else {
-      if (!QueryUtils.checkInstanceNameValid(ecmInstance)) {
-        return Message.error("Invalid instances : " + ecmInstance);
+      if (!QueryUtils.checkInstanceNameValid(engineInstance)) {
+        return Message.error("Invalid instances : " + engineInstance);
       }
     }
 
@@ -226,7 +226,7 @@ public class QueryRestfulApi {
               executeApplicationName,
               null,
               instance,
-              ecmInstance);
+              engineInstance);
     } finally {
       PageHelper.clearPage();
     }
