@@ -39,6 +39,7 @@ import org.apache.linkis.manager.label.utils.LabelUtils
 import org.apache.linkis.manager.service.common.label.LabelFilter
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
+import org.apache.linkis.server.BDPJettyServerHelper
 
 import org.apache.commons.lang3.exception.ExceptionUtils
 
@@ -165,10 +166,34 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
         labelFilter.choseEngineLabel(labels),
         AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
       )
+      val prop: String = BDPJettyServerHelper.gson.toJson(engineReuseRequest.getProperties)
+      val lab: String = BDPJettyServerHelper.gson.toJson(labels)
+      if (resource == null) {
+        logger.info(s"resource is null properties: $prop, labels: $lab")
+      } else {
+        logger.info(
+          s"need used resource: ${resource.getUsedResource.toJson}, " +
+            s"max resource: ${resource.getMaxResource.toJson}, " +
+            s"locked resource: ${resource.getLockedResource.toJson}"
+        )
+      }
+
       // 过滤掉资源不满足的引擎
-      engineScoreList = engineScoreList.filter(engine =>
-        engine.getNodeResource.getUsedResource >= resource.getUsedResource
-      )
+      engineScoreList = engineScoreList.filter(engine => {
+        logger.info(
+          s"engine: ${engine.getServiceInstance} , " +
+            s"used resource: ${engine.getNodeResource.getUsedResource.toJson}, " +
+            s"max resource: ${engine.getNodeResource.getMaxResource.toJson}, " +
+            s"locked resource: ${engine.getNodeResource.getLockedResource.toJson}"
+        )
+        if (resource != null) {
+          // 引擎资源只有满足需要的资源才复用
+          engine.getNodeResource.getUsedResource >= resource.getMaxResource
+        } else {
+          // 引擎正在启动中，比较锁住的资源，最终是否复用沿用之前复用逻辑
+          engine.getNodeResource.getLockedResource >= resource.getMaxResource
+        }
+      })
       if (engineScoreList.isEmpty) {
         throw new LinkisRetryException(
           AMConstant.ENGINE_ERROR_CODE,
