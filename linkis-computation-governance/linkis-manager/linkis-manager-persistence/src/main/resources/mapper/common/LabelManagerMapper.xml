@@ -369,7 +369,7 @@
 
 
     <delete id="deleteResourceByLabelIdInDirect">
-        delete from linkis_cg_manager_linkis_resources r
+        delete r from linkis_cg_manager_linkis_resources r
         join linkis_cg_manager_label_resource t on r.id = t.resource_id
         where t.label_id = #{labelId};
     </delete>
