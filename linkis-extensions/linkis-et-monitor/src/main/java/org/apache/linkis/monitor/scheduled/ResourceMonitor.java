@@ -49,10 +49,13 @@ public class ResourceMonitor {
 
   @Scheduled(cron = "${linkis.monitor.ecm.resource.cron}")
   public void ecmResourceTask() {
-    String tenant = "租户标签：公共资源";
-    BigDecimal totalMemory = new BigDecimal("0.0");
-    BigDecimal totalInstance = new BigDecimal("0.0");
-    BigDecimal totalCores = new BigDecimal("0.0");
+    String tenant = "";
+    BigDecimal leftTotalMemory = new BigDecimal("0.0");
+    BigDecimal leftTotalInstance = new BigDecimal("0.0");
+    BigDecimal leftTotalCores = new BigDecimal("0.0");
+    BigDecimal usedTotalMemory = new BigDecimal("0.0");
+    BigDecimal usedTotalInstance = new BigDecimal("0.0");
+    BigDecimal usedTotalCores = new BigDecimal("0.0");
     StringJoiner minorStr = new StringJoiner(",");
     StringJoiner majorStr = new StringJoiner(",");
     // 获取emNode资源信息
@@ -71,6 +74,7 @@ public class ResourceMonitor {
       // 新增 ECM资源告警，需补充此ECM所属租户
       List<Map<String, Object>> labels = (List<Map<String, Object>>) emNodeVoMap.get("labels");
       for (Map<String, Object> labelMap : labels) {
+        tenant = "租户标签：公共资源";
         if (labelMap.containsKey("tenant")) {
           tenant = "租户标签：" + labelMap.get("stringValue").toString();
         }
@@ -95,6 +99,17 @@ public class ResourceMonitor {
       BigDecimal maxMemory = new BigDecimal(maxMemoryStr);
       BigDecimal maxCores = new BigDecimal(maxCoresStr);
       BigDecimal maxInstance = new BigDecimal(maxInstanceStr);
+
+      // 获取已使用资源map
+      Map<String, Object> usedResourceMap = MapUtils.getMap(emNodeVoMap, "usedResource");
+      // 获取已使用内存,实例，core
+      String usedMemoryStr = usedResourceMap.getOrDefault("memory", "0").toString().trim();
+      String usedCoresStr = usedResourceMap.getOrDefault("cores", "0").toString().trim();
+      String usedInstanceStr = usedResourceMap.getOrDefault("instance", "0").toString().trim();
+
+      BigDecimal usedMemory = new BigDecimal(usedMemoryStr);
+      BigDecimal usedCores = new BigDecimal(usedCoresStr);
+      BigDecimal usedInstance = new BigDecimal(usedInstanceStr);
 
       // 资源比例计算：剩余百分比
       double memorydouble = leftMemory.divide(maxMemory, 2, RoundingMode.HALF_DOWN).doubleValue();
@@ -138,17 +153,28 @@ public class ResourceMonitor {
       resourceSendToIms(coresdouble, memorydouble, instancedouble, HttpsUntils.localHost, "LEFT");
 
       // 收集所有EM剩余资源总数
-      totalMemory = totalMemory.add(leftMemory);
-      totalCores = totalMemory.add(leftCores);
-      totalInstance = totalMemory.add(leftInstance);
+      leftTotalMemory = leftTotalMemory.add(leftMemory);
+      leftTotalCores = leftTotalCores.add(leftCores);
+      leftTotalInstance = leftTotalInstance.add(leftInstance);
+
+      // 收集所有EM已使用资源总数
+      usedTotalMemory = usedTotalMemory.add(usedMemory);
+      usedTotalCores = usedTotalCores.add(usedCores);
+      usedTotalInstance = usedTotalInstance.add(usedInstance);
     }
     // 发送IMS EM剩余总资源
     resourceSendToIms(
-        totalCores.doubleValue(),
-        totalMemory.doubleValue(),
-        totalInstance.doubleValue(),
+        leftTotalCores.doubleValue(),
+        leftTotalMemory.doubleValue(),
+        leftTotalInstance.doubleValue(),
         HttpsUntils.localHost,
         "TOTAL_LEFT");
+    resourceSendToIms(
+        usedTotalCores.doubleValue(),
+        usedTotalMemory.doubleValue(),
+        usedTotalInstance.doubleValue(),
+        HttpsUntils.localHost,
+        "TOTAL_USED");
   }
 
   private void resourceSendToIms(
