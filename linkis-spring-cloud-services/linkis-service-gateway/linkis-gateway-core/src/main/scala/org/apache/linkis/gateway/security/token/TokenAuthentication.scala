@@ -25,8 +25,9 @@ import org.apache.linkis.gateway.http.GatewayContext
 import org.apache.linkis.gateway.security.{GatewaySSOUtils, SecurityFilter}
 import org.apache.linkis.server.Message
 import org.apache.linkis.server.utils.ModuleUserUtils
-
 import org.apache.commons.lang3.StringUtils
+
+import scala.util.Try
 
 object TokenAuthentication extends Logging {
 
@@ -62,11 +63,12 @@ object TokenAuthentication extends Logging {
     if (StringUtils.isBlank(token) || StringUtils.isBlank(tokenUser)) {
       val tokenArr = gatewayContext.getRequest.getCookies.get(TOKEN_KEY)
       val tokenUserArr = gatewayContext.getRequest.getCookies.get(TOKEN_USER_KEY)
-      if (null == tokenArr || tokenArr.length == 0
-          || null == tokenUserArr || tokenUserArr.length == 0
-          || StringUtils.isBlank(tokenArr(0).getValue)
-          || StringUtils.isBlank(tokenUserArr(0).getValue)
-      ) {
+      val isTokenValid = Try(tokenArr(0).getValue)
+      val isTokenUserValid = Try(tokenUserArr(0).getValue)
+      val isValid =
+        (tokenArr.nonEmpty && isTokenValid.isSuccess && isTokenValid.get.trim.nonEmpty) &&
+          (tokenUserArr.nonEmpty && isTokenUserValid.isSuccess && isTokenUserValid.get.trim.nonEmpty)
+      if(!isValid) {
         val message = Message.noLogin(
           s"请在Header或Cookie中同时指定$TOKEN_KEY 和 $TOKEN_USER_KEY，以便完成token认证！"
         ) << gatewayContext.getRequest.getRequestURI
