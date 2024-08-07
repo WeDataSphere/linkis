@@ -66,8 +66,8 @@ object TokenAuthentication extends Logging {
       val isTokenValid = Try(tokenArr(0).getValue)
       val isTokenUserValid = Try(tokenUserArr(0).getValue)
       val isValid =
-        (tokenArr.nonEmpty && isTokenValid.isSuccess && isTokenValid.get.trim.nonEmpty) &&
-          (tokenUserArr.nonEmpty && isTokenUserValid.isSuccess && isTokenUserValid.get.trim.nonEmpty)
+        (isTokenValid.isSuccess && tokenArr.nonEmpty && isTokenValid.get.trim.nonEmpty) &&
+          (isTokenUserValid.isSuccess && tokenUserArr.nonEmpty && isTokenUserValid.get.trim.nonEmpty)
       if(!isValid) {
         val message = Message.noLogin(
           s"请在Header或Cookie中同时指定$TOKEN_KEY 和 $TOKEN_USER_KEY，以便完成token认证！"
