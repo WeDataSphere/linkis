@@ -62,10 +62,10 @@ object TokenAuthentication extends Logging {
     if (StringUtils.isBlank(token) || StringUtils.isBlank(tokenUser)) {
       val tokenArr = gatewayContext.getRequest.getCookies.get(TOKEN_KEY)
       val tokenUserArr = gatewayContext.getRequest.getCookies.get(TOKEN_USER_KEY)
-      if (
-        null == tokenArr || null == tokenUserArr || StringUtils.isBlank(
-          tokenArr(0).getValue
-        ) || StringUtils.isBlank(tokenUserArr(0).getValue)
+      if (null == tokenArr || tokenArr.length == 0
+          || null == tokenUserArr || tokenUserArr.length == 0
+          || StringUtils.isBlank(tokenArr(0).getValue)
+          || StringUtils.isBlank(tokenUserArr(0).getValue)
       ) {
         val message = Message.noLogin(
           s"请在Header或Cookie中同时指定$TOKEN_KEY 和 $TOKEN_USER_KEY，以便完成token认证！"
