@@ -142,4 +142,8 @@ object RPCConfiguration {
   val configOptions: feign.Request.Options =
     new feign.Request.Options(RPC_CONNECT_TIME_OUT, RPC_READ_TIME_OUT, true)
 
+  val RPC_OBJECT_PREFIX_WHITE_LIST: Array[String] =
+    CommonVars("wds.linkis.rpc.object.class.prefix.whitelist", "org.apache.linkis").getValue
+      .split(",")
+
 }

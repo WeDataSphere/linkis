@@ -21,8 +21,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.linkis.cs.condition.Condition;
 import org.apache.linkis.cs.condition.impl.ContextValueTypeCondition;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import org.apache.linkis.cs.conf.CSConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +40,10 @@ public class ContextValueTypeConditionParser implements ConditionParser {
     Class contextValueType = Object.class;
     try {
       String valueType = (String) conditionMap.get("contextValueType");
-      if (StringUtils.startsWith(valueType, "org.apache.linkis")) {
+      List<String> contextValueTypeWhiteList =
+              Arrays.asList(CSConfiguration.CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST.getValue()
+                      .split(","));
+      if (contextValueTypeWhiteList.stream().anyMatch(ele -> StringUtils.startsWith(valueType, ele))) {
         contextValueType = Class.forName(valueType);
       } else {
         logger.error("ContextValueType: {} is illegal", valueType);
