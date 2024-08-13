@@ -17,6 +17,7 @@
 
 package org.apache.linkis.cs.condition.construction;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.linkis.cs.condition.Condition;
 import org.apache.linkis.cs.condition.impl.ContextValueTypeCondition;
 
@@ -35,7 +36,12 @@ public class ContextValueTypeConditionParser implements ConditionParser {
 
     Class contextValueType = Object.class;
     try {
-      contextValueType = Class.forName((String) conditionMap.get("contextValueType"));
+      String valueType = (String) conditionMap.get("contextValueType");
+      if (StringUtils.startsWith(valueType, "org.apache.linkis")) {
+        contextValueType = Class.forName(valueType);
+      } else {
+        logger.error("ContextValueType: {} is illegal", valueType);
+      }
     } catch (ClassNotFoundException e) {
       logger.error("Cannot find contextValueType:" + conditionMap.get("contextValueType"));
     }
