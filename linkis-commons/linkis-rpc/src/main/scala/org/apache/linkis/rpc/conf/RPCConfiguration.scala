@@ -146,4 +146,6 @@ object RPCConfiguration {
     CommonVars("wds.linkis.rpc.object.class.prefix.whitelist", "org.apache.linkis").getValue
       .split(",")
 
+  val ENABLE_RPC_OBJECT_PREFIX_WHITE_LIST_CHECK: Boolean =
+    CommonVars("wds.linkis.rpc.object.class.prefix.whitelist.check.enable", true).getValue
 }

@@ -43,10 +43,14 @@ public class ContextValueTypeConditionParser implements ConditionParser {
       List<String> contextValueTypeWhiteList =
               Arrays.asList(CSConfiguration.CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST.getValue()
                       .split(","));
-      if (contextValueTypeWhiteList.stream().anyMatch(ele -> StringUtils.startsWith(valueType, ele))) {
-        contextValueType = Class.forName(valueType);
+      if (CSConfiguration.ENABLE_CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST.getValue()) {
+        if (contextValueTypeWhiteList.stream().anyMatch(ele -> StringUtils.startsWith(valueType, ele))) {
+          contextValueType = Class.forName(valueType);
+        } else {
+          logger.error("ContextValueType: {} is illegal", valueType);
+        }
       } else {
-        logger.error("ContextValueType: {} is illegal", valueType);
+        contextValueType = Class.forName(valueType);
       }
     } catch (ClassNotFoundException e) {
       logger.error("Cannot find contextValueType:" + conditionMap.get("contextValueType"));

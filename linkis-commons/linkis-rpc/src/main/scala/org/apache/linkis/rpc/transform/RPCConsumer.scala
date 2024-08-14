@@ -51,7 +51,7 @@ private[linkis] object RPCConsumer {
           val objectStr = data.get(OBJECT_VALUE).toString
           val objectClass = data.get(CLASS_VALUE).toString
           logger.debug("The corresponding anti-sequence is class {}", objectClass)
-          if (!RPCConfiguration.RPC_OBJECT_PREFIX_WHITE_LIST.exists(prefix => objectClass.startsWith(prefix))) {
+          if (RPCConfiguration.ENABLE_RPC_OBJECT_PREFIX_WHITE_LIST_CHECK && !RPCConfiguration.RPC_OBJECT_PREFIX_WHITE_LIST.exists(prefix => objectClass.startsWith(prefix))) {
             throw new DWCURIException(
               CORRESPONDING_CLASS_ILLEGAL.getErrorCode,
               MessageFormat.format(CORRESPONDING_CLASS_ILLEGAL.getErrorDesc, objectClass)
