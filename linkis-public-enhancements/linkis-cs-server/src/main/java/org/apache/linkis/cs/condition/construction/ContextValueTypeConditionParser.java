@@ -43,7 +43,7 @@ public class ContextValueTypeConditionParser implements ConditionParser {
       List<String> contextValueTypeWhiteList =
               Arrays.asList(CSConfiguration.CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST.getValue()
                       .split(","));
-      if (CSConfiguration.ENABLE_CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST.getValue()) {
+      if (CSConfiguration.ENABLE_CONTEXT_VALUE_TYPE_PREFIX_WHITE_LIST_CHECK.getValue()) {
         if (contextValueTypeWhiteList.stream().anyMatch(ele -> StringUtils.startsWith(valueType, ele))) {
           contextValueType = Class.forName(valueType);
         } else {
