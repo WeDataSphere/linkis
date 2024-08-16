@@ -104,14 +104,18 @@ public class QueryRestfulApi {
         || Configuration.isDepartmentAdmin(username)) {
       username = null;
     }
-    JobHistory jobHistory = jobHistoryQueryService.getJobHistoryByIdAndName(jobId, username);
-
-    try {
-      if (JobhistoryConfiguration.JOB_HISTORY_QUERY_EXECUTION_CODE_SWITCH()&&null != jobHistory) {
-        QueryUtils.exchangeExecutionCode(jobHistory);
+    JobHistory jobHistory = null;
+    if (JobhistoryConfiguration.JOB_HISTORY_QUERY_EXECUTION_CODE_SWITCH()) {
+      jobHistory = jobHistoryQueryService.getJobHistoryByIdAndNameNoCode(jobId, username);
+    } else {
+      jobHistory = jobHistoryQueryService.getJobHistoryByIdAndName(jobId, username);
+      try {
+        if (null != jobHistory) {
+          QueryUtils.exchangeExecutionCode(jobHistory);
+        }
+      } catch (Exception e) {
+        log.error("Exchange executionCode for job with id : {} failed, {}", jobHistory.getId(), e);
       }
-    } catch (Exception e) {
-      log.error("Exchange executionCode for job with id : {} failed, {}", jobHistory.getId(), e);
     }
     QueryTaskVO taskVO = TaskConversions.jobHistory2TaskVO(jobHistory, null);
     // todo check
@@ -209,7 +213,7 @@ public class QueryRestfulApi {
       }
     } else if (null != isDeptView && isDeptView) {
       departmentId = JobhistoryUtils.getDepartmentByuser(username);
-      if (StringUtils.isNotBlank(departmentId)) {
+      if (StringUtils.isNotBlank(departmentId) && StringUtils.isNotBlank(proxyUser)) {
         username = proxyUser;
       } else {
         username = null;

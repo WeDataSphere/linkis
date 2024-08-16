@@ -143,12 +143,10 @@ object RPCConfiguration {
     new feign.Request.Options(RPC_CONNECT_TIME_OUT, RPC_READ_TIME_OUT, true)
 
   val RPC_OBJECT_PREFIX_WHITE_LIST: Array[String] =
-    CommonVars(
-      "wds.linkis.rpc.object.class.prefix.whitelist",
-      "org.apache.linkis,com.webank.wedatasphere.dss,com.webank.wedatasphere.exchangis,com.webank.wedatasphere.streamis,com.webank.wedatasphere.visualis,com.wedatasphere.dss.visualishub"
-    ).getValue
+    CommonVars("wds.linkis.rpc.object.class.prefix.whitelist", "org.apache.linkis").getValue
       .split(",")
 
   val ENABLE_RPC_OBJECT_PREFIX_WHITE_LIST_CHECK: Boolean =
     CommonVars("wds.linkis.rpc.object.class.prefix.whitelist.check.enable", true).getValue
+
 }

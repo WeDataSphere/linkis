@@ -134,11 +134,12 @@ object QueryUtils extends Logging {
           val useful = Math.min(readed, lengthLeft)
           if (useful < 0) break()
           lengthLeft -= useful
-          executionCode.append(new String(tub))
+          val usefulChars = new Array[Char](useful)
+          System.arraycopy(tub, 0, usefulChars, 0, useful)
+          executionCode.append(new String(usefulChars))
         }
       }
     } {
-      IOUtils.closeQuietly(is)
       IOUtils.closeQuietly(bufferedReader)
       if (fileSystem != null) Utils.tryAndWarn(fileSystem.close())
     }
