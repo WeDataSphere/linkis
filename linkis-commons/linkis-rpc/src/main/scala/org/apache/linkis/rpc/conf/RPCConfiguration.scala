@@ -145,7 +145,7 @@ object RPCConfiguration {
   val RPC_OBJECT_PREFIX_WHITE_LIST: Array[String] =
     CommonVars(
       "wds.linkis.rpc.object.class.prefix.whitelist",
-      "org.apache.linkis,com.webank.wedatasphere.dss,com.webank.wedatasphere.exchangis,com.webank.wedatasphere.streamis,com.webank.wedatasphere.visualis,com.wedatasphere.dss.visualishub"
+      "org.apache.linkis,com.webank.wedatasphere,com.wedatasphere"
     ).getValue
       .split(",")
 
