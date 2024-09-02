@@ -46,6 +46,16 @@ class VarSubstitutionInterceptor extends EntranceInterceptor {
           logAppender.append(
             LogUtils.generateInfo("Variables substitution ended successfully") + "\n"
           )
+          logAppender.append(LogUtils.generateInfo("Job variables is") + "\n")
+          logAppender.append(
+            "************************************Variable************************************" + "\n"
+          )
+          val variable = jobRequest.getParams.get("variable")
+          logAppender.append(variable)
+          logAppender.append("\n");
+          logAppender.append(
+            "************************************Variable************************************" + "\n"
+          )
           // print  code after variables substitution
           logAppender.append(
             LogUtils.generateInfo(
