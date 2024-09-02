@@ -24,8 +24,10 @@ import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.entrance.interceptor.exception.VarSubstitutionException
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.utils.LabelUtil
-
 import org.apache.commons.lang3.exception.ExceptionUtils
+import org.apache.linkis.protocol.utils.TaskUtils
+import java.util
+import org.apache.linkis.server.toScalaMap
 
 /**
  * Description: For variable substitution(用于变量替换)
@@ -50,9 +52,12 @@ class VarSubstitutionInterceptor extends EntranceInterceptor {
           logAppender.append(
             "************************************Variable************************************" + "\n"
           )
-          val variable = jobRequest.getParams.get("variable")
-          logAppender.append(variable)
-          logAppender.append("\n");
+          val variableMap = TaskUtils
+            .getVariableMap(jobRequest.getParams)
+            .asInstanceOf[util.HashMap[String, String]]
+          variableMap.foreach { case (key, value) =>
+            logAppender.append(s"$key=$value\n")
+          }
           logAppender.append(
             "************************************Variable************************************" + "\n"
           )
