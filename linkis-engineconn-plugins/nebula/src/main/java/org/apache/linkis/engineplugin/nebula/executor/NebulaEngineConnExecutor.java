@@ -286,7 +286,9 @@ public class NebulaEngineConnExecutor extends ConcurrentComputationExecutor {
       String space = NebulaConfiguration.NEBULA_SPACE.getValue(configMap);
       try {
         session = nebulaPool.getSession(username, password, reconnect);
-        session.execute("use " + space);
+        if (StringUtils.isNotBlank(space)) {
+          session.execute("use " + space);
+        }
       } catch (Exception e) {
         logger.error("Nebula Session initialization failed.");
         throw new NebulaClientException(
