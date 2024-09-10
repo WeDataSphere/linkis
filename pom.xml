@@ -106,7 +106,7 @@
     <revision>1.7.0-wds</revision>
     <jedis.version>2.9.2</jedis.version>
     <spark.version>2.4.3</spark.version>
-    <hadoop.version>2.7.2</hadoop.version>
+    <hadoop.version>3.2.4</hadoop.version>
     <hbase.version>1.2.1</hbase.version>
     <jruby.verison>9.3.4.0</jruby.verison>
     <jcodings.version>1.0.56</jcodings.version>
