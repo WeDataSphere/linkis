@@ -90,8 +90,6 @@ public class AESUtils {
             //使用密钥初始化，设置为解密模式
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(password));
             //执行操作
-            System.out.println(Arrays.toString(content.trim().getBytes(ENCODING_TYPE)));
-
             byte[] result = cipher.doFinal(Base64.decodeBase64(content));
             return new String(result, ENCODING_TYPE);
         } catch (Exception e) {
