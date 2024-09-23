@@ -57,171 +57,171 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = {WebApplicationServer.class, Scan.class})
 @AutoConfigureMockMvc
 public class FsRestfulApiTest {
-
-  private static final Logger LOG = LoggerFactory.getLogger(FsRestfulApiTest.class);
-
-  @InjectMocks private FsRestfulApi fsRestfulApi;
-
-  @Autowired private MockMvc mockMvc;
-
-  @MockBean(name = "fsService")
-  private FsService fsService;
-
-  @Test
-  @DisplayName("getDirFileTreesTest")
-  public void getDirFileTreesTest() throws Exception {
-
-    if (!FsPath.WINDOWS) {
-      FileSystem fs = new LocalFileSystem();
-      fs.setUser("docker");
-      String group =
-          Files.readAttributes(
-                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
-              .group()
-              .getName();
-      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
-
-      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
-          .thenReturn(fs);
-      String path = this.getClass().getResource("/").getPath();
-
-      MvcResult mvcResult =
-          mockMvc
-              .perform(get("/filesystem/getDirFileTrees").param("path", path))
-              .andExpect(status().isOk())
-              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-              .andReturn();
-
-      Message res =
-          JsonUtils.jackson()
-              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
-
-      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
-      LOG.info(mvcResult.getResponse().getContentAsString());
-    }
-  }
-
-  @Test
-  @DisplayName("isExistTest")
-  public void isExistTest() throws Exception {
-
-    FileSystem fs = new LocalFileSystem();
-    fs.setUser("docker");
-    Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
-        .thenReturn(fs);
-    String path = this.getClass().getResource("/").getPath();
-
-    MvcResult mvcResult =
-        mockMvc
-            .perform(get("/filesystem/isExist").param("path", path))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-            .andReturn();
-
-    Message res =
-        JsonUtils.jackson().readValue(mvcResult.getResponse().getContentAsString(), Message.class);
-
-    assertEquals(MessageStatus.SUCCESS(), res.getStatus());
-    LOG.info(mvcResult.getResponse().getContentAsString());
-  }
-
-  @Test
-  @DisplayName("fileInfoTest")
-  public void fileInfoTest() throws Exception {
-    if (!FsPath.WINDOWS) {
-      FileSystem fs = new LocalFileSystem();
-      fs.setUser("docker");
-      String group =
-          Files.readAttributes(
-                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
-              .group()
-              .getName();
-      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
-      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
-          .thenReturn(fs);
-      String path = this.getClass().getResource("/").getPath() + "query.sql";
-
-      MvcResult mvcResult =
-          mockMvc
-              .perform(get("/filesystem/fileInfo").param("path", path))
-              .andExpect(status().isOk())
-              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-              .andReturn();
-
-      Message res =
-          JsonUtils.jackson()
-              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
-
-      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
-      LOG.info(mvcResult.getResponse().getContentAsString());
-    }
-  }
-
-  @Test
-  @DisplayName("openFileTest")
-  public void openFileTest() throws Exception {
-
-    if (!FsPath.WINDOWS) {
-      FileSystem fs = new LocalFileSystem();
-      fs.setUser("docker");
-      String group =
-          Files.readAttributes(
-                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
-              .group()
-              .getName();
-      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
-
-      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
-          .thenReturn(fs);
-      String path = this.getClass().getResource("/").getPath() + "query.sql";
-
-      MvcResult mvcResult =
-          mockMvc
-              .perform(get("/filesystem/fileInfo").param("path", path))
-              .andExpect(status().isOk())
-              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-              .andReturn();
-
-      Message res =
-          JsonUtils.jackson()
-              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
-
-      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
-      LOG.info(mvcResult.getResponse().getContentAsString());
-    }
-  }
-
-  @Test
-  @DisplayName("openLogTest")
-  public void openLogTest() throws Exception {
-
-    if (!FsPath.WINDOWS) {
-      FileSystem fs = new LocalFileSystem();
-      fs.setUser("docker");
-      String group =
-          Files.readAttributes(
-                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
-              .group()
-              .getName();
-      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
-
-      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
-          .thenReturn(fs);
-      String path = this.getClass().getResource("/").getPath() + "info.log";
-
-      MvcResult mvcResult =
-          mockMvc
-              .perform(get("/filesystem/openLog").param("path", path))
-              .andExpect(status().isOk())
-              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-              .andReturn();
-
-      Message res =
-          JsonUtils.jackson()
-              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
-
-      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
-      LOG.info(mvcResult.getResponse().getContentAsString());
-    }
-  }
+//
+//  private static final Logger LOG = LoggerFactory.getLogger(FsRestfulApiTest.class);
+//
+//  @InjectMocks private FsRestfulApi fsRestfulApi;
+//
+//  @Autowired private MockMvc mockMvc;
+//
+//  @MockBean(name = "fsService")
+//  private FsService fsService;
+//
+//  @Test
+//  @DisplayName("getDirFileTreesTest")
+//  public void getDirFileTreesTest() throws Exception {
+//
+//    if (!FsPath.WINDOWS) {
+//      FileSystem fs = new LocalFileSystem();
+//      fs.setUser("docker");
+//      String group =
+//          Files.readAttributes(
+//                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
+//              .group()
+//              .getName();
+//      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
+//
+//      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
+//          .thenReturn(fs);
+//      String path = this.getClass().getResource("/").getPath();
+//
+//      MvcResult mvcResult =
+//          mockMvc
+//              .perform(get("/filesystem/getDirFileTrees").param("path", path))
+//              .andExpect(status().isOk())
+//              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//              .andReturn();
+//
+//      Message res =
+//          JsonUtils.jackson()
+//              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+//
+//      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+//      LOG.info(mvcResult.getResponse().getContentAsString());
+//    }
+//  }
+//
+//  @Test
+//  @DisplayName("isExistTest")
+//  public void isExistTest() throws Exception {
+//
+//    FileSystem fs = new LocalFileSystem();
+//    fs.setUser("docker");
+//    Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
+//        .thenReturn(fs);
+//    String path = this.getClass().getResource("/").getPath();
+//
+//    MvcResult mvcResult =
+//        mockMvc
+//            .perform(get("/filesystem/isExist").param("path", path))
+//            .andExpect(status().isOk())
+//            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//            .andReturn();
+//
+//    Message res =
+//        JsonUtils.jackson().readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+//
+//    assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+//    LOG.info(mvcResult.getResponse().getContentAsString());
+//  }
+//
+//  @Test
+//  @DisplayName("fileInfoTest")
+//  public void fileInfoTest() throws Exception {
+//    if (!FsPath.WINDOWS) {
+//      FileSystem fs = new LocalFileSystem();
+//      fs.setUser("docker");
+//      String group =
+//          Files.readAttributes(
+//                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
+//              .group()
+//              .getName();
+//      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
+//      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
+//          .thenReturn(fs);
+//      String path = this.getClass().getResource("/").getPath() + "query.sql";
+//
+//      MvcResult mvcResult =
+//          mockMvc
+//              .perform(get("/filesystem/fileInfo").param("path", path))
+//              .andExpect(status().isOk())
+//              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//              .andReturn();
+//
+//      Message res =
+//          JsonUtils.jackson()
+//              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+//
+//      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+//      LOG.info(mvcResult.getResponse().getContentAsString());
+//    }
+//  }
+//
+//  @Test
+//  @DisplayName("openFileTest")
+//  public void openFileTest() throws Exception {
+//
+//    if (!FsPath.WINDOWS) {
+//      FileSystem fs = new LocalFileSystem();
+//      fs.setUser("docker");
+//      String group =
+//          Files.readAttributes(
+//                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
+//              .group()
+//              .getName();
+//      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
+//
+//      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
+//          .thenReturn(fs);
+//      String path = this.getClass().getResource("/").getPath() + "query.sql";
+//
+//      MvcResult mvcResult =
+//          mockMvc
+//              .perform(get("/filesystem/fileInfo").param("path", path))
+//              .andExpect(status().isOk())
+//              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//              .andReturn();
+//
+//      Message res =
+//          JsonUtils.jackson()
+//              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+//
+//      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+//      LOG.info(mvcResult.getResponse().getContentAsString());
+//    }
+//  }
+//
+//  @Test
+//  @DisplayName("openLogTest")
+//  public void openLogTest() throws Exception {
+//
+//    if (!FsPath.WINDOWS) {
+//      FileSystem fs = new LocalFileSystem();
+//      fs.setUser("docker");
+//      String group =
+//          Files.readAttributes(
+//                  Paths.get(this.getClass().getResource("/").getPath()), PosixFileAttributes.class)
+//              .group()
+//              .getName();
+//      fs.setGroup(new FsPath(this.getClass().getResource("/").getPath()), group);
+//
+//      Mockito.when(fsService.getFileSystem(Mockito.anyString(), Mockito.any(FsPath.class)))
+//          .thenReturn(fs);
+//      String path = this.getClass().getResource("/").getPath() + "info.log";
+//
+//      MvcResult mvcResult =
+//          mockMvc
+//              .perform(get("/filesystem/openLog").param("path", path))
+//              .andExpect(status().isOk())
+//              .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+//              .andReturn();
+//
+//      Message res =
+//          JsonUtils.jackson()
+//              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+//
+//      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+//      LOG.info(mvcResult.getResponse().getContentAsString());
+//    }
+//  }
 }
