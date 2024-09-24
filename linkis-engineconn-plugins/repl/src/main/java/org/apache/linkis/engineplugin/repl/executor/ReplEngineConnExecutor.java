@@ -44,13 +44,13 @@ import org.apache.linkis.scheduler.executer.ExecuteResponse;
 import org.apache.linkis.scheduler.executer.SuccessExecuteResponse;
 import org.apache.linkis.storage.LineMetaData;
 import org.apache.linkis.storage.LineRecord;
+import org.apache.linkis.storage.resultset.ResultSetFactory$;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import org.apache.linkis.storage.resultset.ResultSetFactory$;
 import org.springframework.util.CollectionUtils;
 
 import java.io.ByteArrayOutputStream;
