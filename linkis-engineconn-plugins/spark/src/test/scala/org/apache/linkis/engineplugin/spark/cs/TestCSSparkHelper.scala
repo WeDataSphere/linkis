@@ -33,26 +33,31 @@ class TestCSSparkHelper {
 
   @Test
   def testCSSparkHelper: Unit = {
-//    val engineFactory = new SparkEngineConnFactory
-//    val sparkConf: SparkConf = new SparkConf(true)
-//    val sparkSession = SparkSession
-//      .builder()
-//      .master("local[1]")
-//      .appName("test")
-//      .getOrCreate()
-//    val outputDir = engineFactory.createOutputDir(sparkConf)
-//    val sparkEngineSession = SparkEngineSession(
-//      sparkSession.sparkContext,
-//      sparkSession.sqlContext,
-//      sparkSession,
-//      outputDir
-//    )
-//    val sparkScalaExecutor = new SparkScalaExecutor(sparkEngineSession, 1L)
-//    Assertions.assertFalse(sparkScalaExecutor.isEngineInitialized)
-//    sparkScalaExecutor.init()
-//    Assertions.assertTrue(sparkScalaExecutor.isEngineInitialized)
-//    val engineExecutionContext = new EngineExecutionContext(sparkScalaExecutor, Utils.getJvmUser)
-//    CSSparkHelper.setContextIDInfoToSparkConf(engineExecutionContext, sparkSession.sparkContext)
+    System.setProperty("wds.linkis.server.version", "v1")
+    System.setProperty(
+      "wds.linkis.engineconn.plugin.default.class",
+      "org.apache.linkis.engineplugin.spark.SparkEngineConnPlugin"
+    )
+    val engineFactory = new SparkEngineConnFactory
+    val sparkConf: SparkConf = new SparkConf(true)
+    val sparkSession = SparkSession
+      .builder()
+      .master("local[1]")
+      .appName("test")
+      .getOrCreate()
+    val outputDir = engineFactory.createOutputDir(sparkConf)
+    val sparkEngineSession = SparkEngineSession(
+      sparkSession.sparkContext,
+      sparkSession.sqlContext,
+      sparkSession,
+      outputDir
+    )
+    val sparkScalaExecutor = new SparkScalaExecutor(sparkEngineSession, 1L)
+    Assertions.assertFalse(sparkScalaExecutor.isEngineInitialized)
+    sparkScalaExecutor.init()
+    Assertions.assertTrue(sparkScalaExecutor.isEngineInitialized)
+    val engineExecutionContext = new EngineExecutionContext(sparkScalaExecutor, Utils.getJvmUser)
+    CSSparkHelper.setContextIDInfoToSparkConf(engineExecutionContext, sparkSession.sparkContext)
 //    Assertions.assertNotNull(sparkSession.sparkContext.getLocalProperty(CSCommonUtils.CONTEXT_ID_STR))
   }
 

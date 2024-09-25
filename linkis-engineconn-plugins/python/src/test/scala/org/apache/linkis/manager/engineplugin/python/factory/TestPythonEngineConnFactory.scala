@@ -17,14 +17,10 @@
 
 package org.apache.linkis.manager.engineplugin.python.factory
 
-import org.apache.linkis.DataWorkCloudApplication
-import org.apache.linkis.common.conf.DWCArgumentsParser
 import org.apache.linkis.engineconn.common.creation.{
   DefaultEngineCreationContext,
   EngineCreationContext
 }
-
-import scala.collection.mutable
 
 import org.junit.jupiter.api.{Assertions, Test}
 
@@ -32,20 +28,20 @@ class TestPythonEngineConnFactory {
 
   @Test
   def testCreateExecutor: Unit = {
-//    System.setProperty("wds.linkis.server.version", "v1")
-//    System.setProperty(
-//      "wds.linkis.engineconn.plugin.default.class",
-//      "org.apache.linkis.manager.engineplugin.python.PythonEngineConnPlugin"
-//    )
-//    System.setProperty("pythonVersion", "python")
-//    val engineConnFactory: PythonEngineConnFactory = new PythonEngineConnFactory
-//    val engineCreationContext: EngineCreationContext = new DefaultEngineCreationContext
-//    val jMap = new java.util.HashMap[String, String]()
-//    jMap.put("python.version", "python")
-//    engineCreationContext.setOptions(jMap)
-//    val engineConn = engineConnFactory.createEngineConn(engineCreationContext)
-//    val executor = engineConnFactory.newExecutor(1, engineCreationContext, engineConn)
-//    Assertions.assertNotNull(executor)
+    System.setProperty("wds.linkis.server.version", "v1")
+    System.setProperty(
+      "wds.linkis.engineconn.plugin.default.class",
+      "org.apache.linkis.manager.engineplugin.python.PythonEngineConnPlugin"
+    )
+    System.setProperty("pythonVersion", "python")
+    val engineConnFactory: PythonEngineConnFactory = new PythonEngineConnFactory
+    val engineCreationContext: EngineCreationContext = new DefaultEngineCreationContext
+    val jMap = new java.util.HashMap[String, String]()
+    jMap.put("python.version", "python")
+    engineCreationContext.setOptions(jMap)
+    val engineConn = engineConnFactory.createEngineConn(engineCreationContext)
+    val executor = engineConnFactory.newExecutor(1, engineCreationContext, engineConn)
+    Assertions.assertNotNull(executor)
   }
 
 }
