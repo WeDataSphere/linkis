@@ -95,20 +95,6 @@ class FlinkEngineConnLaunchBuilder extends JavaProcessEngineConnLaunchBuilder {
     }
     bmlResources
   }
-
-  override def getEnvironment(implicit
-      engineConnBuildRequest: EngineConnBuildRequest
-  ): util.Map[String, String] = {
-    val environment = new util.HashMap[String, String]
-    addPathToClassPath(environment, variable(PWD))
-    val linkisEnvironment = super.getEnvironment
-    val linkisClassPath = linkisEnvironment.get(Environment.CLASSPATH.toString)
-    val v = environment.get(Environment.CLASSPATH.toString) + CLASS_PATH_SEPARATOR + linkisClassPath
-    environment.put(Environment.CLASSPATH.toString, v)
-    logger.info(environment.asScala.map(e => s"${e._1}->${e._2}").mkString(","))
-    environment
-  }
-
   override def getEnvironment(implicit
       engineConnBuildRequest: EngineConnBuildRequest
   ): util.Map[String, String] = {
