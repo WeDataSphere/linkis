@@ -293,7 +293,7 @@ insert into `linkis_cg_manager_label` (`label_key`, `label_value`, `label_featur
 
 
 -- Associate first-level and second-level directories
-select @label_id := id from linkis_cg_manager_label where `label_value` = '*-GlobalSettings,*-*';
+select @label_id := id from linkis_cg_manager_label where `label_value` = '*-全局设置,*-*';
 insert into linkis_ps_configuration_category (`label_id`, `level`) VALUES (@label_id, 1);
 
 select @label_id := id from linkis_cg_manager_label where `label_value` = '*-IDE,*-*';
@@ -614,16 +614,6 @@ INSERT INTO `linkis_ps_dm_datasource_type` (`name`, `description`, `option`, `cl
 INSERT INTO `linkis_ps_dm_datasource_type` (`name`, `description`, `option`, `classifier`, `icon`, `layers`, `description_en`, `option_en`, `classifier_en`) VALUES ('gaussdb', 'gaussdb数据库', 'gaussdb', '关系型数据库', '', 3, 'GaussDB Database', 'GaussDB', 'Relational Database');
 INSERT INTO `linkis_ps_dm_datasource_type` (`name`, `description`, `option`, `classifier`, `icon`, `layers`, `description_en`, `option_en`, `classifier_en`) VALUES ('oceanbase', 'oceanbase数据库', 'oceanbase', 'olap', '', 4, 'oceanbase Database', 'oceanbase', 'Olap');
 
-
-select @data_source_type_id := id from `linkis_ps_dm_datasource_type` where `name` = 'mongodb';
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'username', '用户名', 'Username', NULL, 'TEXT', NULL, 1, '用户名', 'Username', '^[0-9A-Za-z_-]+$', NULL, '', NULL, now(), now());
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'password', '密码', 'Password', NULL, 'PASSWORD', NULL, 1, '密码', 'Password', '', NULL, '', NULL,  now(), now());
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'database', '默认库', 'Database', NULL, 'TEXT', NULL, 1, '默认库', 'Database', '^[0-9A-Za-z_-]+$', NULL, '', NULL,  now(), now());
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'host', 'Host', 'Host', NULL, 'TEXT', NULL, 1, 'mongodb Host', 'Host', NULL, NULL, NULL, NULL,  now(), now());
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'port', '端口', 'Port', NULL, 'TEXT', NULL, 1, '端口', 'Port', NULL, NULL, NULL, NULL,  now(), now());
-INSERT INTO `linkis_ps_dm_datasource_type_key` (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`) VALUES (@data_source_type_id, 'params', '连接参数', 'Params', NULL, 'TEXT', NULL, 0, '输入JSON格式: {"param":"value"}', 'Input JSON Format: {"param":"value"}', NULL, NULL, NULL, NULL,  now(), now());
-
-
 select @data_source_type_id := id from `linkis_ps_dm_datasource_type` where `name` = 'hive';
 SET @data_source=CONCAT('/data-source-manager/env-list/all/type/',@data_source_type_id);
 INSERT INTO `linkis_ps_dm_datasource_type_key`
@@ -640,12 +630,12 @@ select @data_source_type_id := id from `linkis_ps_dm_datasource_type` where `nam
 SET @data_source=CONCAT('/data-source-manager/env-list/all/type/',@data_source_type_id);
 INSERT INTO `linkis_ps_dm_datasource_type_key`
     (`data_source_type_id`, `key`, `name`, `name_en`, `default_value`, `value_type`, `scope`, `require`, `description`, `description_en`, `value_regex`, `ref_id`, `ref_value`, `data_source`, `update_time`, `create_time`)
-VALUES (@data_source_type_id, 'username', '用户名', NULL, 'TEXT', NULL, 1, '用户名', '^[0-9A-Za-z_-]+$', NULL, '', NULL, now(), now()),
-       (@data_source_type_id, 'password', '密码', NULL, 'PASSWORD', NULL, 1, '密码', '', NULL, '', NULL,  now(), now()),
-       (@data_source_type_id, 'database', '默认库', NULL, 'TEXT', NULL, 1, '默认库', '^[0-9A-Za-z_-]+$', NULL, '', NULL,  now(), now()),
-       (@data_source_type_id, 'host', 'Host', NULL, 'TEXT', NULL, 1, 'mongodb Host ', NULL, NULL, NULL, NULL,  now(), now()),
-       (@data_source_type_id, 'port', '端口', NULL, 'TEXT', NULL, 1, '端口', NULL, NULL, NULL, NULL,  now(), now()),
-       (@data_source_type_id, 'params', '连接参数', NULL, 'TEXT', NULL, 0, '输入JSON格式: {"param":"value"}', NULL, NULL, NULL, NULL,  now(), now());
+VALUES (@data_source_type_id, 'username', '用户名', 'Username', NULL, 'TEXT', NULL, 1, '用户名', 'Username', '^[0-9A-Za-z_-]+$', NULL, '', NULL, now(), now()),
+	   (@data_source_type_id, 'password', '密码', 'Password', NULL, 'PASSWORD', NULL, 1, '密码', 'Password', '', NULL, '', NULL,  now(), now()),
+	   (@data_source_type_id, 'database', '默认库', 'Database', NULL, 'TEXT', NULL, 1, '默认库', 'Database', '^[0-9A-Za-z_-]+$', NULL, '', NULL,  now(), now()),
+	   (@data_source_type_id, 'host', 'Host', 'Host', NULL, 'TEXT', NULL, 1, 'mongodb Host', 'Host', NULL, NULL, NULL, NULL,  now(), now()),
+	   (@data_source_type_id, 'port', '端口', 'Port', NULL, 'TEXT', NULL, 1, '端口', 'Port', NULL, NULL, NULL, NULL,  now(), now()),
+	   (@data_source_type_id, 'params', '连接参数', 'Params', NULL, 'TEXT', NULL, 0, '输入JSON格式: {"param":"value"}', 'Input JSON Format: {"param":"value"}', NULL, NULL, NULL, NULL,  now(), now());
 
 select @data_source_type_id := id from `linkis_ps_dm_datasource_type` where `name` = 'elasticsearch';
 INSERT INTO `linkis_ps_dm_datasource_type_key`

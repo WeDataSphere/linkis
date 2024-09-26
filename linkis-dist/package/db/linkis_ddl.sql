@@ -526,9 +526,9 @@ CREATE TABLE `linkis_ps_cs_context_id` (
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
   `access_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'last access time',
   PRIMARY KEY (`id`),
-  KEY `idx_instance` (`instance`(128)),
-  KEY `idx_backup_instance` (`backup_instance`(191)),
-  KEY `idx_instance_bin` (`instance`(128),`backup_instance`(128))
+  KEY `idx_instance` (`instance`),
+  KEY `idx_backup_instance` (`backup_instance`),
+  KEY `idx_instance_bin` (`instance`,`backup_instance`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- ----------------------------
