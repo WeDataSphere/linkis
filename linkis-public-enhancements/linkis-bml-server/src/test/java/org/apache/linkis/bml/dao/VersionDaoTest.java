@@ -37,11 +37,11 @@ class VersionDaoTest extends BaseDaoTest {
 
   void insertVersion() {
     ResourceVersion resourceVersion = new ResourceVersion();
-    resourceVersion.setResourceId("123");
+    resourceVersion.setResourceId(resourceId);
     resourceVersion.setUser("binbin");
     resourceVersion.setSystem("testSys");
     resourceVersion.setFileMd5("binbinmd5");
-    resourceVersion.setVersion("1.2");
+    resourceVersion.setVersion(version);
     resourceVersion.setSize(25);
     resourceVersion.setStartByte(35);
     resourceVersion.setEndByte(36);
