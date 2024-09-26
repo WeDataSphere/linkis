@@ -143,11 +143,11 @@ class VersionDaoTest extends BaseDaoTest {
     versionDao.getStartByteForResource(resourceId, version);
   }
 
-  //    @Test
-  //    void testGetEndByte() {
-  //        insertVersion();
-  //        versionDao.getEndByte(resourceId, version);
-  //    }
+  @Test
+  void testGetEndByte() {
+    insertVersion();
+    versionDao.getEndByte(resourceId, version);
+  }
 
   @Test
   void testFindResourceVersion() {
@@ -173,11 +173,11 @@ class VersionDaoTest extends BaseDaoTest {
     versionDao.checkVersion(resourceId, version);
   }
 
-  //    @Test
-  //    void testSelectResourceVersionEnbleFlag() {
-  //        insertVersion();
-  //        versionDao.selectResourceVersionEnbleFlag(resourceId, version);
-  //    }
+  @Test
+  void testSelectResourceVersionEnbleFlag() {
+    insertVersion();
+    versionDao.selectResourceVersionEnbleFlag(resourceId, version);
+  }
 
   @Test
   void testDeleteResource() {
