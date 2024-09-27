@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.kingbase;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import java.io.Closeable;
@@ -221,7 +222,10 @@ public class SqlConnection implements Closeable {
       url += "?" + extraParamString;
     }
     try {
-      return DriverManager.getConnection(url, connectMessage.username, connectMessage.password);
+      // decrypt
+      String password =
+          AESUtils.decrypt(connectMessage.password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+      return DriverManager.getConnection(url, connectMessage.username, password);
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.postgres;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import org.apache.logging.log4j.util.Strings;
@@ -202,7 +203,10 @@ public class SqlConnection implements Closeable {
     if (!connectMessage.extraParams.isEmpty()) {
       url += "?" + extraParamString;
     }
-    return DriverManager.getConnection(url, connectMessage.username, connectMessage.password);
+    // decrypt
+    String password =
+        AESUtils.decrypt(connectMessage.password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+    return DriverManager.getConnection(url, connectMessage.username, password);
   }
 
   /** Connect message */
