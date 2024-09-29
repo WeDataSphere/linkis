@@ -68,7 +68,8 @@ object Configuration extends Logging {
   // Only the specified token has permission to call some api
   val GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH = "ADMIN-"
 
-  val VARIABLE_OPERATION: Boolean = CommonVars("wds.linkis.variable.operation", false).getValue
+  val VARIABLE_OPERATION_USE_NOW: Boolean =
+    CommonVars("wds.linkis.variable.operation.use.now", true).getValue
 
   val IS_VIEW_FS_ENV = CommonVars("wds.linkis.env.is.viewfs", true)
 
@@ -78,7 +79,7 @@ object Configuration extends Logging {
       "The request interface %s is abnormal. You can try to troubleshoot common problems in the knowledge base document"
     )
 
-  val LINKIS_TOKEN = CommonVars("wds.linkis.token", "LINKIS-AUTH-eTaYLbQpmIulPyrXcMl")
+  val LINKIS_TOKEN = CommonVars("wds.linkis.token", "")
 
   val GLOBAL_CONF_CHN_NAME = "全局设置"
 
