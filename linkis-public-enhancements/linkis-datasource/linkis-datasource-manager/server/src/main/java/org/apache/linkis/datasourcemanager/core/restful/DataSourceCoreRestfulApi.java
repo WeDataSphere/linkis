@@ -842,7 +842,7 @@ public class DataSourceCoreRestfulApi {
   public Message encryptDatasourcePassword(HttpServletRequest request) {
     return RestfulApiHelper.doAndResponse(
         () -> {
-            // 处理linkis_ps_dm_datasource表中的password字段加密
+          // 处理linkis_ps_dm_datasource表中的password字段加密
           String permissionUser = ModuleUserUtils.getOperationUser(request, "encrypt");
           DataSourceVo dataSourceVo = new DataSourceVo(null, null, null, null);
           dataSourceVo.setCurrentPage(1);

@@ -18,9 +18,9 @@
 package org.apache.linkis.common.utils;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.exception.ErrorException;
 
 import org.apache.commons.net.util.Base64;
-import org.apache.linkis.common.exception.ErrorException;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -71,7 +71,7 @@ public class AESUtils {
       // 通过Base64转码返回
       return Base64.encodeBase64String(result).trim();
     } catch (Exception e) {
-      throw new ErrorException(21304,"AES加密加密失败");
+      throw new ErrorException(21304, "AES加密加密失败");
     }
   }
 
@@ -92,7 +92,7 @@ public class AESUtils {
       byte[] result = cipher.doFinal(Base64.decodeBase64(content));
       return new String(result, ENCODING_TYPE);
     } catch (Exception e) {
-      throw new ErrorException(21304,"AES加密解密失败");
+      throw new ErrorException(21304, "AES加密解密失败");
     }
   }
 
@@ -115,7 +115,7 @@ public class AESUtils {
       // 转换为AES专用密钥
       return new SecretKeySpec(secretKey.getEncoded(), KEY_ALGORITHM);
     } catch (NoSuchAlgorithmException e) {
-      throw new ErrorException(21304,"AES生成加密秘钥失败");
+      throw new ErrorException(21304, "AES生成加密秘钥失败");
     }
   }
 }
