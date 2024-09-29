@@ -95,6 +95,7 @@ class FlinkEngineConnLaunchBuilder extends JavaProcessEngineConnLaunchBuilder {
     }
     bmlResources
   }
+
   override def getEnvironment(implicit
       engineConnBuildRequest: EngineConnBuildRequest
   ): util.Map[String, String] = {
