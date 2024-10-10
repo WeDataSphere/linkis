@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.oracle;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -241,7 +242,10 @@ public class SqlConnection implements Closeable {
     prop.put("user", connectMessage.username);
     prop.put("password", connectMessage.password);
     prop.put("remarksReporting", "true");
-    return DriverManager.getConnection(url, prop);
+    // decrypt
+    String password =
+        AESUtils.decrypt(connectMessage.password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+    return DriverManager.getConnection(url, connectMessage.username, password);
   }
 
   /** Connect message */

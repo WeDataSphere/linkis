@@ -18,9 +18,9 @@
 package org.apache.linkis.datasourcemanager.core.restful;
 
 import org.apache.linkis.common.exception.WarnException;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
-import org.apache.linkis.datasourcemanager.common.util.CryptoUtils;
 import org.apache.linkis.datasourcemanager.core.restful.exception.BeanValidationExceptionMapper;
 import org.apache.linkis.datasourcemanager.core.validate.ParameterValidateException;
 import org.apache.linkis.server.Message;
@@ -73,14 +73,16 @@ public class RestfulApiHelper {
             Object password = connectParams.get(keyDefinition.getKey());
             if (null != password) {
               connectParams.put(
-                  keyDefinition.getKey(), CryptoUtils.object2String(String.valueOf(password)));
+                  keyDefinition.getKey(),
+                  AESUtils.encrypt(
+                      String.valueOf(password), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
             }
           }
         });
   }
 
   /**
-   * Encrypt key of password type
+   * dncrypt key of password type
    *
    * @param keyDefinitionList definition list
    * @param connectParams connection parameters
@@ -93,7 +95,9 @@ public class RestfulApiHelper {
             Object password = connectParams.get(keyDefinition.getKey());
             if (null != password) {
               connectParams.put(
-                  keyDefinition.getKey(), CryptoUtils.string2Object(String.valueOf(password)));
+                  keyDefinition.getKey(),
+                  AESUtils.decrypt(
+                      String.valueOf(password), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
             }
           }
         });
