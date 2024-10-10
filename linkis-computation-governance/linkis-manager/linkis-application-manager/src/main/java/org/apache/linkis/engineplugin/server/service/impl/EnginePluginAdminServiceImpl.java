@@ -114,7 +114,8 @@ public class EnginePluginAdminServiceImpl implements EnginePluginAdminService {
   @Override
   public void uploadToECHome(MultipartFile mfile) {
     String engineConnsHome = defaultEngineConnBmlResourceGenerator.getEngineConnsHome();
-    try {
+    try (OutputStream out =
+        new FileOutputStream(engineConnsHome + "/" + mfile.getOriginalFilename())) {
       InputStream in = mfile.getInputStream();
       byte[] buffer = new byte[1024];
       int len = 0;
@@ -122,7 +123,6 @@ public class EnginePluginAdminServiceImpl implements EnginePluginAdminService {
       if (!file.exists()) {
         log.info("engineplugin's home doesn’t exist");
       }
-      OutputStream out = new FileOutputStream(engineConnsHome + "/" + mfile.getOriginalFilename());
       while ((len = in.read(buffer)) != -1) {
         out.write(buffer, 0, len);
       }
@@ -135,7 +135,9 @@ public class EnginePluginAdminServiceImpl implements EnginePluginAdminService {
     ZipUtils.fileToUnzip(engineConnsHome + "/" + mfile.getOriginalFilename(), engineConnsHome);
     File file = new File(engineConnsHome + "/" + mfile.getOriginalFilename());
     if (file.exists()) {
-      file.delete();
+      if (!file.delete()) {
+        log.error("file {} delete failed", mfile.getOriginalFilename());
+      }
       log.info("file {} delete success", mfile.getOriginalFilename());
     }
   }
@@ -146,9 +148,13 @@ public class EnginePluginAdminServiceImpl implements EnginePluginAdminService {
       if (file.isDirectory()) {
         deleteDir(file);
       } else {
-        file.delete();
+        if (!file.delete()) {
+          log.error("file {} delete failed", file.getName());
+        }
       }
     }
-    directory.delete();
+    if (!directory.delete()) {
+      log.error("directory {} delete failed", directory.getName());
+    }
   }
 }

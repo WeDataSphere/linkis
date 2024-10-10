@@ -185,13 +185,9 @@ public class DefaultSearchService implements SearchService {
     return contextKeyValueList;
   }
 
-  public static SearchService getInstance() {
+  public static synchronized SearchService getInstance() {
     if (null == searchService) {
-      synchronized (DefaultSearchService.class) {
-        if (null == searchService) {
-          searchService = new DefaultSearchService();
-        }
-      }
+      searchService = new DefaultSearchService();
     }
     return searchService;
   }

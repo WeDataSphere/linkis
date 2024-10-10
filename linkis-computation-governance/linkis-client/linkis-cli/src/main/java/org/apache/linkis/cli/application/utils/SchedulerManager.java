@@ -60,24 +60,16 @@ public class SchedulerManager {
     return Executors.newFixedThreadPool(threadNum, threadFactory(threadName, isDaemon));
   }
 
-  public static ThreadPoolExecutor getCachedThreadPoolExecutor() {
+  public static synchronized ThreadPoolExecutor getCachedThreadPoolExecutor() {
     if (cachedThreadPool == null) {
-      synchronized (SchedulerManager.class) {
-        if (cachedThreadPool == null) {
-          cachedThreadPool = newCachedThreadPool(THREAD_NUM, THREAD_NAME, IS_DEAMON);
-        }
-      }
+      cachedThreadPool = newCachedThreadPool(THREAD_NUM, THREAD_NAME, IS_DEAMON);
     }
     return cachedThreadPool;
   }
 
-  public static ExecutorService getFixedThreadPool() {
+  public static synchronized ExecutorService getFixedThreadPool() {
     if (fixedThreadPool == null) {
-      synchronized (SchedulerManager.class) {
-        if (fixedThreadPool == null) {
-          fixedThreadPool = newFixedThreadPool(THREAD_NUM, THREAD_NAME, IS_DEAMON);
-        }
-      }
+      fixedThreadPool = newFixedThreadPool(THREAD_NUM, THREAD_NAME, IS_DEAMON);
     }
     return fixedThreadPool;
   }

@@ -90,13 +90,10 @@ public class HttpContextClient extends AbstractContextClient {
     }
   }
 
-  public static HttpContextClient getInstance(ContextClientConfig contextClientConfig) {
+  public static synchronized HttpContextClient getInstance(
+      ContextClientConfig contextClientConfig) {
     if (httpContextClient == null) {
-      synchronized (HttpContextClient.class) {
-        if (httpContextClient == null) {
-          httpContextClient = new HttpContextClient(contextClientConfig);
-        }
-      }
+      httpContextClient = new HttpContextClient(contextClientConfig);
     }
     return httpContextClient;
   }
@@ -823,11 +820,7 @@ public class HttpContextClient extends AbstractContextClient {
     }
     if (result instanceof ContextClearByIDResult) {
       ContextClearByIDResult contextClearByIDResult = (ContextClearByIDResult) result;
-      if (null != contextClearByIDResult) {
-        return contextClearByIDResult.num();
-      } else {
-        return 0;
-      }
+      return contextClearByIDResult.num();
     } else if (null == result) {
       throw new CSErrorException(80017, "Invalid null result ");
     } else {
@@ -873,11 +866,7 @@ public class HttpContextClient extends AbstractContextClient {
     }
     if (result instanceof ContextClearByTimeResult) {
       ContextClearByTimeResult contextClearByTimeResult = (ContextClearByTimeResult) result;
-      if (null != contextClearByTimeResult) {
-        return contextClearByTimeResult.num();
-      } else {
-        return 0;
-      }
+      return contextClearByTimeResult.num();
     } else if (null == result) {
       throw new CSErrorException(80017, "Invalid null result ");
     } else {

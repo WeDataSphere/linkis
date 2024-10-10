@@ -136,7 +136,7 @@ public class HttpsUntils {
   public static Map<String, Object> getEntranceTask(String url, String user, String Instance)
       throws IOException {
     if (null == dwsClientConfig) {
-      dwsClientConfig = createClientConfig(null, null);
+      dwsClientConfig = createClientConfig(null, null); // NOSONAR
     }
     if (null == client) {
       client = new MonitorHTTPClientClientImpl(dwsClientConfig);

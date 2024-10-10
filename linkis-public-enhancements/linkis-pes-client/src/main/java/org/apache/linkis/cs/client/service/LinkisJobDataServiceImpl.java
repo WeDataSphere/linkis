@@ -44,13 +44,9 @@ public class LinkisJobDataServiceImpl implements LinkisJobDataService {
 
   private LinkisJobDataServiceImpl() {}
 
-  public static LinkisJobDataService getInstance() {
+  public static synchronized LinkisJobDataService getInstance() {
     if (null == linkisJobDataService) {
-      synchronized (LinkisJobDataServiceImpl.class) {
-        if (null == linkisJobDataService) {
-          linkisJobDataService = new LinkisJobDataServiceImpl();
-        }
-      }
+      linkisJobDataService = new LinkisJobDataServiceImpl();
     }
     return linkisJobDataService;
   }

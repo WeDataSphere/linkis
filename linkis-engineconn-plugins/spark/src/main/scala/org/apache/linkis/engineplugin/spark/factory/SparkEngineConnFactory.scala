@@ -292,7 +292,7 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
         SPARK_CREATE_EXCEPTION.getErrorCode,
         SPARK_CREATE_EXCEPTION.getErrorDesc,
         t
-      )
+      ) // NOSONAR
       null
     })
   }

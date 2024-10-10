@@ -98,13 +98,9 @@ public class CSVariableService implements VariableService {
     }
   }
 
-  public static CSVariableService getInstance() {
+  public static synchronized CSVariableService getInstance() {
     if (null == csVariableService) {
-      synchronized (CSVariableService.class) {
-        if (null == csVariableService) {
-          csVariableService = new CSVariableService();
-        }
-      }
+      csVariableService = new CSVariableService();
     }
     return csVariableService;
   }

@@ -40,13 +40,9 @@ public class CSWorkServiceImpl implements CSWorkService {
 
   private static CSWorkService csWorkService = null;
 
-  public static CSWorkService getInstance() {
+  public static synchronized CSWorkService getInstance() {
     if (null == csWorkService) {
-      synchronized (CSWorkServiceImpl.class) {
-        if (null == csWorkService) {
-          csWorkService = new CSWorkServiceImpl();
-        }
-      }
+      csWorkService = new CSWorkServiceImpl();
     }
     return csWorkService;
   }

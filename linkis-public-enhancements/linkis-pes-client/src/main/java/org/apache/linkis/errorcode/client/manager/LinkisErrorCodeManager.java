@@ -31,13 +31,9 @@ public class LinkisErrorCodeManager {
 
   private LinkisErrorCodeManager() {}
 
-  public static LinkisErrorCodeManager getInstance() {
+  public static synchronized LinkisErrorCodeManager getInstance() {
     if (linkisErrorCodeManager == null) {
-      synchronized (LinkisErrorCodeManager.class) {
-        if (linkisErrorCodeManager == null) {
-          linkisErrorCodeManager = new LinkisErrorCodeManager();
-        }
-      }
+      linkisErrorCodeManager = new LinkisErrorCodeManager();
     }
     return linkisErrorCodeManager;
   }

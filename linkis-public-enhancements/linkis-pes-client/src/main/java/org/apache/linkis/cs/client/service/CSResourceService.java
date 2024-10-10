@@ -42,13 +42,9 @@ public class CSResourceService implements ResourceService {
 
   private CSResourceService() {}
 
-  public static CSResourceService getInstance() {
+  public static synchronized CSResourceService getInstance() {
     if (null == csResourceService) {
-      synchronized (CSResourceService.class) {
-        if (null == csResourceService) {
-          csResourceService = new CSResourceService();
-        }
-      }
+      csResourceService = new CSResourceService();
     }
     return csResourceService;
   }
