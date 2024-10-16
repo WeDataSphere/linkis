@@ -34,7 +34,7 @@ class DataSourceParamsAction extends GetAction with MonitorAction {
   private var dataSourceName: String = _
 
   override def suffixURLs: Array[String] =
-    Array(DATA_SOURCE_SERVICE_MODULE.getValue, "info", "name", dataSourceName)
+    Array(DATA_SOURCE_SERVICE_MODULE.getValue, "publishedInfo", "name", dataSourceName)
 
   private var user: String = _
 

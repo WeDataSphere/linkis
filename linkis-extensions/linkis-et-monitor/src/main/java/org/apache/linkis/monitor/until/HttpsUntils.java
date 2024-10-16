@@ -18,7 +18,7 @@
 package org.apache.linkis.monitor.until;
 
 import org.apache.linkis.common.utils.Utils;
-import org.apache.linkis.datasource.client.response.GetInfoByDataSourceNameResult;
+import org.apache.linkis.datasource.client.response.GetInfoPublishedByDataSourceNameResult;
 import org.apache.linkis.monitor.client.MonitorHTTPClient;
 import org.apache.linkis.monitor.config.MonitorConfig;
 import org.apache.linkis.monitor.entity.ClientSingleton;
@@ -120,7 +120,7 @@ public class HttpsUntils {
             .setDataSourceName(datasourceName)
             .setUser(user)
             .build();
-    GetInfoByDataSourceNameResult result = client.getInfoByDataSourceInfo(dataSourceParamsAction);
+    GetInfoPublishedByDataSourceNameResult result = client.getInfoByDataSourceInfo(dataSourceParamsAction);
     Map data = MapUtils.getMap(result.getResultMap(), "data", new HashMap<>());
     Map datasourceInfoMap = MapUtils.getMap(data, "info", new HashMap<>());
     return datasourceInfoMap;

@@ -17,21 +17,12 @@
 
 package org.apache.linkis.monitor.client
 
-import org.apache.linkis.datasource.client.response.{
-  GetConnectParamsByDataSourceNameResult,
-  GetInfoByDataSourceNameResult
-}
+import org.apache.linkis.datasource.client.response.{GetConnectParamsByDataSourceNameResult, GetInfoByDataSourceNameResult, GetInfoPublishedByDataSourceNameResult}
 import org.apache.linkis.httpclient.authentication.AuthenticationStrategy
 import org.apache.linkis.httpclient.dws.authentication.StaticAuthenticationStrategy
 import org.apache.linkis.httpclient.dws.config.{DWSClientConfig, DWSClientConfigBuilder}
 import org.apache.linkis.httpclient.response.Result
-import org.apache.linkis.monitor.request.{
-  DataSourceParamsAction,
-  EmsListAction,
-  EntranceTaskAction,
-  KeyvalueAction,
-  KillJobAction
-}
+import org.apache.linkis.monitor.request.{DataSourceParamsAction, EmsListAction, EntranceTaskAction, KeyvalueAction, KillJobAction, MonitorAction}
 import org.apache.linkis.monitor.response.{EntranceTaskResult, KeyvalueResult, KillJobResultAction}
 import org.apache.linkis.ujes.client.response.EmsListResult
 
@@ -56,8 +47,8 @@ abstract class MonitorHTTPClient extends Closeable {
 
   def getInfoByDataSourceInfo(
       datasourceInfoAction: DataSourceParamsAction
-  ): GetInfoByDataSourceNameResult = {
-    executeJob(datasourceInfoAction).asInstanceOf[GetInfoByDataSourceNameResult]
+  ): GetInfoPublishedByDataSourceNameResult = {
+    executeJob(datasourceInfoAction).asInstanceOf[GetInfoPublishedByDataSourceNameResult]
   }
 
   def killJob(killJobAction: KillJobAction): KillJobResultAction = {
