@@ -220,9 +220,7 @@ public class SqlConnection implements Closeable {
       // connectMessage.password);
       Properties prop = new Properties();
       prop.put("user", connectMessage.username);
-      prop.put(
-          "password",
-          AESUtils.decrypt(connectMessage.password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+      prop.put("password", AESUtils.isDecryptByConf(connectMessage.password));
       prop.put("remarksReporting", "true");
       return DriverManager.getConnection(url, prop);
     } catch (Exception e) {

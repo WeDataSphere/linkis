@@ -181,14 +181,16 @@ public class DataSourceCoreRestfulApi {
                     + dataSource.getDataSourceName()
                     + " 已经存在]");
           }
-          Map<String, Object> connectParams = dataSource.getConnectParams();
-          dataSource
-              .getConnectParams()
-              .replace(
-                  "password",
-                  AESUtils.encrypt(
-                      connectParams.get("password").toString(),
-                      AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            Map<String, Object> connectParams = dataSource.getConnectParams();
+            dataSource
+                .getConnectParams()
+                .replace(
+                    "password",
+                    AESUtils.encrypt(
+                        connectParams.get("password").toString(),
+                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+          }
           insertDataSource(dataSource);
           return Message.ok().data("insertId", dataSource.getId());
         },
@@ -371,9 +373,10 @@ public class DataSourceCoreRestfulApi {
 
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          //           Decrypt
-          //                    RestfulApiHelper.decryptPasswordKey(keyDefinitionList,
-          //           dataSource.getConnectParams());
+          // Decrypt
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -409,9 +412,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          //          RestfulApiHelper.decryptPasswordKey(keyDefinitionList,
-          // dataSource.getConnectParams());
-
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -446,9 +449,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          //          RestfulApiHelper.decryptPasswordKey(keyDefinitionList,
-          // dataSource.getConnectParams());
-
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -492,8 +495,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          //          RestfulApiHelper.decryptPasswordKey(keyDefinitionList,
-          // dataSource.getConnectParams());
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -530,14 +534,14 @@ public class DataSourceCoreRestfulApi {
 
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          //          // Decrypt
-          //          if (null != versions) {
-          //            versions.forEach(
-          //                version -> {
-          //                  RestfulApiHelper.decryptPasswordKey(
-          //                      keyDefinitionList, version.getConnectParams());
-          //                });
-          //          }
+          // Decrypt
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue() && null != versions) {
+            versions.forEach(
+                version -> {
+                  RestfulApiHelper.decryptPasswordKey(
+                      keyDefinitionList, version.getConnectParams());
+                });
+          }
           return Message.ok().data("versions", versions);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -681,7 +685,9 @@ public class DataSourceCoreRestfulApi {
           Map<String, Object> connectParams = dataSource.getConnectParams();
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          //          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          }
           return Message.ok().data("connectParams", connectParams);
         },
         "Fail to connect data source[连接数据源失败]");
@@ -717,7 +723,9 @@ public class DataSourceCoreRestfulApi {
 
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          //          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          }
           return Message.ok().data("connectParams", connectParams);
         },
         "Fail to connect data source[连接数据源失败]");

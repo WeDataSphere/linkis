@@ -40,18 +40,14 @@ public class EsMetaService extends AbstractDbMetaService<ElasticConnection> {
     } else {
       endPoints = ((List<String>) urls).toArray(endPoints);
     }
-    // decrypt
     String password =
-        AESUtils.decrypt(
-            String.valueOf(
-                params.getOrDefault(ElasticParamsMapper.PARAM_ES_PASSWORD.getValue(), "")),
-            AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+        String.valueOf(params.getOrDefault(ElasticParamsMapper.PARAM_ES_PASSWORD.getValue(), ""));
     ElasticConnection conn =
         new ElasticConnection(
             endPoints,
             String.valueOf(
                 params.getOrDefault(ElasticParamsMapper.PARAM_ES_USERNAME.getValue(), "")),
-            password);
+            AESUtils.isDecryptByConf(password));
     return new MetadataConnection<>(conn, false);
   }
 

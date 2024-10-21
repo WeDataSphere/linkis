@@ -51,6 +51,9 @@ public class AESUtils {
   public static final CommonVars<String> LINKIS_DATASOURCE_AES_KEY =
       CommonVars.apply("linkis.datasource.aes.secretkey", "diiYMb60w7uxIhktu8");
 
+  public static final CommonVars<Boolean> LINKIS_DATASOURCE_AES_SWITCH =
+      CommonVars.apply("linkis.datasource.aes.switch", false);
+
   /**
    * 加密
    *
@@ -117,5 +120,13 @@ public class AESUtils {
     } catch (NoSuchAlgorithmException e) {
       throw new ErrorException(21304, "AES生成加密秘钥失败");
     }
+  }
+
+  public static String isDecryptByConf(String password) {
+    if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+      // decrypt
+      password = AESUtils.decrypt(password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+    }
+    return password;
   }
 }

@@ -310,7 +310,8 @@ public class ConfigurationRestfulApi {
           sparkConf = configKeyValue.getConfigValue().trim();
           configKeyValue.setConfigValue(sparkConf);
         }
-        if (configKeyValue.getKey().equals("linkis.nebula.password")
+        if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+            && configKeyValue.getKey().equals("linkis.nebula.password")
             && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
           List<ConfigKeyValue> configByLabelIds =
               configurationService.getConfigByLabelId(configKeyValue.getConfigLabelId(), null);
@@ -322,7 +323,6 @@ public class ConfigurationRestfulApi {
                       configKeyValue.getConfigValue(),
                       AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
             }
-            ;
           }
         }
       }

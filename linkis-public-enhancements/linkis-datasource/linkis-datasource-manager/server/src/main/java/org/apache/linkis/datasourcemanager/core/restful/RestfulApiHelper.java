@@ -21,6 +21,7 @@ import org.apache.linkis.common.exception.WarnException;
 import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
+import org.apache.linkis.datasourcemanager.common.util.CryptoUtils;
 import org.apache.linkis.datasourcemanager.core.restful.exception.BeanValidationExceptionMapper;
 import org.apache.linkis.datasourcemanager.core.validate.ParameterValidateException;
 import org.apache.linkis.server.Message;
@@ -72,10 +73,14 @@ public class RestfulApiHelper {
           if (keyDefinition.getValueType() == DataSourceParamKeyDefinition.ValueType.PASSWORD) {
             Object password = connectParams.get(keyDefinition.getKey());
             if (null != password) {
-              connectParams.put(
-                  keyDefinition.getKey(),
-                  AESUtils.encrypt(
-                      String.valueOf(password), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+              String passwordStr = String.valueOf(password);
+              if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+                passwordStr =
+                    AESUtils.encrypt(passwordStr, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+              } else {
+                passwordStr = CryptoUtils.object2String(passwordStr);
+              }
+              connectParams.put(keyDefinition.getKey(), passwordStr);
             }
           }
         });
@@ -94,10 +99,14 @@ public class RestfulApiHelper {
           if (keyDefinition.getValueType() == DataSourceParamKeyDefinition.ValueType.PASSWORD) {
             Object password = connectParams.get(keyDefinition.getKey());
             if (null != password) {
-              connectParams.put(
-                  keyDefinition.getKey(),
-                  AESUtils.decrypt(
-                      String.valueOf(password), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+              String passwordStr = String.valueOf(password);
+              if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+                passwordStr =
+                    AESUtils.decrypt(passwordStr, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+              } else {
+                passwordStr = CryptoUtils.object2String(passwordStr);
+              }
+              connectParams.put(keyDefinition.getKey(), passwordStr);
             }
           }
         });
