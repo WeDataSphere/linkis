@@ -850,71 +850,74 @@ public class DataSourceCoreRestfulApi {
   public Message encryptDatasourcePassword(HttpServletRequest request) {
     return RestfulApiHelper.doAndResponse(
         () -> {
-          // 处理linkis_ps_dm_datasource表中的password字段加密
-          String permissionUser = ModuleUserUtils.getOperationUser(request, "encrypt");
-          DataSourceVo dataSourceVo = new DataSourceVo(null, null, null, null);
-          dataSourceVo.setCurrentPage(1);
-          dataSourceVo.setPageSize(10000);
-          if (AuthContext.isAdministrator(permissionUser)) {
-            permissionUser = null;
-          }
-          dataSourceVo.setPermissionUser(permissionUser);
-          PageInfo<DataSource> pageInfo =
-              dataSourceInfoService.queryDataSourceInfoPage(dataSourceVo);
-          List<DataSource> queryList = pageInfo.getList();
-          queryList.forEach(
-              dataSourceInfo -> {
-                DataSource dataSourceInfoBrief =
-                    dataSourceInfoService.getDataSourceInfoBrief(dataSourceInfo.getId());
-                if (StringUtils.isNotBlank(dataSourceInfoBrief.getParameter())
-                    && dataSourceInfoBrief.getParameter().contains("password")) {
-                  Map map =
-                      BDPJettyServerHelper.gson()
-                          .fromJson(dataSourceInfoBrief.getParameter().toString(), Map.class);
-                  if (!map.getOrDefault("isEncrypt", "0").equals("1")) {
-                    map.put(
-                        "password",
-                        AESUtils.encrypt(
-                            map.get("password").toString(),
-                            AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
-                    map.put("isEncrypt", "1");
-                    dataSourceInfoBrief.setParameter(BDPJettyServerHelper.gson().toJson(map));
-                    dataSourceInfoService.updateDataSourceInfo(dataSourceInfoBrief);
+          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            // 处理linkis_ps_dm_datasource表中的password字段加密
+            String permissionUser = ModuleUserUtils.getOperationUser(request, "encrypt");
+            DataSourceVo dataSourceVo = new DataSourceVo(null, null, null, null);
+            dataSourceVo.setCurrentPage(1);
+            dataSourceVo.setPageSize(10000);
+            if (AuthContext.isAdministrator(permissionUser)) {
+              permissionUser = null;
+            }
+            dataSourceVo.setPermissionUser(permissionUser);
+            PageInfo<DataSource> pageInfo =
+                dataSourceInfoService.queryDataSourceInfoPage(dataSourceVo);
+            List<DataSource> queryList = pageInfo.getList();
+            queryList.forEach(
+                dataSourceInfo -> {
+                  DataSource dataSourceInfoBrief =
+                      dataSourceInfoService.getDataSourceInfoBrief(dataSourceInfo.getId());
+                  if (StringUtils.isNotBlank(dataSourceInfoBrief.getParameter())
+                      && dataSourceInfoBrief.getParameter().contains("password")) {
+                    Map map =
+                        BDPJettyServerHelper.gson()
+                            .fromJson(dataSourceInfoBrief.getParameter().toString(), Map.class);
+                    if (!map.getOrDefault("isEncrypt", "0").equals("1")) {
+                      map.put(
+                          "password",
+                          AESUtils.encrypt(
+                              map.get("password").toString(),
+                              AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+                      map.put("isEncrypt", "1");
+                      dataSourceInfoBrief.setParameter(BDPJettyServerHelper.gson().toJson(map));
+                      dataSourceInfoService.updateDataSourceInfo(dataSourceInfoBrief);
+                    }
                   }
-                }
-                // 处理linkis_ps_dm_datasource_version中的password,解密base64，加密AES
-                List<DatasourceVersion> datasourceVersionList =
-                    dataSourceVersionDao.getVersionsFromDatasourceId(dataSourceInfoBrief.getId());
-                datasourceVersionList.forEach(
-                    datasourceVersion -> {
-                      if (StringUtils.isNotBlank(datasourceVersion.getParameter())
-                          && datasourceVersion.getParameter().contains("password")) {
-                        Map map =
-                            BDPJettyServerHelper.gson()
-                                .fromJson(datasourceVersion.getParameter().toString(), Map.class);
-                        if (!map.getOrDefault("isEncrypt", "0").equals("1")) {
-                          try {
-                            Object password =
-                                CryptoUtils.string2Object(map.get("password").toString());
-                            map.put(
-                                "password",
-                                AESUtils.encrypt(
-                                    password.toString(),
-                                    AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
-                            map.put("isEncrypt", "1");
-                            datasourceVersion.setParameter(BDPJettyServerHelper.gson().toJson(map));
-                            dataSourceVersionDao.updateByDatasourceVersion(datasourceVersion);
-                          } catch (Exception e) {
-                            logger.warn(
-                                "error encrypt  linkis_ps_dm_datasource_version id :"
-                                    + datasourceVersion.getDatasourceId()
-                                    + " version:"
-                                    + datasourceVersion.getVersionId());
+                  // 处理linkis_ps_dm_datasource_version中的password,解密base64，加密AES
+                  List<DatasourceVersion> datasourceVersionList =
+                      dataSourceVersionDao.getVersionsFromDatasourceId(dataSourceInfoBrief.getId());
+                  datasourceVersionList.forEach(
+                      datasourceVersion -> {
+                        if (StringUtils.isNotBlank(datasourceVersion.getParameter())
+                            && datasourceVersion.getParameter().contains("password")) {
+                          Map map =
+                              BDPJettyServerHelper.gson()
+                                  .fromJson(datasourceVersion.getParameter().toString(), Map.class);
+                          if (!map.getOrDefault("isEncrypt", "0").equals("1")) {
+                            try {
+                              Object password =
+                                  CryptoUtils.string2Object(map.get("password").toString());
+                              map.put(
+                                  "password",
+                                  AESUtils.encrypt(
+                                      password.toString(),
+                                      AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+                              map.put("isEncrypt", "1");
+                              datasourceVersion.setParameter(
+                                  BDPJettyServerHelper.gson().toJson(map));
+                              dataSourceVersionDao.updateByDatasourceVersion(datasourceVersion);
+                            } catch (Exception e) {
+                              logger.warn(
+                                  "error encrypt  linkis_ps_dm_datasource_version id :"
+                                      + datasourceVersion.getDatasourceId()
+                                      + " version:"
+                                      + datasourceVersion.getVersionId());
+                            }
                           }
                         }
-                      }
-                    });
-              });
+                      });
+                });
+          }
           return Message.ok();
         },
         "Fail to aes of data source[加密数据源密码失败]");
