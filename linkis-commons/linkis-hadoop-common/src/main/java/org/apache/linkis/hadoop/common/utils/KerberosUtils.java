@@ -135,6 +135,7 @@ public class KerberosUtils {
       LOG.info("CurrentUser: " + curUsr);
       if (curUsr == null) {
         LOG.info("CurrentUser is null");
+        throw new Exception("CurrentUser is null");
       } else {
         LOG.info("CurrentUser is not null");
       }

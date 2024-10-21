@@ -70,18 +70,14 @@ public class ContextSerializationHelper extends AbstractSerializationHelper {
 
   private static ContextSerializationHelper contextSerializationHelper = null;
 
-  public static ContextSerializationHelper getInstance() {
+  public static synchronized ContextSerializationHelper getInstance() {
     if (contextSerializationHelper == null) {
-      synchronized (ContextSerializationHelper.class) {
-        if (contextSerializationHelper == null) {
-          contextSerializationHelper = new ContextSerializationHelper();
-          try {
-            contextSerializationHelper.init();
-          } catch (CSErrorException e) {
-            logger.error("Failed init ContextSerializationHelper, now exit process", e);
-            System.exit(1);
-          }
-        }
+      contextSerializationHelper = new ContextSerializationHelper();
+      try {
+        contextSerializationHelper.init();
+      } catch (CSErrorException e) {
+        logger.error("Failed init ContextSerializationHelper, now exit process", e);
+        System.exit(1);
       }
     }
     return contextSerializationHelper;

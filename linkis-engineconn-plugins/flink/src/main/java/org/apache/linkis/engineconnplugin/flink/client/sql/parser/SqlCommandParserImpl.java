@@ -17,7 +17,6 @@
 
 package org.apache.linkis.engineconnplugin.flink.client.sql.parser;
 
-import org.apache.linkis.engineconnplugin.flink.client.sql.operation.OperationFactory;
 import org.apache.linkis.engineconnplugin.flink.exception.SqlParseException;
 import org.apache.linkis.engineconnplugin.flink.util.ClassUtil;
 
@@ -227,14 +226,9 @@ public class SqlCommandParserImpl implements SqlCommandParser {
 
   private static SqlCommandParser sqlCommandParser;
 
-  public static SqlCommandParser getInstance() {
+  public static synchronized SqlCommandParser getInstance() {
     if (sqlCommandParser == null) {
-      synchronized (OperationFactory.class) {
-        if (sqlCommandParser == null) {
-          sqlCommandParser =
-              ClassUtil.getInstance(SqlCommandParser.class, new SqlCommandParserImpl());
-        }
-      }
+      sqlCommandParser = ClassUtil.getInstance(SqlCommandParser.class, new SqlCommandParserImpl());
     }
     return sqlCommandParser;
   }

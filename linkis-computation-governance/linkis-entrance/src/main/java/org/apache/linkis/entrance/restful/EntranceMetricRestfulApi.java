@@ -86,7 +86,7 @@ public class EntranceMetricRestfulApi {
     int runningNumber = 0;
     int queuedNumber = 0;
 
-    if (null != undoneTasks) {
+    if (undoneTasks.length > 0) {
       for (EntranceJob task : undoneTasks) {
         if (task.isRunning()) {
           runningNumber++;

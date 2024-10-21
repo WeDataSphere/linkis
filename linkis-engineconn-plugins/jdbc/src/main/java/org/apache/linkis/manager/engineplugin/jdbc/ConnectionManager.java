@@ -56,7 +56,7 @@ public class ConnectionManager {
   private final Map<String, DataSource> dataSourceFactories;
   private final JDBCDataSourceConfigurations jdbcDataSourceConfigurations;
 
-  private static volatile ConnectionManager connectionManager;
+  private static ConnectionManager connectionManager;
   private ScheduledExecutorService scheduledExecutorService;
   private Integer kinitFailCount = 0;
 
@@ -65,13 +65,9 @@ public class ConnectionManager {
     dataSourceFactories = new HashMap<>();
   }
 
-  public static ConnectionManager getInstance() {
+  public static synchronized ConnectionManager getInstance() {
     if (connectionManager == null) {
-      synchronized (ConnectionManager.class) {
-        if (connectionManager == null) {
-          connectionManager = new ConnectionManager();
-        }
-      }
+      connectionManager = new ConnectionManager();
     }
     return connectionManager;
   }

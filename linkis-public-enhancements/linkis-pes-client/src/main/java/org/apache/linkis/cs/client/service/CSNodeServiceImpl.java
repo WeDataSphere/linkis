@@ -37,13 +37,9 @@ public class CSNodeServiceImpl implements CSNodeService {
 
   private CSNodeServiceImpl() {}
 
-  public static CSNodeService getInstance() {
+  public static synchronized CSNodeService getInstance() {
     if (null == csNodeService) {
-      synchronized (CSNodeServiceImpl.class) {
-        if (null == csNodeService) {
-          csNodeService = new CSNodeServiceImpl();
-        }
-      }
+      csNodeService = new CSNodeServiceImpl();
     }
     return csNodeService;
   }

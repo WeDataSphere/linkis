@@ -35,58 +35,51 @@ import org.slf4j.LoggerFactory;
 public class HBaseShellCommands {
   private static final Logger LOG = LoggerFactory.getLogger(HBaseShellCommands.class);
   private static final String COMMANDS_PATH = "hbase-ruby/shell/commands/";
-  private static volatile Set<String> commandsSet;
+  private static Set<String> commandsSet;
 
   private HBaseShellCommands() {}
 
-  public static Set<String> getAllCommands() throws IOException {
+  public static synchronized Set<String> getAllCommands() throws IOException {
     if (commandsSet == null) {
-      synchronized (HBaseShellCommands.class) {
-        if (commandsSet == null) {
-          Set<String> sortedSet = new TreeSet<>();
-          URL commandFilesUrl =
-              HBaseShellCommands.class.getClassLoader().getResource(COMMANDS_PATH);
-          if (commandFilesUrl == null) {
-            throw new IOException("The command files path is null!");
+      Set<String> sortedSet = new TreeSet<>();
+      URL commandFilesUrl = HBaseShellCommands.class.getClassLoader().getResource(COMMANDS_PATH);
+      if (commandFilesUrl == null) {
+        throw new IOException("The command files path is null!");
+      }
+      String commandFilePath = commandFilesUrl.getPath();
+      File commandFile = new File(commandFilePath);
+      if (!commandFile.exists()) {
+        LOG.warn("The command files path is not exists, starting read file from jar.");
+        String jarPath =
+            commandFilesUrl.toString().substring(0, commandFilesUrl.toString().indexOf("!/") + 2);
+        LOG.info("The path in jar is " + jarPath);
+        URL jarUrl = new URL(jarPath);
+        JarURLConnection jarCon = (JarURLConnection) jarUrl.openConnection();
+        JarFile jarFile = jarCon.getJarFile();
+        Enumeration<JarEntry> jarEntries = jarFile.entries();
+        while (jarEntries.hasMoreElements()) {
+          JarEntry entry = jarEntries.nextElement();
+          String name = entry.getName();
+          if (!entry.isDirectory() && name.startsWith(COMMANDS_PATH)) {
+            String commandName =
+                name.substring(name.lastIndexOf(File.separator) + 1, name.lastIndexOf(".rb"));
+            sortedSet.add(commandName);
           }
-          String commandFilePath = commandFilesUrl.getPath();
-          File commandFile = new File(commandFilePath);
-          if (!commandFile.exists()) {
-            LOG.warn("The command files path is not exists, starting read file from jar.");
-            String jarPath =
-                commandFilesUrl
-                    .toString()
-                    .substring(0, commandFilesUrl.toString().indexOf("!/") + 2);
-            LOG.info("The path in jar is " + jarPath);
-            URL jarUrl = new URL(jarPath);
-            JarURLConnection jarCon = (JarURLConnection) jarUrl.openConnection();
-            JarFile jarFile = jarCon.getJarFile();
-            Enumeration<JarEntry> jarEntries = jarFile.entries();
-            while (jarEntries.hasMoreElements()) {
-              JarEntry entry = jarEntries.nextElement();
-              String name = entry.getName();
-              if (!entry.isDirectory() && name.startsWith(COMMANDS_PATH)) {
-                String commandName =
-                    name.substring(name.lastIndexOf(File.separator) + 1, name.lastIndexOf(".rb"));
-                sortedSet.add(commandName);
-              }
-            }
+        }
 
-          } else {
-            String[] files = commandFile.list();
-            if (files == null) {
-              throw new IOException("The command files is null!");
-            }
-            for (String file : files) {
-              if (file.endsWith(".rb")) {
-                sortedSet.add(file.substring(0, file.lastIndexOf(".rb")));
-              }
-            }
+      } else {
+        String[] files = commandFile.list();
+        if (files == null) {
+          throw new IOException("The command files is null!");
+        }
+        for (String file : files) {
+          if (file.endsWith(".rb")) {
+            sortedSet.add(file.substring(0, file.lastIndexOf(".rb")));
           }
-
-          commandsSet = sortedSet;
         }
       }
+
+      commandsSet = sortedSet;
     }
     return commandsSet;
   }

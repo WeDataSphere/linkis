@@ -61,7 +61,7 @@ public class DefaultContextKeyCallbackEngine implements CSKeyListener, ContextKe
         }
       }
       // 针对cskey生成一个bean，cskey对应的value值目前为空
-      if (contextKey != null) {
+      if (contextKey != null && contextID != null) {
         ContextKeyValueBean contextKeyValueBean = new ContextKeyValueBean();
         contextKeyValueBean.setCsKey(contextKey);
         contextKeyValueBean.setCsID(contextID);
@@ -159,19 +159,15 @@ public class DefaultContextKeyCallbackEngine implements CSKeyListener, ContextKe
 
   private DefaultContextKeyCallbackEngine() {}
 
-  public static DefaultContextKeyCallbackEngine getInstance() {
+  public static synchronized DefaultContextKeyCallbackEngine getInstance() {
     if (singleDefaultContextKeyCallbackEngine == null) {
-      synchronized (DefaultContextKeyCallbackEngine.class) {
-        if (singleDefaultContextKeyCallbackEngine == null) {
-          singleDefaultContextKeyCallbackEngine = new DefaultContextKeyCallbackEngine();
-          DefaultContextListenerManager instanceContextListenerManager =
-              DefaultContextListenerManager.getInstance();
-          instanceContextListenerManager
-              .getContextAsyncListenerBus()
-              .addListener(singleDefaultContextKeyCallbackEngine);
-          logger.info("add listerner singleDefaultContextKeyCallbackEngine success");
-        }
-      }
+      singleDefaultContextKeyCallbackEngine = new DefaultContextKeyCallbackEngine();
+      DefaultContextListenerManager instanceContextListenerManager =
+          DefaultContextListenerManager.getInstance();
+      instanceContextListenerManager
+          .getContextAsyncListenerBus()
+          .addListener(singleDefaultContextKeyCallbackEngine);
+      logger.info("add listerner singleDefaultContextKeyCallbackEngine success");
     }
     return singleDefaultContextKeyCallbackEngine;
   }

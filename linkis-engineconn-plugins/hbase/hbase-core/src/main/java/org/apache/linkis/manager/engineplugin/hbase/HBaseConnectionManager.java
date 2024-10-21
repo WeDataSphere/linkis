@@ -76,19 +76,15 @@ public class HBaseConnectionManager {
   private static final AtomicBoolean kerberosEnvInit = new AtomicBoolean(false);
   private static final int KERBEROS_RE_LOGIN_MAX_RETRY = 5;
   private static final long KERBEROS_RE_LOGIN_INTERVAL = 30 * 60 * 1000L;
-  private static volatile HBaseConnectionManager instance = null;
+  private static HBaseConnectionManager instance = null;
 
   private HBaseConnectionManager() {
     connectionMap = new ConcurrentHashMap<>();
   }
 
-  public static HBaseConnectionManager getInstance() {
+  public static synchronized HBaseConnectionManager getInstance() {
     if (instance == null) {
-      synchronized (HBaseConnectionManager.class) {
-        if (instance == null) {
-          instance = new HBaseConnectionManager();
-        }
-      }
+      instance = new HBaseConnectionManager();
     }
     return instance;
   }
