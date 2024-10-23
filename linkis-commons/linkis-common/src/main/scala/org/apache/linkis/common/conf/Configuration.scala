@@ -68,7 +68,7 @@ object Configuration extends Logging {
   val JOB_HISTORY_DEPARTMENT_ADMIN = CommonVars("wds.linkis.jobhistory.department.admin", "hadoop")
 
   val JOB_RESULT_DEPARTMENT_LIMIT =
-    CommonVars("linkis.jobhistory.result.limit.department", "960000")
+    CommonVars("linkis.jobhistory.result.limit.department", "")
 
   // Only the specified token has permission to call some api
   val GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH = "ADMIN-"
