@@ -49,7 +49,7 @@ public class AESUtils {
   private static final String DEFAULT_CIPHER_ALGORITHM = "AES/ECB/PKCS5Padding";
 
   public static final CommonVars<String> LINKIS_DATASOURCE_AES_KEY =
-      CommonVars.apply("linkis.datasource.aes.secretkey", "diiYMb60w7uxIhktu8");
+      CommonVars.apply("linkis.datasource.aes.secretkey", "--aeskey");
 
   public static final CommonVars<Boolean> LINKIS_DATASOURCE_AES_SWITCH =
       CommonVars.apply("linkis.datasource.aes.switch", false);
