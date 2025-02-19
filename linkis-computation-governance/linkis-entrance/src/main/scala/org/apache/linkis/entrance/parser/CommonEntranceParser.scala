@@ -277,7 +277,9 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       labelBuilderFactory.createLabel[Label[_]](LabelKeyConstant.CODE_TYPE_KEY, runType)
     val variableMap =
       jobReq.getParams.get(VariableParser.VARIABLE).asInstanceOf[util.Map[String, String]]
-    if (variableMap.containsKey(LabelCommonConfig.SPARK3_ENGINE_VERSION_CONF)) {
+    if (
+        null != variableMap && variableMap.containsKey(LabelCommonConfig.SPARK3_ENGINE_VERSION_CONF)
+    ) {
       var version = variableMap.get(LabelCommonConfig.SPARK3_ENGINE_VERSION_CONF)
       val pattern = Pattern.compile(EntranceUtils.sparkVersionRegex).matcher(version)
       if (pattern.matches()) {
