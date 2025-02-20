@@ -50,9 +50,9 @@ public class VariableOperationTest {
         jsonNew,
         "select \n"
             + "\"2022-04\",\n"
-            + "\"2022-04-02 173507\",\n"
+            + "\"2022-04-02 070739\",\n"
             + "\"&yyyyMMddHH\",\n"
-            + "\"2022-04-02-06\"");
+            + "\"2022-04-02-07\"");
   }
 
   @Test
