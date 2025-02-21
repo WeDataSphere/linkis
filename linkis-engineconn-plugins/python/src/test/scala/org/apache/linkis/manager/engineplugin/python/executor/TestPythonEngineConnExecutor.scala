@@ -69,14 +69,14 @@ class TestPythonEngineConnExecutor {
 //    executor.init()
 //    Assertions.assertTrue(executor.isEngineInitialized)
 //    if (!System.getProperty("os.name").startsWith("Windows")) {
-////      engineConn.getEngineConnSession.asInstanceOf[PythonSession].onPythonScriptInitialized(1)
-////      hookPre.beforeExecutionExecute(engineCreationContext, engineConn)
+//      engineConn.getEngineConnSession.asInstanceOf[PythonSession].onPythonScriptInitialized(1)
+//      hookPre.beforeExecutionExecute(engineCreationContext, engineConn)
 //      val engineExecutionContext = new EngineExecutionContext(executor, Utils.getJvmUser)
 //      val code = "for i in range(10):\n    print(i)"
 //      val response = executor.executeLine(engineExecutionContext, code)
 //      Assertions.assertNotNull(response)
 //      executor.close()
-    }
+//    }
   }
 
 }
