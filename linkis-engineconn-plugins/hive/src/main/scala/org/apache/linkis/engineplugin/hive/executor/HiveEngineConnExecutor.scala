@@ -19,6 +19,7 @@ package org.apache.linkis.engineplugin.hive.executor
 
 import org.apache.linkis.common.exception.ErrorException
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
+import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ComputationExecutor,
   EngineExecutionContext
@@ -126,6 +127,8 @@ class HiveEngineConnExecutor(
   private val splitter = "_"
 
   private var readResByObject = false
+
+  private var hiveTmpConf = Map[String, String]()
 
   override def init(): Unit = {
     LOG.info(s"Ready to change engine state!")
@@ -667,6 +670,28 @@ class HiveEngineConnExecutor(
   }
 
   override def getId(): String = namePrefix + id
+
+  override protected def beforeExecute(engineConnTask: EngineConnTask): Unit = {
+    super.beforeExecute(engineConnTask)
+    if (hiveTmpConf.isEmpty) {
+      hiveTmpConf = sessionState.getConf.getAllProperties.asScala.toMap
+    }
+  }
+
+  override protected def afterExecute(
+      engineConnTask: EngineConnTask,
+      executeResponse: ExecuteResponse
+  ): Unit = {
+    if (hiveTmpConf.nonEmpty) {
+      val differentValues = hiveTmpConf.filter { case (key, value) =>
+        sessionState.getConf.getAllProperties.asScala.toMap.get(key).exists(_ != value)
+      }
+      differentValues.foreach { case (key, value) =>
+        sessionState.getConf.set(key, value)
+      }
+    }
+    super.afterExecute(engineConnTask, executeResponse)
+  }
 
 }
 
