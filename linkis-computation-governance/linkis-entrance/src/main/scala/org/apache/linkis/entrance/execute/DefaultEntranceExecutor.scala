@@ -20,7 +20,7 @@ package org.apache.linkis.entrance.execute
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.exception.{EntranceErrorCode, EntranceErrorException}
-import org.apache.linkis.entrance.job.EntranceExecuteRequest
+import org.apache.linkis.entrance.job.{EntranceExecuteRequest, EntranceExecutionJob}
 import org.apache.linkis.entrance.orchestrator.EntranceOrchestrationFactory
 import org.apache.linkis.entrance.utils.JobHistoryHelper
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
@@ -206,12 +206,11 @@ class DefaultEntranceExecutor(id: Long)
   ) = {
     val msg = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
     if (msg.contains("quited unexpectedly")) {
-      logger.info("onFailedRetry" + msg)
+      logger.info("onFailedRetry: " + msg)
       getEngineExecuteAsyncReturn.foreach { jobReturn =>
         logger.info(s"markToRetry: ${entranceExecuteRequest.getJob.getId}")
-        jobReturn.notifyStatus(
-          ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.WaitForRetry)
-        )
+        val job: EntranceExecutionJob = entranceExecuteRequest.getJob
+        job.transitionWaitForRetry(msg)
       }
     } else {
       logger.info("onFailedFailed" + msg)
