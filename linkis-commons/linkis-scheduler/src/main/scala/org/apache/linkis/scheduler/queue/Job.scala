@@ -211,7 +211,7 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
 
   protected def transitionWaitForRetry(): Unit = {
     val state: SchedulerEventState = getState
-    if (state != Failed) {
+    if (state != Failed && state != Running) {
       throw new SchedulerErrorException(
         TASK_STATUS_FLIP_ERROR.getErrorCode,
         MessageFormat.format(TASK_STATUS_FLIP_ERROR.getErrorDesc, state, WaitForRetry)
