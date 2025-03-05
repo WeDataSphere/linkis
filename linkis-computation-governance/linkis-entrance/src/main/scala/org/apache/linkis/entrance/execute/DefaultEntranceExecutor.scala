@@ -205,11 +205,22 @@ class DefaultEntranceExecutor(id: Long)
       failedResponse: FailedTaskResponse
   ) = {
     val msg = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
-    getEngineExecuteAsyncReturn.foreach { jobReturn =>
-      jobReturn.notifyError(msg, failedResponse.getCause)
-      jobReturn.notifyStatus(
-        ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Failed)
-      )
+    if (msg.contains("quited unexpectedly")) {
+      logger.info("onFailedRetry" + msg)
+      getEngineExecuteAsyncReturn.foreach { jobReturn =>
+        logger.info(s"markToRetry: ${entranceExecuteRequest.getJob.getId}")
+        jobReturn.notifyStatus(
+          ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.WaitForRetry)
+        )
+      }
+    } else {
+      logger.info("onFailedFailed" + msg)
+      getEngineExecuteAsyncReturn.foreach { jobReturn =>
+        jobReturn.notifyError(msg, failedResponse.getCause)
+        jobReturn.notifyStatus(
+          ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Failed)
+        )
+      }
     }
   }
 
