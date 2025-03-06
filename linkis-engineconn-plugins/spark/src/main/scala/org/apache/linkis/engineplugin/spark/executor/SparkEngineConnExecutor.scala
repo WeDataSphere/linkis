@@ -412,7 +412,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
 
   override protected def beforeExecute(engineConnTask: EngineConnTask): Unit = {
     super.beforeExecute(engineConnTask)
-    if (sparkTmpConf.isEmpty) {
+    if (EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue && sparkTmpConf.isEmpty) {
       sparkTmpConf = sc.getConf.getAll.toMap
     }
   }
@@ -422,7 +422,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
       executeResponse: ExecuteResponse
   ): Unit = {
     val sqlContext = this.asInstanceOf[SparkSqlExecutor].getSparkEngineSession.sqlContext
-    if (sparkTmpConf.nonEmpty) {
+    if (EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue && sparkTmpConf.nonEmpty) {
       val differentValues = sparkTmpConf.filter { case (key, value) =>
         !sqlContext.getConf(key).equals(value)
       }
