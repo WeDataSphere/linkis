@@ -52,6 +52,7 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   private var executor: Executor = _
   private var jobListener: Option[JobListener] = None
   private var logListener: Option[LogListener] = None
+  private var jobRetryListener: Option[JobRetryListener] = None
   private var progressListener: Option[ProgressListener] = None
   private[linkis] var interrupt = false
   private var progress: Float = 0f
@@ -153,6 +154,12 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   def setLogListener(logListener: LogListener): Unit = this.logListener = Some(logListener)
 
   def getLogListener: Option[LogListener] = logListener
+
+  def setJobRetryListener(jobRetryListener: JobRetryListener): Unit = this.jobRetryListener = Some(
+    jobRetryListener
+  )
+
+  def getJobRetryListener: Option[JobRetryListener] = jobRetryListener
 
   def setProgressListener(progressListener: ProgressListener): Unit = this.progressListener = Some(
     progressListener

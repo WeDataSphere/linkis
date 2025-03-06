@@ -204,16 +204,21 @@ class DefaultEntranceExecutor(id: Long)
       orchestration: Orchestration,
       failedResponse: FailedTaskResponse
   ) = {
-    val msg = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
-    if (msg.contains("quited unexpectedly")) {
-      logger.info("onFailedRetry: " + msg)
-      getEngineExecuteAsyncReturn.foreach { jobReturn =>
-        logger.info(s"markToRetry: ${entranceExecuteRequest.getJob.getId}")
-        val job: EntranceExecutionJob = entranceExecuteRequest.getJob
-        job.transitionWaitForRetry(msg)
-      }
-    } else {
-      logger.info("onFailedFailed" + msg)
+    val msg: String = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
+    var canRetry = false
+    val props: util.Map[String, AnyRef] = entranceExecuteRequest.properties()
+    entranceExecuteRequest.getJob.getJobRetryListener.foreach(listener => {
+      canRetry = listener.onJobFailed(
+        entranceExecuteRequest.getJob,
+        entranceExecuteRequest.code(),
+        props,
+        failedResponse.getErrorCode,
+        failedResponse.getErrorMsg
+      )
+    })
+    // 无法重试，更新失败状态
+    if (!canRetry) {
+      logger.debug(s"task execute Failed with : ${msg}")
       getEngineExecuteAsyncReturn.foreach { jobReturn =>
         jobReturn.notifyError(msg, failedResponse.getCause)
         jobReturn.notifyStatus(
