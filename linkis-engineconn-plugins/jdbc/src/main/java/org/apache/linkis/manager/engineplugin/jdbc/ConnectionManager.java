@@ -181,10 +181,16 @@ public class ConnectionManager {
     boolean logAbandoned =
         JDBCPropertiesParser.getBool(
             properties, JDBCEngineConnConstant.JDBC_POOL_REMOVE_ABANDONED_LOG_ENABLED, true);
-    int removeAbandonedTimeout =
-        JDBCPropertiesParser.getInt(
-            properties, JDBCEngineConnConstant.JDBC_POOL_REMOVE_ABANDONED_TIMEOUT, 300);
-
+    int removeAbandonedTimeout;
+    if (properties.containsKey(JDBCEngineConnConstant.JDBC_POOL_REMOVE_ABANDONED_TIMEOUT)) {
+      removeAbandonedTimeout =
+          JDBCPropertiesParser.getInt(
+              properties, JDBCEngineConnConstant.JDBC_POOL_REMOVE_ABANDONED_TIMEOUT, 300);
+    } else {
+      removeAbandonedTimeout =
+          JDBCPropertiesParser.getInt(
+              properties, JDBCEngineConnConstant.LINKIS_JDBC_POOL_REMOVE_ABANDONED_TIMEOUT, 300);
+    }
     DruidDataSource datasource = new DruidDataSource();
     LOG.info("Database connection address information(数据库连接地址信息)=" + dbUrl);
     datasource.setUrl(dbUrl);
