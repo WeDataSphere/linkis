@@ -22,8 +22,9 @@ import org.apache.linkis.common.listener.ListenerEventBus
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.protocol.engine.JobProgressInfo
+import org.apache.linkis.scheduler.errorcode.LinkisSchedulerErrorCodeSummary.TASK_STATUS_FLIP_ERROR
 import org.apache.linkis.scheduler.event._
-import org.apache.linkis.scheduler.exception.LinkisJobRetryException
+import org.apache.linkis.scheduler.exception.{LinkisJobRetryException, SchedulerErrorException}
 import org.apache.linkis.scheduler.executer._
 import org.apache.linkis.scheduler.future.BDPFuture
 import org.apache.linkis.scheduler.listener._
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
 import java.io.Closeable
+import java.text.MessageFormat
 import java.util.concurrent.Future
 
 abstract class Job extends Runnable with SchedulerEvent with Closeable with Logging {
@@ -205,6 +207,18 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
     case _ =>
       jobDaemon.foreach(_.kill())
       jobListener.foreach(_.onJobCompleted(this))
+  }
+
+  protected def transitionWaitForRetry(): Unit = {
+    val state: SchedulerEventState = getState
+    if (state != Failed && state != Running) {
+      throw new SchedulerErrorException(
+        TASK_STATUS_FLIP_ERROR.getErrorCode,
+        MessageFormat.format(TASK_STATUS_FLIP_ERROR.getErrorDesc, state, WaitForRetry)
+      )
+    }
+    logger.info(s"$toString change status ${state} => ${WaitForRetry}.")
+    transition(WaitForRetry)
   }
 
   protected def transitionCompleted(executeCompleted: CompletedExecuteResponse): Unit = {

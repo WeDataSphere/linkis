@@ -207,6 +207,8 @@ class JobHistoryDetailQueryServiceImpl extends JobHistoryDetailQueryService with
   }
 
   private def shouldUpdate(oldStatus: String, newStatus: String): Boolean =
-    TaskStatus.valueOf(oldStatus).ordinal <= TaskStatus.valueOf(newStatus).ordinal
+    TaskStatus.valueOf(oldStatus).ordinal <= TaskStatus
+      .valueOf(newStatus)
+      .ordinal || (oldStatus == TaskStatus.Running.toString && newStatus == TaskStatus.Scheduled.toString)
 
 }
