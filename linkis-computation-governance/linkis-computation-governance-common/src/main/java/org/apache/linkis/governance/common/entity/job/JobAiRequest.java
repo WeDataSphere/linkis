@@ -166,21 +166,21 @@ public class JobAiRequest {
   @Override
   public String toString() {
     return "JobAiRequest{"
-            + "id="
-            + id
-            + ", jobHistoryId='"
-            + jobHistoryId
-            + '\''
-            + ", submitUser='"
-            + submitUser
-            + '\''
-            + ", executeUser='"
-            + executeUser
-            + '\''
-            + ", labels="
-            + labels
-            + ", params="
-            + params
-            + '}';
+        + "id="
+        + id
+        + ", jobHistoryId='"
+        + jobHistoryId
+        + '\''
+        + ", submitUser='"
+        + submitUser
+        + '\''
+        + ", executeUser='"
+        + executeUser
+        + '\''
+        + ", labels="
+        + labels
+        + ", params="
+        + params
+        + '}';
   }
 }
