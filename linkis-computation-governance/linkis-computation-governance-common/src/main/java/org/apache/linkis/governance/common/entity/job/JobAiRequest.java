@@ -36,6 +36,7 @@ public class JobAiRequest {
   private Map<String, Object> metrics = new HashMap<>();
   private Map<String, Object> params;
   private List<Label<?>> labels;
+  private Integer errorCode;
   private String errorDesc;
   private String engineInstances;
   private String engineType;
@@ -113,6 +114,14 @@ public class JobAiRequest {
 
   public void setLabels(List<Label<?>> labels) {
     this.labels = labels;
+  }
+
+  public Integer getErrorCode() {
+    return errorCode;
+  }
+
+  public void setErrorCode(Integer errorCode) {
+    this.errorCode = errorCode;
   }
 
   public String getErrorDesc() {

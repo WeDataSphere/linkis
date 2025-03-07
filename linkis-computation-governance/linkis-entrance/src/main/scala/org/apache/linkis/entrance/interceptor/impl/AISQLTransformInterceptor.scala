@@ -80,7 +80,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
   private def persist(jobRequest: JobRequest) = {
     val sender: Sender =
       Sender.getSender(EntranceConfiguration.JOBHISTORY_SPRING_APPLICATION_NAME.getValue)
-    val jobAiRequest: JobAiRequest = JobAiRequest
+    val jobAiRequest: JobAiRequest = new JobAiRequest
     BeanUtils.copyProperties(jobRequest, jobAiRequest)
     jobAiRequest.setId(null)
     jobAiRequest.setJobHistoryId(jobRequest.getId + "")
