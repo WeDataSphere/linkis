@@ -24,6 +24,7 @@ import org.apache.linkis.entrance.conf.EntranceConfiguration._
 import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.governance.common.entity.job.{JobAiRequest, JobRequest}
 import org.apache.linkis.governance.common.protocol.job.JobAiReqInsert
+import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{EngineTypeLabel, UserCreatorLabel}
 import org.apache.linkis.manager.label.utils.LabelUtil
@@ -62,9 +63,18 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
         aiSqlEnable && sqlLanguage
           .equals(codeType) && supportAISQLCreator.contains(creator.toLowerCase())
     ) {
-      engineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
-      engineTypeLabel.setVersion(sparkEngineType.split("-")(1))
-      engineTypeLabel.setStringValue(sparkEngineType)
+      val it: util.Iterator[Label[_]] = labels.iterator()
+      while (it.hasNext) {
+        if (it.next().isInstanceOf[EngineTypeLabel]) {
+          it.remove()
+        }
+      }
+      val newEngineTypeLabel: EngineTypeLabel =
+        LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(classOf[EngineTypeLabel])
+      newEngineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
+      newEngineTypeLabel.setVersion(sparkEngineType.split("-")(1))
+      newEngineTypeLabel.setStringValue(sparkEngineType)
+      labels.add(newEngineTypeLabel)
       startMap.put(AI_SQL_KEY.key, AI_SQL_KEY.getValue.asInstanceOf[AnyRef])
       startMap.put(RETRY_NUM_KEY.key, RETRY_NUM_KEY.getValue.asInstanceOf[AnyRef])
 
