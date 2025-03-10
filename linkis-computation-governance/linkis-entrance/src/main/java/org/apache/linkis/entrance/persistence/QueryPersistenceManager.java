@@ -134,15 +134,8 @@ public class QueryPersistenceManager extends PersistenceManager {
     String aiSqlKey = EntranceConfiguration.AI_SQL_KEY().key();
     String retryNumKey = EntranceConfiguration.RETRY_NUM_KEY().key();
     String errorCodeArray = EntranceConfiguration.SUPPORTED_RETRY_ERROR_CODES();
-    boolean testMode = EntranceConfiguration.AI_SQL_TEST_MODE();
 
     Map<String, Object> startupMap = TaskUtils.getStartupMap(props);
-
-    if (testMode) {
-      logger.info("test mode, props: {} ", props);
-      props.put(retryNumKey, 1);
-      props.put(aiSqlKey, "true");
-    }
 
     // 只对 aiSql 做重试
     if ("true".equals(startupMap.get(aiSqlKey))) {
