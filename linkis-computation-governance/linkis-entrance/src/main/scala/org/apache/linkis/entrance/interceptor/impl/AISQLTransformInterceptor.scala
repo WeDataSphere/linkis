@@ -55,15 +55,15 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     val startMap: util.Map[String, AnyRef] = TaskUtils.getStartupMap(jobRequest.getParams)
 
+    val engineTypeLabel: EngineTypeLabel = engineTypeLabelOpt.get.asInstanceOf[EngineTypeLabel]
     // aiSql change to spark
-    var currentEngineType: String =
-      engineTypeLabelOpt.get.asInstanceOf[EngineTypeLabel].getEngineType
+    var currentEngineType: String = engineTypeLabel.toString
     if (
         aiSqlEnable && sqlLanguage
           .equals(codeType) && supportAISQLCreator.contains(creator.toLowerCase())
     ) {
-      engineTypeLabelOpt.get.asInstanceOf[EngineTypeLabel].setEngineType(sparkEngineType)
-
+      engineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
+      engineTypeLabel.setVersion(sparkEngineType.split("-")(1))
       startMap.put(AI_SQL_KEY, "true")
 
       currentEngineType = sparkEngineType
@@ -109,6 +109,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
       }
 
     }
+    TaskUtils.addStartupMap(jobRequest.getParams, startMap)
     jobRequest
   }
 

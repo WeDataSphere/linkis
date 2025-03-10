@@ -137,7 +137,7 @@ public class QueryPersistenceManager extends PersistenceManager {
     if (testMode) {
       logger.info("test mode, props: {} ", props);
       props.put(retryNumKey, 1);
-      props.put(aiSqlKey, true);
+      props.put(aiSqlKey, "true");
     }
 
     // 只对 aiSql 做重试
