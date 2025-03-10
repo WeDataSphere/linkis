@@ -21,6 +21,7 @@ import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.common.utils.CodeAndRunTypeUtils.LANGUAGE_TYPE_AI_SQL
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.conf.EntranceConfiguration._
+
 import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.governance.common.entity.job.{JobAiRequest, JobRequest}
 import org.apache.linkis.governance.common.protocol.job.JobAiReqInsert
