@@ -64,7 +64,8 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
     ) {
       engineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
       engineTypeLabel.setVersion(sparkEngineType.split("-")(1))
-      startMap.put(AI_SQL_KEY, "true")
+      startMap.put(AI_SQL_KEY.key, AI_SQL_KEY.getValue.asInstanceOf[AnyRef])
+      startMap.put(RETRY_NUM_KEY.key, RETRY_NUM_KEY.getValue.asInstanceOf[AnyRef])
 
       currentEngineType = sparkEngineType
 
