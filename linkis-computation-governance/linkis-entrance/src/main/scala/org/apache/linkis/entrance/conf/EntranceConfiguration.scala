@@ -295,6 +295,12 @@ object EntranceConfiguration {
       "01002,01003,13005,13006,13012"
     ).getValue
 
+  val SUPPORTED_RETRY_ERROR_DESC =
+    CommonVars(
+      "linkis.entrance.supported.retry.error.desc",
+      "Spark application has already stopped,Spark application sc has already stopped,Failed to allocate a page,dataFrame to local exception"
+    ).getValue
+
   val AI_SQL_TEST_MODE: Boolean =
     CommonVars[Boolean]("linkis.entrance.aisql.test.mode", true).getValue
 
@@ -312,6 +318,9 @@ object EntranceConfiguration {
 
   val RETRY_NUM_KEY: CommonVars[Int] =
     CommonVars[Int]("linkis.ai.retry.num", 1)
+
+  val AI_SQL_RETRY_ONCE: CommonVars[Boolean] =
+    CommonVars[Boolean]("linkis.ai.sql.once.enable", true)
 
   val SPARK_SHUFFLE_SERVICE_ENABLED: Boolean =
     CommonVars[Boolean]("linkis.spark.shuffle.service.enabled", true).getValue
