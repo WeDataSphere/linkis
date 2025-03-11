@@ -135,9 +135,10 @@ public class QueryPersistenceManager extends PersistenceManager {
     }
 
     boolean containsAny = false;
-    String errorDescArray = EntranceConfiguration.SUPPORTED_RETRY_ERROR_CODES();
+    String errorDescArray = EntranceConfiguration.SUPPORTED_RETRY_ERROR_DESC();
+    String errorCodeArray = EntranceConfiguration.SUPPORTED_RETRY_ERROR_CODES();
     for (String keyword : errorDescArray.split(",")) {
-      if (errorDesc.contains(keyword.trim())) {
+      if (errorDesc.contains(keyword.trim()) || errorCodeArray.contains(errorCode + "")) {
         containsAny = true;
         break;
       }
