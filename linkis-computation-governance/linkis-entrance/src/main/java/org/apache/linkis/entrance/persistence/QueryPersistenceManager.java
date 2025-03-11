@@ -130,6 +130,10 @@ public class QueryPersistenceManager extends PersistenceManager {
   @Override
   public boolean onJobFailed(
       Job job, String code, Map<String, Object> props, int errorCode, String errorDesc) {
+    if (!EntranceConfiguration.TASK_RETRY_ENABLED()) {
+      return false;
+    }
+
     if (!(job instanceof EntranceJob)) {
       return false;
     }

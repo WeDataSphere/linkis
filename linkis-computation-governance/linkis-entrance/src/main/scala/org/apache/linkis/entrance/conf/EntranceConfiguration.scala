@@ -301,8 +301,8 @@ object EntranceConfiguration {
       "Spark application has already stopped,Spark application sc has already stopped,Failed to allocate a page,dataFrame to local exception"
     ).getValue
 
-  val AI_SQL_TEST_MODE: Boolean =
-    CommonVars[Boolean]("linkis.entrance.aisql.test.mode", true).getValue
+  val TASK_RETRY_ENABLED: Boolean =
+    CommonVars[Boolean]("linkis.task.retry.enabled", true).getValue
 
   val AI_SQL_ENABLED: Boolean =
     CommonVars[Boolean]("linkis.ai.sql.enabled", true).getValue
@@ -326,13 +326,16 @@ object EntranceConfiguration {
     CommonVars[Boolean]("linkis.spark.shuffle.service.enabled", true).getValue
 
   val SPARK_EXECUTOR_CORES: Int =
-    CommonVars[Int]("spark.executor.cores", 5).getValue
+    CommonVars[Int]("spark.executor.cores", 4).getValue
 
   val SPARK_EXECUTOR_MEMORY: String =
-    CommonVars[String]("spark.executor.memory", "20G").getValue
+    CommonVars[String]("spark.executor.memory", "17G").getValue
 
   val SPARK_EXECUTOR_INSTANCES: Int =
     CommonVars[Int]("spark.executor.instances", 1).getValue
+
+  val SPARK_EXECUTOR_MEMORY_OVERHEAD: String =
+    CommonVars[String]("spark.yarn.executor.memoryOverhead", "3G").getValue
 
   val SPARK_DYNAMIC_ALLOCATION_ENABLED: Boolean =
     CommonVars[Boolean]("spark.dynamicAllocation.enabled", true).getValue

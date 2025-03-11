@@ -84,7 +84,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     }
     // 开启 spark 动态资源规划, spark3.4.4
-    if (sparkEngineType.equals(currentEngineType)) {
+    if (sparkEngineType.equals(currentEngineType) && SPARK_DYNAMIC_ALLOCATION_ENABLED) {
       logger.info("spark3 add dynamic resource.")
 
       // add spark dynamic resource planning
@@ -107,6 +107,10 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
       startMap.put("spark.executor.cores", SPARK_EXECUTOR_CORES.asInstanceOf[AnyRef])
       startMap.put("spark.executor.memory", SPARK_EXECUTOR_MEMORY.asInstanceOf[AnyRef])
       startMap.put("spark.executor.instances", SPARK_EXECUTOR_INSTANCES.asInstanceOf[AnyRef])
+      startMap.put(
+        "spark.yarn.executor.memoryOverhead",
+        SPARK_EXECUTOR_MEMORY_OVERHEAD.asInstanceOf[AnyRef]
+      )
 
       Utils.tryAndWarn {
         val extraConfs: String = SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS
