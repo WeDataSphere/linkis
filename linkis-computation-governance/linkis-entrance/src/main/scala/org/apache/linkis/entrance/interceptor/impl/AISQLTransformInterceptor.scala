@@ -58,7 +58,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     val engineTypeLabel: EngineTypeLabel = engineTypeLabelOpt.get.asInstanceOf[EngineTypeLabel]
     // aiSql change to spark
-    var currentEngineType: String = engineTypeLabel.getStringValue
+    var currentEngineType: String = engineTypeLabel.toString
     if (
         aiSqlEnable && sqlLanguage
           .equals(codeType) && supportAISQLCreator.contains(creator.toLowerCase())
@@ -73,7 +73,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
         LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(classOf[EngineTypeLabel])
       newEngineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
       newEngineTypeLabel.setVersion(sparkEngineType.split("-")(1))
-      // newEngineTypeLabel.setStringValue(sparkEngineType)
+      newEngineTypeLabel.setStringValue(sparkEngineType)
       labels.add(newEngineTypeLabel)
       startMap.put(AI_SQL_KEY.key, AI_SQL_KEY.getValue.asInstanceOf[AnyRef])
       startMap.put(RETRY_NUM_KEY.key, RETRY_NUM_KEY.getValue.asInstanceOf[AnyRef])
@@ -84,7 +84,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     }
     // 开启 spark 动态资源规划, spark3.4.4
-    if (sparkEngineType.equals(currentEngineType) && SPARK_DYNAMIC_ALLOCATION_ENABLED) {
+    if (sparkEngineType.equals(currentEngineType)) {
       logger.info("spark3 add dynamic resource.")
 
       // add spark dynamic resource planning
@@ -107,11 +107,6 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
       startMap.put("spark.executor.cores", SPARK_EXECUTOR_CORES.asInstanceOf[AnyRef])
       startMap.put("spark.executor.memory", SPARK_EXECUTOR_MEMORY.asInstanceOf[AnyRef])
       startMap.put("spark.executor.instances", SPARK_EXECUTOR_INSTANCES.asInstanceOf[AnyRef])
-      startMap.put("spark.python.version", SPARK3_PYTHON_VERSION.asInstanceOf[AnyRef])
-      startMap.put(
-        "spark.yarn.executor.memoryOverhead",
-        SPARK_EXECUTOR_MEMORY_OVERHEAD.asInstanceOf[AnyRef]
-      )
 
       Utils.tryAndWarn {
         val extraConfs: String = SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS
@@ -138,6 +133,8 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
     jobAiRequest.setId(null)
     jobAiRequest.setJobHistoryId(jobRequest.getId + "")
     jobAiRequest.setChangeTime(new Date())
+    jobAiRequest.setEngineType(LabelUtil.getEngineType(jobRequest.getLabels))
+    jobAiRequest.setSubmitCode(jobRequest.getExecutionCode)
     val jobAiReqInsert: JobAiReqInsert = JobAiReqInsert(jobAiRequest)
     logger.info(s"${jobRequest.getId} insert into ai_history: ${jobAiRequest}")
     sender.ask(jobAiReqInsert)
