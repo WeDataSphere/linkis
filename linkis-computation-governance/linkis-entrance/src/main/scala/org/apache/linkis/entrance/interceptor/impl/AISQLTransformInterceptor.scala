@@ -43,7 +43,7 @@ import scala.collection.JavaConverters._
 class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
   override def apply(jobRequest: JobRequest, logAppender: lang.StringBuilder): JobRequest = {
-    val aiSqlEnable: Boolean = AI_SQL_ENABLED
+    val aiSqlEnable: Boolean = "true".equals(AI_SQL_KEY.getValue)
     val supportAISQLCreator: String = AI_SQL_CREATORS.toLowerCase()
     val sqlLanguage: String = LANGUAGE_TYPE_AI_SQL
     val sparkEngineType: String = AI_SQL_DEFAULT_SPARK_ENGINE_TYPE
@@ -58,7 +58,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     val engineTypeLabel: EngineTypeLabel = engineTypeLabelOpt.get.asInstanceOf[EngineTypeLabel]
     // aiSql change to spark
-    var currentEngineType: String = engineTypeLabel.toString
+    var currentEngineType: String = engineTypeLabel.getStringValue
     if (
         aiSqlEnable && sqlLanguage
           .equals(codeType) && supportAISQLCreator.contains(creator.toLowerCase())
@@ -73,7 +73,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
         LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(classOf[EngineTypeLabel])
       newEngineTypeLabel.setEngineType(sparkEngineType.split("-")(0))
       newEngineTypeLabel.setVersion(sparkEngineType.split("-")(1))
-      newEngineTypeLabel.setStringValue(sparkEngineType)
+      // newEngineTypeLabel.setStringValue(sparkEngineType)
       labels.add(newEngineTypeLabel)
       startMap.put(AI_SQL_KEY.key, AI_SQL_KEY.getValue.asInstanceOf[AnyRef])
       startMap.put(RETRY_NUM_KEY.key, RETRY_NUM_KEY.getValue.asInstanceOf[AnyRef])
@@ -84,7 +84,7 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
     }
     // 开启 spark 动态资源规划, spark3.4.4
-    if (sparkEngineType.equals(currentEngineType)) {
+    if (sparkEngineType.equals(currentEngineType) && SPARK_DYNAMIC_ALLOCATION_ENABLED) {
       logger.info("spark3 add dynamic resource.")
 
       // add spark dynamic resource planning
@@ -107,6 +107,11 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
       startMap.put("spark.executor.cores", SPARK_EXECUTOR_CORES.asInstanceOf[AnyRef])
       startMap.put("spark.executor.memory", SPARK_EXECUTOR_MEMORY.asInstanceOf[AnyRef])
       startMap.put("spark.executor.instances", SPARK_EXECUTOR_INSTANCES.asInstanceOf[AnyRef])
+      startMap.put("spark.python.version", SPARK3_PYTHON_VERSION.asInstanceOf[AnyRef])
+      startMap.put(
+        "spark.executor.memoryOverhead",
+        SPARK_EXECUTOR_MEMORY_OVERHEAD.asInstanceOf[AnyRef]
+      )
 
       Utils.tryAndWarn {
         val extraConfs: String = SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS
