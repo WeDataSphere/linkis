@@ -286,7 +286,7 @@ object EntranceConfiguration {
   val UNSUPPORTED_RETRY_CODES =
     CommonVars(
       "linkis.entrance.unsupported.retry.codes",
-      "INSERT INTO,CREATE TABLE,ALTER TABLE,CREATE TEMPORARY"
+      "INSERT INTO,CREATE TABLE,ALTER TABLE,CREATE TEMPORARY,TRUNCATE TABLE,MERGE INTO,DROP TABLE"
     ).getValue
 
   val SUPPORTED_RETRY_ERROR_CODES =
@@ -304,9 +304,6 @@ object EntranceConfiguration {
   val TASK_RETRY_ENABLED: Boolean =
     CommonVars[Boolean]("linkis.task.retry.enabled", true).getValue
 
-  val AI_SQL_ENABLED: Boolean =
-    CommonVars[Boolean]("linkis.ai.sql.enabled", true).getValue
-
   val AI_SQL_DEFAULT_SPARK_ENGINE_TYPE: String =
     CommonVars[String]("linkis.ai.sql.default.spark.engine.type", "spark-3.4.4").getValue
 
@@ -323,7 +320,7 @@ object EntranceConfiguration {
     CommonVars[Boolean]("linkis.ai.sql.once.enable", true)
 
   val SPARK_SHUFFLE_SERVICE_ENABLED: Boolean =
-    CommonVars[Boolean]("linkis.spark.shuffle.service.enabled", true).getValue
+    CommonVars[Boolean]("spark.shuffle.service.enabled", true).getValue
 
   val SPARK_EXECUTOR_CORES: Int =
     CommonVars[Int]("spark.executor.cores", 4).getValue
