@@ -19,6 +19,9 @@ package org.apache.linkis.engineplugin.spark.executor
 
 import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.utils.Utils
+import org.apache.linkis.engineconn.common.conf.EngineConnConf
+import org.apache.linkis.engineconn.common.exception.EngineConnException
+import org.apache.linkis.engineconn.common.utils.SafeUtils
 import org.apache.linkis.engineconn.computation.executor.execute.EngineExecutionContext
 import org.apache.linkis.engineconn.computation.executor.rs.RsOutputStream
 import org.apache.linkis.engineconn.core.executor.ExecutorManager
@@ -34,6 +37,8 @@ import org.apache.linkis.engineplugin.spark.utils.EngineUtils
 import org.apache.linkis.governance.common.paser.PythonCodeParser
 import org.apache.linkis.governance.common.utils.GovernanceUtils
 import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf.SPARK_PYTHON_VERSION_KEY
+import org.apache.linkis.manager.engineplugin.errorcode.EngineconnCoreErrorCodeSummary
+import org.apache.linkis.manager.label.entity.engine.EngineType
 import org.apache.linkis.scheduler.executer.{ExecuteResponse, SuccessExecuteResponse}
 import org.apache.linkis.storage.resultset.ResultSetWriter
 
@@ -307,6 +312,16 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
     if (!pythonScriptInitialized) {
       throw new IllegalStateException(
         "Pyspark process cannot be initialized, please ask administrator for help."
+      )
+    }
+    if (
+        EngineConnConf.PYTHON_SAFE_CHECK_SWITCH.getValue.contains(
+          EngineType.SPARK.toString
+        ) && (!SafeUtils.isCodeSafe(code))
+    ) {
+      throw EngineConnException(
+        EngineconnCoreErrorCodeSummary.PYTHON_CODE_INVALID.getErrorCode,
+        EngineconnCoreErrorCodeSummary.PYTHON_CODE_INVALID.getErrorDesc
       )
     }
     promise = Promise[String]()
