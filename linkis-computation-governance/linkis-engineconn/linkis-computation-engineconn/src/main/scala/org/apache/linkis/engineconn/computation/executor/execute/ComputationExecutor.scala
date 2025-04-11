@@ -58,6 +58,7 @@ import org.apache.linkis.scheduler.executer._
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
+import java.util
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
@@ -274,7 +275,14 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
           case e: ErrorExecuteResponse =>
             failedTasks.increase()
             logger.error("execute code failed!", e.t)
-            return response
+            val props: util.Map[String, Object] = engineConnTask.getProperties
+            if (
+                !props.isEmpty && "true".equals(props.getOrDefault("linkis.ai.sql.enable", "false"))
+            ) {
+              return response
+            } else {
+              return response
+            }
           case SuccessExecuteResponse() =>
             engineExecutionContext.appendStdout("\n")
             incomplete.setLength(0)

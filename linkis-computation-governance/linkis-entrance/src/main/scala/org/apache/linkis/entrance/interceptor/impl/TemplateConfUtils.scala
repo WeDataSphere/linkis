@@ -21,6 +21,7 @@ import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.exception.LinkisCommonErrorException
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{CodeAndRunTypeUtils, Logging, Utils}
+import org.apache.linkis.common.utils.CodeAndRunTypeUtils.LANGUAGE_TYPE_AI_SQL
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.governance.common.entity.TemplateConfKey
 import org.apache.linkis.governance.common.entity.job.JobRequest
@@ -32,6 +33,7 @@ import org.apache.linkis.manager.label.entity.entrance.ExecuteOnceLabel
 import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.utils.TaskUtils
 import org.apache.linkis.rpc.Sender
+import org.apache.linkis.server.BDPJettyServerHelper
 
 import org.apache.commons.lang3.StringUtils
 
@@ -48,6 +50,9 @@ object TemplateConfUtils extends Logging {
   val confTemplateNameKey = "ec.resource.name"
   val confFixedEngineConnLabelKey = "ec.fixed.sessionId"
 
+  /**
+   * 按模板uuid缓存模板配置
+   */
   private val templateCache: LoadingCache[String, util.List[TemplateConfKey]] = CacheBuilder
     .newBuilder()
     .maximumSize(1000)
@@ -80,6 +85,9 @@ object TemplateConfUtils extends Logging {
 
     })
 
+  /**
+   * 按模板名称缓存模板配置
+   */
   private val templateCacheName: LoadingCache[String, util.List[TemplateConfKey]] = CacheBuilder
     .newBuilder()
     .maximumSize(1000)
@@ -224,6 +232,7 @@ object TemplateConfUtils extends Logging {
       case requestPersistTask: JobRequest =>
         val params = requestPersistTask.getParams
         val startMap = TaskUtils.getStartupMap(params)
+        val runtimeMap: util.Map[String, AnyRef] = TaskUtils.getRuntimeMap(params)
 
         var templateConflist: util.List[TemplateConfKey] = new util.ArrayList[TemplateConfKey]()
         var templateName: String = ""
@@ -239,10 +248,15 @@ object TemplateConfUtils extends Logging {
           logger.debug("jobRequest startMap param template name is empty")
 
           logger.info("jobRequest startMap params :{} ", startMap)
-          val templateUuid = startMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
+          var templateUuid = startMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
 
           if (StringUtils.isBlank(templateUuid)) {
             logger.debug("jobRequest startMap param template id is empty")
+            templateUuid = runtimeMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
+          }
+
+          if (StringUtils.isBlank(templateUuid)) {
+            logger.debug("jobRequest runtimeMap param template id is empty")
           } else {
             logger.info("try to get template conf list with template uid:{} ", templateUuid)
             logAppender.append(
@@ -286,6 +300,20 @@ object TemplateConfUtils extends Logging {
               requestPersistTask.getLabels.add(onceLabel)
             }
           }
+        }
+
+        // 针对aisql处理模板参数
+        val codeType: String = LabelUtil.getCodeType(jobRequest.getLabels)
+
+        if (LANGUAGE_TYPE_AI_SQL.equals(codeType)) {
+          // 缓存配置到startUp
+          startMap.put(LabelKeyConstant.TEMPLATE_CONF_KEY, templateConflist)
+          // 清理旧的
+          TaskUtils.clearStartupMap(params)
+          // 添加新的
+          TaskUtils.addStartupMap(params, startMap)
+          // 如果是aisql则不需要手动处理模板参数
+          templateConflist.clear()
         }
 
         if (templateConflist != null && templateConflist.size() > 0) {
