@@ -35,6 +35,8 @@ object StorageConfiguration {
 
   val STORAGE_RS_FILE_SUFFIX = CommonVars("wds.linkis.storage.rs.file.suffix", ".dolphin")
 
+  val LINKIS_STORAGE_FS_LABEL = CommonVars("linkis.storage.default.fs.label", "linkis-storage")
+
   val ResultTypes = List("%TEXT", "%TABLE", "%HTML", "%IMG", "%ANGULAR", "%SVG")
 
   val STORAGE_RESULT_SET_PACKAGE =
@@ -76,9 +78,6 @@ object StorageConfiguration {
     CommonVars[Boolean]("wds.linkis.storage.hdfs.prefix_check.enable", true)
 
   val HDFS_PATH_PREFIX_REMOVE = CommonVars[Boolean]("wds.linkis.storage.hdfs.prefxi.remove", true)
-
-  val FS_CACHE_DISABLE =
-    CommonVars[java.lang.Boolean]("wds.linkis.fs.hdfs.impl.disable.cache", false)
 
   val FS_CHECKSUM_DISBALE =
     CommonVars[java.lang.Boolean]("linkis.fs.hdfs.impl.disable.checksum", false)

@@ -35,7 +35,7 @@ object ComputationExecutorConf {
 
   val PRINT_TASK_PARAMS_SKIP_KEYS = CommonVars(
     "linkis.engineconn.print.task.params.skip.keys",
-    "jobId",
+    "jobId,wds.linkis.rm.yarnqueue",
     "skip to print params key at job logs"
   )
 
@@ -60,7 +60,7 @@ object ComputationExecutorConf {
     ).getValue
 
   val ENGINE_CONCURRENT_THREAD_NUM = CommonVars(
-    "wds.linkis.engineconn.concurrent.thread.num",
+    "linkis.engineconn.concurrent.thread.num",
     20,
     "Maximum thread pool of the concurrent EC"
   )
@@ -123,5 +123,33 @@ object ComputationExecutorConf {
 
   val TASK_SUBMIT_WAIT_TIME_MS =
     CommonVars("linkis.ec.task.submit.wait.time.ms", 2L, "Task submit wait time(ms)").getValue
+
+  val ENGINE_SEND_LOG_TO_ENTRANCE_LIMIT_ENABLED =
+    CommonVars("linkis.ec.send.log.entrance.limit.enabled", true)
+
+  val ENGINE_SEND_LOG_TO_ENTRANCE_LIMIT_LENGTH =
+    CommonVars("linkis.ec.send.log.entrance.limit.length", 2000)
+
+  val ENGINE_KERBEROS_AUTO_REFRESH_ENABLED =
+    CommonVars("linkis.ec.kerberos.auto.refresh.enabled", false).getValue
+
+  val CLOSE_RS_OUTPUT_WHEN_RESET_BY_DEFAULT_ENABLED =
+    CommonVars("linkis.ec.rs.close.when.reset.enabled", true).getValue
+
+  val SPECIAL_UDF_CHECK_ENABLED =
+    CommonVars("linkis.ec.spacial.udf.check.enabled", false)
+
+  val SPECIAL_UDF_CHECK_BY_REGEX_ENABLED =
+    CommonVars("linkis.ec.spacial.udf.check.by.regex.enabled", false)
+
+  val SPECIAL_UDF_NAMES =
+    CommonVars("linkis.ec.spacial.udf.check.names", "")
+
+  val SUPPORT_SPECIAL_UDF_LANGUAGES =
+    CommonVars("linkis.ec.support.spacial.udf.languages", "sql,python")
+
+  val ONLY_SQL_USE_UDF_KEY = "load.only.sql.use.udf"
+
+  val CODE_TYPE = "codeType"
 
 }

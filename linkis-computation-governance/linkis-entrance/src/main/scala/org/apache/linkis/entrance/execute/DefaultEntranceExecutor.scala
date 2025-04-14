@@ -20,7 +20,7 @@ package org.apache.linkis.entrance.execute
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.exception.{EntranceErrorCode, EntranceErrorException}
-import org.apache.linkis.entrance.job.EntranceExecuteRequest
+import org.apache.linkis.entrance.job.{EntranceExecuteRequest, EntranceExecutionJob}
 import org.apache.linkis.entrance.orchestrator.EntranceOrchestrationFactory
 import org.apache.linkis.entrance.utils.JobHistoryHelper
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
@@ -107,7 +107,6 @@ class DefaultEntranceExecutor(id: Long)
       entranceExecuteRequest: EntranceExecuteRequest,
       orchestration: Orchestration
   ): Unit = {
-    LoggerUtils.setJobIdMDC(getId.toString)
     orchestrationResponse match {
       case succeedResponse: SucceedTaskResponse =>
         succeedResponse match {
@@ -130,34 +129,9 @@ class DefaultEntranceExecutor(id: Long)
                 null != arrayResultSetPathResp.getResultSets && arrayResultSetPathResp.getResultSets.length > 0
             ) {
               val resultsetSize = arrayResultSetPathResp.getResultSets.length
-              entranceExecuteRequest.getJob.setResultSize(resultsetSize)
               entranceExecuteRequest.getJob
                 .asInstanceOf[EntranceJob]
                 .addAndGetResultSize(resultsetSize)
-            }
-            val firstResultSet = arrayResultSetPathResp.getResultSets.headOption.orNull
-            if (null != firstResultSet) {
-              // assert that all result set files have same parent path, so we get the first
-              Utils.tryCatch {
-                entranceExecuteRequest.getJob
-                  .asInstanceOf[EntranceJob]
-                  .getEntranceContext
-                  .getOrCreatePersistenceManager()
-                  .onResultSetCreated(
-                    entranceExecuteRequest.getJob,
-                    AliasOutputExecuteResponse(firstResultSet.alias, firstResultSet.result)
-                  )
-              } { case e: Exception =>
-                val msg = s"Persist resultSet error. ${e.getMessage}"
-                logger.error(msg)
-                val errorExecuteResponse = new DefaultFailedTaskResponse(
-                  msg,
-                  EntranceErrorCode.RESULT_NOT_PERSISTED_ERROR.getErrCode,
-                  e
-                )
-                dealResponse(errorExecuteResponse, entranceExecuteRequest, orchestration)
-                return
-              }
             }
           case _ =>
             logger.info(
@@ -186,7 +160,6 @@ class DefaultEntranceExecutor(id: Long)
           _.onLogUpdate(entranceExecuteRequest.getJob, LogUtils.generateERROR(msg))
         )
     }
-    LoggerUtils.removeJobIdMDC()
   }
 
   def requestToComputationJobReq(entranceExecuteRequest: EntranceExecuteRequest): JobReq = {
@@ -231,12 +204,31 @@ class DefaultEntranceExecutor(id: Long)
       orchestration: Orchestration,
       failedResponse: FailedTaskResponse
   ) = {
-    val msg = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
-    getEngineExecuteAsyncReturn.foreach { jobReturn =>
-      jobReturn.notifyError(msg, failedResponse.getCause)
-      jobReturn.notifyStatus(
-        ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Failed)
+    val msg: String = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
+    var canRetry = false
+    val props: util.Map[String, AnyRef] = entranceExecuteRequest.properties()
+    val job: EntranceExecutionJob = entranceExecuteRequest.getJob
+    job.getJobRetryListener.foreach(listener => {
+      canRetry = listener.onJobFailed(
+        entranceExecuteRequest.getJob,
+        entranceExecuteRequest.code(),
+        props,
+        failedResponse.getErrorCode,
+        failedResponse.getErrorMsg
       )
+    })
+    // 无法重试，更新失败状态
+    if (canRetry) {
+      logger.info(s"task: ${job.getId} reset progress from ${job.getProgress} to 0.0")
+      job.getProgressListener.foreach(_.onProgressUpdate(job, 0.0f, null))
+    } else {
+      logger.debug(s"task execute Failed with : ${msg}")
+      getEngineExecuteAsyncReturn.foreach { jobReturn =>
+        jobReturn.notifyError(msg, failedResponse.getCause)
+        jobReturn.notifyStatus(
+          ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Failed)
+        )
+      }
     }
   }
 
@@ -282,7 +274,10 @@ class DefaultEntranceExecutor(id: Long)
       val msg = s"JobRequest (${entranceExecuteRequest.jobId()}) was submitted to Orchestrator."
       logger.info(msg)
       entranceExecuteRequest.getJob.getLogListener.foreach(
-        _.onLogUpdate(entranceExecuteRequest.getJob, LogUtils.generateInfo(msg))
+        _.onLogUpdate(
+          entranceExecuteRequest.getJob,
+          LogUtils.generateInfo(msg + "(您的任务已经提交给Orchestrator进行编排执行)")
+        )
       )
 
       if (entranceExecuteRequest.getJob.getJobRequest.getMetrics == null) {

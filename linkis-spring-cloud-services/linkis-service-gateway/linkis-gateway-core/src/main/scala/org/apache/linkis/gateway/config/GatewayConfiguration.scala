@@ -18,6 +18,7 @@
 package org.apache.linkis.gateway.config
 
 import org.apache.linkis.common.conf.CommonVars
+import org.apache.linkis.common.conf.Configuration.LINKIS_TOKEN
 
 object GatewayConfiguration {
 
@@ -69,7 +70,9 @@ object GatewayConfiguration {
   val ENABLE_GATEWAY_AUTH = CommonVars("wds.linkis.enable.gateway.auth", false)
 
   val AUTH_IP_FILE = CommonVars("wds.linkis.gateway.auth.file", "auth.txt")
-  val DEFAULT_GATEWAY_ACCESS_TOKEN = CommonVars("wds.linkis.gateway.access.token", "WS-AUTH")
+
+  val DEFAULT_GATEWAY_ACCESS_TOKEN =
+    CommonVars("wds.linkis.gateway.access.token", LINKIS_TOKEN.getValue)
 
   val CONTROL_WORKSPACE_ID_LIST = CommonVars("wds.linkis.gateway.control.workspace.ids", "224")
 
@@ -110,7 +113,17 @@ object GatewayConfiguration {
 
   val LINKIS_CLUSTER_NAME = CommonVars("linkis.cluster.name", "")
 
+  val ENGINE_LOG_ONLY_ADMIN = CommonVars("linkis.engine.log.only.admin", false)
+
   val ENGINECONN_MANAGER_SPRING_NAME =
     CommonVars("wds.linkis.engineconnmanager.name", "linkis-cg-engineconnmanager")
+
+  val ACCESS_CONTROL_ENABLED = CommonVars("linkis.client.access.control.enable", false)
+
+  val ACCESS_CONTROL_URL = CommonVars("linkis.client.access.control.url", "")
+
+  val ACCESS_CONTROL_IP = CommonVars("linkis.client.access.control.ip", "")
+
+  val ACCESS_CONTROL_USER_ENABLED = CommonVars("linkis.client.access.control.user.enable", false)
 
 }

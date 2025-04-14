@@ -28,6 +28,8 @@ public interface HiveMetaDao {
 
   String getLocationByDbAndTable(MetadataQueryParam queryParam);
 
+  Map<String, Object> getStorageInfo(MetadataQueryParam queryParam);
+
   /**
    * get user's roles by username
    *
@@ -53,9 +55,16 @@ public interface HiveMetaDao {
    */
   List<String> getAllDbs();
 
-  List<Map<String, Object>> getTablesByDbNameAndUserAndRoles(MetadataQueryParam queryParam);
+  List<Map<String, Object>> getTablesByDbNameAndUserAndRolesFromDbPrvs(
+      MetadataQueryParam queryParam);
+
+  List<Map<String, Object>> getTablesByDbNameAndUserAndRolesFromTblPrvs(
+      MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getTablesByDbName(MetadataQueryParam queryParam);
+
+  Map<String, Object> getTableInfoByTableNameAndDbName(
+      @Param("tableName") String tableName, @Param("dbName") String dbName);
 
   /**
    * get the table partition's size
@@ -76,4 +85,6 @@ public interface HiveMetaDao {
   List<Map<String, Object>> getPartitionKeys(MetadataQueryParam queryParam);
 
   String getTableComment(@Param("DbName") String DbName, @Param("tableName") String tableName);
+
+  List<String> getCanWriteDbsByUser(@Param("userName") String userName);
 }

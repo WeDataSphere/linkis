@@ -57,6 +57,12 @@ trait EngineStopService {
 
   def engineConnInfoClear(ecNode: EngineNode): Unit
 
+  def stopUnlockECByUserCreatorAndECType(
+      userName: String,
+      creator: String,
+      engineType: String
+  ): Unit
+
 }
 
 object EngineStopService {

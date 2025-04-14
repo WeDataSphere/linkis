@@ -40,16 +40,23 @@ public class EngineTypeLabelCreator {
   }
 
   private static void init() {
-    if (null == defaultVersion) {
+    if (null == defaultVersion) { // NOSONAR
       synchronized (EngineTypeLabelCreator.class) {
         if (null == defaultVersion) {
           defaultVersion = new HashMap<>(16);
-          defaultVersion.put(
-              EngineType.SPARK().toString(), LabelCommonConfig.SPARK_ENGINE_VERSION.getValue());
+          if (LabelCommonConfig.USER_DEFAULT_SPAKR_SWITCH.getValue()) {
+            defaultVersion.put(
+                EngineType.SPARK().toString(), LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue());
+          } else {
+            defaultVersion.put(
+                EngineType.SPARK().toString(), LabelCommonConfig.SPARK_ENGINE_VERSION.getValue());
+          }
           defaultVersion.put(
               EngineType.HIVE().toString(), LabelCommonConfig.HIVE_ENGINE_VERSION.getValue());
           defaultVersion.put(
               EngineType.PYTHON().toString(), LabelCommonConfig.PYTHON_ENGINE_VERSION.getValue());
+          defaultVersion.put(
+              EngineType.REPL().toString(), LabelCommonConfig.REPL_ENGINE_VERSION.getValue());
           defaultVersion.put(
               EngineType.IO_ENGINE_FILE().toString(),
               LabelCommonConfig.FILE_ENGINE_VERSION.getValue());
@@ -69,6 +76,13 @@ public class EngineTypeLabelCreator {
               EngineType.FLINK().toString(), LabelCommonConfig.FLINK_ENGINE_VERSION.getValue());
           defaultVersion.put(
               EngineType.PRESTO().toString(), LabelCommonConfig.PRESTO_ENGINE_VERSION.getValue());
+
+          defaultVersion.put(
+              EngineType.HBASE().toString(), LabelCommonConfig.HBASE_ENGINE_VERSION.getValue());
+          defaultVersion.put(
+              EngineType.NEBULA().toString(), LabelCommonConfig.NEBULA_ENGINE_VERSION.getValue());
+          defaultVersion.put(
+              EngineType.DORIS().toString(), LabelCommonConfig.DORIS_ENGINE_VERSION.getValue());
           defaultVersion.put(
               EngineType.SQOOP().toString(), LabelCommonConfig.SQOOP_ENGINE_VERSION.getValue());
           defaultVersion.put(
@@ -113,5 +127,19 @@ public class EngineTypeLabelCreator {
       init();
     }
     defaultVersion.put(type, version);
+  }
+
+  public static EngineTypeLabel createEngineTypeLabel(String type, String version) {
+    if (null == defaultVersion) {
+      init();
+    }
+    EngineTypeLabel label = labelBuilderFactory.createLabel(EngineTypeLabel.class);
+    label.setEngineType(type);
+    if (StringUtils.isNotBlank(version)) {
+      label.setVersion(version);
+    } else {
+      defaultVersion.get(type);
+    }
+    return label;
   }
 }

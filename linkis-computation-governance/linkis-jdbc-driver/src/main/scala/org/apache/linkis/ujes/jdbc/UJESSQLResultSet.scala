@@ -20,6 +20,7 @@ package org.apache.linkis.ujes.jdbc
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.ujes.client.request.ResultSetAction
 import org.apache.linkis.ujes.client.response.ResultSetResult
+import org.apache.linkis.ujes.client.utils.UJESClientUtils
 
 import org.apache.commons.lang3.StringUtils
 
@@ -76,6 +77,7 @@ class UJESSQLResultSet(
   private var path: String = _
   private var metaData: util.List[util.Map[String, String]] = _
   private val statement: LinkisSQLStatement = ujesStatement
+  private var nextResultSet: UJESSQLResultSet = _
 
   private val connection: LinkisSQLConnection =
     ujesStatement.getConnection.asInstanceOf[LinkisSQLConnection]
@@ -102,7 +104,15 @@ class UJESSQLResultSet(
 
   private def getResultSetPath(resultSetList: Array[String]): String = {
     if (resultSetList.length > 0) {
-      resultSetList(resultSetList.length - 1)
+      val enableMultiResult = connection.getProps.getProperty(UJESSQLDriverMain.ENABLE_MULTI_RESULT)
+      enableMultiResult match {
+        case "Y" =>
+          // 配置开启时，返回首个结果集
+          resultSetList(0)
+        case _ =>
+          // 配置关闭时，返回以最后一个结果集为准
+          resultSetList(resultSetList.length - 1)
+      }
     } else {
       ""
     }
@@ -110,6 +120,12 @@ class UJESSQLResultSet(
 
   private def resultSetResultInit(): Unit = {
     if (path == null) path = getResultSetPath(resultSetList)
+    // 设置下一个结果集
+    val enableMultiResult = connection.getProps.getProperty(UJESSQLDriverMain.ENABLE_MULTI_RESULT)
+    if (resultSetList.length > 1 && "Y".equals(enableMultiResult)) {
+      this.nextResultSet =
+        new UJESSQLResultSet(resultSetList.drop(1), this.statement, maxRows, fetchSize)
+    }
     val user = connection.getProps.getProperty("user")
     if (StringUtils.isNotBlank(path)) {
       val resultAction =
@@ -159,12 +175,25 @@ class UJESSQLResultSet(
     if (null == resultSetResult) {
       return
     }
-    metaData = resultSetResult.getMetadata.asInstanceOf[util.List[util.Map[String, String]]]
-    for (cursor <- 1 to metaData.size()) {
-      val col = metaData.get(cursor - 1)
-      resultSetMetaData.setColumnNameProperties(cursor, col.get("columnName"))
-      resultSetMetaData.setDataTypeProperties(cursor, col.get("dataType"))
-      resultSetMetaData.setCommentPropreties(cursor, col.get("comment"))
+    val metaTmp = resultSetResult.getMetadata
+    if (NULL_VALUE.equals(String.valueOf(metaTmp))) {
+      val fileContentList =
+        resultSetResult.getFileContent.asInstanceOf[util.List[util.List[String]]]
+      if (null != fileContentList) {
+        resultSetMetaData.setColumnNameProperties(1, "linkis_string")
+        resultSetMetaData.setDataTypeProperties(1, "String")
+        resultSetMetaData.setCommentPropreties(1, NULL_VALUE)
+      }
+    } else {
+      metaData = metaTmp.asInstanceOf[util.List[util.Map[String, String]]]
+      if (null != metaData) {
+        for (cursor <- 1 to metaData.size()) {
+          val col = metaData.get(cursor - 1)
+          resultSetMetaData.setColumnNameProperties(cursor, col.get("columnName"))
+          resultSetMetaData.setDataTypeProperties(cursor, col.get("dataType"))
+          resultSetMetaData.setCommentPropreties(cursor, col.get("comment"))
+        }
+      }
     }
   }
 
@@ -233,36 +262,7 @@ class UJESSQLResultSet(
   }
 
   private def evaluate(dataType: String, value: String): Any = {
-
-    if (value == null || value.equals("null") || value.equals("NULL") || value.equals("Null")) {
-      dataType.toLowerCase(Locale.getDefault) match {
-        case "string" | "char" | "varchar" | "nvarchar" => value
-        case _ => null
-      }
-    } else {
-      dataType.toLowerCase(Locale.getDefault) match {
-        case null => throw new LinkisSQLException(LinkisSQLErrorCode.METADATA_EMPTY)
-        case "char" | "varchar" | "nvarchar" | "string" => value
-        case "short" => value.toShort
-        case "int" => value.toInt
-        case "long" => value.toLong
-        case "float" => value.toFloat
-        case "double" => value.toDouble
-        case "boolean" => value.toBoolean
-        case "byte" => value.toByte
-        case "timestamp" => value
-        case "date" => value
-        case "bigint" => value.toLong
-        case "decimal" => value.toDouble
-        case "array" => value.toArray
-        case "map" => value
-        case _ =>
-          throw new LinkisSQLException(
-            LinkisSQLErrorCode.PREPARESTATEMENT_TYPEERROR,
-            s"Can't infer the SQL type to use for an instance of ${dataType}. Use getObject() with an explicit Types value to specify the type to use"
-          )
-      }
-    }
+    UJESClientUtils.evaluate(dataType, value)
   }
 
   private def getColumnValue(columnIndex: Int): Any = {
@@ -297,6 +297,10 @@ class UJESSQLResultSet(
         case _ => any.asInstanceOf[String]
       }
     }
+  }
+
+  def clearNextResultSet: Any = {
+    this.nextResultSet = null
   }
 
   override def getBoolean(columnIndex: Int): Boolean = {
@@ -678,6 +682,8 @@ class UJESSQLResultSet(
     updateCurrentRow(currentRowCursor)
     true
   }
+
+  def getNextResultSet: UJESSQLResultSet = this.nextResultSet
 
   override def setFetchDirection(direction: Int): Unit = {
     throw new LinkisSQLException(LinkisSQLErrorCode.NOSUPPORT_RESULTSET)

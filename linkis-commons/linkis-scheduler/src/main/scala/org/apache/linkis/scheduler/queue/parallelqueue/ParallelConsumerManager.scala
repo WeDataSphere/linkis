@@ -19,14 +19,24 @@ package org.apache.linkis.scheduler.queue.parallelqueue
 
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.scheduler.conf.SchedulerConfiguration
+import org.apache.linkis.scheduler.conf.SchedulerConfiguration.{
+  FIFO_QUEUE_STRATEGY,
+  PFIFO_SCHEDULER_STRATEGY
+}
 import org.apache.linkis.scheduler.listener.ConsumerListener
 import org.apache.linkis.scheduler.queue._
 import org.apache.linkis.scheduler.queue.fifoqueue.FIFOUserConsumer
+import org.apache.linkis.scheduler.util.SchedulerUtils.isSupportPriority
 
 import java.util.concurrent.{ExecutorService, TimeUnit}
 
 import scala.collection.mutable
 
+/**
+ * @param maxParallelismUsers
+ *   Consumer Thread pool size is：5 * maxParallelismUsers + 1
+ * @param schedulerName
+ */
 class ParallelConsumerManager(maxParallelismUsers: Int, schedulerName: String)
     extends ConsumerManager
     with Logging {
@@ -106,7 +116,16 @@ class ParallelConsumerManager(maxParallelismUsers: Int, schedulerName: String)
                 val newConsumer = createConsumer(groupName)
                 val group = getSchedulerContext.getOrCreateGroupFactory.getGroup(groupName)
                 newConsumer.setGroup(group)
-                newConsumer.setConsumeQueue(new LoopArrayQueue(group))
+                // 需要判断人员是否是指定部门
+                val consumerQueue: ConsumeQueue =
+                  if (
+                      PFIFO_SCHEDULER_STRATEGY
+                        .equalsIgnoreCase(FIFO_QUEUE_STRATEGY) && isSupportPriority(groupName)
+                  ) {
+                    logger.info(s"use priority queue: ${groupName}")
+                    new PriorityLoopArrayQueue(group)
+                  } else new LoopArrayQueue(group)
+                newConsumer.setConsumeQueue(consumerQueue)
                 consumerListener.foreach(_.onConsumerCreated(newConsumer))
                 newConsumer.start()
                 newConsumer
@@ -126,8 +145,8 @@ class ParallelConsumerManager(maxParallelismUsers: Int, schedulerName: String)
 
   override def destroyConsumer(groupName: String): Unit =
     consumerGroupMap.get(groupName).foreach { tmpConsumer =>
-      tmpConsumer.shutdown()
-      consumerGroupMap.remove(groupName)
+      Utils.tryAndWarn(tmpConsumer.shutdown())
+      Utils.tryAndWarn(consumerGroupMap.remove(groupName))
       consumerListener.foreach(_.onConsumerDestroyed(tmpConsumer))
       logger.warn(s"Consumer of group ($groupName) in $schedulerName is destroyed.")
     }

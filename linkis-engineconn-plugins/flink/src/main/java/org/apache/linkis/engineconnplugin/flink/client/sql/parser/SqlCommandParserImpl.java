@@ -228,9 +228,9 @@ public class SqlCommandParserImpl implements SqlCommandParser {
   private static SqlCommandParser sqlCommandParser;
 
   public static SqlCommandParser getInstance() {
-    if (sqlCommandParser == null) {
-      synchronized (OperationFactory.class) {
-        if (sqlCommandParser == null) {
+    if (sqlCommandParser == null) { // NOSONAR
+      synchronized (OperationFactory.class) { // NOSONAR
+        if (sqlCommandParser == null) { // NOSONAR
           sqlCommandParser =
               ClassUtil.getInstance(SqlCommandParser.class, new SqlCommandParserImpl());
         }

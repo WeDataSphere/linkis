@@ -23,4 +23,15 @@ trait TenantConf extends RequestProtocol
 
 case class TenantRequest(user: String, creator: String) extends TenantConf
 
-case class TenantResponse(user: String, creator: String, tenant: String)
+case class TenantResponse(user: String, creator: String, isValid: String, tenant: String)
+
+case class DepartTenantRequest(creator: String, departmentId: String, departmentName: String)
+    extends TenantConf
+
+case class DepartTenantResponse(
+    creator: String,
+    departmentId: String,
+    departmentName: String,
+    isValid: String,
+    tenant: String
+)

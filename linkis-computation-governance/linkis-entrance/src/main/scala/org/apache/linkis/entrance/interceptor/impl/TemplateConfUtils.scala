@@ -27,6 +27,7 @@ import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.governance.common.protocol.conf.{TemplateConfRequest, TemplateConfResponse}
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
+import org.apache.linkis.manager.label.entity.engine.FixedEngineConnLabel
 import org.apache.linkis.manager.label.entity.entrance.ExecuteOnceLabel
 import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.utils.TaskUtils
@@ -38,12 +39,14 @@ import java.{lang, util}
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
+import scala.util.matching.{Regex, UnanchoredRegex}
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
 
 object TemplateConfUtils extends Logging {
 
   val confTemplateNameKey = "ec.resource.name"
+  val confFixedEngineConnLabelKey = "ec.fixed.sessionId"
 
   private val templateCache: LoadingCache[String, util.List[TemplateConfKey]] = CacheBuilder
     .newBuilder()
@@ -120,62 +123,98 @@ object TemplateConfUtils extends Logging {
    * @return
    *   String the last one of template conf name
    */
-  def getCustomTemplateConfName(code: String, codeType: String): String = {
+  def getCustomTemplateConfName(
+      jobRequest: JobRequest,
+      codeType: String,
+      logAppender: lang.StringBuilder
+  ): String = {
+    var code = jobRequest.getExecutionCode
     var templateConfName = "";
 
     var varString: String = null
     var errString: String = null
-    var rightVarString: String = null
+    var fixECString: String = null
 
     val languageType = CodeAndRunTypeUtils.getLanguageTypeByCodeType(codeType)
 
     languageType match {
       case CodeAndRunTypeUtils.LANGUAGE_TYPE_SQL =>
         varString = s"""\\s*---@set ${confTemplateNameKey}=\\s*.+\\s*"""
+        fixECString = s"""\\s*---@set\\s+${confFixedEngineConnLabelKey}\\s*=\\s*([^;]+)(?:\\s*;)?"""
         errString = """\s*---@.*"""
       case CodeAndRunTypeUtils.LANGUAGE_TYPE_PYTHON | CodeAndRunTypeUtils.LANGUAGE_TYPE_SHELL =>
         varString = s"""\\s*##@set ${confTemplateNameKey}=\\s*.+\\s*"""
+        fixECString = s"""\\s*##@set\\s+${confFixedEngineConnLabelKey}\\s*=\\s*([^;]+)(?:\\s*;)?"""
         errString = """\s*##@"""
       case CodeAndRunTypeUtils.LANGUAGE_TYPE_SCALA =>
         varString = s"""\\s*///@set ${confTemplateNameKey}=\\s*.+\\s*"""
+        fixECString = s"""\\s*///@set\\s+${confFixedEngineConnLabelKey}\\s*=\\s*([^;]+)(?:\\s*;)?"""
         errString = """\s*///@.+"""
       case _ =>
         return templateConfName
     }
 
     val customRegex = varString.r.unanchored
+    val fixECRegex: UnanchoredRegex = fixECString.r.unanchored
     val errRegex = errString.r.unanchored
     var codeRes = code.replaceAll("\r\n", "\n")
-    // only allow set at fisrt line
-    val res = codeRes.split("\n")
-    if (res.size > 0) {
-      val str = res(0)
-      str match {
-        case customRegex() =>
-          val clearStr = if (str.endsWith(";")) str.substring(0, str.length - 1) else str
-          val res: Array[String] = clearStr.split("=")
-          if (res != null && res.length == 2) {
-            templateConfName = res(1).trim
-            logger.info(s"get template conf name $templateConfName")
-          } else {
-            if (res.length > 2) {
-              throw new LinkisCommonErrorException(
-                20044,
-                s"$str template conf name var defined uncorrectly"
+
+    // 匹配任意行，只能是单独的行
+    if (codeRes.contains(confTemplateNameKey) || codeRes.contains(confFixedEngineConnLabelKey)) {
+      val res = codeRes.split("\n")
+      // 用于标识，匹配到就退出
+      var matchFlag = false
+      res.foreach(str => {
+        if (matchFlag) {
+          return templateConfName
+        }
+        str match {
+          case customRegex() =>
+            val clearStr = if (str.endsWith(";")) str.substring(0, str.length - 1) else str
+            val res: Array[String] = clearStr.split("=")
+            if (res != null && res.length == 2) {
+              templateConfName = res(1).trim
+              logger.info(s"get template conf name $templateConfName")
+            } else {
+              if (res.length > 2) {
+                throw new LinkisCommonErrorException(
+                  20044,
+                  s"$str template conf name var defined uncorrectly"
+                )
+              } else {
+                throw new LinkisCommonErrorException(
+                  20045,
+                  s"template conf name var  was defined uncorrectly:$str"
+                )
+              }
+            }
+            matchFlag = true
+          case fixECRegex(sessionId) =>
+            // deal with fixedEngineConn configuration, add fixedEngineConn label if setting @set ec.fixed.sessionId=xxx
+            if (StringUtils.isNotBlank(sessionId)) {
+              val fixedEngineConnLabel =
+                LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(
+                  classOf[FixedEngineConnLabel]
+                )
+              fixedEngineConnLabel.setSessionId(sessionId)
+              jobRequest.getLabels.add(fixedEngineConnLabel)
+              logger.info(
+                s"The task ${jobRequest.getId} is set to fixed engine conn, labelValue: ${sessionId}"
+              )
+              logAppender.append(
+                s"The task ${jobRequest.getId} is set to fixed engine conn, labelValue: ${sessionId}"
               )
             } else {
-              throw new LinkisCommonErrorException(
-                20045,
-                s"template conf name var  was defined uncorrectly:$str"
-              )
+              logger.info(s"The task ${jobRequest.getId} not set fixed engine conn")
             }
-          }
-        case errRegex() =>
-          logger.warn(
-            s"The template conf name var definition is incorrect:$str,if it is not used, it will not run the error, but it is recommended to use the correct specification to define"
-          )
-        case _ =>
-      }
+            matchFlag = true
+          case errRegex() =>
+            logger.warn(
+              s"The template conf name var definition is incorrect:$str,if it is not used, it will not run the error, but it is recommended to use the correct specification to define"
+            )
+          case _ =>
+        }
+      })
     }
     templateConfName
   }
@@ -192,8 +231,7 @@ object TemplateConfUtils extends Logging {
         val (user, creator) = LabelUtil.getUserCreator(jobRequest.getLabels)
         if (EntranceConfiguration.DEFAULT_REQUEST_APPLICATION_NAME.getValue.equals(creator)) {
           val codeType = LabelUtil.getCodeType(jobRequest.getLabels)
-          templateName =
-            TemplateConfUtils.getCustomTemplateConfName(jobRequest.getExecutionCode, codeType)
+          templateName = getCustomTemplateConfName(jobRequest, codeType, logAppender)
         }
 
         // code template name > start params template uuid
@@ -209,7 +247,7 @@ object TemplateConfUtils extends Logging {
             logger.info("try to get template conf list with template uid:{} ", templateUuid)
             logAppender.append(
               LogUtils
-                .generateInfo(s"Try to get template conf data with template uid:$templateUuid\nn")
+                .generateInfo(s"Try to get template conf data with template uid:$templateUuid\n")
             )
             templateConflist = templateCache.get(templateUuid)
             if (templateConflist == null || templateConflist.size() == 0) {
@@ -218,6 +256,8 @@ object TemplateConfUtils extends Logging {
                   s"Can not get any template conf data with template uid:$templateUuid\n"
                 )
               )
+            } else {
+              templateName = templateConflist.get(0).getTemplateName
             }
           }
         } else {
@@ -237,12 +277,14 @@ object TemplateConfUtils extends Logging {
             // to remove metedata start param
             TaskUtils.clearStartupMap(params)
 
-            val onceLabel =
-              LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(
-                classOf[ExecuteOnceLabel]
-              )
-            logger.info("Add once label for task id:{}", requestPersistTask.getId.toString)
-            requestPersistTask.getLabels.add(onceLabel)
+            if (EntranceConfiguration.TEMPLATE_CONF_ADD_ONCE_LABEL_ENABLE.getValue) {
+              val onceLabel =
+                LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(
+                  classOf[ExecuteOnceLabel]
+                )
+              logger.info("Add once label for task id:{}", requestPersistTask.getId.toString)
+              requestPersistTask.getLabels.add(onceLabel)
+            }
           }
         }
 
@@ -264,10 +306,14 @@ object TemplateConfUtils extends Logging {
 
           })
           if (keyList.size() > 0) {
+            keyList.put(confTemplateNameKey, templateName)
+            logAppender.append(
+              LogUtils
+                .generateInfo(s"use template conf with templateName: ${templateName} \n")
+            )
             TaskUtils.addStartupMap(params, keyList)
           }
         }
-
       case _ =>
     }
     jobRequest

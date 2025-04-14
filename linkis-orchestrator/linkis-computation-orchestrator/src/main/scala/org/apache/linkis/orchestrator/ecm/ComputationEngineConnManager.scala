@@ -22,6 +22,7 @@ import org.apache.linkis.common.exception.LinkisRetryException
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
+import org.apache.linkis.manager.common.constant.AMConstant
 import org.apache.linkis.manager.common.entity.node.EngineNode
 import org.apache.linkis.manager.common.protocol.engine.{
   EngineAskAsyncResponse,
@@ -84,7 +85,7 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
       execTask: CodeLogicalUnitExecTask
   ): EngineConnExecutor = {
     engineAskRequest.setTimeOut(getEngineConnApplyTime)
-    var count = getEngineConnApplyAttempts()
+    var count = getEngineConnApplyAttempts() + 1
     var retryException: LinkisRetryException = null
     while (count >= 1) {
       count = count - 1
@@ -115,8 +116,13 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
             s"${mark.getMarkId()} Failed to askEngineAskRequest time taken ($taken), ${t.getMessage}"
           )
           retryException = t
+          Thread.sleep(5000)
           // add isCrossClusterRetryException flag
-          engineAskRequest.getProperties.put("isCrossClusterRetryException", "true")
+          if (retryException.getDesc.contains(AMConstant.ORIGIN_CLUSTER_RETRY_DES)) {
+            engineAskRequest.getProperties.put(AMConstant.ORIGIN_CLUSTER_RETRY, "true")
+          } else {
+            engineAskRequest.getProperties.put(AMConstant.TARGET_CLUSTER_RETRY, "true")
+          }
 
         case t: Throwable =>
           val taken = ByteTimeUtils.msDurationToString(System.currentTimeMillis - start)
@@ -154,6 +160,18 @@ class ComputationEngineConnManager extends AbstractEngineConnManager with Loggin
     }
 
     response match {
+      case EngineCreateError(id, exception, retry) =>
+        if (retry) {
+          throw new LinkisRetryException(
+            ECMPluginConf.ECM_ENGNE_CREATION_ERROR_CODE,
+            id + " Failed  to async get EngineNode " + exception
+          )
+        } else {
+          throw new ECMPluginErrorException(
+            ECMPluginConf.ECM_ENGNE_CREATION_ERROR_CODE,
+            id + " Failed  to async get EngineNode " + exception
+          )
+        }
       case engineNode: EngineNode =>
         logger.debug(s"Succeed to reuse engineNode $engineNode mark ${mark.getMarkId()}")
         (engineNode, true)

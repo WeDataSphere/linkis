@@ -149,6 +149,16 @@ export default [
       },
     },
     {
+      name: 'eurekaService',
+      path: 'eurekaService',
+      component: () =>
+        import('./module/eurekaService/index.vue'),
+      meta: {
+        title: 'eurekaService',
+        publicPage: true,
+      },
+    },
+    {
       name: 'datasource',
       path: 'datasource',
       component: () =>
@@ -165,6 +175,16 @@ export default [
         import('./module/tenantTagManagement/index.vue'),
       meta: {
         title: 'tenantTagManagement',
+        publicPage: true,
+      }
+    },
+    {
+      name: 'departmentTagManagement',
+      path: 'departmentTagManagement',
+      component: () =>
+        import('./module/departmentTagManagement/index.vue'),
+      meta: {
+        title: 'departmentTagManagement',
         publicPage: true,
       }
     },
@@ -245,6 +265,16 @@ export default [
         import('./module/udfTree/index.vue'),
       meta: {
         title: 'udfTree',
+        publicPage: true,
+      },
+    },
+    {
+      name: 'pythonModule',
+      path: 'pythonModule',
+      component: () =>
+        import('./module/pythonModule/index.vue'),
+      meta: {
+        title: 'pythonModule',
         publicPage: true,
       },
     },

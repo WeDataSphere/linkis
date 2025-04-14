@@ -17,7 +17,7 @@
 
 package org.apache.linkis.manager.rm.service.impl
 
-import org.apache.linkis.manager.am.conf.AMConfiguration
+import org.apache.linkis.manager.am.vo.CanCreateECRes
 import org.apache.linkis.manager.common.constant.RMConstant
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.entity.resource.ResourceType.DriverAndYarn
@@ -28,20 +28,56 @@ import org.apache.linkis.manager.rm.exception.RMErrorCode
 import org.apache.linkis.manager.rm.external.service.ExternalResourceService
 import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
 import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService}
-import org.apache.linkis.manager.rm.utils.{AcrossClusterRulesJudgeUtils, RMUtils}
-
-import org.apache.commons.lang3.StringUtils
-
-import org.json4s.DefaultFormats
+import org.apache.linkis.manager.rm.utils.AcrossClusterRulesJudgeUtils.{
+  originClusterResourceCheck,
+  targetClusterResourceCheck
+}
+import org.apache.linkis.manager.rm.utils.RMUtils
 
 class DriverAndYarnReqResourceService(
     labelResourceService: LabelResourceService,
     externalResourceService: ExternalResourceService
 ) extends RequestResourceService(labelResourceService) {
 
-  implicit val formats = DefaultFormats + ResourceSerializer
-
   override val resourceType: ResourceType = DriverAndYarn
+
+  override def canRequestResource(
+      labelContainer: RMLabelContainer,
+      resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest
+  ): CanCreateECRes = {
+    val canCreateECRes = super.canRequestResource(labelContainer, resource, engineCreateRequest)
+    if (!canCreateECRes.isCanCreateEC) {
+      return canCreateECRes
+    }
+    val requestedDriverAndYarnResource =
+      resource.getMaxResource.asInstanceOf[DriverAndYarnResource]
+    val requestedYarnResource = requestedDriverAndYarnResource.getYarnResource
+    val yarnIdentifier = new YarnResourceIdentifier(requestedYarnResource.getQueueName)
+    val providedYarnResource =
+      externalResourceService.getResource(ResourceType.Yarn, labelContainer, yarnIdentifier)
+    val (maxCapacity, usedCapacity) =
+      (providedYarnResource.getMaxResource, providedYarnResource.getUsedResource)
+    logger.debug(
+      s"This queue: ${requestedYarnResource.getQueueName} used resource:$usedCapacity and max resource: $maxCapacity"
+    )
+    val queueLeftResource = maxCapacity.minus(usedCapacity)
+    logger.info(
+      s"queue: ${requestedYarnResource.getQueueName} left $queueLeftResource, this request requires: $requestedYarnResource"
+    )
+    if (!queueLeftResource.notLess(requestedYarnResource)) {
+      logger.info(
+        s"user: ${labelContainer.getUserCreatorLabel.getUser} request queue resource $requestedYarnResource > left resource $queueLeftResource"
+      )
+
+      val notEnoughMessage =
+        generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
+      canCreateECRes.setCanCreateEC(false);
+      canCreateECRes.setReason(notEnoughMessage._2)
+    }
+    canCreateECRes.setYarnResource(RMUtils.serializeResource(queueLeftResource))
+    canCreateECRes
+  }
 
   override def canRequest(
       labelContainer: RMLabelContainer,
@@ -51,23 +87,26 @@ class DriverAndYarnReqResourceService(
     if (!super.canRequest(labelContainer, resource, engineCreateRequest)) {
       return false
     }
-
     val requestedDriverAndYarnResource =
       resource.getMaxResource.asInstanceOf[DriverAndYarnResource]
-    val requestedYarnResource = requestedDriverAndYarnResource.yarnResource
-    val yarnIdentifier = new YarnResourceIdentifier(requestedYarnResource.queueName)
+    val requestedYarnResource = requestedDriverAndYarnResource.getYarnResource
+    val yarnIdentifier = new YarnResourceIdentifier(requestedYarnResource.getQueueName)
     val providedYarnResource =
       externalResourceService.getResource(ResourceType.Yarn, labelContainer, yarnIdentifier)
     val (maxCapacity, usedCapacity) =
       (providedYarnResource.getMaxResource, providedYarnResource.getUsedResource)
     logger.debug(
-      s"This queue: ${requestedYarnResource.queueName} used resource:$usedCapacity and max resource: $maxCapacity"
+      s"This queue: ${requestedYarnResource.getQueueName} used resource:$usedCapacity and max resource: $maxCapacity"
     )
-    val queueLeftResource = maxCapacity - usedCapacity
+    val queueLeftResource = maxCapacity.minus(usedCapacity)
     logger.info(
-      s"queue: ${requestedYarnResource.queueName} left $queueLeftResource, this request requires: $requestedYarnResource"
+      s"queue: ${requestedYarnResource.getQueueName} left $queueLeftResource, this request requires: $requestedYarnResource"
     )
-    if (queueLeftResource < requestedYarnResource) {
+    if (engineCreateRequest.getProperties != null) {
+      // judge if is cross cluster task and origin cluster priority first
+      originClusterResourceCheck(engineCreateRequest, maxCapacity, usedCapacity)
+    }
+    if (!queueLeftResource.notLess(requestedYarnResource)) {
       logger.info(
         s"user: ${labelContainer.getUserCreatorLabel.getUser} request queue resource $requestedYarnResource > left resource $queueLeftResource"
       )
@@ -75,76 +114,16 @@ class DriverAndYarnReqResourceService(
         generateQueueNotEnoughMessage(requestedYarnResource, queueLeftResource, maxCapacity)
       throw new RMWarnException(notEnoughMessage._1, notEnoughMessage._2)
     }
-
     if (engineCreateRequest.getProperties != null) {
-      val user = labelContainer.getUserCreatorLabel.getUser
-      val creator = labelContainer.getUserCreatorLabel.getCreator
-      val properties = engineCreateRequest.getProperties
-      val acrossClusterTask = properties.getOrDefault(AMConfiguration.ACROSS_CLUSTER_TASK, "false")
-      val CPUThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_CPU_THRESHOLD)
-      val MemoryThreshold = properties.get(AMConfiguration.ACROSS_CLUSTER_MEMORY_THRESHOLD)
-      val CPUPercentageThreshold =
-        properties.get(AMConfiguration.ACROSS_CLUSTER_CPU_PERCENTAGE_THRESHOLD)
-      val MemoryPercentageThreshold =
-        properties.get(AMConfiguration.ACROSS_CLUSTER_MEMORY_PERCENTAGE_THRESHOLD)
-
-      if (
-          StringUtils.isNotBlank(acrossClusterTask) && acrossClusterTask.toBoolean && StringUtils
-            .isNotBlank(CPUThreshold) && StringUtils
-            .isNotBlank(MemoryThreshold)
-          && StringUtils
-            .isNotBlank(CPUPercentageThreshold) && StringUtils.isNotBlank(MemoryPercentageThreshold)
-      ) {
-
-        val clusterYarnResource =
-          externalResourceService.getResource(
-            ResourceType.Yarn,
-            labelContainer,
-            new YarnResourceIdentifier("root")
-          )
-        val (clusterMaxCapacity, clusterUsedCapacity) =
-          (clusterYarnResource.getMaxResource, clusterYarnResource.getUsedResource)
-
-        val clusterCPUPercentageThreshold =
-          AMConfiguration.ACROSS_CLUSTER_TOTAL_CPU_PERCENTAGE_THRESHOLD
-        val clusterMemoryPercentageThreshold =
-          AMConfiguration.ACROSS_CLUSTER_TOTAL_MEMORY_PERCENTAGE_THRESHOLD
-
-        logger.info(
-          s"user: $user, creator: $creator task enter cross cluster resource judgment, " +
-            s"CPUThreshold: $CPUThreshold, MemoryThreshold: $MemoryThreshold," +
-            s"CPUPercentageThreshold: $CPUPercentageThreshold, MemoryPercentageThreshold: $MemoryPercentageThreshold" +
-            s"clusterCPUPercentageThreshold: $clusterCPUPercentageThreshold, clusterMemoryPercentageThreshold: $clusterMemoryPercentageThreshold"
-        )
-
-        try {
-          AcrossClusterRulesJudgeUtils.acrossClusterRuleCheck(
-            queueLeftResource.asInstanceOf[YarnResource],
-            usedCapacity.asInstanceOf[YarnResource],
-            maxCapacity.asInstanceOf[YarnResource],
-            clusterMaxCapacity.asInstanceOf[YarnResource],
-            clusterUsedCapacity.asInstanceOf[YarnResource],
-            CPUThreshold.toInt,
-            MemoryThreshold.toInt,
-            CPUPercentageThreshold.toDouble,
-            MemoryPercentageThreshold.toDouble,
-            clusterCPUPercentageThreshold,
-            clusterMemoryPercentageThreshold
-          )
-        } catch {
-          case ex: Exception =>
-            throw new RMWarnException(
-              RMErrorCode.ACROSS_CLUSTER_RULE_FAILED.getErrorCode,
-              ex.getMessage
-            )
-        }
-
-        logger.info(s"user: $user, creator: $creator task meet the threshold rule")
-      } else {
-        logger.info(s"user: $user, creator: $creator task skip cross cluster resource judgment")
-      }
+      // judge if is cross cluster task and target cluster priority first
+      targetClusterResourceCheck(
+        labelContainer,
+        engineCreateRequest,
+        maxCapacity,
+        usedCapacity,
+        externalResourceService
+      )
     }
-
     true
   }
 
@@ -157,30 +136,30 @@ class DriverAndYarnReqResourceService(
       case yarn: YarnResource =>
         val yarnAvailable = availableResource.asInstanceOf[YarnResource]
         val maxYarn = maxResource.asInstanceOf[YarnResource]
-        if (yarn.queueCores > yarnAvailable.queueCores) {
+        if (yarn.getQueueCores > yarnAvailable.getQueueCores) {
           (
             RMErrorCode.CLUSTER_QUEUE_CPU_INSUFFICIENT.getErrorCode,
             RMErrorCode.CLUSTER_QUEUE_CPU_INSUFFICIENT.getErrorDesc +
               RMUtils.getResourceInfoMsg(
                 RMConstant.CPU,
                 RMConstant.CPU_UNIT,
-                yarn.queueCores,
-                yarnAvailable.queueCores,
-                maxYarn.queueCores,
-                yarn.queueName
+                yarn.getQueueCores,
+                yarnAvailable.getQueueCores,
+                maxYarn.getQueueCores,
+                yarn.getQueueName
               )
           )
-        } else if (yarn.queueMemory > yarnAvailable.queueMemory) {
+        } else if (yarn.getQueueMemory > yarnAvailable.getQueueMemory) {
           (
             RMErrorCode.CLUSTER_QUEUE_MEMORY_INSUFFICIENT.getErrorCode,
             RMErrorCode.CLUSTER_QUEUE_MEMORY_INSUFFICIENT.getErrorDesc +
               RMUtils.getResourceInfoMsg(
                 RMConstant.MEMORY,
                 RMConstant.MEMORY_UNIT_BYTE,
-                yarn.queueMemory,
-                yarnAvailable.queueMemory,
-                maxYarn.queueMemory,
-                yarn.queueName
+                yarn.getQueueMemory,
+                yarnAvailable.getQueueMemory,
+                maxYarn.getQueueMemory,
+                yarn.getQueueName
               )
           )
         } else {
@@ -190,10 +169,10 @@ class DriverAndYarnReqResourceService(
               RMUtils.getResourceInfoMsg(
                 RMConstant.APP_INSTANCE,
                 RMConstant.INSTANCE_UNIT,
-                yarn.queueInstances,
-                yarnAvailable.queueInstances,
-                maxYarn.queueInstances,
-                yarn.queueName
+                yarn.getQueueInstances,
+                yarnAvailable.getQueueInstances,
+                maxYarn.getQueueInstances,
+                yarn.getQueueName
               )
           )
         }

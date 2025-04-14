@@ -42,6 +42,9 @@ object AccessibleExecutorConfiguration {
   val ENGINECONN_LOCK_CHECK_INTERVAL =
     CommonVars("wds.linkis.engineconn.lock.free.interval", new TimeType("3m"))
 
+  val ENGINECONN_ENABLED_LOCK_IDLE_TIME_OUT =
+    CommonVars("linkis.engineconn.enabled.lock.timeout.release", true)
+
   val ENGINECONN_SUPPORT_PARALLELISM =
     CommonVars("wds.linkis.engineconn.support.parallelism", false)
 
@@ -66,5 +69,11 @@ object AccessibleExecutorConfiguration {
     3,
     "Heartbeat status report repeated ignore, default 3ms,Negative numbers do not take effect"
   ).getValue
+
+  val ENGINECONN_AUTO_EXIT =
+    CommonVars("linkis.engineconn.support.auto.exit", false).getValue
+
+  val ENGINECONN_AUTO_EXIT_DAYS =
+    CommonVars("linkis.engineconn.auto.exit.days", 7).getValue
 
 }

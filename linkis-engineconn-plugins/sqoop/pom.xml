@@ -40,7 +40,7 @@
     <!--linkis datasource client-->
     <dependency>
       <groupId>org.apache.linkis</groupId>
-      <artifactId>linkis-datasource-client</artifactId>
+      <artifactId>linkis-pes-client</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
@@ -63,7 +63,7 @@
     <dependency>
       <groupId>org.apache.avro</groupId>
       <artifactId>avro</artifactId>
-      <version>1.11.0</version>
+      <version>1.11.3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hive</groupId>
@@ -227,7 +227,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <dependency>
+      <groupId>com.sun.jersey.contribs</groupId>
+      <artifactId>jersey-apache-client4</artifactId>
+      <version>${jersey.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

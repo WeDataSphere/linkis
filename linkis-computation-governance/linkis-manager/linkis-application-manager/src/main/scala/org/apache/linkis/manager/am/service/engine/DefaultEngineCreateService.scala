@@ -18,7 +18,6 @@
 package org.apache.linkis.manager.am.service.engine
 
 import org.apache.linkis.common.ServiceInstance
-import org.apache.linkis.common.conf.CommonVars
 import org.apache.linkis.common.exception.LinkisRetryException
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.engineplugin.server.service.EngineConnResourceFactoryService
@@ -27,8 +26,9 @@ import org.apache.linkis.governance.common.conf.GovernanceCommonConf.ENGINE_CONN
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.am.conf.{AMConfiguration, EngineConnConfigurationService}
 import org.apache.linkis.manager.am.exception.AMErrorException
-import org.apache.linkis.manager.am.label.EngineReuseLabelChooser
+import org.apache.linkis.manager.am.label.{EngineReuseLabelChooser, LabelChecker}
 import org.apache.linkis.manager.am.selector.{ECAvailableRule, NodeSelector}
+import org.apache.linkis.manager.am.vo.CanCreateECRes
 import org.apache.linkis.manager.common.constant.AMConstant
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{EMNode, EngineNode}
@@ -49,7 +49,7 @@ import org.apache.linkis.manager.label.utils.LabelUtils
 import org.apache.linkis.manager.persistence.NodeMetricManagerPersistence
 import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource}
 import org.apache.linkis.manager.rm.service.ResourceManager
-import org.apache.linkis.manager.service.common.label.{LabelChecker, LabelFilter}
+import org.apache.linkis.manager.service.common.label.LabelFilter
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 import org.apache.linkis.server.BDPJettyServerHelper
@@ -104,25 +104,13 @@ class DefaultEngineCreateService
   @Autowired
   private var engineStopService: EngineStopService = _
 
-  @Receiver
-  @throws[LinkisRetryException]
-  override def createEngine(
-      engineCreateRequest: EngineCreateRequest,
-      sender: Sender
-  ): EngineNode = {
-    val startTime = System.currentTimeMillis
-    val taskId = JobUtils.getJobIdFromStringMap(engineCreateRequest.getProperties)
-    logger.info(s"Task: $taskId start to create Engine for request: $engineCreateRequest.")
-    val labelBuilderFactory = LabelBuilderFactoryContext.getLabelBuilderFactory
-    val timeout =
-      if (engineCreateRequest.getTimeout <= 0) {
-        AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
-      } else engineCreateRequest.getTimeout
+  private val labelBuilderFactory = LabelBuilderFactoryContext.getLabelBuilderFactory
 
+  def buildLabel(labels: util.Map[String, AnyRef], user: String): util.List[Label[_]] = {
     // 1. Check if Label is valid
     var labelList: util.List[Label[_]] = LabelUtils.distinctLabel(
-      labelBuilderFactory.getLabels(engineCreateRequest.getLabels),
-      userLabelService.getUserLabels(engineCreateRequest.getUser)
+      labelBuilderFactory.getLabels(labels),
+      userLabelService.getUserLabels(user)
     )
 
     // label chooser
@@ -140,7 +128,13 @@ class DefaultEngineCreateService
         )
       }
     }
+    labelList
+  }
 
+  private def selectECM(
+      engineCreateRequest: EngineCreateRequest,
+      labelList: util.List[Label[_]]
+  ): EMNode = {
     val emLabelList = new util.ArrayList[Label[_]](labelList)
     val emInstanceLabel = labelBuilderFactory.createLabel(classOf[AliasServiceInstanceLabel])
     emInstanceLabel.setAlias(ENGINE_CONN_MANAGER_SPRING_NAME.getValue)
@@ -149,24 +143,69 @@ class DefaultEngineCreateService
     // 2. Get all available ECMs by labels
     val emScoreNodeList =
       getEMService().getEMNodes(emLabelList.asScala.filter(!_.isInstanceOf[EngineTypeLabel]).asJava)
-
-    // 3. Get the ECM with the lowest load by selection algorithm
-    val choseNode =
-      if (null == emScoreNodeList || emScoreNodeList.isEmpty) null
-      else {
-        logger.info(s"Suitable ems size is ${emScoreNodeList.length}")
-        nodeSelector.choseNode(emScoreNodeList.toArray)
-      }
-    if (null == choseNode || choseNode.isEmpty) {
+    if (null == emScoreNodeList || emScoreNodeList.isEmpty) {
       throw new LinkisRetryException(
         AMConstant.EM_ERROR_CODE,
         s" The em of labels ${engineCreateRequest.getLabels} not found"
       )
     }
-    val emNode = choseNode.get.asInstanceOf[EMNode]
+
+    // 3. Get the ECM with the lowest load by selection algorithm
+    logger.info(s"Suitable ems size is ${emScoreNodeList.length}")
+    val choseNode = nodeSelector.choseNode(emScoreNodeList.toArray)
+    if (null == choseNode || choseNode.isEmpty) {
+      throw new LinkisRetryException(
+        AMConstant.EM_ERROR_CODE,
+        s" There are corresponding ECM tenant labels ${engineCreateRequest.getLabels}, but none of them are healthy"
+      )
+    }
+    choseNode.get.asInstanceOf[EMNode]
+  }
+
+  @Receiver
+  @throws[LinkisRetryException]
+  override def createEngine(
+      engineCreateRequest: EngineCreateRequest,
+      sender: Sender
+  ): EngineNode = {
+    val startTime = System.currentTimeMillis
+    val taskId = JobUtils.getJobIdFromStringMap(engineCreateRequest.getProperties)
+    logger.info(s"Task: $taskId start to create Engine for request: $engineCreateRequest.")
+
+    val timeout =
+      if (engineCreateRequest.getTimeout <= 0) {
+        AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
+      } else engineCreateRequest.getTimeout
+
+    // 1 build label
+    val labelList = buildLabel(engineCreateRequest.getLabels, engineCreateRequest.getUser)
+
+    // 2 select suite ecm
+    val emNode = selectECM(engineCreateRequest, labelList)
+    // 3. generate Resource
+    if (engineCreateRequest.getProperties == null) {
+      engineCreateRequest.setProperties(new util.HashMap[String, String]())
+    }
+    val resource =
+      generateResource(
+        engineCreateRequest.getProperties,
+        engineCreateRequest.getUser,
+        labelFilter.choseEngineLabel(labelList),
+        timeout
+      )
     // 4. request resource
-    val (resourceTicketId, resource) =
-      requestResource(engineCreateRequest, labelFilter.choseEngineLabel(labelList), emNode, timeout)
+    val resourceTicketId = resourceManager.requestResource(
+      LabelUtils.distinctLabel(labelList, emNode.getLabels),
+      resource,
+      engineCreateRequest,
+      timeout
+    ) match {
+      case AvailableResource(ticketId) =>
+        ticketId
+      case NotEnoughResource(reason) =>
+        logger.warn(s"not enough resource: $reason")
+        throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
+    }
 
     // 5. build engineConn request
     val engineBuildRequest = EngineConnBuildRequestImpl(
@@ -210,12 +249,23 @@ class DefaultEngineCreateService
     )
     engineNode.setTicketId(resourceTicketId)
 
+    val params: String = BDPJettyServerHelper.gson.toJson(engineCreateRequest.getProperties)
+    logger.info(s"Task: $taskId finished to create  engineConn with params: $params")
+    engineNode.setParams(params)
+
     // 7.Update persistent information: including inserting engine/metrics
     Utils.tryCatch(getEngineNodeManager.updateEngineNode(oldServiceInstance, engineNode)) { t =>
       logger.warn(s"Failed to update engineNode $engineNode", t)
-      val stopEngineRequest =
-        new EngineStopRequest(engineNode.getServiceInstance, ManagerUtils.getAdminUser)
-      engineStopService.asyncStopEngine(stopEngineRequest)
+      t match {
+        case linkisRetryException: LinkisRetryException =>
+          logger.warn(
+            s"node $oldServiceInstance update failed,caused by retry Exception, do not to stop ec"
+          )
+        case _ =>
+          val stopEngineRequest =
+            new EngineStopRequest(engineNode.getServiceInstance, ManagerUtils.getAdminUser)
+          engineStopService.asyncStopEngine(stopEngineRequest)
+      }
       val failedEcNode = getEngineNodeManager.getEngineNode(oldServiceInstance)
       if (null == failedEcNode) {
         logger.info(s" engineConn does not exist in db: $oldServiceInstance ")
@@ -265,26 +315,47 @@ class DefaultEngineCreateService
     engineNode
   }
 
+  def canCreateEC(engineCreateRequest: EngineCreateRequest): CanCreateECRes = {
+    // 1 build label
+    val labelList = buildLabel(engineCreateRequest.getLabels, engineCreateRequest.getUser)
+
+    // 2 select suite ecm
+    val emNode = selectECM(engineCreateRequest, labelList)
+    // 3. generate Resource
+    if (engineCreateRequest.getProperties == null) {
+      engineCreateRequest.setProperties(new util.HashMap[String, String]())
+    }
+    val resource = generateResource(
+      engineCreateRequest.getProperties,
+      engineCreateRequest.getUser,
+      labelFilter.choseEngineLabel(labelList),
+      AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
+    )
+
+    // 4. check resource
+    resourceManager.canRequestResource(
+      LabelUtils.distinctLabel(labelList, emNode.getLabels),
+      resource,
+      engineCreateRequest
+    )
+
+  }
+
   /**
    * Read the management console configuration and the parameters passed in by the user to combine
    * request resources
    * @param engineCreateRequest
    * @param labelList
-   * @param emNode
    * @param timeout
    * @return
    */
-  private def requestResource(
-      engineCreateRequest: EngineCreateRequest,
+  def generateResource(
+      props: util.Map[String, String],
+      user: String,
       labelList: util.List[Label[_]],
-      emNode: EMNode,
       timeout: Long
-  ): (String, NodeResource) = {
-    if (engineCreateRequest.getProperties == null) {
-      engineCreateRequest.setProperties(new util.HashMap[String, String]())
-    }
+  ): NodeResource = {
     val configProp = engineConnConfigurationService.getConsoleConfiguration(labelList)
-    val props = engineCreateRequest.getProperties
     if (null != configProp && configProp.asScala.nonEmpty) {
       configProp.asScala.foreach(keyValue => {
         if (!props.containsKey(keyValue._1)) {
@@ -293,7 +364,7 @@ class DefaultEngineCreateService
       })
     }
 
-    val crossQueue = props.get(AMConfiguration.ACROSS_CLUSTER_QUEUE_NAME)
+    val crossQueue = props.get(AMConfiguration.CROSS_QUEUE)
     if (StringUtils.isNotBlank(crossQueue)) {
       val queueName = props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "default")
       props.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, crossQueue)
@@ -302,27 +373,8 @@ class DefaultEngineCreateService
       )
     }
 
-    val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(
-      timeout,
-      engineCreateRequest.getUser,
-      labelList,
-      engineCreateRequest.getProperties
-    )
-    val resource =
-      engineConnResourceFactoryService.createEngineResource(timeoutEngineResourceRequest)
-
-    resourceManager.requestResource(
-      LabelUtils.distinctLabel(labelList, emNode.getLabels),
-      resource,
-      engineCreateRequest,
-      timeout
-    ) match {
-      case AvailableResource(ticketId) =>
-        (ticketId, resource)
-      case NotEnoughResource(reason) =>
-        logger.warn(s"not enough resource: $reason")
-        throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
-    }
+    val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(timeout, user, labelList, props)
+    engineConnResourceFactoryService.createEngineResource(timeoutEngineResourceRequest)
   }
 
   private def fromEMGetEngineLabels(emLabels: util.List[Label[_]]): util.List[Label[_]] = {
@@ -333,10 +385,18 @@ class DefaultEngineCreateService
 
   private def ensuresIdle(engineNode: EngineNode, resourceTicketId: String): Boolean = {
 
-    val engineNodeInfo = Utils.tryAndWarnMsg(
-      getEngineNodeManager.getEngineNodeInfoByDB(engineNode)
-    )("Failed to from db get engine node info")
+    val engineNodeInfo =
+      Utils.tryAndWarnMsg(if (engineNode.getMark == AMConstant.CLUSTER_PROCESS_MARK) {
+        getEngineNodeManager.getEngineNodeInfoByTicketId(resourceTicketId)
+      } else {
+        getEngineNodeManager.getEngineNodeInfoByDB(engineNode)
+      })("Failed to from db get engine node info")
+
     if (null == engineNodeInfo) return false
+
+    if (engineNodeInfo.getServiceInstance != null) {
+      engineNode.setServiceInstance(engineNodeInfo.getServiceInstance)
+    }
     if (NodeStatus.isCompleted(engineNodeInfo.getNodeStatus)) {
       val metrics = nodeMetricManagerPersistence.getNodeMetrics(engineNodeInfo)
       val msg = if (metrics != null) metrics.getHeartBeatMsg else null

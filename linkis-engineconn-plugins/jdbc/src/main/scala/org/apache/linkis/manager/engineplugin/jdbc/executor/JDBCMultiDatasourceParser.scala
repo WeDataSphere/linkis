@@ -22,9 +22,16 @@ import org.apache.linkis.datasource.client.impl.LinkisDataSourceRemoteClient
 import org.apache.linkis.datasource.client.request.GetInfoPublishedByDataSourceNameAction
 import org.apache.linkis.datasourcemanager.common.domain.DataSource
 import org.apache.linkis.manager.engineplugin.jdbc.JdbcAuthType
+import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration.{
+  CHANGE_DS_TYPE_TO_MYSQL,
+  DS_TYPES_TO_EXECUTE_TASK_BY_JDBC
+}
 import org.apache.linkis.manager.engineplugin.jdbc.constant.JDBCEngineConnConstant
 import org.apache.linkis.manager.engineplugin.jdbc.errorcode.JDBCErrorCodeSummary._
-import org.apache.linkis.manager.engineplugin.jdbc.exception.JDBCParamsIllegalException
+import org.apache.linkis.manager.engineplugin.jdbc.exception.{
+  JDBCGetDatasourceInfoException,
+  JDBCParamsIllegalException
+}
 
 import org.apache.commons.lang3.StringUtils
 
@@ -34,6 +41,10 @@ import java.util
 import scala.collection.JavaConverters._
 
 object JDBCMultiDatasourceParser extends Logging {
+
+  private val MYSQL_SQL_CONNECT_URL = "jdbc:mysql://%s:%s/%s"
+  private val ORACLE_SQL_CONNECT_URL = "jdbc:oracle:thin:@%s:%s:%s"
+  private val POSTGRESQL_SQL_CONNECT_URL = "jdbc:postgresql://%s:%s/%s"
 
   def queryDatasourceInfoByName(
       datasourceName: String,
@@ -102,7 +113,7 @@ object JDBCMultiDatasourceParser extends Logging {
       )
     }
 
-    val dbType = dataSource.getDataSourceType.getName
+    var dbType = dataSource.getDataSourceType.getName
     val dbConnParams = dataSource.getConnectParams
     if (dbConnParams == null || dbConnParams.isEmpty) {
       throw JDBCParamsIllegalException(
@@ -117,6 +128,17 @@ object JDBCMultiDatasourceParser extends Logging {
         JDBC_DRIVER_CLASS_NAME_NOT_NULL.getErrorCode,
         JDBC_DRIVER_CLASS_NAME_NOT_NULL.getErrorDesc
       )
+    }
+
+    // check dbType
+    if (!DS_TYPES_TO_EXECUTE_TASK_BY_JDBC.contains(dbType)) {
+      throw new JDBCGetDatasourceInfoException(
+        UNSUPPORTED_DS_TYPE.getErrorCode,
+        MessageFormat.format(UNSUPPORTED_DS_TYPE.getErrorDesc, dbType)
+      )
+    }
+    if (CHANGE_DS_TYPE_TO_MYSQL.contains(dbType)) {
+      dbType = "mysql"
     }
 
     val jdbcUrl = createJdbcUrl(dbType, dbConnParams)
@@ -143,9 +165,23 @@ object JDBCMultiDatasourceParser extends Logging {
     }
     var jdbcUrl = s"jdbc:$dbType://$host:$port"
     val dbName = dbConnParams.get(JDBCEngineConnConstant.DS_JDBC_DB_NAME)
-    if (strObjIsNotBlank(dbName)) {
-      jdbcUrl = s"$jdbcUrl/$dbName"
+    dbType match {
+      case "oracle" =>
+        val instance: Object = dbConnParams.get("instance")
+        jdbcUrl = String.format(ORACLE_SQL_CONNECT_URL, host, port, instance)
+      case "postgresql" =>
+        var instance: Object = dbConnParams.get("instance")
+        if (strObjIsBlank(instance) && strObjIsNotBlank(dbName)) {
+          instance = dbName
+        }
+        jdbcUrl = String.format(POSTGRESQL_SQL_CONNECT_URL, host, port, instance)
+      case _ =>
+        jdbcUrl = s"jdbc:$dbType://$host:$port"
+        if (strObjIsNotBlank(dbName)) {
+          jdbcUrl = s"$jdbcUrl/$dbName"
+        }
     }
+    logger.info(s"jdbc ${dbType} connection_url: $jdbcUrl")
 
     val params = dbConnParams.get(JDBCEngineConnConstant.DS_JDBC_PARAMS)
     val paramsMap =

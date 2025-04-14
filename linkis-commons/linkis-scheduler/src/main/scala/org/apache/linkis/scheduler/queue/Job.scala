@@ -22,8 +22,9 @@ import org.apache.linkis.common.listener.ListenerEventBus
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.protocol.engine.JobProgressInfo
+import org.apache.linkis.scheduler.errorcode.LinkisSchedulerErrorCodeSummary.TASK_STATUS_FLIP_ERROR
 import org.apache.linkis.scheduler.event._
-import org.apache.linkis.scheduler.exception.LinkisJobRetryException
+import org.apache.linkis.scheduler.exception.{LinkisJobRetryException, SchedulerErrorException}
 import org.apache.linkis.scheduler.executer._
 import org.apache.linkis.scheduler.future.BDPFuture
 import org.apache.linkis.scheduler.listener._
@@ -33,6 +34,7 @@ import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
 import java.io.Closeable
+import java.text.MessageFormat
 import java.util.concurrent.Future
 
 abstract class Job extends Runnable with SchedulerEvent with Closeable with Logging {
@@ -50,6 +52,7 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   private var executor: Executor = _
   private var jobListener: Option[JobListener] = None
   private var logListener: Option[LogListener] = None
+  private var jobRetryListener: Option[JobRetryListener] = None
   private var progressListener: Option[ProgressListener] = None
   private[linkis] var interrupt = false
   private var progress: Float = 0f
@@ -152,6 +155,12 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
 
   def getLogListener: Option[LogListener] = logListener
 
+  def setJobRetryListener(jobRetryListener: JobRetryListener): Unit = this.jobRetryListener = Some(
+    jobRetryListener
+  )
+
+  def getJobRetryListener: Option[JobRetryListener] = jobRetryListener
+
   def setProgressListener(progressListener: ProgressListener): Unit = this.progressListener = Some(
     progressListener
   )
@@ -196,23 +205,27 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   ): Unit = toState match {
     case Inited =>
       jobListener.foreach(_.onJobInited(this))
-    // TODO Add event（加事件）
     case Scheduled =>
       jobListener.foreach(_.onJobScheduled(this))
-      logListener.foreach(_.onLogUpdate(this, LogUtils.generateInfo("job is scheduled.")))
-    // TODO Add event（加事件）
     case Running =>
       jobListener.foreach(_.onJobRunning(this))
-      logListener.foreach(_.onLogUpdate(this, LogUtils.generateInfo("job is running.")))
-    // TODO job start event
     case WaitForRetry =>
       jobListener.foreach(_.onJobWaitForRetry(this))
     case _ =>
       jobDaemon.foreach(_.kill())
       jobListener.foreach(_.onJobCompleted(this))
-//      if(getJobInfo != null) logListener.foreach(_.onLogUpdate(this, getJobInfo.getMetric))
-      logListener.foreach(_.onLogUpdate(this, LogUtils.generateInfo("job is completed.")))
-    // TODO job end event
+  }
+
+  protected def transitionWaitForRetry(): Unit = {
+    val state: SchedulerEventState = getState
+    if (state != Failed && state != Running) {
+      throw new SchedulerErrorException(
+        TASK_STATUS_FLIP_ERROR.getErrorCode,
+        MessageFormat.format(TASK_STATUS_FLIP_ERROR.getErrorDesc, state, WaitForRetry)
+      )
+    }
+    logger.info(s"$toString change status ${state} => ${WaitForRetry}.")
+    transition(WaitForRetry)
   }
 
   protected def transitionCompleted(executeCompleted: CompletedExecuteResponse): Unit = {
@@ -303,6 +316,7 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   }
 
   override def run(): Unit = {
+    Thread.currentThread().setName(s"Job_${toString}_Thread")
     if (!isScheduled || interrupt) return
     startTime = System.currentTimeMillis
     Utils.tryAndWarn(transition(Running))
@@ -351,6 +365,16 @@ abstract class Job extends Runnable with SchedulerEvent with Closeable with Logg
   }
 
   override def toString: String = if (StringUtils.isNotBlank(getName)) getName else getId
+
+  /**
+   * clear job memory
+   */
+  def clear(): Unit = {
+    logger.info(s" clear job base info $getId")
+    this.executor = null
+    this.jobDaemon = null
+  }
+
 }
 
 /**

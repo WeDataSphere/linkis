@@ -18,15 +18,28 @@
 package org.apache.linkis.storage.resultset.table
 
 import org.apache.linkis.common.io.resultset.ResultDeserializer
+import org.apache.linkis.common.utils.Logging
+import org.apache.linkis.storage.conf.LinkisStorageConf
 import org.apache.linkis.storage.domain.{Column, DataType, Dolphin}
+import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary
 import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary.PARSING_METADATA_FAILED
-import org.apache.linkis.storage.exception.StorageErrorException
+import org.apache.linkis.storage.exception.{
+  ColLengthExceedException,
+  ColumnIndexExceedException,
+  StorageErrorException
+}
+
+import org.apache.commons.lang3.StringUtils
+
+import java.text.MessageFormat
 
 import scala.collection.mutable.ArrayBuffer
 
-class TableResultDeserializer extends ResultDeserializer[TableMetaData, TableRecord] {
+class TableResultDeserializer extends ResultDeserializer[TableMetaData, TableRecord] with Logging {
 
   var metaData: TableMetaData = _
+
+  var columnSet: Set[Int] = null
 
   import DataType._
 
@@ -75,16 +88,69 @@ class TableResultDeserializer extends ResultDeserializer[TableMetaData, TableRec
         colString.substring(0, colString.length - 1).split(Dolphin.COL_SPLIT)
       } else colString.split(Dolphin.COL_SPLIT)
     var index = Dolphin.INT_LEN + colByteLen
-    val data = colArray.indices.map { i =>
+    var enableLimit: Boolean = false
+    if (StringUtils.isNotBlank(LinkisStorageConf.enableLimitThreadLocal.get())) {
+      enableLimit = true
+    }
+    val columnIndices: Array[Int] = LinkisStorageConf.columnIndicesThreadLocal.get()
+    if (columnSet == null && columnIndices != null) {
+      columnSet = columnIndices.toSet
+    }
+
+    val lastIndex =
+      if (columnIndices != null && columnIndices.length > 0) columnIndices(columnIndices.length - 1)
+      else 0
+    var realValueSize = colArray.size
+
+    if (enableLimit && metaData.columns.size <= columnIndices(0)) {
+      throw new ColumnIndexExceedException(
+        LinkisStorageErrorCodeSummary.RESULT_COLUMN_INDEX_OUT_OF_BOUNDS.getErrorCode,
+        MessageFormat.format(
+          LinkisStorageErrorCodeSummary.RESULT_COLUMN_INDEX_OUT_OF_BOUNDS.getErrorDesc,
+          columnIndices(0).asInstanceOf[Object],
+          metaData.columns.size.asInstanceOf[Object]
+        )
+      )
+    }
+
+    if (enableLimit && metaData.columns.size > lastIndex) {
+      realValueSize = columnIndices.length
+    } else if (enableLimit && metaData.columns.size <= lastIndex) {
+      realValueSize = metaData.columns.size % columnIndices.length
+    }
+
+    val columnSize = colArray.size
+    val rowArray = new Array[Any](realValueSize)
+
+    var colIdx = 0
+    for (i <- 0 until columnSize) {
       val len = colArray(i).toInt
       val res = Dolphin.getString(bytes, index, len)
-      index += len
-      if (i >= metaData.columns.length) res
-      else {
-        toValue(metaData.columns(i).dataType, res)
+      if (res.length > LinkisStorageConf.LINKIS_RESULT_COL_LENGTH && enableLimit) {
+        throw new ColLengthExceedException(
+          LinkisStorageErrorCodeSummary.RESULT_COL_LENGTH.getErrorCode,
+          MessageFormat.format(
+            LinkisStorageErrorCodeSummary.RESULT_COL_LENGTH.getErrorDesc,
+            res.length.asInstanceOf[Object],
+            LinkisStorageConf.LINKIS_RESULT_COL_LENGTH.asInstanceOf[Object]
+          )
+        )
       }
-    }.toArray
-    new TableRecord(data)
+      index += len
+      // 如果enableLimit为true，则采取的是列分页
+      if (enableLimit) {
+        if (columnSet.contains(i)) {
+          rowArray(colIdx) = toValue(metaData.columns(i).dataType, res)
+          colIdx += 1
+        }
+      } else {
+        if (i >= metaData.columns.length) rowArray(i) = res
+        else {
+          rowArray(i) = toValue(metaData.columns(i).dataType, res)
+        }
+      }
+    }
+    new TableRecord(rowArray)
   }
 
 }

@@ -33,12 +33,13 @@ import org.apache.linkis.engineplugin.spark.imexport.CsvRelation
 import org.apache.linkis.engineplugin.spark.utils.EngineUtils
 import org.apache.linkis.governance.common.paser.PythonCodeParser
 import org.apache.linkis.governance.common.utils.GovernanceUtils
+import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf.SPARK_PYTHON_VERSION_KEY
 import org.apache.linkis.scheduler.executer.{ExecuteResponse, SuccessExecuteResponse}
 import org.apache.linkis.storage.resultset.ResultSetWriter
 
 import org.apache.commons.exec.CommandLine
 import org.apache.commons.io.IOUtils
-import org.apache.commons.lang3.{RandomStringUtils, StringUtils}
+import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SparkConf
 import org.apache.spark.api.java.JavaSparkContext
 import org.apache.spark.sql.{DataFrame, SparkSession}
@@ -46,6 +47,7 @@ import org.apache.spark.sql.execution.datasources.csv.UDF
 
 import java.io._
 import java.net.InetAddress
+import java.security.SecureRandom
 import java.util
 
 import scala.collection.JavaConverters._
@@ -76,7 +78,7 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
   private val lineOutputStream = new RsOutputStream
   val sqlContext = sparkEngineSession.sqlContext
   val SUCCESS = "success"
-  private lazy val py4jToken: String = RandomStringUtils.randomAlphanumeric(256)
+  private lazy val py4jToken: String = SecureRandom.getInstance("SHA1PRNG").nextInt(100000).toString
 
   private lazy val gwBuilder: GatewayServerBuilder = {
     val builder = new GatewayServerBuilder()
@@ -113,7 +115,14 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
   }
 
   override def close: Unit = {
-    logger.info("python executor ready to close")
+
+    logger.info(s"To remove pyspark executor")
+    Utils.tryAndError(
+      ExecutorManager.getInstance.removeExecutor(getExecutorLabels().asScala.toArray)
+    )
+    logger.info(s"Finished remove pyspark executor")
+
+    logger.info("To kill pyspark process")
     if (process != null) {
       if (gatewayServer != null) {
         Utils.tryAndError(gatewayServer.shutdown())
@@ -129,15 +138,11 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
 
         Utils.tryQuietly(process.destroy())
         process = null
-
+        logger.info("Finished kill pyspark process")
       }("process close failed")
     }
-    logger.info(s"To delete python executor")
-    Utils.tryAndError(
-      ExecutorManager.getInstance.removeExecutor(getExecutorLabels().asScala.toArray)
-    )
-    logger.info(s"Finished to kill python")
-    logger.info("python executor Finished to close")
+
+    logger.info("python executor finished to close")
   }
 
   override def getKind: Kind = PySpark()
@@ -145,10 +150,10 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
   private def initGateway = {
     //  If the python version set by the user is obtained from the front end as python3, the environment variable of python3 is taken; otherwise, the default is python2
     logger.info(
-      s"spark.python.version => ${engineCreationContext.getOptions.get("spark.python.version")}"
+      s"spark.python.version => ${engineCreationContext.getOptions.get(SPARK_PYTHON_VERSION_KEY)}"
     )
     val userDefinePythonVersion = engineCreationContext.getOptions
-      .getOrDefault("spark.python.version", "python")
+      .getOrDefault(SPARK_PYTHON_VERSION_KEY, "python")
       .toString
       .toLowerCase()
     val sparkPythonVersion =
@@ -433,9 +438,7 @@ class SparkPythonExecutor(val sparkEngineSession: SparkEngineSession, val id: In
   def printLog(log: Any): Unit = {
     logger.info(log.toString)
     if (engineExecutionContext != null) {
-      engineExecutionContext.appendStdout("+++++++++++++++")
-      engineExecutionContext.appendStdout(log.toString)
-      engineExecutionContext.appendStdout("+++++++++++++++")
+      engineExecutionContext.appendStdout(s"+++++++++++++++\n${log.toString}\n+++++++++++++++")
     } else {
       logger.warn("engine context is null can not send log")
     }

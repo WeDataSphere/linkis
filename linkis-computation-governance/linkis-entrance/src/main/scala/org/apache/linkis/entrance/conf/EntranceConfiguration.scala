@@ -30,19 +30,8 @@ object EntranceConfiguration {
   val JOB_MAX_PERSIST_WAIT_TIME =
     CommonVars("wds.linkis.entrance.job.persist.wait.max", new TimeType("5m"))
 
-  val MULTI_ENTRANCE_CONDITION = CommonVars("wds.linkis.entrance.multi.entrance.flag", true)
-
   val JOBHISTORY_SPRING_APPLICATION_NAME =
     CommonVars("wds.linkis.jobhistory.application.name", "linkis-ps-jobhistory")
-
-  /**
-   * DEFAULT_LOGPATH_PREFIX is the prefix that represents the default log storage path
-   * DEFAULT_LOGPATH_PREFIX 是表示默认的日志存储路径的前缀
-   */
-  val DEFAULT_LOGPATH_PREFIX = CommonVars[String](
-    "wds.linkis.entrance.config.log.path",
-    CommonVars[String]("wds.linkis.filesystem.hdfs.root.path").getValue
-  )
 
   /**
    * Default_Cache_Max is used to specify the size of the LoopArray of the CacheLogWriter
@@ -215,7 +204,7 @@ object EntranceConfiguration {
   val GROUP_CACHE_EXPIRE_TIME = CommonVars("wds.linkis.consumer.group.expire.time", 50)
 
   val CLIENT_MONITOR_CREATOR =
-    CommonVars("wds.linkis.entrance.client.monitor.creator", "LINKISCLI")
+    CommonVars("wds.linkis.entrance.client.monitor.creator", "LINKISCLI,BdpClient")
 
   val CREATOR_IP_SWITCH =
     CommonVars("wds.linkis.entrance.user.creator.ip.interceptor.switch", false)
@@ -223,8 +212,11 @@ object EntranceConfiguration {
   val TEMPLATE_CONF_SWITCH =
     CommonVars("wds.linkis.entrance.template.conf.interceptor.switch", true)
 
-  val ENABLE_ENTRANCE_DIRTY_DATA_CLEAR =
-    CommonVars("linkis.entrance.auto.clean.dirty.data.enable", true)
+  val TEMPLATE_CONF_ADD_ONCE_LABEL_ENABLE =
+    CommonVars("wds.linkis.entrance.template.add.once.label.enable", false)
+
+  val ENABLE_ENTRANCE_DIRTY_DATA_CLEAR: CommonVars[Boolean] =
+    CommonVars[Boolean]("linkis.entrance.auto.clean.dirty.data.enable", true)
 
   val ENTRANCE_CREATOR_JOB_LIMIT: CommonVars[Int] =
     CommonVars[Int](
@@ -237,12 +229,124 @@ object EntranceConfiguration {
     CommonVars("linkis.entrance.creator.job.concurrency.limit.conf.cache.time", 30L)
 
   val ENTRANCE_TASK_TIMEOUT =
-    CommonVars("wds.linkis.entrance.task.timeout", new TimeType("48h"))
+    CommonVars("linkis.entrance.task.timeout", new TimeType("48h"))
 
   val ENTRANCE_TASK_TIMEOUT_SCAN =
-    CommonVars("wds.linkis.entrance.task.timeout.scan", new TimeType("12h"))
+    CommonVars("linkis.entrance.task.timeout.scan", new TimeType("12h"))
 
   val ENABLE_HDFS_JVM_USER =
     CommonVars[Boolean]("linkis.entrance.enable.hdfs.jvm.user", true).getValue
+
+  val ENTRANCE_FAILOVER_ENABLED = CommonVars("linkis.entrance.failover.enable", false).getValue
+
+  val ENTRANCE_FAILOVER_SCAN_INIT_TIME =
+    CommonVars("linkis.entrance.failover.scan.init.time", 3 * 1000).getValue
+
+  val ENTRANCE_FAILOVER_SCAN_INTERVAL =
+    CommonVars("linkis.entrance.failover.scan.interval", 30 * 1000).getValue
+
+  val ENTRANCE_FAILOVER_DATA_NUM_LIMIT =
+    CommonVars("linkis.entrance.failover.data.num.limit", 10).getValue
+
+  val ENTRANCE_FAILOVER_DATA_INTERVAL_TIME =
+    CommonVars("linkis.entrance.failover.data.interval.time", new TimeType("1d").toLong).getValue
+
+  // if true, the waitForRetry job in runningJobs can be failover
+  val ENTRANCE_FAILOVER_RETRY_JOB_ENABLED =
+    CommonVars("linkis.entrance.failover.retry.job.enable", false)
+
+  val ENTRANCE_UPDATE_BATCH_SIZE = CommonVars("linkis.entrance.update.batch.size", 100)
+
+  // if true, the job in ConsumeQueue can be failover
+  val ENTRANCE_SHUTDOWN_FAILOVER_CONSUME_QUEUE_ENABLED =
+    CommonVars("linkis.entrance.shutdown.failover.consume.queue.enable", false).getValue
+
+  val ENTRANCE_GROUP_SCAN_ENABLED = CommonVars("linkis.entrance.group.scan.enable", false)
+
+  val ENTRANCE_GROUP_SCAN_INIT_TIME = CommonVars("linkis.entrance.group.scan.init.time", 3 * 1000)
+
+  val ENTRANCE_GROUP_SCAN_INTERVAL = CommonVars("linkis.entrance.group.scan.interval", 60 * 1000)
+
+  val ENTRANCE_FAILOVER_RETAIN_METRIC_ENGINE_CONN_ENABLED =
+    CommonVars("linkis.entrance.failover.retain.metric.engine.conn.enable", false)
+
+  val ENTRANCE_FAILOVER_RETAIN_METRIC_YARN_RESOURCE_ENABLED =
+    CommonVars("linkis.entrance.failover.retain.metric.yarn.resource.enable", false)
+
+  // if true, job whose status is running will be set to Cancelled
+  val ENTRANCE_FAILOVER_RUNNING_KILL_ENABLED =
+    CommonVars("linkis.entrance.failover.running.kill.enable", false)
+
+  val LINKIS_ENTRANCE_SKIP_ORCHESTRATOR =
+    CommonVars("linkis.entrance.skip.orchestrator", false).getValue
+
+  val ENABLE_HDFS_RES_DIR_PRIVATE =
+    CommonVars[Boolean]("linkis.entrance.enable.hdfs.res.dir.private", false).getValue
+
+  val UNSUPPORTED_RETRY_CODES =
+    CommonVars(
+      "linkis.entrance.unsupported.retry.codes",
+      "INSERT INTO,CREATE TABLE,ALTER TABLE,CREATE TEMPORARY,TRUNCATE TABLE,MERGE INTO,DROP TABLE"
+    ).getValue
+
+  val SUPPORTED_RETRY_ERROR_CODES =
+    CommonVars(
+      "linkis.entrance.supported.retry.error.codes",
+      "01002,01003,13005,13006,13012"
+    ).getValue
+
+  val SUPPORTED_RETRY_ERROR_DESC =
+    CommonVars(
+      "linkis.entrance.supported.retry.error.desc",
+      "Spark application has already stopped,Spark application sc has already stopped,Failed to allocate a page,dataFrame to local exception"
+    ).getValue
+
+  val TASK_RETRY_ENABLED: Boolean =
+    CommonVars[Boolean]("linkis.task.retry.enabled", true).getValue
+
+  val AI_SQL_DEFAULT_SPARK_ENGINE_TYPE: String =
+    CommonVars[String]("linkis.ai.sql.default.spark.engine.type", "spark-3.4.4").getValue
+
+  val AI_SQL_CREATORS: String =
+    CommonVars[String]("linkis.ai.sql.support.creators", "IDE").getValue
+
+  val AI_SQL_KEY: CommonVars[String] =
+    CommonVars[String]("linkis.ai.sql.enable", "true")
+
+  val RETRY_NUM_KEY: CommonVars[Int] =
+    CommonVars[Int]("linkis.ai.retry.num", 1)
+
+  val AI_SQL_RETRY_ONCE: CommonVars[Boolean] =
+    CommonVars[Boolean]("linkis.ai.sql.once.enable", true)
+
+  val SPARK_SHUFFLE_SERVICE_ENABLED: Boolean =
+    CommonVars[Boolean]("spark.shuffle.service.enabled", true).getValue
+
+  val SPARK_EXECUTOR_CORES: Int =
+    CommonVars[Int]("spark.executor.cores", 4).getValue
+
+  val SPARK_EXECUTOR_MEMORY: String =
+    CommonVars[String]("spark.executor.memory", "17G").getValue
+
+  val SPARK_EXECUTOR_INSTANCES: Int =
+    CommonVars[Int]("spark.executor.instances", 1).getValue
+
+  val SPARK_EXECUTOR_MEMORY_OVERHEAD: String =
+    CommonVars[String]("spark.executor.memoryOverhead", "3G").getValue
+
+  val SPARK3_PYTHON_VERSION: String =
+    CommonVars[String]("spark.python.version", "python3").getValue
+
+  val SPARK_DYNAMIC_ALLOCATION_ENABLED: Boolean =
+    CommonVars[Boolean]("spark.dynamicAllocation.enabled", true).getValue
+
+  val SPARK_DYNAMIC_ALLOCATION_MIN_EXECUTORS: Int =
+    CommonVars[Int]("spark.dynamicAllocation.minExecutors", 1).getValue
+
+  val SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS: Int =
+    CommonVars[Int]("spark.dynamicAllocation.maxExecutors", 50).getValue
+
+  val SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS: String =
+    CommonVars[String]("spark.dynamicAllocation.additional.confs", "").getValue
 
 }

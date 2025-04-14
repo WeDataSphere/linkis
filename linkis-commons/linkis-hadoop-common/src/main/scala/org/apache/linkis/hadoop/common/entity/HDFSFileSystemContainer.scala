@@ -21,7 +21,7 @@ import org.apache.linkis.hadoop.common.conf.HadoopConf
 
 import org.apache.hadoop.fs.FileSystem
 
-class HDFSFileSystemContainer(fs: FileSystem, user: String) {
+class HDFSFileSystemContainer(fs: FileSystem, user: String, label: String) {
 
   private var lastAccessTime: Long = System.currentTimeMillis()
 
@@ -30,6 +30,8 @@ class HDFSFileSystemContainer(fs: FileSystem, user: String) {
   def getFileSystem: FileSystem = this.fs
 
   def getUser: String = this.user
+
+  def getLabel: String = this.label
 
   def getLastAccessTime: Long = this.lastAccessTime
 
@@ -46,8 +48,7 @@ class HDFSFileSystemContainer(fs: FileSystem, user: String) {
   def canRemove(): Boolean = {
     val currentTime = System.currentTimeMillis()
     val idleTime = currentTime - this.lastAccessTime
-    idleTime > HadoopConf.HDFS_ENABLE_CACHE_MAX_TIME || (System
-      .currentTimeMillis() - this.lastAccessTime > HadoopConf.HDFS_ENABLE_CACHE_IDLE_TIME) && count <= 0
+    idleTime > HadoopConf.HDFS_ENABLE_CACHE_MAX_TIME || ((idleTime > HadoopConf.HDFS_ENABLE_CACHE_IDLE_TIME) && count <= 0)
   }
 
 }

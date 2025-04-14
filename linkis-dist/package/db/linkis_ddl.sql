@@ -36,7 +36,7 @@ CREATE TABLE `linkis_ps_configuration_config_key`(
   `name` varchar(50) DEFAULT NULL,
   `default_value` varchar(200) DEFAULT NULL COMMENT 'Adopted when user does not set key',
   `validate_type` varchar(50) DEFAULT NULL COMMENT 'Validate type, one of the following: None, NumInterval, FloatInterval, Include, Regex, OPF, Custom Rules',
-  `validate_range` varchar(50) DEFAULT NULL COMMENT 'Validate range',
+  `validate_range` varchar(150) DEFAULT NULL COMMENT 'Validate range',
   `engine_conn_type` varchar(50) DEFAULT '' COMMENT 'engine type,such as spark,hive etc',
   `is_hidden` tinyint(1) DEFAULT NULL COMMENT 'Whether it is hidden from user. If set to 1(true), then user cannot modify, however, it could still be used in back-end',
   `is_advanced` tinyint(1) DEFAULT NULL COMMENT 'Whether it is an advanced parameter. If set to 1(true), parameters would be displayed only when user choose to do so',
@@ -46,6 +46,7 @@ CREATE TABLE `linkis_ps_configuration_config_key`(
   `en_description` varchar(200) DEFAULT NULL COMMENT 'english description',
   `en_name` varchar(100) DEFAULT NULL COMMENT 'english name',
   `en_treeName` varchar(100) DEFAULT NULL COMMENT 'english treeName',
+  `template_required` tinyint(1) DEFAULT 0 COMMENT 'template required 0 none / 1 must',
   UNIQUE INDEX `uniq_key_ectype` (`key`,`engine_conn_type`),
   PRIMARY KEY  (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -574,6 +575,7 @@ CREATE TABLE if not exists `linkis_ps_bml_resources_task` (
   `start_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'Starting time',
   `end_time` datetime DEFAULT NULL COMMENT 'End Time',
   `last_update_time` datetime NOT NULL COMMENT 'Last update time',
+   unique key `uniq_rid_version` (`resource_id`, `version`),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -687,6 +689,7 @@ CREATE TABLE `linkis_cg_manager_service_instance` (
   `mark` varchar(32) COLLATE utf8_bin DEFAULT NULL,
   `identifier` varchar(32) COLLATE utf8_bin DEFAULT NULL,
   `ticketId` varchar(255) COLLATE utf8_bin DEFAULT NULL,
+  `params` text COLLATE utf8_bin DEFAULT NULL,
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   `updator` varchar(32) COLLATE utf8_bin DEFAULT NULL,
@@ -801,7 +804,8 @@ CREATE TABLE `linkis_cg_ec_resource_info_record` (
     `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'create time',
     PRIMARY KEY (`id`),
     KEY `idx_ticket_id` (`ticket_id`),
-    UNIQUE KEY `uniq_tid_lv` (`ticket_id`,`label_value`)
+    UNIQUE KEY `uniq_tid_lv` (`ticket_id`,`label_value`),
+    UNIQUE KEY `uniq_sinstance_status_cuser_ctime` (`service_instance`, `status`, `create_user`, `create_time`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 DROP TABLE IF EXISTS `linkis_cg_manager_label_service_instance`;
@@ -851,6 +855,7 @@ CREATE TABLE `linkis_cg_manager_service_instance_metrics` (
   `healthy_status` varchar(255) COLLATE utf8_bin DEFAULT NULL,
   `update_time` datetime DEFAULT CURRENT_TIMESTAMP,
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
+  `description` varchar(256) COLLATE utf8_bin NOT NULL DEFAULT '',
   PRIMARY KEY (`instance`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
@@ -1009,6 +1014,7 @@ CREATE TABLE `linkis_cg_tenant_label_config` (
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `desc` varchar(100) COLLATE utf8_bin NOT NULL,
   `bussiness_user` varchar(50) COLLATE utf8_bin NOT NULL,
+  `is_valid` varchar(1) COLLATE utf8_bin NOT NULL DEFAULT 'Y',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_user_creator` (`user`,`creator`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
@@ -1029,3 +1035,59 @@ CREATE TABLE `linkis_cg_user_ip_config` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uniq_user_creator` (`user`,`creator`)
 ) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
+
+-- ----------------------------
+-- Table structure for linkis_org_user
+-- ----------------------------
+DROP TABLE IF EXISTS `linkis_org_user`;
+CREATE TABLE `linkis_org_user` (
+  `cluster_code` varchar(16) COMMENT '集群',
+  `user_type` varchar(64) COMMENT '用户类型',
+  `user_name` varchar(128) COMMENT '授权用户',
+  `org_id` varchar(16) COMMENT '部门ID',
+  `org_name` varchar(64) COMMENT '部门名字',
+  `queue_name` varchar(64) COMMENT '默认资源队列',
+  `db_name` varchar(64) COMMENT '默认操作数据库',
+  `interface_user` varchar(64) COMMENT '接口人',
+  `is_union_analyse` varchar(64) COMMENT '是否联合分析人',
+  `create_time` varchar(64) COMMENT '用户创建时间',
+  `user_itsm_no` varchar(64) COMMENT '用户创建单号',
+  PRIMARY KEY (`user_name`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE=utf8mb4_bin COMMENT ='用户部门统计INC表';
+
+-- ----------------------------
+-- Table structure for linkis_cg_tenant_department_config
+-- ----------------------------
+DROP TABLE IF EXISTS `linkis_cg_tenant_department_config`;
+CREATE TABLE `linkis_cg_tenant_department_config` (
+  `id` int(20) NOT NULL AUTO_INCREMENT  COMMENT 'ID',
+  `creator` varchar(50) COLLATE utf8_bin NOT NULL  COMMENT '应用',
+  `department` varchar(64) COLLATE utf8_bin NOT NULL  COMMENT '部门名称',
+  `department_id` varchar(16) COLLATE utf8_bin NOT NULL COMMENT '部门ID',
+  `tenant_value` varchar(128) COLLATE utf8_bin NOT NULL  COMMENT '部门租户标签',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP  COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP  COMMENT '更新时间',
+  `create_by` varchar(50) COLLATE utf8_bin NOT NULL  COMMENT '创建用户',
+  `is_valid` varchar(1) COLLATE utf8_bin NOT NULL DEFAULT 'Y' COMMENT '是否有效',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uniq_creator_department` (`creator`,`department`)
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
+
+-- ----------------------------
+-- Table structure for linkis_org_user_sync
+-- ----------------------------
+DROP TABLE IF EXISTS `linkis_org_user_sync`;
+CREATE TABLE `linkis_org_user_sync` (
+  `cluster_code` varchar(16) COMMENT '集群',
+  `user_type` varchar(64) COMMENT '用户类型',
+  `user_name` varchar(128) COMMENT '授权用户',
+  `org_id` varchar(16) COMMENT '部门ID',
+  `org_name` varchar(64) COMMENT '部门名字',
+  `queue_name` varchar(64) COMMENT '默认资源队列',
+  `db_name` varchar(64) COMMENT '默认操作数据库',
+  `interface_user` varchar(64) COMMENT '接口人',
+  `is_union_analyse` varchar(64) COMMENT '是否联合分析人',
+  `create_time` varchar(64) COMMENT '用户创建时间',
+  `user_itsm_no` varchar(64) COMMENT '用户创建单号',
+  PRIMARY KEY (`user_name`)
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4 COLLATE=utf8mb4_bin COMMENT ='用户部门统计INC表';

@@ -17,28 +17,40 @@
 
 package org.apache.linkis.entrance.parser
 
+import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
 import org.apache.linkis.entrance.exception.{EntranceErrorCode, EntranceIllegalParamException}
 import org.apache.linkis.entrance.persistence.PersistenceManager
 import org.apache.linkis.entrance.timeout.JobTimeoutManager
+import org.apache.linkis.entrance.utils.EntranceUtils
+import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.entity.job.JobRequest
+import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.label.builder.factory.{
   LabelBuilderFactory,
   LabelBuilderFactoryContext
 }
+import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.Label
-import org.apache.linkis.manager.label.entity.engine.{CodeLanguageLabel, UserCreatorLabel}
+import org.apache.linkis.manager.label.entity.cluster.ClusterLabel
+import org.apache.linkis.manager.label.entity.engine.{
+  CodeLanguageLabel,
+  EngineType,
+  UserCreatorLabel
+}
 import org.apache.linkis.manager.label.utils.EngineTypeLabelCreator
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.scheduler.queue.SchedulerEventState
+import org.apache.linkis.storage.script.VariableParser
 
 import org.apache.commons.lang3.StringUtils
 
 import java.util
 import java.util.Date
+import java.util.regex.Pattern
 
 import scala.collection.JavaConverters._
 
@@ -117,6 +129,7 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
     checkEngineTypeLabel(labels)
     generateAndVerifyCodeLanguageLabel(runType, labels)
     generateAndVerifyUserCreatorLabel(executeUser, labels)
+    generateAndVerifyClusterLabel(labels)
 
     jobRequest.setLabels(new util.ArrayList[Label[_]](labels.values()))
     jobRequest.setSource(source)
@@ -131,7 +144,8 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
   private def checkEngineTypeLabel(labels: util.Map[String, Label[_]]): Unit = {
     val engineTypeLabel = labels.getOrDefault(LabelKeyConstant.ENGINE_TYPE_KEY, null)
     if (null == engineTypeLabel) {
-      val msg = s"You need to specify engineTypeLabel in labels, such as spark-2.4.3"
+      val msg = s"You need to specify engineTypeLabel in labels," +
+        s"such as spark-${LabelCommonConfig.SPARK_ENGINE_VERSION.getValue}"
       throw new EntranceIllegalParamException(
         EntranceErrorCode.LABEL_PARAMS_INVALID.getErrCode,
         EntranceErrorCode.LABEL_PARAMS_INVALID.getDesc + msg
@@ -184,6 +198,22 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       userCreatorLabel.setUser(executeUser)
       userCreatorLabel.setCreator(creator)
       labels.put(userCreatorLabel.getLabelKey, userCreatorLabel)
+    }
+  }
+
+  private def generateAndVerifyClusterLabel(labels: util.Map[String, Label[_]]): Unit = {
+    if (!Configuration.IS_MULTIPLE_YARN_CLUSTER) {
+      return
+    }
+    var clusterLabel = labels
+      .getOrDefault(LabelKeyConstant.YARN_CLUSTER_KEY, null)
+      .asInstanceOf[ClusterLabel]
+    if (clusterLabel == null) {
+      clusterLabel =
+        LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(classOf[ClusterLabel])
+      clusterLabel.setClusterName(RMConfiguration.DEFAULT_YARN_CLUSTER_NAME.getValue)
+      clusterLabel.setClusterType(RMConfiguration.DEFAULT_YARN_TYPE.getValue)
+      labels.put(clusterLabel.getLabelKey, clusterLabel)
     }
   }
 
@@ -242,9 +272,24 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       if (formatCode) executionCode = format(executionCode)
       jobReq.setExecutionCode(executionCode)
     }
-    val engineTypeLabel = EngineTypeLabelCreator.createEngineTypeLabel(executeApplicationName)
+    var engineTypeLabel = EngineTypeLabelCreator.createEngineTypeLabel(executeApplicationName)
     val runTypeLabel =
       labelBuilderFactory.createLabel[Label[_]](LabelKeyConstant.CODE_TYPE_KEY, runType)
+    val variableMap =
+      jobReq.getParams.get(VariableParser.VARIABLE).asInstanceOf[util.Map[String, String]]
+    if (
+        null != variableMap && variableMap.containsKey(LabelCommonConfig.SPARK3_ENGINE_VERSION_CONF)
+    ) {
+      var version = variableMap.get(LabelCommonConfig.SPARK3_ENGINE_VERSION_CONF)
+      val pattern = Pattern.compile(EntranceUtils.sparkVersionRegex).matcher(version)
+      if (pattern.matches()) {
+        version = LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+      } else {
+        version = LabelCommonConfig.SPARK_ENGINE_VERSION.getValue
+      }
+      engineTypeLabel =
+        EngineTypeLabelCreator.createEngineTypeLabel(EngineType.SPARK.toString, version)
+    }
     val userCreatorLabel = labelBuilderFactory
       .createLabel[Label[_]](LabelKeyConstant.USER_CREATOR_TYPE_KEY, umUser + "-" + creator)
 

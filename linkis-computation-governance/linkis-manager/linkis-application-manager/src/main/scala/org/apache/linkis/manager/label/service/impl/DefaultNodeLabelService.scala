@@ -19,17 +19,31 @@ package org.apache.linkis.manager.label.service.impl
 
 import org.apache.linkis.common.ServiceInstance
 import org.apache.linkis.common.utils.{Logging, Utils}
-import org.apache.linkis.manager.common.entity.node.ScoreServiceInstance
+import org.apache.linkis.manager.am.conf.AMConfiguration
+import org.apache.linkis.manager.am.converter.MetricsConverter
+import org.apache.linkis.manager.common.entity.node.{EngineNode, ScoreServiceInstance}
 import org.apache.linkis.manager.common.entity.persistence.PersistenceLabel
+import org.apache.linkis.manager.common.entity.resource.Resource
 import org.apache.linkis.manager.common.utils.ManagerUtils
 import org.apache.linkis.manager.label.LabelManagerUtils
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
-import org.apache.linkis.manager.label.conf.LabelManagerConf
-import org.apache.linkis.manager.label.entity.{Feature, Label}
+import org.apache.linkis.manager.label.entity.{Feature, InheritableLabel, Label}
+import org.apache.linkis.manager.label.entity.engine.{
+  EngineInstanceLabel,
+  EngineTypeLabel,
+  UserCreatorLabel
+}
 import org.apache.linkis.manager.label.score.{LabelScoreServiceInstance, NodeLabelScorer}
 import org.apache.linkis.manager.label.service.NodeLabelService
-import org.apache.linkis.manager.label.utils.LabelUtils
-import org.apache.linkis.manager.persistence.LabelManagerPersistence
+import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
+import org.apache.linkis.manager.persistence.{
+  LabelManagerPersistence,
+  NodeManagerPersistence,
+  NodeMetricManagerPersistence
+}
+import org.apache.linkis.manager.rm.service.LabelResourceService
+import org.apache.linkis.manager.rm.utils.{RMUtils, UserConfiguration}
+import org.apache.linkis.server.toScalaBuffer
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -37,7 +51,7 @@ import org.springframework.transaction.annotation.Transactional
 import org.springframework.util.CollectionUtils
 
 import java.util
-import java.util.List
+import java.util.{ArrayList, List}
 import java.util.stream.Collectors
 
 import scala.collection.JavaConverters._
@@ -54,6 +68,18 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
 
   @Autowired
   private var nodeLabelScorer: NodeLabelScorer = _
+
+  @Autowired
+  var nodeManagerPersistence: NodeManagerPersistence = _
+
+  @Autowired
+  var nodeMetricManagerPersistence: NodeMetricManagerPersistence = _
+
+  @Autowired
+  var labelResourceService: LabelResourceService = _
+
+  @Autowired
+  private var metricsConverter: MetricsConverter = _
 
   /**
    * Attach labels to node instance TODO 该方法需要优化,应该batch插入
@@ -175,6 +201,42 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
     }
   }
 
+  override def labelsFromInstanceToNewInstance(
+      oldServiceInstance: ServiceInstance,
+      newServiceInstance: ServiceInstance
+  ): Unit = {
+    val labels = labelManagerPersistence.getLabelByServiceInstance(newServiceInstance)
+    val newKeyList = if (null != labels) {
+      labels.map(_.getLabelKey).asJava
+    } else {
+      new util.ArrayList[String]()
+    }
+    val nodeLabels = labelManagerPersistence.getLabelByServiceInstance(oldServiceInstance)
+    if (null == nodeLabels) {
+      return
+    }
+    val oldKeyList = nodeLabels.map(_.getLabelKey).asJava
+    oldKeyList.removeAll(newKeyList)
+    // Assign the old association to the newServiceInstance
+    if (!CollectionUtils.isEmpty(oldKeyList)) {
+      nodeLabels.foreach(nodeLabel => {
+        if (oldKeyList.contains(nodeLabel.getLabelKey)) {
+          val persistenceLabel = LabelManagerUtils.convertPersistenceLabel(nodeLabel)
+          val labelId = tryToAddLabel(persistenceLabel)
+          if (labelId > 0) {
+            val labelIds = new util.ArrayList[Integer]
+            labelIds.add(labelId)
+            labelManagerPersistence.addLabelToNode(newServiceInstance, labelIds)
+          }
+        }
+
+      })
+    }
+    // Delete an old association
+    val oldLabelId = nodeLabels.map(_.getId).asJava
+    labelManagerPersistence.removeNodeLabels(oldServiceInstance, oldLabelId)
+  }
+
   /**
    * Remove the labels related by node instance
    *
@@ -208,9 +270,16 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
     val removeLabels = if (isEngine) {
       labels
     } else {
-      labels.filter(label => !LabelManagerConf.LONG_LIVED_LABEL.contains(label.getLabelKey))
+      labels.filter(label => !AMConfiguration.LONG_LIVED_LABEL.contains(label.getLabelKey))
     }
     labelManagerPersistence.removeNodeLabels(instance, removeLabels.map(_.getId).asJava)
+
+    // remove taskId label
+    labels.foreach(label => {
+      if (AMConfiguration.TMP_LIVED_LABEL.contains(label.getLabelKey)) {
+        labelManagerPersistence.removeLabel(label)
+      }
+    })
   }
 
   /**
@@ -369,7 +438,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       if (null == label) {
         persistenceLabel.setLabelValueSize(persistenceLabel.getValue.size())
         Utils.tryCatch(labelManagerPersistence.addLabel(persistenceLabel)) { t: Throwable =>
-          logger.warn(s"Failed to add label ${t.getClass}")
+          logger.warn(s"Failed to add label: " + persistenceLabel.getStringValue, t)
         }
       } else {
         persistenceLabel.setId(label.getId)
@@ -399,6 +468,82 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       resultMap.put(serviceInstance.toString, LabelList)
     })
     resultMap
+  }
+
+  override def getEngineNodesWithResourceByUser(
+      user: String,
+      withResource: Boolean
+  ): Array[EngineNode] = {
+    val serviceInstancelist = nodeManagerPersistence
+      .getNodes(user)
+      .map(_.getServiceInstance)
+      .asJava
+    val nodes = nodeManagerPersistence.getEngineNodeByServiceInstance(serviceInstancelist)
+    val metrics = nodeMetricManagerPersistence
+      .getNodeMetrics(nodes)
+      .asScala
+      .map(m => (m.getServiceInstance.toString, m))
+      .toMap
+    val configurationMap = new mutable.HashMap[String, Resource]
+    val labelsMap = getNodeLabelsByInstanceList(nodes.map(_.getServiceInstance).asJava)
+    nodes.asScala
+      .map { node =>
+        //        node.setLabels(nodeLabelService.getNodeLabels(node.getServiceInstance))
+        node.setLabels(labelsMap.get(node.getServiceInstance.toString))
+        if (!node.getLabels.asScala.exists(_.isInstanceOf[UserCreatorLabel])) {
+          null
+        } else {
+          metrics
+            .get(node.getServiceInstance.toString)
+            .foreach(metricsConverter.fillMetricsToNode(node, _))
+          if (withResource) {
+            val userCreatorLabelOption =
+              node.getLabels.asScala.find(_.isInstanceOf[UserCreatorLabel])
+            val engineTypeLabelOption =
+              node.getLabels.asScala.find(_.isInstanceOf[EngineTypeLabel])
+            val engineInstanceOption =
+              node.getLabels.asScala.find(_.isInstanceOf[EngineInstanceLabel])
+            if (
+                userCreatorLabelOption.isDefined && engineTypeLabelOption.isDefined && engineInstanceOption.isDefined
+            ) {
+              val userCreatorLabel = userCreatorLabelOption.get.asInstanceOf[UserCreatorLabel]
+              val engineTypeLabel = engineTypeLabelOption.get.asInstanceOf[EngineTypeLabel]
+              val engineInstanceLabel = engineInstanceOption.get.asInstanceOf[EngineInstanceLabel]
+              engineInstanceLabel.setServiceName(node.getServiceInstance.getApplicationName)
+              engineInstanceLabel.setInstance(node.getServiceInstance.getInstance)
+              val nodeResource = labelResourceService.getLabelResource(engineInstanceLabel)
+              val configurationKey =
+                RMUtils.getUserCreator(userCreatorLabel) + RMUtils.getEngineType(engineTypeLabel)
+              val configuredResource = configurationMap.get(configurationKey) match {
+                case Some(resource) => resource
+                case None =>
+                  if (nodeResource != null) {
+                    val resource = UserConfiguration.getUserConfiguredResource(
+                      nodeResource.getResourceType,
+                      userCreatorLabel,
+                      engineTypeLabel
+                    )
+                    configurationMap.put(configurationKey, resource)
+                    resource
+                  } else null
+              }
+              if (nodeResource != null) {
+                nodeResource.setMaxResource(configuredResource)
+                if (null == nodeResource.getUsedResource) {
+                  nodeResource.setUsedResource(nodeResource.getLockedResource)
+                }
+                if (null == nodeResource.getMinResource) {
+                  nodeResource.setMinResource(Resource.initResource(nodeResource.getResourceType))
+                }
+                node.setNodeResource(nodeResource)
+              }
+            }
+          }
+          node
+        }
+      }
+      .filter(_ != null)
+      .toArray
   }
 
 }

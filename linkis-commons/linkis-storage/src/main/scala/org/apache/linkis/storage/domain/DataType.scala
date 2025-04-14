@@ -158,5 +158,7 @@ case class Column(columnName: String, dataType: DataType, comment: String) {
     Array[Any](columnName, dataType, comment)
   }
 
-  override def toString: String = s"columnName:$columnName,dataType:$dataType,comment:$comment"
+  override def toString: String =
+    s"columnName:$columnName,dataType:$dataType,comment:$comment"
+
 }

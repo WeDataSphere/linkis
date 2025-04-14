@@ -19,6 +19,7 @@ package org.apache.linkis.engineplugin.hive.executor
 
 import org.apache.linkis.common.exception.ErrorException
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
+import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ConcurrentComputationExecutor,
   EngineExecutionContext
@@ -239,6 +240,10 @@ class HiveEngineConcurrentConnExecutor(
               if (numberOfJobs > 0) {
                 engineExecutorContext.appendStdout(
                   s"Your hive taskId: $taskId has $numberOfJobs MR jobs to do"
+                )
+                val queueName = hiveConf.get(HiveEngineConfiguration.HIVE_QUEUE_NAME)
+                engineExecutorContext.appendStdout(
+                  s"Your task will be submitted to the $queueName queue"
                 )
               }
 
@@ -478,8 +483,6 @@ class HiveEngineConcurrentConnExecutor(
     cleanup(taskID)
     super.killTask(taskID)
   }
-
-  override def getConcurrentLimit: Int = HiveEngineConfiguration.HIVE_ENGINE_CONCURRENT_LIMIT
 
   override def killAll(): Unit = {
     val iterator = driverCache.entrySet().iterator()

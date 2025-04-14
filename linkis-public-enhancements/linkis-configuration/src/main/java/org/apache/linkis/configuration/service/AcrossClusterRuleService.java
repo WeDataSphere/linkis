@@ -18,20 +18,43 @@
 package org.apache.linkis.configuration.service;
 
 import org.apache.linkis.configuration.entity.AcrossClusterRule;
+import org.apache.linkis.governance.common.protocol.conf.AcrossClusterRequest;
+import org.apache.linkis.governance.common.protocol.conf.AcrossClusterResponse;
+import org.apache.linkis.rpc.Sender;
 
+import java.util.List;
 import java.util.Map;
 
 public interface AcrossClusterRuleService {
 
-  void deleteAcrossClusterRule(String creator, String username) throws Exception;
+  void deleteAcrossClusterRule(Long id) throws Exception;
+
+  void deleteAcrossClusterRuleByBatch(List<Long> ids) throws Exception;
+
+  void deleteAcrossClusterRuleByUsername(String username) throws Exception;
+
+  void deleteAcrossClusterRuleByCrossQueue(String crossQueue) throws Exception;
 
   void updateAcrossClusterRule(AcrossClusterRule acrossClusterRule) throws Exception;
+
+  void updateAcrossClusterRuleByBatch(List<Long> ids, AcrossClusterRule acrossClusterRule)
+      throws Exception;
 
   void insertAcrossClusterRule(AcrossClusterRule acrossClusterRule) throws Exception;
 
   Map<String, Object> queryAcrossClusterRuleList(
-      String creator, String username, String clusterName, Integer pageNow, Integer pageSize)
+      String creator,
+      String username,
+      String clusterName,
+      Integer pageNow,
+      Integer pageSize,
+      String isValid)
       throws Exception;
 
-  void validAcrossClusterRule(Long id, String isValid) throws Exception;
+  void validAcrossClusterRule(Long id, String isValid, String username) throws Exception;
+
+  void validAcrossClusterRuleByBatch(List<Long> ids, String isValid) throws Exception;
+
+  AcrossClusterResponse getAcrossClusterRuleByUsername(
+      AcrossClusterRequest acrossClusterRequest, Sender sender) throws Exception;
 }

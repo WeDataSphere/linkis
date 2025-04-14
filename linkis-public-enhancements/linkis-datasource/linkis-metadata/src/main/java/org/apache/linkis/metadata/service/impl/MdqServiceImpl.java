@@ -18,8 +18,8 @@
 package org.apache.linkis.metadata.service.impl;
 
 import org.apache.linkis.common.utils.ByteTimeUtils;
-import org.apache.linkis.hadoop.common.conf.HadoopConf;
 import org.apache.linkis.hadoop.common.utils.HDFSUtils;
+import org.apache.linkis.hadoop.common.utils.KerberosUtils;
 import org.apache.linkis.metadata.dao.MdqDao;
 import org.apache.linkis.metadata.domain.mdq.DomainCoversionUtils;
 import org.apache.linkis.metadata.domain.mdq.Tunple;
@@ -109,6 +109,11 @@ public class MdqServiceImpl implements MdqService {
       if (collect.size() > 1) {
         mdqFieldList.remove(collect.get(1));
       }
+    }
+    if (!table.getPartitionTable()) {
+      mdqFieldList.stream()
+          .filter(MdqField::getPartitionField)
+          .forEach(mdqField -> mdqField.setPartitionField(false));
     }
     mdqDao.insertFields(mdqFieldList);
     if (mdqTableBO.getImportInfo() != null) {
@@ -201,6 +206,19 @@ public class MdqServiceImpl implements MdqService {
 
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   @Override
+  public boolean isExistInHive(MetadataQueryParam queryParam) {
+    List<Map<String, Object>> tables =
+        hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
+    Optional<Map<String, Object>> tableOptional =
+        tables
+            .parallelStream()
+            .filter(f -> queryParam.getTableName().equals(f.get("NAME")))
+            .findFirst();
+    return tableOptional.isPresent();
+  }
+
+  @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
+  @Override
   public MdqTableBaseInfoVO getTableBaseInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> tables =
         hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
@@ -210,10 +228,10 @@ public class MdqServiceImpl implements MdqService {
             .parallelStream()
             .filter(f -> queryParam.getTableName().equals(f.get("NAME")))
             .findFirst();
-    Map<String, Object> talbe =
+    Map<String, Object> table =
         tableOptional.orElseThrow(() -> new IllegalArgumentException("table不存在"));
     MdqTableBaseInfoVO mdqTableBaseInfoVO =
-        DomainCoversionUtils.mapToMdqTableBaseInfoVO(talbe, queryParam.getDbName());
+        DomainCoversionUtils.mapToMdqTableBaseInfoVO(table, queryParam.getDbName());
     String tableComment =
         hiveMetaDao.getTableComment(queryParam.getDbName(), queryParam.getTableName());
     mdqTableBaseInfoVO.getBase().setComment(tableComment);
@@ -346,7 +364,7 @@ public class MdqServiceImpl implements MdqService {
   }
 
   private Date getTableModificationTime(String tableLocation) throws IOException {
-    if (StringUtils.isNotBlank(tableLocation)) {
+    if (StringUtils.isNotBlank(tableLocation) && getRootHdfs().exists(new Path(tableLocation))) {
       FileStatus tableFile = getFileStatus(tableLocation);
       return new Date(tableFile.getModificationTime());
     }
@@ -355,7 +373,7 @@ public class MdqServiceImpl implements MdqService {
 
   private int getPartitionsNum(String tableLocation) throws IOException {
     int partitionsNum = 0;
-    if (StringUtils.isNotBlank(tableLocation)) {
+    if (StringUtils.isNotBlank(tableLocation) && getRootHdfs().exists(new Path(tableLocation))) {
       FileStatus tableFile = getFileStatus(tableLocation);
       partitionsNum = getRootHdfs().listStatus(tableFile.getPath()).length;
     }
@@ -371,7 +389,7 @@ public class MdqServiceImpl implements MdqService {
 
   private int getTableFileNum(String tableLocation) throws IOException {
     int tableFileNum = 0;
-    if (StringUtils.isNotBlank(tableLocation)) {
+    if (StringUtils.isNotBlank(tableLocation) && getRootHdfs().exists(new Path(tableLocation))) {
       FileStatus tableFile = getFileStatus(tableLocation);
       tableFileNum = (int) getRootHdfs().getContentSummary(tableFile.getPath()).getFileCount();
     }
@@ -379,14 +397,27 @@ public class MdqServiceImpl implements MdqService {
   }
 
   private String getTableSize(String tableLocation) throws IOException {
-    String tableSize = "0B";
-    if (StringUtils.isNotBlank(tableLocation)) {
-      FileStatus tableFile = getFileStatus(tableLocation);
-      tableSize =
-          ByteTimeUtils.bytesToString(
-              getRootHdfs().getContentSummary(tableFile.getPath()).getLength());
+    try {
+      String tableSize = "0B";
+      if (StringUtils.isNotBlank(tableLocation) && getRootHdfs().exists(new Path(tableLocation))) {
+        FileStatus tableFile = getFileStatus(tableLocation);
+        tableSize =
+            ByteTimeUtils.bytesToString(
+                getRootHdfs().getContentSummary(tableFile.getPath()).getLength());
+      }
+      return tableSize;
+    } catch (IOException e) {
+      String message = e.getMessage();
+      String rootCauseMessage = ExceptionUtils.getRootCauseMessage(e);
+      if (message != null && message.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS)
+          || rootCauseMessage.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS)) {
+        logger.info("Failed to get tableSize, retry", e);
+        resetRootHdfs();
+        return getTableSize(tableLocation);
+      } else {
+        throw e;
+      }
     }
-    return tableSize;
   }
 
   private static volatile FileSystem rootHdfs = null;
@@ -397,9 +428,8 @@ public class MdqServiceImpl implements MdqService {
     } catch (IOException e) {
       String message = e.getMessage();
       String rootCauseMessage = ExceptionUtils.getRootCauseMessage(e);
-      if ((message != null && message.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS))
-          || (rootCauseMessage != null
-              && rootCauseMessage.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS))) {
+      if (message != null && message.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS)
+          || rootCauseMessage.matches(DWSConfig.HDFS_FILE_SYSTEM_REST_ERRS)) {
         logger.info("Failed to getFileStatus, retry", e);
         resetRootHdfs();
         return getFileStatus(location);
@@ -410,11 +440,6 @@ public class MdqServiceImpl implements MdqService {
   }
 
   private void resetRootHdfs() {
-    if (HadoopConf.HDFS_ENABLE_CACHE()) {
-      HDFSUtils.closeHDFSFIleSystem(
-          HDFSUtils.getHDFSRootUserFileSystem(), HadoopConf.HADOOP_ROOT_USER().getValue(), true);
-      return;
-    }
     if (rootHdfs != null) {
       synchronized (this) {
         if (rootHdfs != null) {
@@ -427,15 +452,11 @@ public class MdqServiceImpl implements MdqService {
   }
 
   private FileSystem getRootHdfs() {
-
-    if (HadoopConf.HDFS_ENABLE_CACHE()) {
-      return HDFSUtils.getHDFSRootUserFileSystem();
-    }
-
     if (rootHdfs == null) {
       synchronized (this) {
         if (rootHdfs == null) {
           rootHdfs = HDFSUtils.getHDFSRootUserFileSystem();
+          KerberosUtils.startKerberosRefreshThread();
         }
       }
     }

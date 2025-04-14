@@ -35,12 +35,42 @@ public class LabelCommonConfig {
 
   public static final CommonVars<String> SPARK_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.spark.engine.version", "2.4.3");
+  public static final String SPARK3_ENGINE_VERSION_CONF = "sparkVersion";
+  public static final String SPARK_ENGINE_HOME_CONF = "SPARK_HOME";
+  public static final String SPARK_ENGINE_CMD_CONF = "SPARK_CMD";
+  public static final String SPARK_ENGINE_PATH_CONF = "PATH";
+  public static final String SPARK_ENGINE_CONF_DIR = "SPARK_CONF_DIR";
+  public static final CommonVars<String> SPARK3_ENGINE_VERSION =
+      CommonVars.apply("linkis.spark3.engine.version", "3.4.4");
 
+  public static final CommonVars<String> SPARK_ENGINE_HOME =
+      CommonVars.apply("linkis.spark.engine.home", "/appcom/Install/spark");
+  public static final CommonVars<String> SPARK3_ENGINE_HOME =
+      CommonVars.apply("linkis.spark3.engine.home", "/appcom/Install/spark3");
+  public static final CommonVars<Boolean> USER_DEFAULT_SPAKR_SWITCH =
+      CommonVars.apply("linkis.user.default.spark3.switch", false);
+  public static final CommonVars<String> SPARK3_ENGINE_CMD =
+      CommonVars.apply("linkis.spark3.engine.cmd", "/appcom/Install/spark3-cmd");
+  public static final CommonVars<String> SPARK_ENGINE_CMD =
+      CommonVars.apply("linkis.spark.engine.cmd", "/appcom/Install/spark-cmd");
+  public static final CommonVars<String> SPARK3_ENGINE_PATH =
+      CommonVars.apply("linkis.spark3.engine.path", "$SPARK_CMD/bin:$PATH");
+  public static final CommonVars<String> SPARK_ENGINE_PATH =
+      CommonVars.apply("linkis.spark.engine.path", "$SPARK_CMD/bin:$PATH");
+
+  public static final CommonVars<String> SPARK3_ENGINE_CONFIG =
+      CommonVars.apply("linkis.spark3.engine.config", "/appcom/config/spark3-config/spark-submit");
+
+  public static final CommonVars<String> SPARK_ENGINE_CONFIG =
+      CommonVars.apply("linkis.spark.engine.config", "/appcom/config/spark-config/spark-submit");
   public static final CommonVars<String> HIVE_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.hive.engine.version", "2.3.3");
 
   public static final CommonVars<String> PYTHON_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.python.engine.version", "python2");
+
+  public static final CommonVars<String> REPL_ENGINE_VERSION =
+      CommonVars.apply("linkis.repl.engine.version", "1");
 
   public static final CommonVars<String> FILE_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.file.engine.version", "1.0");
@@ -69,8 +99,17 @@ public class LabelCommonConfig {
   public static final CommonVars<String> DATAX_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.datax.engine.version", "3.0.0");
 
+  public static final CommonVars<String> NEBULA_ENGINE_VERSION =
+      CommonVars.apply("wds.linkis.nebula.engine.version", "3.0.0");
+
+  public static final CommonVars<String> DORIS_ENGINE_VERSION =
+      CommonVars.apply("linkis.doris.engine.version", "1.2.6");
+
   public static final CommonVars<String> PRESTO_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.presto.engine.version", "0.234");
+
+  public static final CommonVars<String> HBASE_ENGINE_VERSION =
+      CommonVars.apply("wds.linkis.hbase.engine.version", "2.5.3");
 
   public static final CommonVars<String> OPENLOOKENG_ENGINE_VERSION =
       CommonVars.apply("wds.linkis.openlookeng.engine.version", "1.5.0");

@@ -47,12 +47,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.nio.file.attribute.UserPrincipal;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -220,7 +215,9 @@ public class LocalFileSystem extends FileSystem {
         setOwner(new FsPath(dest), user, null);
       }
     } catch (Throwable e) {
-      file.delete();
+      if (!file.delete()) {
+        throw new IOException("File delete failed!");
+      }
       if (e instanceof IOException) {
         throw (IOException) e;
       } else {
@@ -262,9 +259,17 @@ public class LocalFileSystem extends FileSystem {
     LOG.info("Try to list path:" + path.getPath() + " with error msg");
     if (files != null) {
       List<FsPath> rtn = new ArrayList();
+      Set<String> fileNameSet = new HashSet<>();
+      fileNameSet.add(path.getPath().trim());
       String message = "";
       for (File f : files) {
         try {
+          if (fileNameSet.contains(f.getPath())) {
+            LOG.info("File {} is duplicate", f.getPath());
+            continue;
+          } else {
+            fileNameSet.add(f.getParent().trim());
+          }
           rtn.add(get(f.getPath()));
         } catch (Throwable e) {
           LOG.warn("Failed to list path:", e);
@@ -380,14 +385,18 @@ public class LocalFileSystem extends FileSystem {
     if (!isOwner(file.getParent())) {
       throw new IOException("you have on permission to create file " + dest);
     }
-    file.createNewFile();
+    if (!file.createNewFile()) {
+      throw new IOException("create new file error! path:" + dest);
+    }
     try {
       setPermission(new FsPath(dest), this.getDefaultFilePerm());
       if (!user.equals(getOwner(dest))) {
         setOwner(new FsPath(dest), user, null);
       }
     } catch (Throwable e) {
-      file.delete();
+      if (!file.delete()) {
+        throw new IOException("delete file error!");
+      }
       if (e instanceof IOException) {
         throw (IOException) e;
       } else {
@@ -420,6 +429,11 @@ public class LocalFileSystem extends FileSystem {
         PosixFilePermission.OWNER_READ,
         PosixFilePermission.GROUP_READ,
         PosixFilePermission.OTHERS_READ);
+  }
+
+  @Override
+  public boolean canRead(FsPath dest, String user) throws IOException {
+    return false;
   }
 
   @Override
@@ -488,5 +502,32 @@ public class LocalFileSystem extends FileSystem {
   private String getOwner(String path) throws IOException {
     PosixFileAttributes attr = Files.readAttributes(Paths.get(path), PosixFileAttributes.class);
     return attr.owner().getName();
+  }
+
+  @Override
+  public long getLength(FsPath dest) throws IOException {
+    String path = dest.getPath();
+    LOG.info("Get file length with path:" + path);
+    return new File(path).length();
+  }
+
+  @Override
+  public String getChecksum(FsPath dest) {
+    return null;
+  }
+
+  @Override
+  public String getChecksumWithMD5(FsPath dest) {
+    return null;
+  }
+
+  @Override
+  public long getBlockSize(FsPath dest) {
+    return 0L;
+  }
+
+  @Override
+  public List<FsPath> getAllFilePaths(FsPath dest) {
+    return new ArrayList<>();
   }
 }

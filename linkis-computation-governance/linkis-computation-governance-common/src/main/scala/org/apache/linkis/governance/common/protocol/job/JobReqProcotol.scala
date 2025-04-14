@@ -17,7 +17,8 @@
 
 package org.apache.linkis.governance.common.protocol.job
 
-import org.apache.linkis.governance.common.entity.job.JobRequest
+import org.apache.linkis.governance.common.entity.job.{JobAiRequest, JobRequest}
+import org.apache.linkis.protocol.RetryableProtocol
 import org.apache.linkis.protocol.message.RequestProtocol
 
 import java.util
@@ -25,7 +26,7 @@ import java.util.Date
 
 import scala.beans.BeanProperty
 
-trait JobReq extends RequestProtocol
+trait JobReq extends RequestProtocol with RetryableProtocol
 
 case class JobReqInsert(jobReq: JobRequest) extends JobReq
 
@@ -36,6 +37,8 @@ case class JobReqBatchUpdate(jobReq: util.ArrayList[JobRequest]) extends JobReq
 case class JobReqQuery(jobReq: JobRequest) extends JobReq
 
 case class JobReqReadAll(jobReq: JobRequest) extends JobReq
+
+case class JobAiReqInsert(jobReq: JobAiRequest) extends JobReq
 
 class RequestOneJob extends JobReq {
 
@@ -51,3 +54,10 @@ class RequestOneJob extends JobReq {
 }
 
 case class RequestAllJob(instance: String) extends JobReq
+
+case class RequestFailoverJob(
+    reqMap: util.Map[String, java.lang.Long],
+    statusList: util.List[String],
+    startTimestamp: Long,
+    limit: Int = 10
+) extends JobReq

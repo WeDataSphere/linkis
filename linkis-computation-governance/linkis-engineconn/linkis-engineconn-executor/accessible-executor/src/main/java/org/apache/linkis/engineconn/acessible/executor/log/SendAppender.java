@@ -18,8 +18,14 @@
 package org.apache.linkis.engineconn.acessible.executor.log;
 
 import org.apache.linkis.engineconn.acessible.executor.conf.AccessibleExecutorConfiguration;
+import org.apache.linkis.engineconn.common.conf.EngineConnConf;
+import org.apache.linkis.engineconn.common.conf.EngineConnConstant;
+import org.apache.linkis.engineconn.common.creation.EngineCreationContext;
+import org.apache.linkis.engineconn.core.EngineConnObject;
 import org.apache.linkis.engineconn.executor.listener.EngineConnSyncListenerBus;
 import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext;
+import org.apache.linkis.manager.label.constant.LabelKeyConstant;
+import org.apache.linkis.manager.label.entity.Label;
 
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.Filter;
@@ -33,6 +39,8 @@ import org.apache.logging.log4j.core.config.plugins.PluginFactory;
 import org.apache.logging.log4j.core.layout.PatternLayout;
 
 import java.io.Serializable;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,6 +101,7 @@ public class SendAppender extends AbstractAppender {
         }
       }
       if (!flag) {
+        // logStr = matchLog(logStr);
         logCache.cacheLog(logStr);
       }
     } else {
@@ -114,5 +123,29 @@ public class SendAppender extends AbstractAppender {
       layout = PatternLayout.createDefaultLayout();
     }
     return new SendAppender(name, filter, layout, ignoreExceptions);
+  }
+
+  /**
+   * *
+   *
+   * <p>Match the hive log, if it matches the yarn log, print the log and replace it
+   */
+  public String matchLog(String logLine) {
+    Matcher hiveMatcher = Pattern.compile(EngineConnConstant.hiveLogReg()).matcher(logLine);
+    if (hiveMatcher.find()) {
+      String yarnUrl = EngineConnConf.JOB_YARN_TASK_URL().getValue();
+      EngineCreationContext engineContext = EngineConnObject.getEngineCreationContext();
+      if (null != engineContext) {
+        for (Label<?> label : engineContext.getLabels()) {
+          if (label.getLabelKey().equals(LabelKeyConstant.YARN_CLUSTER_KEY)) {
+            yarnUrl = EngineConnConf.JOB_YARN_CLUSTER_TASK_URL().getValue();
+          }
+        }
+      }
+      logLine =
+          hiveMatcher.replaceAll(
+              EngineConnConstant.YARN_LOG_URL() + yarnUrl + hiveMatcher.group(1));
+    }
+    return logLine;
   }
 }

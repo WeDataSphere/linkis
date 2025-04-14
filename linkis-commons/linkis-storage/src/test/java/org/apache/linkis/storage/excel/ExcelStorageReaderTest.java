@@ -112,7 +112,7 @@ public class ExcelStorageReaderTest {
     String[][] column = null;
     // fix csv file with utf-8 with bom chart[&#xFEFF]
     BOMInputStream bomIn = new BOMInputStream(in, false); // don't include the BOM
-    BufferedReader reader = new BufferedReader(new InputStreamReader(bomIn, "utf-8"));
+    BufferedReader reader = new BufferedReader(new InputStreamReader(bomIn, "utf-8")); // NOSONAR
 
     String header = reader.readLine();
     if (StringUtils.isEmpty(header)) {
@@ -145,18 +145,32 @@ public class ExcelStorageReaderTest {
 
   @Test
   public void getXlsSheetInfo() throws Exception {
-    Map<String, Map<String, String>> sheetsInfo =
+    Map<String, List<Map<String, String>>> sheetsInfo =
         XlsUtils.getSheetsInfo(createExcelAndGetInputStream(0), true);
     Assertions.assertTrue(sheetsInfo.containsKey("Sheet2"));
-    Assertions.assertEquals("string", sheetsInfo.get("Sheet2").get("Work1"));
+    List<Map<String, String>> sheet2 = sheetsInfo.get("Sheet2");
+    String work1 = "";
+    for (Map<String, String> sheetMap : sheet2) {
+      if (sheetMap.containsKey("Work1")) {
+        work1 = sheetMap.get("Work1");
+      }
+    }
+    Assertions.assertEquals("string", work1);
   }
 
   @Test
   public void getXlsxSheetInfo() throws Exception {
-    Map<String, Map<String, String>> sheetsInfo =
+    Map<String, List<Map<String, String>>> sheetsInfo =
         XlsxUtils.getAllSheetInfo(createExcelAndGetInputStream(1), null, true);
     Assertions.assertTrue(sheetsInfo.containsKey("Sheet2"));
-    Assertions.assertEquals("string", sheetsInfo.get("Sheet2").get("Work1"));
+    List<Map<String, String>> sheet2 = sheetsInfo.get("Sheet2");
+    String work1 = "";
+    for (Map<String, String> sheetMap : sheet2) {
+      if (sheetMap.containsKey("Work1")) {
+        work1 = sheetMap.get("Work1");
+      }
+    }
+    Assertions.assertEquals("string", work1);
   }
 
   @Test

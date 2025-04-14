@@ -31,19 +31,29 @@ import org.apache.hadoop.security.UserGroupInformation
 import java.io.File
 import java.nio.file.Paths
 import java.security.PrivilegedExceptionAction
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
+import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConverters._
 
 object HDFSUtils extends Logging {
 
   private val fileSystemCache: java.util.Map[String, HDFSFileSystemContainer] =
-    new java.util.HashMap[String, HDFSFileSystemContainer]()
+    new ConcurrentHashMap[String, HDFSFileSystemContainer]()
 
   private val LOCKER_SUFFIX = "_HDFS"
+  private val DEFAULT_CACHE_LABEL = "default"
+  private val JOINT = "_"
 
-  if (HadoopConf.HDFS_ENABLE_CACHE) {
-    logger.info("HDFS Cache enabled ")
+  private val count = new AtomicLong
+
+  /**
+   * For FS opened with public tenants, we should not perform close action, but should close only
+   * when hdfsfilesystem encounters closed problem
+   * 对于使用公共租户开启的FS，我们不应该去执行close动作，应该由hdfsfilesystem遇到closed问题时才进行关闭
+   */
+  if (HadoopConf.HDFS_ENABLE_CACHE && HadoopConf.HDFS_ENABLE_CACHE_CLOSE) {
+    logger.info("HDFS Cache clear enabled ")
     Utils.defaultScheduler.scheduleAtFixedRate(
       new Runnable {
         override def run(): Unit = Utils.tryAndWarn {
@@ -58,8 +68,13 @@ object HDFSUtils extends Logging {
             .foreach { hdfsFileSystemContainer =>
               val locker = hdfsFileSystemContainer.getUser + LOCKER_SUFFIX
               locker.intern() synchronized {
-                if (hdfsFileSystemContainer.canRemove()) {
-                  fileSystemCache.remove(hdfsFileSystemContainer.getUser)
+                if (
+                    hdfsFileSystemContainer.canRemove() && !HadoopConf.HDFS_ENABLE_NOT_CLOSE_USERS
+                      .contains(hdfsFileSystemContainer.getUser)
+                ) {
+                  fileSystemCache.remove(
+                    hdfsFileSystemContainer.getUser + JOINT + hdfsFileSystemContainer.getLabel
+                  )
                   IOUtils.closeQuietly(hdfsFileSystemContainer.getFileSystem)
                   logger.info(
                     s"user${hdfsFileSystemContainer.getUser} to remove hdfsFileSystemContainer,because hdfsFileSystemContainer can remove"
@@ -116,79 +131,153 @@ object HDFSUtils extends Logging {
   )
 
   def getHDFSRootUserFileSystem(conf: org.apache.hadoop.conf.Configuration): FileSystem =
-    getHDFSUserFileSystem(HADOOP_ROOT_USER.getValue, conf)
+    getHDFSUserFileSystem(HADOOP_ROOT_USER.getValue, null, conf)
 
-  def getHDFSUserFileSystem(userName: String): FileSystem =
-    getHDFSUserFileSystem(userName, getConfiguration(userName))
+  /**
+   * If the cache switch is turned on, fs will be obtained from the cache first
+   * @param userName
+   * @return
+   */
+  def getHDFSUserFileSystem(userName: String): FileSystem = {
+    getHDFSUserFileSystem(userName, null)
+  }
+
+  def getHDFSUserFileSystem(userName: String, label: String): FileSystem = {
+
+    if (HadoopConf.HDFS_ENABLE_CACHE) {
+      val cacheLabel = if (label == null) DEFAULT_CACHE_LABEL else label
+      val cacheKey = userName + JOINT + cacheLabel
+      val locker = userName + LOCKER_SUFFIX
+      locker.intern().synchronized {
+        if (fileSystemCache.containsKey(cacheKey)) {
+          val hdfsFileSystemContainer = fileSystemCache.get(cacheKey)
+          hdfsFileSystemContainer.addAccessCount()
+          hdfsFileSystemContainer.updateLastAccessTime
+          hdfsFileSystemContainer.getFileSystem
+        } else {
+          getHDFSUserFileSystem(userName, label, getConfigurationByLabel(userName, label))
+        }
+      }
+    } else {
+      getHDFSUserFileSystem(userName, label, getConfigurationByLabel(userName, label))
+    }
+  }
 
   def getHDFSUserFileSystem(
       userName: String,
+      label: String,
       conf: org.apache.hadoop.conf.Configuration
-  ): FileSystem = if (HadoopConf.HDFS_ENABLE_CACHE) {
-    val locker = userName + LOCKER_SUFFIX
-    locker.intern().synchronized {
-      val hdfsFileSystemContainer = if (fileSystemCache.containsKey(userName)) {
-        fileSystemCache.get(userName)
-      } else {
-        val newHDFSFileSystemContainer =
-          new HDFSFileSystemContainer(createFileSystem(userName, conf), userName)
-        fileSystemCache.put(userName, newHDFSFileSystemContainer)
-        newHDFSFileSystemContainer
-      }
-      hdfsFileSystemContainer.addAccessCount()
-      hdfsFileSystemContainer.updateLastAccessTime
-      hdfsFileSystemContainer.getFileSystem
+  ): FileSystem = {
+
+    if (HadoopConf.FS_CACHE_DISABLE.getValue && null != conf) {
+      conf.set("fs.hdfs.impl.disable.cache", "true")
     }
-  } else {
-    createFileSystem(userName, conf)
+    if (HadoopConf.HDFS_ENABLE_CACHE) {
+      val locker = userName + LOCKER_SUFFIX
+      val cacheLabel = if (label == null) DEFAULT_CACHE_LABEL else label
+      val cacheKey = userName + JOINT + cacheLabel
+      locker.intern().synchronized {
+        val hdfsFileSystemContainer = if (fileSystemCache.containsKey(cacheKey)) {
+          fileSystemCache.get(cacheKey)
+        } else {
+          // we use cacheLabel to create HDFSFileSystemContainer, and in the rest part of HDFSUtils, we consistently
+          // use the same cacheLabel to operate HDFSFileSystemContainer, like close or remove.
+          // At the same time, we don't want to change the behavior of createFileSystem which is out of HDFSUtils,
+          // so we continue to use the original label to createFileSystem.
+          val newHDFSFileSystemContainer =
+            new HDFSFileSystemContainer(
+              createFileSystem(userName, label, conf),
+              userName,
+              cacheLabel
+            )
+          fileSystemCache.put(cacheKey, newHDFSFileSystemContainer)
+          newHDFSFileSystemContainer
+        }
+        hdfsFileSystemContainer.addAccessCount()
+        hdfsFileSystemContainer.updateLastAccessTime
+        hdfsFileSystemContainer.getFileSystem
+      }
+    } else {
+      createFileSystem(userName, label, conf)
+    }
   }
 
   def createFileSystem(userName: String, conf: org.apache.hadoop.conf.Configuration): FileSystem =
-    getUserGroupInformation(userName)
+    createFileSystem(userName, null, conf)
+
+  def createFileSystem(
+      userName: String,
+      label: String,
+      conf: org.apache.hadoop.conf.Configuration
+  ): FileSystem = {
+    val createCount = count.getAndIncrement()
+    logger.info(s"user ${userName} to create Fs, create time ${createCount}")
+    getUserGroupInformation(userName, label)
       .doAs(new PrivilegedExceptionAction[FileSystem] {
-        // scalastyle:off FileSystemGet
-        def run: FileSystem = FileSystem.get(conf)
-        // scalastyle:on FileSystemGet
+        def run: FileSystem = FileSystem.newInstance(conf)
       })
+  }
 
   def closeHDFSFIleSystem(fileSystem: FileSystem, userName: String): Unit =
     if (null != fileSystem && StringUtils.isNotBlank(userName)) {
-      closeHDFSFIleSystem(fileSystem, userName, false)
+      closeHDFSFIleSystem(fileSystem, userName, null, false)
     }
 
+  def closeHDFSFIleSystem(fileSystem: FileSystem, userName: String, label: String): Unit =
+    closeHDFSFIleSystem(fileSystem, userName, label, false)
+
   def closeHDFSFIleSystem(fileSystem: FileSystem, userName: String, isForce: Boolean): Unit =
+    closeHDFSFIleSystem(fileSystem, userName, null, isForce)
+
+  def closeHDFSFIleSystem(
+      fileSystem: FileSystem,
+      userName: String,
+      label: String,
+      isForce: Boolean
+  ): Unit =
     if (null != fileSystem && StringUtils.isNotBlank(userName)) {
-      if (HadoopConf.HDFS_ENABLE_CACHE) {
-        val hdfsFileSystemContainer = fileSystemCache.get(userName)
-        if (null != hdfsFileSystemContainer) {
-          val locker = userName + LOCKER_SUFFIX
+      val locker = userName + LOCKER_SUFFIX
+      if (HadoopConf.HDFS_ENABLE_CACHE) locker.intern().synchronized {
+        val cacheLabel = if (label == null) DEFAULT_CACHE_LABEL else label
+        val cacheKey = userName + JOINT + cacheLabel
+        val hdfsFileSystemContainer = fileSystemCache.get(cacheKey)
+        if (
+            null != hdfsFileSystemContainer && fileSystem == hdfsFileSystemContainer.getFileSystem
+        ) {
           if (isForce) {
-            locker synchronized fileSystemCache.remove(hdfsFileSystemContainer.getUser)
+            fileSystemCache.remove(hdfsFileSystemContainer.getUser)
             IOUtils.closeQuietly(hdfsFileSystemContainer.getFileSystem)
             logger.info(
               s"user${hdfsFileSystemContainer.getUser} to Force remove hdfsFileSystemContainer"
             )
           } else {
-            locker synchronized hdfsFileSystemContainer.minusAccessCount()
+            hdfsFileSystemContainer.minusAccessCount()
           }
+        } else {
+          IOUtils.closeQuietly(fileSystem)
         }
-      } else {
+      }
+      else {
         IOUtils.closeQuietly(fileSystem)
       }
     }
 
   def getUserGroupInformation(userName: String): UserGroupInformation = {
-    if (KERBEROS_ENABLE.getValue) {
-      if (!KEYTAB_PROXYUSER_ENABLED.getValue) {
-        val path = new File(KEYTAB_FILE.getValue, userName + ".keytab").getPath
-        val user = getKerberosUser(userName)
-        UserGroupInformation.setConfiguration(getConfiguration(userName))
+    getUserGroupInformation(userName, null);
+  }
+
+  def getUserGroupInformation(userName: String, label: String): UserGroupInformation = {
+    if (isKerberosEnabled(label)) {
+      if (!isKeytabProxyUserEnabled(label)) {
+        val path = new File(getKeytabPath(label), userName + ".keytab").getPath
+        val user = getKerberosUser(userName, label)
+        UserGroupInformation.setConfiguration(getConfigurationByLabel(userName, label))
         UserGroupInformation.loginUserFromKeytabAndReturnUGI(user, path)
       } else {
-        val superUser = KEYTAB_PROXYUSER_SUPERUSER.getValue
-        val path = new File(KEYTAB_FILE.getValue, superUser + ".keytab").getPath
-        val user = getKerberosUser(superUser)
-        UserGroupInformation.setConfiguration(getConfiguration(superUser))
+        val superUser = getKeytabSuperUser(label)
+        val path = new File(getKeytabPath(label), superUser + ".keytab").getPath
+        val user = getKerberosUser(superUser, label)
+        UserGroupInformation.setConfiguration(getConfigurationByLabel(superUser, label))
         UserGroupInformation.createProxyUser(
           userName,
           UserGroupInformation.loginUserFromKeytabAndReturnUGI(user, path)
@@ -199,12 +288,79 @@ object HDFSUtils extends Logging {
     }
   }
 
-  def getKerberosUser(userName: String): String = {
+  def isKerberosEnabled(label: String): Boolean = {
+    if (label == null) {
+      KERBEROS_ENABLE
+    } else {
+      kerberosValueMapParser(KERBEROS_ENABLE_MAP.getValue).get(label).contains("true")
+    }
+  }
+
+  def isKeytabProxyUserEnabled(label: String): Boolean = {
+    if (label == null) {
+      KEYTAB_PROXYUSER_ENABLED.getValue
+    } else {
+      kerberosValueMapParser(KEYTAB_PROXYUSER_SUPERUSER_MAP.getValue).contains(label)
+    }
+  }
+
+  def getKerberosUser(userName: String, label: String): String = {
     var user = userName
-    if (KEYTAB_HOST_ENABLED.getValue) {
-      user = user + "/" + KEYTAB_HOST.getValue
+    if (label == null) {
+      if (KEYTAB_HOST_ENABLED.getValue) {
+        user = user + "/" + KEYTAB_HOST.getValue
+      }
+    } else {
+      val hostMap = kerberosValueMapParser(KEYTAB_HOST_MAP.getValue)
+      if (hostMap.contains(label)) {
+        user = user + "/" + hostMap(label)
+      }
     }
     user
+  }
+
+  def getKeytabSuperUser(label: String): String = {
+    if (label == null) {
+      KEYTAB_PROXYUSER_SUPERUSER.getValue
+    } else {
+      kerberosValueMapParser(KEYTAB_PROXYUSER_SUPERUSER_MAP.getValue)(label)
+    }
+  }
+
+  def getKeytabPath(label: String): String = {
+    if (label == null) {
+      KEYTAB_FILE.getValue
+    } else {
+      val prefix = if (EXTERNAL_KEYTAB_FILE_PREFIX.getValue.endsWith("/")) {
+        EXTERNAL_KEYTAB_FILE_PREFIX.getValue
+      } else {
+        EXTERNAL_KEYTAB_FILE_PREFIX.getValue + "/"
+      }
+      prefix + label
+    }
+  }
+
+  private def kerberosValueMapParser(configV: String): Map[String, String] = {
+    val confDelimiter = ","
+    if (configV == null || "".equals(configV)) {
+      Map()
+    } else {
+      configV
+        .split(confDelimiter)
+        .filter(x => x != null && !"".equals(x))
+        .map(x => {
+          val confArr = x.split("=")
+          if (confArr.length == 2) {
+            (confArr(0).trim, confArr(1).trim)
+          } else null
+        })
+        .filter(kerberosValue =>
+          kerberosValue != null && StringUtils.isNotBlank(
+            kerberosValue._1
+          ) && null != kerberosValue._2
+        )
+        .toMap
+    }
   }
 
 }

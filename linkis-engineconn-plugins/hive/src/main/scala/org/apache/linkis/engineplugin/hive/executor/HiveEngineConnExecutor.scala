@@ -19,6 +19,8 @@ package org.apache.linkis.engineplugin.hive.executor
 
 import org.apache.linkis.common.exception.ErrorException
 import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
+import org.apache.linkis.engineconn.common.conf.EngineConnConf
+import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ComputationExecutor,
   EngineExecutionContext
@@ -34,6 +36,7 @@ import org.apache.linkis.engineplugin.hive.errorcode.HiveErrorCodeSummary.{
 }
 import org.apache.linkis.engineplugin.hive.exception.HiveQueryFailedException
 import org.apache.linkis.engineplugin.hive.progress.HiveProgressHelper
+import org.apache.linkis.governance.common.constant.job.JobRequestConstants
 import org.apache.linkis.governance.common.paser.SQLCodeParser
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.hadoop.common.conf.HadoopConf
@@ -51,6 +54,7 @@ import org.apache.linkis.storage.domain.{Column, DataType}
 import org.apache.linkis.storage.resultset.ResultSetFactory
 import org.apache.linkis.storage.resultset.table.{TableMetaData, TableRecord}
 
+import org.apache.commons.collections.MapUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.hive.common.HiveInterruptUtils
 import org.apache.hadoop.hive.conf.HiveConf
@@ -123,6 +127,10 @@ class HiveEngineConnExecutor(
 
   private val splitter = "_"
 
+  private var readResByObject = false
+
+  private var hiveTmpConf = Map[String, String]()
+
   override def init(): Unit = {
     LOG.info(s"Ready to change engine state!")
     if (HadoopConf.KEYTAB_PROXYUSER_ENABLED.getValue) {
@@ -136,6 +144,17 @@ class HiveEngineConnExecutor(
       engineExecutorContext: EngineExecutionContext,
       code: String
   ): ExecuteResponse = {
+    readResByObject = MapUtils.getBoolean(
+      engineExecutorContext.getProperties,
+      JobRequestConstants.LINKIS_HIVE_EC_READ_RESULT_BY_OBJECT,
+      false
+    )
+    if (readResByObject) {
+      hiveConf.set(
+        "list.sink.output.formatter",
+        "org.apache.hadoop.hive.serde2.thrift.ThriftFormatter"
+      )
+    }
     this.engineExecutorContext = engineExecutorContext
     CSHiveHelper.setContextIDInfoToHiveConf(engineExecutorContext, hiveConf)
     singleSqlProgressMap.clear()
@@ -144,9 +163,16 @@ class HiveEngineConnExecutor(
     val realCode = code.trim()
     LOG.info(s"hive client begins to run hql code:\n ${realCode.trim}")
     val jobId = JobUtils.getJobIdFromMap(engineExecutorContext.getProperties)
+
     if (StringUtils.isNotBlank(jobId)) {
-      LOG.info(s"set mapreduce.job.tags=LINKIS_$jobId")
-      hiveConf.set("mapreduce.job.tags", s"LINKIS_$jobId")
+      val jobTags = JobUtils.getJobSourceTagsFromObjectMap(engineExecutorContext.getProperties)
+      val tags = if (StringUtils.isAsciiPrintable(jobTags)) {
+        s"LINKIS_$jobId,$jobTags"
+      } else {
+        s"LINKIS_$jobId"
+      }
+      LOG.info(s"set mapreduce.job.tags=$tags")
+      hiveConf.set("mapreduce.job.tags", tags)
     }
 
     if (realCode.trim.length > 500) {
@@ -155,39 +181,64 @@ class HiveEngineConnExecutor(
     val tokens = realCode.trim.split("""\s+""")
     SessionState.setCurrentSessionState(sessionState)
     sessionState.setLastCommand(code)
+    if (
+        engineExecutorContext.getCurrentParagraph == 1 && engineExecutorContext.getProperties
+          .containsKey(JobRequestConstants.LINKIS_JDBC_DEFAULT_DB)
+    ) {
+      val defaultDB =
+        engineExecutorContext.getProperties
+          .get(JobRequestConstants.LINKIS_JDBC_DEFAULT_DB)
+          .asInstanceOf[String]
+      logger.info(s"set default DB to $defaultDB")
+      sessionState.setCurrentDatabase(defaultDB)
+    }
     val proc = CommandProcessorFactory.get(tokens, hiveConf)
     this.proc = proc
     LOG.debug("ugi is " + ugi.getUserName)
-    ugi.doAs(new PrivilegedExceptionAction[ExecuteResponse]() {
-      override def run(): ExecuteResponse = {
-        proc match {
-          case any if HiveDriverProxy.isDriver(any) =>
-            logger.info(s"driver is $any")
-            thread = Thread.currentThread()
-            driver = new HiveDriverProxy(any)
-            executeHQL(realCode, driver)
-          case _ =>
-            val resp = proc.run(realCode.substring(tokens(0).length).trim)
-            val result = new String(baos.toByteArray)
-            logger.info("RESULT => {}", result)
-            engineExecutorContext.appendStdout(result)
-            baos.reset()
-            if (resp.getResponseCode != 0) {
-              clearCurrentProgress()
+    Utils.tryFinally {
+      ugi.doAs(new PrivilegedExceptionAction[ExecuteResponse]() {
+        override def run(): ExecuteResponse = {
+          proc match {
+            case any if HiveDriverProxy.isDriver(any) =>
+              logger.info(s"driver is $any")
+              thread = Thread.currentThread()
+              driver = new HiveDriverProxy(any)
+              executeHQL(realCode, driver)
+            case _ =>
+              val resp = proc.run(realCode.substring(tokens(0).length).trim)
+              val result = new String(baos.toByteArray)
+              logger.info("RESULT => {}", result)
+              engineExecutorContext.appendStdout(result)
+              baos.reset()
+              if (resp.getResponseCode != 0) {
+                clearCurrentProgress()
+                HiveProgressHelper.clearHiveProgress()
+                onComplete()
+                singleSqlProgressMap.clear()
+                HiveProgressHelper.storeSingleSQLProgress(0.0f)
+                throw resp.getException
+              }
               HiveProgressHelper.clearHiveProgress()
+              HiveProgressHelper.storeSingleSQLProgress(0.0f)
               onComplete()
               singleSqlProgressMap.clear()
-              HiveProgressHelper.storeSingleSQLProgress(0.0f)
-              throw resp.getException
-            }
-            HiveProgressHelper.clearHiveProgress()
-            HiveProgressHelper.storeSingleSQLProgress(0.0f)
-            onComplete()
-            singleSqlProgressMap.clear()
-            SuccessExecuteResponse()
+              SuccessExecuteResponse()
+          }
+        }
+      })
+    } {
+      if (this.driver != null) {
+        Utils.tryQuietly {
+          driver.close()
+          this.driver = null
+          val ss = SessionState.get()
+          if (ss != null) {
+            ss.deleteTmpOutputFile()
+            ss.deleteTmpErrOutputFile()
+          }
         }
       }
-    })
+    }
   }
 
   private def executeHQL(realCode: String, driver: HiveDriverProxy): ExecuteResponse = {
@@ -226,6 +277,10 @@ class HiveEngineConnExecutor(
             }
             if (numberOfMRJobs > 0) {
               engineExecutorContext.appendStdout(s"Your hive sql has $numberOfMRJobs MR jobs to do")
+              val queueName = hiveConf.get(HiveEngineConfiguration.HIVE_QUEUE_NAME)
+              engineExecutorContext.appendStdout(
+                s"Your task will be submitted to the $queueName queue"
+              )
             }
             if (thread.isInterrupted) {
               logger.error(
@@ -321,30 +376,36 @@ class HiveEngineConnExecutor(
     val resultSetWriter = engineExecutorContext.createResultSetWriter(ResultSetFactory.TABLE_TYPE)
     resultSetWriter.addMetaData(metaData)
     val colLength = metaData.columns.length
-    val result = new util.ArrayList[String]()
+    val result = new util.ArrayList[Object]()
     var rows = 0
     while (driver.getResults(result)) {
-      val scalaResult: mutable.Buffer[String] = result.asScala
+      val scalaResult: mutable.Buffer[Object] = result.asScala
       scalaResult foreach { s =>
-        val arr: Array[String] = s.split("\t")
-        val arrAny: ArrayBuffer[Any] = new ArrayBuffer[Any]()
-        if (arr.length > colLength) {
-          logger.error(
-            s"""There is a \t tab in the result of hive code query, hive cannot cut it, please use spark to execute(查询的结果中有\t制表符，hive不能进行切割,请使用spark执行)"""
-          )
-          throw new ErrorException(
-            60078,
-            """There is a \t tab in the result of your query, hive cannot cut it, please use spark to execute(您查询的结果中有\t制表符，hive不能进行切割,请使用spark执行)"""
-          )
+        if (!readResByObject) {
+          val arr: Array[String] = s.asInstanceOf[String].split("\t")
+          val arrAny: ArrayBuffer[Any] = new ArrayBuffer[Any]()
+          if (arr.length > colLength) {
+            logger.error(
+              s"""There is a \t tab in the result of hive code query, hive cannot cut it, please use spark to execute(查询的结果中有\t制表符，hive不能进行切割,请使用spark执行)"""
+            )
+            throw new ErrorException(
+              60078,
+              """There is a \t tab in the result of your query, hive cannot cut it, please use spark to execute(您查询的结果中有\t制表符，hive不能进行切割,请使用spark执行)"""
+            )
+          }
+          if (arr.length == colLength) {
+            arrAny.appendAll(arr)
+          } else if (arr.length == 0) for (i <- 1 to colLength) arrAny.asJava add ""
+          else {
+            val i = colLength - arr.length
+            arr foreach arrAny.asJava.add
+            for (i <- 1 to i) arrAny.asJava add ""
+          }
+          resultSetWriter.addRecord(new TableRecord(arrAny.toArray))
+        } else {
+          resultSetWriter.addRecord(new TableRecord(s.asInstanceOf[Array[Any]]))
         }
-        if (arr.length == colLength) arr foreach arrAny.asJava.add
-        else if (arr.length == 0) for (i <- 1 to colLength) arrAny.asJava add ""
-        else {
-          val i = colLength - arr.length
-          arr foreach arrAny.asJava.add
-          for (i <- 1 to i) arrAny.asJava add ""
-        }
-        resultSetWriter.addRecord(new TableRecord(arrAny.toArray))
+
       }
       rows += result.size
       result.clear()
@@ -571,9 +632,6 @@ class HiveEngineConnExecutor(
         HadoopJobExecHelper.killRunningJobs()
         Utils.tryQuietly(HiveInterruptUtils.interrupt())
         Utils.tryAndWarn(driver.close())
-        if (null != thread) {
-          Utils.tryAndWarn(thread.interrupt())
-        }
       case "tez" =>
         Utils.tryQuietly(TezJobExecHelper.killRunningJobs())
         driver.close()
@@ -613,6 +671,28 @@ class HiveEngineConnExecutor(
   }
 
   override def getId(): String = namePrefix + id
+
+  override protected def beforeExecute(engineConnTask: EngineConnTask): Unit = {
+    super.beforeExecute(engineConnTask)
+    if (EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue && hiveTmpConf.isEmpty) {
+      hiveTmpConf = sessionState.getConf.getAllProperties.asScala.toMap
+    }
+  }
+
+  override protected def afterExecute(
+      engineConnTask: EngineConnTask,
+      executeResponse: ExecuteResponse
+  ): Unit = {
+    if (EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue && hiveTmpConf.nonEmpty) {
+      val differentValues = hiveTmpConf.filter { case (key, value) =>
+        sessionState.getConf.getAllProperties.asScala.toMap.get(key).exists(_ != value)
+      }
+      differentValues.foreach { case (key, value) =>
+        sessionState.getConf.set(key, value)
+      }
+    }
+    super.afterExecute(engineConnTask, executeResponse)
+  }
 
 }
 

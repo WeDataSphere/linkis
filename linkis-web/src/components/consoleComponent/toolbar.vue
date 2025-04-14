@@ -67,7 +67,7 @@
           </div>
         </Poptip>
       </li>
-      <li v-if="analysistext.flag !== 2 && rsDownload" :style="{cursor: rsDownload ? 'pointer': 'not-allowed'}">
+      <li v-if="analysistext.flag !== 2 && rsDownload && canDownload" :style="{cursor: rsDownload ? 'pointer': 'not-allowed'}">
         <Poptip
           :transfer="true"
           :width="500"
@@ -75,7 +75,7 @@
           placement="right"
           popper-class="we-poptip">
           <div @click.stop="openPopup('download')">
-            <i class="material-icons">cloud_download</i>
+            <i class="material-icons">cloud_download</i> 
             <span v-if="isIconLabelShow" :title="$t('message.common.download')" class="v-toolbar-icon">{{ $t('message.common.download') }}</span>
           </div>
           <div slot="content">
@@ -301,8 +301,14 @@ export default {
       };
       return describe
     },
+    canDownload() {
+      if (this?.script?.resultList && this.script.resultList[this.script.resultSet]?.result?.tipMsg) {
+        return !this.script.resultList[this.script.resultSet].result.tipMsg;
+      }
+      return true
+    },
     isAll() {
-      return ['hql', 'sql'].includes(this.script.runType) || this.download.format === '1';
+      return ['hql', 'sql', 'tsql', 'nebula'].includes(this.script.runType) || this.download.format === '1';
     },
     isExcel() {
       return this.download.format === '2';

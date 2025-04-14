@@ -24,8 +24,12 @@ import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.entrance.interceptor.exception.VarSubstitutionException
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.utils.LabelUtil
+import org.apache.linkis.protocol.utils.TaskUtils
+import org.apache.linkis.server.toScalaMap
 
 import org.apache.commons.lang3.exception.ExceptionUtils
+
+import java.util
 
 /**
  * Description: For variable substitution(用于变量替换)
@@ -41,10 +45,24 @@ class VarSubstitutionInterceptor extends EntranceInterceptor {
             LogUtils.generateInfo("Program is substituting variables for you") + "\n"
           )
           val codeType = LabelUtil.getCodeType(jobRequest.getLabels)
-          val realCode = CustomVariableUtils.replaceCustomVar(jobRequest, codeType)
+          val realCode = CustomVariableUtils.replaceCustomVar(jobRequest, codeType, logAppender)
           jobRequest.setExecutionCode(realCode)
           logAppender.append(
             LogUtils.generateInfo("Variables substitution ended successfully") + "\n"
+          )
+          logAppender.append(LogUtils.generateInfo("Job variables is") + "\n")
+          logAppender.append(
+            "************************************Variable************************************" + "\n"
+          )
+          val variableMap = TaskUtils
+            .getVariableMap(jobRequest.getParams)
+            .asInstanceOf[util.HashMap[String, String]]
+          variableMap.foreach { case (key, value) =>
+            logAppender.append(s"$key=$value\n")
+          }
+          logAppender.append("\n");
+          logAppender.append(
+            "************************************Variable************************************" + "\n"
           )
           // print  code after variables substitution
           logAppender.append(

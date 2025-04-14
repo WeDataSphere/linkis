@@ -31,7 +31,11 @@ object Configuration extends Logging {
 
   val IS_TEST_MODE = CommonVars("wds.linkis.test.mode", false)
 
+  val LINKIS_SYS_NAME = CommonVars("linkis.system.name", "")
+
   val IS_PROMETHEUS_ENABLE = CommonVars("wds.linkis.prometheus.enable", false)
+
+  val IS_MULTIPLE_YARN_CLUSTER = CommonVars("linkis.multiple.yarn.cluster", false).getValue
 
   val PROMETHEUS_ENDPOINT = CommonVars("wds.linkis.prometheus.endpoint", "/actuator/prometheus")
 
@@ -63,16 +67,36 @@ object Configuration extends Logging {
 
   val JOB_HISTORY_ADMIN = CommonVars("wds.linkis.jobhistory.admin", "hadoop")
 
+  val JOB_HISTORY_DEPARTMENT_ADMIN = CommonVars("wds.linkis.jobhistory.department.admin", "hadoop")
+
+  val JOB_RESULT_DEPARTMENT_LIMIT =
+    CommonVars("linkis.jobhistory.result.limit.department", "")
+
   // Only the specified token has permission to call some api
   val GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH = "ADMIN-"
 
-  val VARIABLE_OPERATION: Boolean = CommonVars("wds.linkis.variable.operation", false).getValue
+  val VARIABLE_OPERATION_USE_NOW: Boolean =
+    CommonVars("wds.linkis.variable.operation.use.now", true).getValue
+
+  val IS_VIEW_FS_ENV = CommonVars("wds.linkis.env.is.viewfs", true)
 
   val ERROR_MSG_TIP =
     CommonVars(
       "linkis.jobhistory.error.msg.tip",
       "The request interface %s is abnormal. You can try to troubleshoot common problems in the knowledge base document"
     )
+
+  val LINKIS_TOKEN = CommonVars("wds.linkis.token", "")
+
+  val GLOBAL_CONF_CHN_NAME = "全局设置"
+
+  val GLOBAL_CONF_CHN_OLDNAME = "通用设置"
+
+  val GLOBAL_CONF_CHN_EN_NAME = "GlobalSettings"
+
+  val GLOBAL_CONF_SYMBOL = "*"
+
+  val GLOBAL_CONF_LABEL = "*-*,*-*"
 
   def isAdminToken(token: String): Boolean = {
     if (StringUtils.isBlank(token)) {
@@ -122,10 +146,27 @@ object Configuration extends Logging {
       .exists(username.equalsIgnoreCase)
   }
 
+  def isDepartmentAdmin(username: String): Boolean = {
+    val departmentAdminUsers = JOB_HISTORY_DEPARTMENT_ADMIN.getHotValue.split(",")
+    departmentAdminUsers.exists(username.equalsIgnoreCase)
+  }
+
   def getJobHistoryAdmin(): Array[String] = {
     val adminUsers = GOVERNANCE_STATION_ADMIN.getHotValue.split(",")
     val historyAdminUsers = JOB_HISTORY_ADMIN.getHotValue.split(",")
     (adminUsers ++ historyAdminUsers).distinct
+  }
+
+  def getGlobalCreator(creator: String): String = creator match {
+    case Configuration.GLOBAL_CONF_CHN_NAME | Configuration.GLOBAL_CONF_CHN_OLDNAME |
+        Configuration.GLOBAL_CONF_CHN_EN_NAME =>
+      GLOBAL_CONF_SYMBOL
+    case _ => creator
+  }
+
+  def canResultSetByDepartment(departmentId: String): Boolean = {
+    val jobResultLimit = JOB_RESULT_DEPARTMENT_LIMIT.getHotValue.split(",")
+    !jobResultLimit.exists(departmentId.equalsIgnoreCase)
   }
 
 }

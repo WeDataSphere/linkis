@@ -29,15 +29,23 @@ import org.apache.linkis.governance.common.protocol.engineconn.{
 import org.apache.linkis.governance.common.utils.GovernanceConstant
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.protocol.node.{RequestNodeStatus, ResponseNodeStatus}
+import org.apache.linkis.manager.label.entity.Label
+import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
+import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.orchestrator.computation.conf.ComputationOrchestratorConf
 import org.apache.linkis.orchestrator.computation.execute.{CodeExecTaskExecutor, EngineConnTaskInfo}
+import org.apache.linkis.orchestrator.ecm.entity.{Mark, MarkReq}
+import org.apache.linkis.orchestrator.ecm.service.impl.ComputationEngineConnExecutor
 import org.apache.linkis.orchestrator.listener.task.{
+  EngineQuitedUnexpectedlyEvent,
   TaskErrorResponseEvent,
   TaskLogEvent,
   TaskStatusEvent
 }
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.server.{toJavaMap, BDPJettyServerHelper}
+
+import org.apache.commons.lang3.StringUtils
 
 import java.util
 import java.util.concurrent.TimeUnit
@@ -50,6 +58,8 @@ object EngineConnMonitor extends Logging {
 
   private val ENGINECONN_LASTUPDATE_TIMEOUT =
     ComputationOrchestratorConf.ENGINECONN_LASTUPDATE_TIMEOUT.getValue.toLong
+
+  private val engineTypeKey = "engineType"
 
   private[linkis] def addEngineExecutorStatusMonitor(
       engineConnExecutorCache: util.Map[EngineConnTaskInfo, CodeExecTaskExecutor]
@@ -162,7 +172,7 @@ object EngineConnMonitor extends Logging {
       case NodeExistStatus.UnExist =>
         logger.warn("Engine {} is Failed, now go to clear its task.", status._1)
         killTask(unActivityExecutors.get(status._1))
-      case NodeExistStatus.Exist | NodeExistStatus.Unknown =>
+      case NodeExistStatus.Unknown =>
         val engineConnExecutor = unActivityExecutors.getOrDefault(status._1, null)
         if (null != engineConnExecutor) {
           Utils.tryCatch {
@@ -187,6 +197,7 @@ object EngineConnMonitor extends Logging {
             killTask(unActivityExecutors.get(status._1))
           }
         }
+      case _ =>
     }
   }
 
@@ -202,22 +213,22 @@ object EngineConnMonitor extends Logging {
         logger.warn(
           s"Will kill task ${execTask.getIDInfo()} because the engine ${executor.getEngineConnExecutor.getServiceInstance.toString} quited unexpectedly."
         )
-        val errLog = LogUtils.generateERROR(
-          s"Your job : ${execTask.getIDInfo()} was failed because the engine quitted unexpectedly(任务${execTask
-            .getIDInfo()}失败，" +
-            s"原因是引擎意外退出,可能是复杂任务导致引擎退出，如OOM)."
-        )
-        val logEvent = TaskLogEvent(execTask, errLog)
-        execTask.getPhysicalContext.pushLog(logEvent)
-        val errorResponseEvent = TaskErrorResponseEvent(
+        val event = EngineQuitedUnexpectedlyEvent(
           execTask,
-          "task failed，Engine quitted unexpectedly(任务运行失败原因是引擎意外退出,可能是复杂任务导致引擎退出，如OOM)."
+          executor.getEngineConnExecutor.getServiceInstance.toString
         )
-        execTask.getPhysicalContext.broadcastSyncEvent(errorResponseEvent)
-        val statusEvent = TaskStatusEvent(execTask, ExecutionNodeStatus.Failed)
-        execTask.getPhysicalContext.broadcastSyncEvent(statusEvent)
+        execTask.getPhysicalContext.broadcastSyncEvent(event)
       }
     }
+  }
+
+  private def getEngineType(labels: Array[Label[_]]): String = {
+    val labelArray: Array[Label[_]] = labels.filter(_.getLabelKey.equals(engineTypeKey))
+    var engineType = ""
+    if (labelArray != null && labelArray.size > 0) {
+      engineType = labelArray(0).asInstanceOf[EngineTypeLabel].getEngineType
+    }
+    engineType
   }
 
   private def updateExecutorActivityTime(

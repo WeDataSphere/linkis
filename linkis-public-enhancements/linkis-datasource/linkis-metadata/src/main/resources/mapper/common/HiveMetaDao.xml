@@ -41,6 +41,14 @@
           and `DBS`.NAME = #{dbName,jdbcType=VARCHAR};
     </select>
 
+    <select id="getStorageInfo" resultType="map" parameterType="map">
+        select SDS.INPUT_FORMAT as inputFormat, SDS.OUTPUT_FORMAT as outputFormat FROM SDS
+        inner join TBLS ON SDS.SD_ID = TBLS.SD_ID
+        inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID
+        where  TBLS.TBL_NAME = #{tableName,jdbcType=VARCHAR}
+          and `DBS`.NAME = #{dbName,jdbcType=VARCHAR};
+    </select>
+
     <select id="getRolesByUser" resultType="java.lang.String" parameterType="map">
         SELECT ROLE_NAME
         FROM ROLES r INNER JOIN ROLE_MAP rm
@@ -90,7 +98,7 @@
         GROUP BY NAME
         order by NAME
     </select>
-    <select id="getTablesByDbNameAndUserAndRoles" resultType="map" parameterType="map">
+    <select id="getTablesByDbNameAndUserAndRolesFromDbPrvs" resultType="map" parameterType="map">
         select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME, t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
         from DB_PRIVS t1
             inner join TBLS t2 on t1.DB_ID = t2.DB_ID and t1.DB_PRIV in ('SELECT','ALL')
@@ -102,7 +110,9 @@
                 #{id}
             </foreach>)
         </if>
-        union
+        order by NAME;
+    </select>
+    <select id="getTablesByDbNameAndUserAndRolesFromTblPrvs" resultType="map" parameterType="map">
         select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME, t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
         from TBL_PRIVS t1
             inner join TBLS t2 on t1.TBL_ID=t2.TBL_ID and t1.TBL_PRIV in ('SELECT','ALL')
@@ -118,11 +128,22 @@
     </select>
 
     <select id="getTablesByDbName" resultType="map"  parameterType="map">
-        select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME, t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
+        select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME,
+                t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
         from TBLS t2 inner join DBS t3 on t2.DB_ID = t3.DB_ID
         where t3.NAME = #{dbName,jdbcType=VARCHAR}
         order by t2.TBL_NAME;
     </select>
+
+
+    <select id="getTableInfoByTableNameAndDbName" resultType="map">
+        select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME,
+               t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
+        from TBLS t2
+        where t2.TBL_NAME=#{tableName,jdbcType=VARCHAR}
+        and t2.DB_ID=(select DB_ID from DBS t3 where t3.NAME = #{dbName,jdbcType=VARCHAR})
+    </select>
+
 
     <select id="getPartitionSize" resultType="java.lang.Long"  parameterType="map">
         select PARTITION_PARAMS.PARAM_VALUE from PARTITION_PARAMS
@@ -194,7 +215,7 @@
         inner join TBLS ON `PARTITION_KEYS`.TBL_ID = TBLS.TBL_ID
         inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID
         where TBLS.TBL_NAME = #{tableName,jdbcType=VARCHAR}
-        and `DBS`.NAME =#{dbName,jdbcType=VARCHAR};
+        and `DBS`.NAME =#{dbName,jdbcType=VARCHAR} order by integer_idx;
     </select>
 
     <select id="getTableComment" resultType="java.lang.String">
@@ -210,4 +231,22 @@
         AND t.TBL_NAME = #{tableName}
     </select>
 
+    <select id="getCanWriteDbsByUser" resultType="java.lang.String">
+        SELECT
+            t2.NAME AS NAME
+        FROM
+            `DB_PRIVS` t1
+        INNER JOIN `DBS` t2 ON t1.DB_ID = t2.DB_ID AND t1.DB_PRIV IN ('CREATE', 'UPDATE', 'ALL')
+        WHERE t1.PRINCIPAL_TYPE = 'USER' AND t1.PRINCIPAL_NAME = #{userName,jdbcType=VARCHAR}
+        UNION
+        SELECT
+            t3.NAME AS NAME
+        FROM
+            `TBL_PRIVS` t1
+        INNER JOIN `TBLS` t2 ON t1.TBL_ID = t2.TBL_ID AND t1.TBL_PRIV IN ('CREATE', 'UPDATE', 'ALL')
+        INNER JOIN `DBS` t3 ON t2.DB_ID = t3.DB_ID
+        WHERE
+            t1.PRINCIPAL_NAME = #{userName,jdbcType=VARCHAR}
+        ORDER BY NAME
+    </select>
 </mapper>

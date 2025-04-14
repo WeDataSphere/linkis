@@ -24,4 +24,8 @@ object EngineConnConstant {
   val SPRING_CONF_MAP_NAME = "SpringConfMap"
 
   val MAX_EXECUTOR_ID_NAME = "MaxExecutorId"
+
+  var hiveLogReg = "The url to track the job: http://.*?/proxy/(application_[0-9]+_[0-9]+)/"
+
+  val YARN_LOG_URL = "Yarn application url:"
 }

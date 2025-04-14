@@ -21,6 +21,7 @@ import org.apache.linkis.common.exception.{ErrorException, WarnException}
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.Utils
 import org.apache.linkis.scheduler.SchedulerContext
+import org.apache.linkis.scheduler.conf.SchedulerConfiguration
 import org.apache.linkis.scheduler.errorcode.LinkisSchedulerErrorCodeSummary._
 import org.apache.linkis.scheduler.exception.SchedulerErrorException
 import org.apache.linkis.scheduler.executer.Executor
@@ -111,6 +112,7 @@ class FIFOUserConsumer(
       val waitForRetryJobs = runningJobs.filter(job => job != null && job.isJobCanRetry)
       waitForRetryJobs.find { job =>
         isRetryJob = Utils.tryCatch(job.turnToRetry()) { t =>
+          logger.info("Job state flipped to Scheduled failed in Retry(Retry时，job状态翻转为Scheduled失败)！")
           job.onFailure(
             "Job state flipped to Scheduled failed in Retry(Retry时，job状态翻转为Scheduled失败)！",
             t
@@ -147,7 +149,9 @@ class FIFOUserConsumer(
           } else getWaitForRetryEvent
       }
     }
+
     event.foreach { case job: Job =>
+      logger.info(s"event not empty ${job.getState}  id: ${job.getId()}")
       Utils.tryCatch {
         val (totalDuration, askDuration) =
           (fifoGroup.getMaxAskExecutorDuration, fifoGroup.getAskExecutorInterval)
@@ -176,6 +180,9 @@ class FIFOUserConsumer(
           totalDuration
         )
         job.consumerFuture = null
+        logger.info(
+          s"FIFOUserConsumer ${getGroup.getGroupName} running size ${getRunningSize} waiting size ${getWaitingSize}"
+        )
         executor.foreach { executor =>
           job.setExecutor(executor)
           job.future = executeService.submit(job)
@@ -217,6 +224,8 @@ class FIFOUserConsumer(
         case _ =>
       }
     }
+    // clear cache
+    queue.clearAll()
 
     this.runningJobs.foreach { job =>
       if (job != null && !job.isCompleted) {
@@ -236,6 +245,16 @@ class FIFOUserConsumer(
     logger.info(s"${getGroup.getGroupName} running jobs is not empty:${this.runningJobs
       .exists(job => job != null && !job.isCompleted)}")
     this.queue.peek.isEmpty && !this.runningJobs.exists(job => job != null && !job.isCompleted)
+  }
+
+  override def getMaxRunningEvents: Int = this.maxRunningJobsNum
+
+  override def getRunningSize: Int = {
+    runningJobs.count(job => job != null && !job.isCompleted)
+  }
+
+  override def getWaitingSize: Int = {
+    queue.waitingSize
   }
 
 }

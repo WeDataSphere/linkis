@@ -17,6 +17,7 @@
 
 package org.apache.linkis.configuration.restful.api;
 
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.configuration.conf.Configuration;
 import org.apache.linkis.configuration.entity.*;
 import org.apache.linkis.configuration.exception.ConfigurationException;
@@ -131,9 +132,10 @@ public class ConfigurationRestfulApi {
       @RequestParam(value = "creator", required = false) String creator)
       throws ConfigurationException {
     if (creator != null
-        && (creator.equals(Configuration.GLOBAL_CONF_CHN_NAME())
-            || creator.equals(Configuration.GLOBAL_CONF_CHN_OLDNAME())
-            || creator.equals(Configuration.GLOBAL_CONF_CHN_EN_NAME()))) {
+        && (creator.equals(org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_NAME())
+            || creator.equals(org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_OLDNAME())
+            || creator.equals(
+                org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_EN_NAME()))) {
       engineType = "*";
       version = "*";
       creator = "*";
@@ -174,7 +176,7 @@ public class ConfigurationRestfulApi {
     ModuleUserUtils.getOperationUser(req, "getItemList with engineType:" + engineType);
     // Adding * represents returning all configuration information
     if ("*".equals(engineType)) {
-      engineType = null;
+      engineType = "";
     }
     List<ConfigKey> result = configKeyService.getConfigKeyList(engineType);
     List<Map<String, Object>> filterResult = new ArrayList<>();
@@ -286,12 +288,23 @@ public class ConfigurationRestfulApi {
     String creator = JsonNodeUtil.getStringValue(json.get("creator"));
     String engineType = JsonNodeUtil.getStringValue(json.get("engineType"));
     if (creator != null
-        && (creator.equals(Configuration.GLOBAL_CONF_CHN_NAME())
-            || creator.equals(Configuration.GLOBAL_CONF_CHN_OLDNAME())
-            || creator.equals(Configuration.GLOBAL_CONF_CHN_EN_NAME()))) {
+        && (creator.equals(org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_NAME())
+            || creator.equals(org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_OLDNAME())
+            || creator.equals(
+                org.apache.linkis.common.conf.Configuration.GLOBAL_CONF_CHN_EN_NAME()))) {
       creator = "*";
     }
     String username = ModuleUserUtils.getOperationUser(req, "saveFullTree");
+    String engine = null;
+    String version = null;
+    if (engineType != null) {
+      String[] tmpString = engineType.split("-");
+      if (tmpString.length != 2) {
+        throw new ConfigurationException(INCORRECT_FIXED_SUCH.getErrorDesc());
+      }
+      engine = tmpString[0];
+      version = tmpString[1];
+    }
     ArrayList<ConfigValue> createList = new ArrayList<>();
     ArrayList<ConfigValue> updateList = new ArrayList<>();
     ArrayList<List<ConfigKeyValue>> chekList = new ArrayList<>();
@@ -301,11 +314,37 @@ public class ConfigurationRestfulApi {
       ConfigTree fullTree = BDPJettyServerHelper.gson().fromJson(s, ConfigTree.class);
       List<ConfigKeyValue> settings = fullTree.getSettings();
       chekList.add(settings);
+      // 特殊逻辑处理
       for (ConfigKeyValue configKeyValue : settings) {
+        // spark.conf 配置处理空格
         if (configKeyValue.getKey().equals("spark.conf")
             && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
           sparkConf = configKeyValue.getConfigValue().trim();
           configKeyValue.setConfigValue(sparkConf);
+        }
+        // 配置管理密码加密处理，开关打开时才执行加密
+        if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+            && Configuration.CONFIGURATION_AES_CONF().contains(configKeyValue.getKey())
+            && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
+          List<ConfigUserValue> userConfigValue =
+              configKeyService.getUserConfigValue(
+                  engine, configKeyValue.getKey(), creator, username);
+          if (CollectionUtils.isEmpty(userConfigValue)) {
+            configKeyValue.setConfigValue(
+                AESUtils.encrypt(
+                    configKeyValue.getConfigValue(),
+                    AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+          } else {
+            for (ConfigUserValue configUserValue : userConfigValue) {
+              if (Configuration.CONFIGURATION_AES_CONF().contains(configKeyValue.getKey())
+                  && !configUserValue.getConfigValue().equals(configKeyValue.getConfigValue())) {
+                configKeyValue.setConfigValue(
+                    AESUtils.encrypt(
+                        configKeyValue.getConfigValue(),
+                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+              }
+            }
+          }
         }
       }
     }
@@ -316,16 +355,6 @@ public class ConfigurationRestfulApi {
       for (ConfigKeyValue setting : settings) {
         configurationService.updateUserValue(setting, userLabelId, createList, updateList);
       }
-    }
-    String engine = null;
-    String version = null;
-    if (engineType != null) {
-      String[] tmpString = engineType.split("-");
-      if (tmpString.length != 2) {
-        throw new ConfigurationException(INCORRECT_FIXED_SUCH.getErrorDesc());
-      }
-      engine = tmpString[0];
-      version = tmpString[1];
     }
     configurationService.updateUserValue(createList, updateList);
     // TODO: Add a refresh cache interface later
@@ -498,7 +527,8 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "version", required = true, dataType = "String", value = "version"),
     @ApiImplicitParam(name = "creator", required = true, dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "configKey", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "configValue", required = true, dataType = "String")
+    @ApiImplicitParam(name = "configValue", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "configKeyId", required = false, dataType = "String")
   })
   @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/keyvalue", method = RequestMethod.POST)
@@ -512,6 +542,7 @@ public class ConfigurationRestfulApi {
     String creator = ((String) json.getOrDefault("creator", "*")).trim();
     String configKey = ((String) json.get("configKey")).trim();
     String value = ((String) json.get("configValue")).trim();
+    String configKeyId = ((String) json.getOrDefault("configKeyId", "")).trim();
     boolean force = Boolean.parseBoolean(json.getOrDefault("force", "false").toString());
     if (!org.apache.linkis.common.conf.Configuration.isAdmin(username) && !username.equals(user)) {
       return Message.error("Only admin can modify other user configuration data");
@@ -532,7 +563,9 @@ public class ConfigurationRestfulApi {
     ConfigKeyValue configKeyValue = new ConfigKeyValue();
     configKeyValue.setKey(configKey);
     configKeyValue.setConfigValue(value);
-
+    if (StringUtils.isNotBlank(configKeyId)) {
+      configKeyValue.setId(Long.valueOf(configKeyId));
+    }
     try {
       configurationService.paramCheck(configKeyValue);
     } catch (Exception e) {
@@ -544,6 +577,20 @@ public class ConfigurationRestfulApi {
                 + e.getMessage());
       } else {
         return Message.error(e.getMessage());
+      }
+    }
+    if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+        && Configuration.CONFIGURATION_AES_CONF().contains(configKeyValue.getKey())
+        && StringUtils.isNotBlank(configKeyValue.getConfigValue())) {
+      List<ConfigUserValue> userConfigValue =
+          configKeyService.getUserConfigValue(engineType, configKeyValue.getKey(), creator, user);
+      for (ConfigUserValue configUserValue : userConfigValue) {
+        if (Configuration.CONFIGURATION_AES_CONF().contains(configKeyValue.getKey())
+            && !configUserValue.getConfigValue().equals(configKeyValue.getConfigValue())) {
+          configKeyValue.setConfigValue(
+              AESUtils.encrypt(
+                  configKeyValue.getConfigValue(), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+        }
       }
     }
     ConfigValue configValue = configKeyService.saveConfigValue(configKeyValue, labelList);

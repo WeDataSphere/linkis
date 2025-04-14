@@ -18,16 +18,18 @@
 package org.apache.linkis.manager.am.service.engine
 
 import org.apache.linkis.common.ServiceInstance
+import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{JsonUtils, Logging, Utils}
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.manager.am.conf.AMConfiguration
-import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
+import org.apache.linkis.manager.am.service.em.EMInfoService
+import org.apache.linkis.manager.am.utils.AMUtils
+import org.apache.linkis.manager.common.entity.enumeration.{NodeHealthy, NodeStatus}
 import org.apache.linkis.manager.common.entity.node.{AMEMNode, EngineNode}
 import org.apache.linkis.manager.common.entity.resource.{
   DriverAndYarnResource,
   LoadInstanceResource
 }
-import org.apache.linkis.manager.common.exception.RMErrorException
 import org.apache.linkis.manager.common.protocol.engine.{
   EngineConnReleaseRequest,
   EngineStopRequest,
@@ -37,11 +39,14 @@ import org.apache.linkis.manager.dao.NodeMetricManagerMapper
 import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
 import org.apache.linkis.manager.label.service.NodeLabelService
 import org.apache.linkis.manager.label.service.impl.DefaultNodeLabelRemoveService
-import org.apache.linkis.manager.rm.exception.RMErrorCode
+import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
+import org.apache.linkis.manager.rm.restful.RMMonitorRest
 import org.apache.linkis.manager.rm.service.impl.DefaultResourceManager
 import org.apache.linkis.protocol.label.NodeLabelRemoveRequest
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
+
+import org.apache.commons.lang3.StringUtils
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -49,8 +54,8 @@ import org.springframework.stereotype.Service
 import java.util
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 import scala.concurrent.{ExecutionContextExecutorService, Future}
-import scala.util.control.Breaks._
 
 import com.fasterxml.jackson.core.JsonProcessingException
 
@@ -74,6 +79,9 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
 
   @Autowired
   private var nodeMetricManagerMapper: NodeMetricManagerMapper = _
+
+  @Autowired
+  private var emInfoService: EMInfoService = _
 
   private implicit val executor: ExecutionContextExecutorService =
     Utils.newCachedExecutionContext(
@@ -123,16 +131,7 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
     var killEngineNum = 0;
 
     // get all unlock ec node of the specified ecm
-    val ecmInstanceService = new ServiceInstance
-    ecmInstanceService.setInstance(ecmInstance)
-    ecmInstanceService.setApplicationName(
-      GovernanceCommonConf.ENGINE_CONN_MANAGER_SPRING_NAME.getValue
-    )
-
-    val emNode = new AMEMNode
-    emNode.setServiceInstance(ecmInstanceService)
-
-    val engineNodes = engineInfoService.listEMEngines(emNode).asScala
+    val engineNodes = getEngineNodeListByEM(ecmInstance)
 
     val unlockEngineNodes = engineNodes
       .filter(node => NodeStatus.Unlock.equals(node.getNodeStatus))
@@ -154,8 +153,8 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
       }
 
       val engineTypeLabel =
-        node.getLabels.asScala.find(_.isInstanceOf[EngineTypeLabel]).getOrElse(null)
-      val engineTypeStr = engineTypeLabel.asInstanceOf[EngineTypeLabel] getEngineType
+        node.getLabels.asScala.find(_.isInstanceOf[EngineTypeLabel]).orNull
+      val engineTypeStr = engineTypeLabel.asInstanceOf[EngineTypeLabel].getEngineType
       val isAllowKill = AMConfiguration.isAllowKilledEngineType(engineTypeStr)
 
       if (isAllowKill == false) {
@@ -166,7 +165,7 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
         // calculate the resources that can be released
         if (node.getNodeResource.getUsedResource != null) {
           val realResource = node.getNodeResource.getUsedResource match {
-            case dy: DriverAndYarnResource => dy.loadInstanceResource
+            case dy: DriverAndYarnResource => dy.getLoadInstanceResource
             case _ => node.getNodeResource.getUsedResource
           }
           loadInstanceResourceTotal =
@@ -181,8 +180,8 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
       }
     }
     resultMap.put("killEngineNum", killEngineNum)
-    resultMap.put("memory", loadInstanceResourceTotal.memory)
-    resultMap.put("cores", loadInstanceResourceTotal.cores)
+    resultMap.put("memory", loadInstanceResourceTotal.getMemory)
+    resultMap.put("cores", loadInstanceResourceTotal.getCores)
     resultMap.put("batchKillEngineType", AMConfiguration.ALLOW_BATCH_KILL_ENGINE_TYPES.getValue)
     resultMap
   }
@@ -278,6 +277,71 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
 
     }
 
+  }
+
+  override def stopUnlockECByUserCreatorAndECType(
+      userName: String,
+      creator: String,
+      engineType: String
+  ): Unit = {
+    // get all engineNodes list
+    val engineNodes = nodeLabelService.getEngineNodesWithResourceByUser(userName)
+    if (StringUtils.isEmpty(engineType) && creator.equals(Configuration.GLOBAL_CONF_SYMBOL)) {
+      dealEngineByEngineNode(engineNodes.toList, userName)
+    }
+    // kill EMnode by user creator
+    if (StringUtils.isNotBlank(engineType)) {
+      val filterEngineNode = creator match {
+        case Configuration.GLOBAL_CONF_SYMBOL =>
+          engineNodes
+            .filter(_.getOwner.equals(userName))
+            .filter(!_.getLabels.isEmpty)
+            .filter(node =>
+              LabelUtil.getUserCreatorLabel(node.getLabels).getUser.equals(userName)
+                && LabelUtil.getEngineTypeLabel(node.getLabels).getEngineType.equals(engineType)
+            )
+            .toList
+        case _ =>
+          engineNodes
+            .filter(_.getOwner.equals(userName))
+            .filter(!_.getLabels.isEmpty)
+            .filter(node =>
+              LabelUtil.getUserCreatorLabel(node.getLabels).getUser.equals(userName)
+                && LabelUtil.getUserCreatorLabel(node.getLabels).getCreator.equals(creator)
+                && LabelUtil.getEngineTypeLabel(node.getLabels).getStringValue.equals(engineType)
+            )
+            .toList
+      }
+      dealEngineByEngineNode(filterEngineNode, userName)
+    }
+  }
+
+  private def getEngineNodeListByEM(ecmInstance: String): mutable.Buffer[EngineNode] = {
+    val ecmInstanceService = new ServiceInstance
+    ecmInstanceService.setInstance(ecmInstance)
+    ecmInstanceService.setApplicationName(
+      GovernanceCommonConf.ENGINE_CONN_MANAGER_SPRING_NAME.getValue
+    )
+    val emNode = new AMEMNode
+    emNode.setServiceInstance(ecmInstanceService)
+    engineInfoService.listEMEngines(emNode).asScala
+  }
+
+  private def dealEngineByEngineNode(engineNodeList: List[EngineNode], userName: String): Unit = {
+    engineNodeList.foreach(node => {
+      if (
+          NodeStatus.Unlock.equals(node.getNodeStatus) && AMConfiguration
+            .isAllowKilledEngineType(LabelUtil.getEngineType(node.getLabels))
+      ) {
+        // stop engine
+        val stopEngineRequest = new EngineStopRequest(node.getServiceInstance, userName)
+        asyncStopEngineWithUpdateMetrics(stopEngineRequest)
+      } else {
+        // set unhealthy
+        engineInfoService
+          .updateEngineHealthyStatus(node.getServiceInstance, NodeHealthy.UnHealthy)
+      }
+    })
   }
 
 }

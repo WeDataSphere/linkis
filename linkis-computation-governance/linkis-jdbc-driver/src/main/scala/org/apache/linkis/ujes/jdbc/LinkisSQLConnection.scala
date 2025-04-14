@@ -18,6 +18,7 @@
 package org.apache.linkis.ujes.jdbc
 
 import org.apache.linkis.common.utils.{Logging, Utils}
+import org.apache.linkis.governance.common.constant.job.JobRequestConstants
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.engine.{EngineType, EngineTypeLabel, RunType}
 import org.apache.linkis.manager.label.utils.EngineTypeLabelCreator
@@ -86,9 +87,7 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
     tableauFlag
   }
 
-  private[jdbc] val dbName =
-    if (StringUtils.isNotBlank(props.getProperty(DB_NAME))) props.getProperty(DB_NAME)
-    else "default"
+  private[jdbc] val dbName = props.getProperty(DB_NAME)
 
   private val runningSQLStatements = new util.LinkedList[Statement]
 
@@ -119,19 +118,31 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
   private val runtimeParams: util.Map[String, AnyRef] = new util.HashMap[String, AnyRef]
 
   private[jdbc] def getEngineType: EngineTypeLabel = {
-    val engineType: EngineTypeLabel =
-      EngineTypeLabelCreator.createEngineTypeLabel(EngineType.TRINO.toString)
+
+    var engineType = EngineType.TRINO.toString
+    var engineVersion = ""
     if (props.containsKey(PARAMS)) {
       val params = props.getProperty(PARAMS)
       if (params != null & params.length() > 0) {
         params.split(PARAM_SPLIT).map(_.split(KV_SPLIT)).foreach {
-          case Array(k, v) if k.equals(UJESSQLDriver.ENGINE_TYPE) =>
-            return EngineTypeLabelCreator.createEngineTypeLabel(v)
+          case Array(k, v) =>
+            if (k.equals(UJESSQLDriver.ENGINE_TYPE)) {
+              engineType = v
+            } else if (k.equals(UJESSQLDriver.ENGINE_VERSION)) {
+              engineVersion = v
+            }
+
           case _ =>
         }
       }
     }
-    engineType
+    if (StringUtils.isNotBlank(engineVersion)) {
+      val label = EngineTypeLabelCreator.createEngineTypeLabel(engineType)
+      label.setVersion(engineVersion)
+      label
+    } else {
+      EngineTypeLabelCreator.createEngineTypeLabel(engineType)
+    }
   }
 
   private[jdbc] def throwWhenClosed[T](op: => T): T =
@@ -142,10 +153,6 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
 
     val statement = op
     runningSQLStatements.add(statement)
-    if (!inited) {
-      inited = true
-      Utils.tryAndWarn(statement.execute(s"USE $dbName"))
-    }
     statement
   }
 
@@ -442,8 +449,11 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
     val runType = EngineType.mapStringToEngineType(engine) match {
       case EngineType.SPARK => RunType.SQL
       case EngineType.HIVE => RunType.HIVE
+      case EngineType.REPL => RunType.REPL
+      case EngineType.DORIS => RunType.DORIS
       case EngineType.TRINO => RunType.TRINO_SQL
       case EngineType.PRESTO => RunType.PRESTO_SQL
+      case EngineType.NEBULA => RunType.NEBULA_SQL
       case EngineType.ELASTICSEARCH => RunType.ES_SQL
       case EngineType.JDBC => RunType.JDBC
       case EngineType.PYTHON => RunType.SHELL
@@ -460,6 +470,10 @@ class LinkisSQLConnection(private[jdbc] val ujesClient: UJESClient, props: Prope
     if (fixedSessionEnabled) {
       labelMap.put(LabelKeyConstant.FIXED_EC_KEY, connectionId)
       logger.info("Fixed session is enable session id is {}", connectionId)
+    }
+
+    if (StringUtils.isNotBlank(dbName)) {
+      runtimeParams.put(JobRequestConstants.LINKIS_JDBC_DEFAULT_DB, dbName)
     }
 
     val jobSubmitAction = JobSubmitAction.builder

@@ -19,6 +19,7 @@ package org.apache.linkis.manager.engineplugin.jdbc.executor
 
 import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{OverloadUtils, Utils}
+import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ConcurrentComputationExecutor,
   EngineExecutionContext
@@ -38,9 +39,13 @@ import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
 import org.apache.linkis.manager.engineplugin.jdbc.ConnectionManager
 import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration
+import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration.NOT_SUPPORT_LIMIT_DBS
 import org.apache.linkis.manager.engineplugin.jdbc.constant.JDBCEngineConnConstant
 import org.apache.linkis.manager.engineplugin.jdbc.errorcode.JDBCErrorCodeSummary.JDBC_GET_DATASOURCEINFO_ERROR
-import org.apache.linkis.manager.engineplugin.jdbc.exception.JDBCGetDatasourceInfoException
+import org.apache.linkis.manager.engineplugin.jdbc.exception.{
+  JDBCGetDatasourceInfoException,
+  JDBCParamsIllegalException
+}
 import org.apache.linkis.manager.engineplugin.jdbc.monitor.ProgressMonitor
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{EngineTypeLabel, UserCreatorLabel}
@@ -78,6 +83,8 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
   private val progressMonitors: util.Map[String, ProgressMonitor[_]] =
     new ConcurrentHashMap[String, ProgressMonitor[_]]()
 
+  private val connectionCache: util.Map[String, Connection] = new util.HashMap[String, Connection]()
+
   override def init(): Unit = {
     logger.info("jdbc executor start init.")
     setCodeParser(new SQLCodeParser)
@@ -87,47 +94,93 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
     }
   }
 
-  override def executeLine(
-      engineExecutorContext: EngineExecutionContext,
-      code: String
-  ): ExecuteResponse = {
-    val realCode = code.trim()
-    val taskId = engineExecutorContext.getJobId.get
-
-    var properties: util.Map[String, String] = Collections.emptyMap()
-
-    Utils.tryCatch({
-      properties = getJDBCRuntimeParams(engineExecutorContext)
-    }) { e: Throwable =>
-      logger.error(s"try to build JDBC runtime params error! $e")
-      return ErrorExecuteResponse(e.getMessage, e)
+  override def execute(engineConnTask: EngineConnTask): ExecuteResponse = {
+    val executeResponse = super.execute(engineConnTask)
+    if (StringUtils.isNotBlank(engineConnTask.getTaskId)) {
+      val connection = connectionCache.remove(engineConnTask.getTaskId)
+      logger.info(s"remove task ${engineConnTask.getTaskId} connection")
+      Utils.tryAndWarn(connection.close())
     }
+    executeResponse
+  }
 
+  private def getConnection(engineExecutorContext: EngineExecutionContext): Connection = {
+
+    val taskId = engineExecutorContext.getJobId.orNull
+    if (StringUtils.isNotBlank(taskId) && connectionCache.containsKey(taskId)) {
+      logger.info(
+        s"Task ${taskId}  paragraph ${engineExecutorContext.getCurrentParagraph} from cache get connection"
+      )
+      return connectionCache.get(taskId)
+    }
+    val properties: util.Map[String, String] = getJDBCRuntimeParams(engineExecutorContext)
     logger.info(s"The jdbc properties is: $properties")
     val dataSourceName = properties.get(JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS)
     val dataSourceMaxVersionId =
       properties.get(JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_MAX_VERSION_ID)
     logger.info(
-      s"The data source name is [$dataSourceName], and the jdbc client begins to run jdbc code:\n ${realCode.trim}"
+      s"The data source name is [$dataSourceName], and the jdbc client begins to run task ${taskId}"
     )
-    var connection: Connection = null
+    logger.info(s"The data source properties is $properties")
+    /* url + user as the cache key */
+    val jdbcUrl: String = properties.get(JDBCEngineConnConstant.JDBC_URL)
+    val execUser: String = properties.get(JDBCEngineConnConstant.JDBC_SCRIPTS_EXEC_USER)
+    val proxyUser: String = properties.get(JDBCEngineConnConstant.JDBC_PROXY_USER_PROPERTY)
+    var dataSourceIdentifier = s"$jdbcUrl-$execUser-$proxyUser"
+    /* If datasource is used, use datasource name as the cache key */
+    if (StringUtils.isNotBlank(dataSourceName)) {
+      dataSourceIdentifier = s"$dataSourceName-$dataSourceMaxVersionId"
+    }
+    // deal with url param for ds conn
+    parseJdbcUrl(jdbcUrl, properties)
+    val connection = connectionManager.getConnection(dataSourceIdentifier, properties)
+    if (StringUtils.isNotBlank(taskId)) {
+      connectionCache.put(taskId, connection)
+    }
+    connection
+  }
+
+  def parseJdbcUrl(jdbcUrl: String, parameters: util.Map[String, String]): Unit = {
+    if (StringUtils.isEmpty(jdbcUrl)) {
+      return None
+    }
+    val queryIndex = jdbcUrl.indexOf('?')
+    if (queryIndex != -1) {
+      val query = jdbcUrl.substring(queryIndex + 1)
+      val pairs = query.split("&")
+
+      pairs.foreach { pair =>
+        try {
+          val keyValue = pair.split("=", 2)
+          if (keyValue.length == 2) {
+            val key = keyValue(0)
+            val value = keyValue(1)
+            parameters.put(key, value)
+          }
+        } catch {
+          case e: Exception =>
+            logger.info(s"wrong link parameters: ${pair}")
+        }
+      }
+    }
+  }
+
+  override def executeLine(
+      engineExecutorContext: EngineExecutionContext,
+      code: String
+  ): ExecuteResponse = {
+
+    val taskId = engineExecutorContext.getJobId.get
+    val connection: Connection = getConnection(engineExecutorContext)
     var statement: Statement = null
     var resultSet: ResultSet = null
-    logger.info(s"The data source properties is $properties")
-    Utils.tryCatch({
-      val dataSourceIdentifier = s"$dataSourceName-$dataSourceMaxVersionId"
-      connection = connectionManager.getConnection(dataSourceIdentifier, properties)
-      logger.info("The jdbc connection has created successfully!")
-    }) { e: Throwable =>
-      logger.error(s"created data source connection error! $e")
-      return ErrorExecuteResponse("created data source connection error!", e)
-    }
 
     try {
       statement = connection.createStatement()
-      statement.setQueryTimeout(JDBCConfiguration.JDBC_QUERY_TIMEOUT.getValue)
+      if (statement.getQueryTimeout == 0) {
+        statement.setQueryTimeout(JDBCConfiguration.JDBC_QUERY_TIMEOUT.getValue)
+      }
       statement.setFetchSize(outputPrintLimit)
-      statement.setMaxRows(outputPrintLimit)
 
       val monitor = ProgressMonitor.attachMonitor(statement)
       if (monitor != null) {
@@ -140,7 +193,18 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
       }
       logger.info(s"create statement is:  $statement")
       connectionManager.saveStatement(taskId, statement)
-      val isResultSetAvailable = statement.execute(code)
+      val properties: util.Map[String, String] = getJDBCRuntimeParams(engineExecutorContext)
+      val jdbcUrl: String = properties.get(JDBCEngineConnConstant.JDBC_URL)
+      var newCode = code
+      val dbs: Array[String] = NOT_SUPPORT_LIMIT_DBS.split(",")
+      if (StringUtils.isNotBlank(jdbcUrl) && dbs.length > 0) {
+        dbs.foreach(dbName => {
+          if (jdbcUrl.toLowerCase().contains(dbName.toLowerCase())) {
+            newCode = code.replaceAll("(?i)limit[^;]*;?$", "").trim
+          }
+        })
+      }
+      val isResultSetAvailable = statement.execute(newCode)
       logger.info(s"Is ResultSet available ? : $isResultSetAvailable")
       if (monitor != null) {
         /* refresh progress */
@@ -159,14 +223,10 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
         }
       } finally {
         if (resultSet != null) {
-          Utils.tryCatch({ resultSet.close() }) { case e: SQLException =>
-            logger.warn(e.getMessage)
-          }
+          Utils.tryAndWarn(resultSet.close())
         }
         if (statement != null) {
-          Utils.tryCatch({ statement.close() }) { case e: SQLException =>
-            logger.warn(e.getMessage)
-          }
+          Utils.tryAndWarn(statement.close())
         }
       }
     } catch {
@@ -174,14 +234,6 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
         logger.error(s"Cannot run $code", e)
         return ErrorExecuteResponse(e.getMessage, e)
     } finally {
-      if (connection != null) {
-        try {
-          if (!connection.getAutoCommit) connection.commit()
-          connection.close()
-        } catch {
-          case e: SQLException => logger.warn("close connection error.", e)
-        }
-      }
       connectionManager.removeStatement(taskId)
     }
     SuccessExecuteResponse()
@@ -221,11 +273,17 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
           dataSourceQuerySystemParam
         )
       } { e: Throwable =>
-        throw new JDBCGetDatasourceInfoException(
-          JDBC_GET_DATASOURCEINFO_ERROR.getErrorCode,
-          JDBC_GET_DATASOURCEINFO_ERROR.getErrorDesc.concat(" ").concat(s"[$dataSourceName]"),
-          e
-        )
+        e match {
+          case jpe: JDBCParamsIllegalException =>
+            throw new JDBCGetDatasourceInfoException(jpe.getErrCode, jpe.getDesc, e)
+          case _ =>
+            throw new JDBCGetDatasourceInfoException(
+              JDBC_GET_DATASOURCEINFO_ERROR.getErrorCode,
+              e.getMessage,
+              e
+            )
+        }
+
       }
     }
     if (StringUtils.isBlank(dataSourceName)) {
@@ -255,7 +313,6 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
   ): ExecuteResponse = {
     if (isDDLCommand(statement.getUpdateCount, resultSet.getMetaData.getColumnCount)) {
       logger.info(s"current result is a ResultSet Object , but there are no more results!")
-      engineExecutorContext.appendStdout("Query executed successfully.")
       SuccessExecuteResponse()
     } else {
       val md = resultSet.getMetaData
@@ -266,14 +323,13 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
         )
       }
       val columns =
-        metaArrayBuffer.map { c => Column(c._1, DataType.toDataType(c._2), "") }.toArray[Column]
+        metaArrayBuffer.map { c => new Column(c._1, DataType.toDataType(c._2), "") }.toArray[Column]
       val metaData = new TableMetaData(columns)
       val resultSetWriter =
         engineExecutorContext.createResultSetWriter(ResultSetFactory.TABLE_TYPE)
       resultSetWriter.addMetaData(metaData)
-      var count = 0
       Utils.tryCatch({
-        while (count < outputPrintLimit && resultSet.next()) {
+        while (resultSet.next()) {
           val r: Array[Any] = columns.indices.map { i =>
             val data = resultSet.getObject(i + 1) match {
               case value: Array[Byte] =>
@@ -283,8 +339,7 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
             }
             data
           }.toArray
-          resultSetWriter.addRecord(new TableRecord(r))
-          count += 1
+          resultSetWriter.addRecord(new TableRecord(r.asInstanceOf[Array[Any]]))
         }
       }) { case e: Exception =>
         return ErrorExecuteResponse("query jdbc failed", e)
@@ -332,10 +387,12 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
 
   override def close(): Unit = {
     logger.info("Start closing the jdbc engine.")
+    Utils.tryQuietly(killAll())
     connectionManager.close()
     if (JDBCConfiguration.JDBC_KERBEROS_ENABLE.getValue) {
       connectionManager.shutdownRefreshKerberosLoginService()
     }
+
     logger.info("The jdbc engine has closed successfully.")
   }
 

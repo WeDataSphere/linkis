@@ -20,15 +20,20 @@ package org.apache.linkis.storage.resultset
 import org.apache.linkis.common.io.{Fs, MetaData, Record}
 import org.apache.linkis.common.io.resultset.{ResultSet, ResultSetReader}
 import org.apache.linkis.common.utils.{Logging, Utils}
+import org.apache.linkis.storage.conf.LinkisStorageConf
 import org.apache.linkis.storage.domain.Dolphin
+import org.apache.linkis.storage.errorcode.LinkisStorageErrorCodeSummary
 import org.apache.linkis.storage.exception.{
+  ColLengthExceedException,
   StorageErrorCode,
   StorageErrorException,
   StorageWarnException
 }
+import org.apache.linkis.storage.resultset.table.TableMetaData
 import org.apache.linkis.storage.utils.StorageUtils
 
 import java.io.{ByteArrayInputStream, InputStream, IOException}
+import java.text.MessageFormat
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -41,12 +46,9 @@ class StorageResultSetReader[K <: MetaData, V <: Record](
   private val deserializer = resultSet.createResultSetDeserializer
   private var metaData: K = _
   private var row: Record = _
-  private var colCount = 0
   private var rowCount = 0
 
   private var fs: Fs = _
-
-  private val READ_CACHE = 1024
 
   def this(resultSet: ResultSet[K, V], value: String) = {
     this(resultSet, new ByteArrayInputStream(value.getBytes(Dolphin.CHAR_SET)))
@@ -75,6 +77,17 @@ class StorageResultSetReader[K <: MetaData, V <: Record](
     catch {
       case _: StorageWarnException => logger.info(s"Read finished(读取完毕)"); return null
       case t: Throwable => throw t
+    }
+
+    if (rowLen > LinkisStorageConf.LINKIS_READ_ROW_BYTE_MAX_LEN) {
+      throw new ColLengthExceedException(
+        LinkisStorageErrorCodeSummary.RESULT_ROW_LENGTH.getErrorCode,
+        MessageFormat.format(
+          LinkisStorageErrorCodeSummary.RESULT_ROW_LENGTH.getErrorDesc,
+          rowLen.asInstanceOf[Object],
+          LinkisStorageConf.LINKIS_READ_ROW_BYTE_MAX_LEN.asInstanceOf[Object]
+        )
+      )
     }
 
     var bytes: Array[Byte] = null
@@ -142,6 +155,7 @@ class StorageResultSetReader[K <: MetaData, V <: Record](
   @scala.throws[IOException]
   override def hasNext: Boolean = {
     if (metaData == null) getMetaData
+
     val line = readLine()
     if (line == null) return false
     row = deserializer.createRecord(line)

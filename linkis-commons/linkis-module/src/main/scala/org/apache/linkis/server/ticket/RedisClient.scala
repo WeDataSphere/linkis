@@ -70,7 +70,7 @@ object RedisClient {
           SessionHAConfiguration.RedisHost,
           SessionHAConfiguration.RedisPort,
           redisTimeout,
-          SessionHAConfiguration.RedisSentinalServer
+          SessionHAConfiguration.RedisPassword
         )
       }
 
@@ -98,8 +98,8 @@ object RedisClient {
       maxIdle: Int,
       minIdle: Int,
       maxWaitMillis: Long
-  ): GenericObjectPoolConfig[Nothing] = {
-    val poolConfig = new GenericObjectPoolConfig
+  ): GenericObjectPoolConfig[Jedis] = {
+    val poolConfig = new GenericObjectPoolConfig[Jedis]()
     poolConfig.setMaxTotal(maxTotal)
     poolConfig.setMaxIdle(maxIdle)
     poolConfig.setMinIdle(minIdle)

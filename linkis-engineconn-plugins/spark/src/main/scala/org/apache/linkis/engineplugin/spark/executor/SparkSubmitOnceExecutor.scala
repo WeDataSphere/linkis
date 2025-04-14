@@ -22,7 +22,7 @@ import org.apache.linkis.engineconn.once.executor.{
   OnceExecutorExecutionContext,
   OperableOnceExecutor
 }
-import org.apache.linkis.engineplugin.spark.client.deployment.YarnApplicationClusterDescriptorAdapter
+import org.apache.linkis.engineplugin.spark.client.deployment.ClusterDescriptorAdapter
 import org.apache.linkis.engineplugin.spark.config.SparkConfiguration.{
   SPARK_APP_CONF,
   SPARK_APPLICATION_ARGS,
@@ -43,7 +43,7 @@ import scala.concurrent.duration.Duration
 class SparkSubmitOnceExecutor(
     override val id: Long,
     override protected val sparkEngineConnContext: SparkEngineConnContext
-) extends SparkOnceExecutor[YarnApplicationClusterDescriptorAdapter]
+) extends SparkOnceExecutor[ClusterDescriptorAdapter]
     with OperableOnceExecutor {
 
   private var oldProgress: Float = 0f
@@ -57,7 +57,7 @@ class SparkSubmitOnceExecutor(
     val extConf = SPARK_APP_CONF.getValue(options)
     val confMap = new util.HashMap[String, String]()
     if (StringUtils.isNotBlank(extConf)) {
-      for (conf <- extConf.split("\n")) {
+      for (conf <- extConf.split(",")) {
         if (StringUtils.isNotBlank(conf)) {
           val pair = conf.trim.split("=")
           if (pair.length == 2) {

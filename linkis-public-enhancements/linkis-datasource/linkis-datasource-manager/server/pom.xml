@@ -41,7 +41,7 @@
     <!-- data source manager common dependency-->
     <dependency>
       <groupId>org.apache.linkis</groupId>
-      <artifactId>linkis-datasource-manager-common</artifactId>
+      <artifactId>linkis-pes-common</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
@@ -53,13 +53,13 @@
     <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-validator</artifactId>
-      <version>5.1.2.Final</version>
+      <version>5.1.3.Final</version>
     </dependency>
 
     <!--bml client-->
     <dependency>
       <groupId>org.apache.linkis</groupId>
-      <artifactId>linkis-bml-client</artifactId>
+      <artifactId>linkis-pes-client</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
@@ -91,12 +91,7 @@
       <version>${project.version}</version>
       <scope>provided</scope>
     </dependency>
-    <!--Metadata common-->
-    <dependency>
-      <groupId>org.apache.linkis</groupId>
-      <artifactId>linkis-metadata-query-common</artifactId>
-      <version>${project.version}</version>
-    </dependency>
+
   </dependencies>
 
   <build>

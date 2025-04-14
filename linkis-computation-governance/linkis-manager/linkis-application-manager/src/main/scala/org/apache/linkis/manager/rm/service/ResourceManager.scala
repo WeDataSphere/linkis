@@ -18,8 +18,10 @@
 package org.apache.linkis.manager.rm.service
 
 import org.apache.linkis.common.ServiceInstance
+import org.apache.linkis.manager.am.vo.CanCreateECRes
 import org.apache.linkis.manager.common.entity.node.EngineNode
-import org.apache.linkis.manager.common.entity.resource.NodeResource
+import org.apache.linkis.manager.common.entity.persistence.{PersistenceLabel, PersistenceLock}
+import org.apache.linkis.manager.common.entity.resource.{NodeResource, Resource}
 import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.rm.{ResourceInfo, ResultResource}
@@ -52,6 +54,19 @@ abstract class ResourceManager {
       resource: NodeResource,
       engineCreateRequest: EngineCreateRequest
   ): ResultResource
+
+  /**
+   * Can request resource
+   * @param labels
+   * @param resource
+   * @param engineCreateRequest
+   * @return
+   */
+  def canRequestResource(
+      labels: util.List[Label[_]],
+      resource: NodeResource,
+      engineCreateRequest: EngineCreateRequest
+  ): CanCreateECRes
 
   /**
    * Request resources and wait for a certain amount of time until the requested resource is met
@@ -101,5 +116,11 @@ abstract class ResourceManager {
    * @return
    */
   def getResourceInfo(serviceInstances: Array[ServiceInstance]): ResourceInfo
+
+  def resetResource(label: PersistenceLabel, resource: NodeResource): Unit
+
+  def tryLockOneLabel(label: Label[_], timeOut: Long = -1, user: String): PersistenceLock
+
+  def unLock(persistenceLock: PersistenceLock): Unit
 
 }

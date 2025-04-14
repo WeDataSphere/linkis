@@ -23,11 +23,20 @@ object HadoopConf {
 
   val HADOOP_ROOT_USER = CommonVars("wds.linkis.hadoop.root.user", "hadoop")
 
-  val KERBEROS_ENABLE = CommonVars("wds.linkis.keytab.enable", false)
+  val KERBEROS_ENABLE = CommonVars("wds.linkis.keytab.enable", false).getValue
+
+  val KERBEROS_ENABLE_MAP =
+    CommonVars("linkis.keytab.enable.map", "cluster1=false,cluster2=true")
 
   val KEYTAB_FILE = CommonVars("wds.linkis.keytab.file", "/appcom/keytab/")
 
+  val EXTERNAL_KEYTAB_FILE_PREFIX =
+    CommonVars("linkis.external.keytab.file.prefix", "/appcom/config/external-conf/keytab")
+
   val KEYTAB_HOST = CommonVars("wds.linkis.keytab.host", "127.0.0.1")
+
+  val KEYTAB_HOST_MAP =
+    CommonVars("linkis.keytab.host.map", "cluster1=127.0.0.2,cluster2=127.0.0.3")
 
   val KEYTAB_HOST_ENABLED = CommonVars("wds.linkis.keytab.host.enabled", false)
 
@@ -35,13 +44,28 @@ object HadoopConf {
 
   val KEYTAB_PROXYUSER_SUPERUSER = CommonVars("wds.linkis.keytab.proxyuser.superuser", "hadoop")
 
+  val KEYTAB_PROXYUSER_SUPERUSER_MAP =
+    CommonVars("linkis.keytab.proxyuser.superuser.map", "cluster1=hadoop1,cluster2=hadoop2")
+
   val hadoopConfDir =
     CommonVars("hadoop.config.dir", CommonVars("HADOOP_CONF_DIR", "").getValue).getValue
 
   val HADOOP_EXTERNAL_CONF_DIR_PREFIX =
     CommonVars("wds.linkis.hadoop.external.conf.dir.prefix", "/appcom/config/external-conf/hadoop")
 
+  /**
+   * Whether to close the hdfs underlying cache or turn it off if it is ture
+   */
+  val FS_CACHE_DISABLE =
+    CommonVars[java.lang.Boolean]("wds.linkis.fs.hdfs.impl.disable.cache", false)
+
   val HDFS_ENABLE_CACHE = CommonVars("wds.linkis.hadoop.hdfs.cache.enable", false).getValue
+
+  val HDFS_ENABLE_CACHE_CLOSE =
+    CommonVars("linkis.hadoop.hdfs.cache.close.enable", true).getValue
+
+  val HDFS_ENABLE_NOT_CLOSE_USERS =
+    CommonVars("linkis.hadoop.hdfs.cache.not.close.users", "hadoop").getValue
 
   val HDFS_ENABLE_CACHE_IDLE_TIME =
     CommonVars("wds.linkis.hadoop.hdfs.cache.idle.time", 3 * 60 * 1000).getValue

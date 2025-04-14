@@ -19,13 +19,17 @@ package org.apache.linkis.entrance.utils
 
 import org.apache.linkis.common.io.FsPath
 import org.apache.linkis.common.utils.Utils
+import org.apache.linkis.entrance.conf.EntranceConfiguration
+import org.apache.linkis.governance.common.entity.job.JobRequest
+import org.apache.linkis.governance.common.utils.GovernanceUtils
+import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.storage.FSFactory
 import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.utils.{FileSystemUtils, StorageConfiguration, StorageUtils}
 
 object CommonLogPathUtils {
 
-  def buildCommonPath(commonPath: String): Unit = {
+  def buildCommonPath(commonPath: String, isResPath: Boolean): Unit = {
     val fileSystem = getRootFs(commonPath)
     fileSystem.init(null)
     val realPath: String = if (commonPath.endsWith("/")) {
@@ -37,6 +41,16 @@ object CommonLogPathUtils {
     if (!fileSystem.exists(fsPath)) {
       FileSystemUtils.mkdirs(fileSystem, fsPath, StorageUtils.getJvmUser)
       fileSystem.setPermission(fsPath, "770")
+    }
+    // create defalut creator path
+    if (isResPath) {
+      val defaultPath =
+        GovernanceUtils.getResultParentPath(GovernanceUtils.LINKIS_DEFAULT_RES_CREATOR)
+      val resPath = new FsPath(defaultPath)
+      if (!fileSystem.exists(resPath)) {
+        FileSystemUtils.mkdirs(fileSystem, resPath, StorageUtils.getJvmUser)
+        fileSystem.setPermission(resPath, "770")
+      }
     }
     Utils.tryQuietly(fileSystem.close())
   }
@@ -50,6 +64,23 @@ object CommonLogPathUtils {
         .getFs(StorageUtils.FILE, StorageConfiguration.LOCAL_ROOT_USER.getValue)
         .asInstanceOf[FileSystem]
     }
+  }
+
+  def getResultParentPath(jobRequest: JobRequest): String = {
+    val userCreator = LabelUtil.getUserCreatorLabel(jobRequest.getLabels)
+    val creator =
+      if (null == userCreator) EntranceConfiguration.DEFAULT_CREATE_SERVICE.getValue
+      else userCreator.getCreator
+    GovernanceUtils.getResultParentPath(creator)
+  }
+
+  def getResultPath(jobRequest: JobRequest): String = {
+    val userCreator = LabelUtil.getUserCreatorLabel(jobRequest.getLabels)
+    val creator =
+      if (null == userCreator) EntranceConfiguration.DEFAULT_CREATE_SERVICE.getValue
+      else userCreator.getCreator
+    val parentPath = GovernanceUtils.getResultParentPath(creator)
+    parentPath + "/" + jobRequest.getExecuteUser + "/" + jobRequest.getId
   }
 
 }

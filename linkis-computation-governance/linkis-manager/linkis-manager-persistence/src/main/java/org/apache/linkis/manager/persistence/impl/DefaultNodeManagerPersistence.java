@@ -105,6 +105,10 @@ public class DefaultNodeManagerPersistence implements NodeManagerPersistence {
     persistenceNode.setOwner(node.getOwner());
     persistenceNode.setMark(node.getMark());
     persistenceNode.setUpdateTime(new Date());
+    if (node instanceof EngineNode) {
+      EngineNode engineNode = (EngineNode) node;
+      persistenceNode.setParams(engineNode.getParams());
+    }
     persistenceNode.setCreator(
         node.getOwner()); // The creator is not given when inserting records in rm, so you need to
     // set this value(rm中插入记录的时候并未给出creator，所以需要set这个值)
@@ -116,8 +120,11 @@ public class DefaultNodeManagerPersistence implements NodeManagerPersistence {
       nodeManagerMapper.updateNodeLabelRelation(
           serviceInstance.getInstance(), node.getServiceInstance().getInstance());
     } catch (DuplicateKeyException e) {
-      throw new LinkisRetryException(
-          41003, "engine instance name is exist, request of created engine will be retry");
+      LinkisRetryException linkisRetryException =
+          new LinkisRetryException(
+              NODE_INFO_DUPLICATE.getErrorCode(), NODE_INFO_DUPLICATE.getErrorMessage());
+      linkisRetryException.initCause(e);
+      throw linkisRetryException;
     } catch (Exception e) {
       NodeInstanceNotFoundException nodeInstanceNotFoundException =
           new NodeInstanceNotFoundException(
@@ -281,6 +288,28 @@ public class DefaultNodeManagerPersistence implements NodeManagerPersistence {
       amemNode.setStartTime(emNode.getCreateTime());
       amEngineNode.setEMNode(amemNode);
     }
+    return amEngineNode;
+  }
+
+  @Override
+  public EngineNode getEngineNodeByTicketId(String ticketId) {
+    AMEngineNode amEngineNode = new AMEngineNode();
+    PersistenceNode engineNode = nodeManagerMapper.getNodeInstanceByTicketId(ticketId);
+
+    if (null == engineNode) {
+      return null;
+    }
+
+    ServiceInstance serviceInstance = new ServiceInstance();
+    serviceInstance.setInstance(engineNode.getInstance());
+    serviceInstance.setApplicationName(engineNode.getName());
+    amEngineNode.setServiceInstance(serviceInstance);
+
+    amEngineNode.setOwner(engineNode.getOwner());
+    amEngineNode.setMark(engineNode.getMark());
+    amEngineNode.setIdentifier(engineNode.getIdentifier());
+    amEngineNode.setTicketId(engineNode.getTicketId());
+    amEngineNode.setStartTime(engineNode.getCreateTime());
     return amEngineNode;
   }
 

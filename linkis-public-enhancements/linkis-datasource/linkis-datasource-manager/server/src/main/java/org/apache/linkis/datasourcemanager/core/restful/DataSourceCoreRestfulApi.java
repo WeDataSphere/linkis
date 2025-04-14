@@ -18,12 +18,15 @@
 package org.apache.linkis.datasourcemanager.core.restful;
 
 import org.apache.linkis.common.exception.ErrorException;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSource;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceType;
 import org.apache.linkis.datasourcemanager.common.domain.DatasourceVersion;
+import org.apache.linkis.datasourcemanager.common.util.CryptoUtils;
 import org.apache.linkis.datasourcemanager.common.util.json.Json;
+import org.apache.linkis.datasourcemanager.core.dao.DataSourceVersionDao;
 import org.apache.linkis.datasourcemanager.core.formdata.FormDataTransformerFactory;
 import org.apache.linkis.datasourcemanager.core.formdata.MultiPartFormDataTransformer;
 import org.apache.linkis.datasourcemanager.core.service.DataSourceInfoService;
@@ -34,6 +37,7 @@ import org.apache.linkis.datasourcemanager.core.validate.ParameterValidateExcept
 import org.apache.linkis.datasourcemanager.core.validate.ParameterValidator;
 import org.apache.linkis.datasourcemanager.core.vo.DataSourceVo;
 import org.apache.linkis.metadata.query.common.MdmConfiguration;
+import org.apache.linkis.server.BDPJettyServerHelper;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
@@ -68,7 +72,6 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,7 +95,7 @@ public class DataSourceCoreRestfulApi {
   @Autowired private Validator beanValidator;
 
   @Autowired private MetadataOperateService metadataOperateService;
-
+  @Autowired private DataSourceVersionDao dataSourceVersionDao;
   private MultiPartFormDataTransformer formDataTransformer;
 
   @Autowired private List<DataSourceParamsHook> dataSourceParamsHooks = new ArrayList<>();
@@ -137,6 +140,37 @@ public class DataSourceCoreRestfulApi {
         "Fail to get key definitions of data source type[查询数据源参数键值对失败]");
   }
 
+  @ApiOperation(
+      value = "getKeyDefinitionsByTypeName",
+      notes = "get key definitions by typeName",
+      response = Message.class)
+  @ApiImplicitParams({@ApiImplicitParam(name = "typeName", required = true, dataType = "String")})
+  @RequestMapping(value = "/key-define/{typeName}", method = RequestMethod.GET)
+  public Message getKeyDefinitionsByTypeName(
+      @PathVariable("typeName") String typeName, HttpServletRequest request) {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          String userName = ModuleUserUtils.getOperationUser(request, "getKeyDefinitionsByType");
+          List<DataSourceType> dataSourceTypes =
+              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
+          DataSourceType targetDataSourceType =
+              dataSourceTypes.stream()
+                  .filter(type -> type.getName().equals(typeName))
+                  .findFirst()
+                  .orElse(null);
+          if (targetDataSourceType != null) {
+            List<DataSourceParamKeyDefinition> keyDefinitions =
+                dataSourceRelateService.getKeyDefinitionsByType(
+                    Long.valueOf(targetDataSourceType.getId()),
+                    request.getHeader("Content-Language"));
+            return Message.ok().data("keyDefine", keyDefinitions);
+          } else {
+            return Message.error("No data source type found with name: " + typeName);
+          }
+        },
+        "Fail to get key definitions of data source type[查询数据源参数键值对失败]");
+  }
+
   @ApiOperation(value = "insertJsonInfo", notes = "insert json info", response = Message.class)
   @ApiOperationSupport(ignoreParameters = {"dataSource"})
   @ApiImplicitParams({
@@ -177,6 +211,19 @@ public class DataSourceCoreRestfulApi {
                     + " has been existed [数据源: "
                     + dataSource.getDataSourceName()
                     + " 已经存在]");
+          }
+          Map<String, Object> connectParams = dataSource.getConnectParams();
+          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+              && connectParams.containsKey(AESUtils.PASSWORD)) {
+            dataSource
+                .getConnectParams()
+                .replace(
+                    AESUtils.PASSWORD,
+                    AESUtils.encrypt(
+                        connectParams.get(AESUtils.PASSWORD).toString(),
+                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+            // 标记密码已经加密
+            dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
           }
           insertDataSource(dataSource);
           return Message.ok().data("insertId", dataSource.getId());
@@ -257,6 +304,20 @@ public class DataSourceCoreRestfulApi {
           dataSource.setKeyDefinitions(keyDefinitionList);
 
           Map<String, Object> connectParams = dataSource.getConnectParams();
+
+          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+              && connectParams.containsKey(AESUtils.PASSWORD)) {
+            dataSource
+                .getConnectParams()
+                .replace(
+                    AESUtils.PASSWORD,
+                    AESUtils.encrypt(
+                        connectParams.get(AESUtils.PASSWORD).toString(),
+                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+            // 标记密码已经加密
+            dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
+          }
+
           // add default value filed
           keyDefinitionList.forEach(
               keyDefinition -> {
@@ -361,7 +422,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -397,8 +460,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
-
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -433,8 +497,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
-
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -478,7 +543,9 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -516,7 +583,7 @@ public class DataSourceCoreRestfulApi {
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
           // Decrypt
-          if (null != versions) {
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue() && null != versions) {
             versions.forEach(
                 version -> {
                   RestfulApiHelper.decryptPasswordKey(
@@ -666,7 +733,9 @@ public class DataSourceCoreRestfulApi {
           Map<String, Object> connectParams = dataSource.getConnectParams();
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          }
           return Message.ok().data("connectParams", connectParams);
         },
         "Fail to connect data source[连接数据源失败]");
@@ -702,7 +771,9 @@ public class DataSourceCoreRestfulApi {
 
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          }
           return Message.ok().data("connectParams", connectParams);
         },
         "Fail to connect data source[连接数据源失败]");
@@ -740,8 +811,9 @@ public class DataSourceCoreRestfulApi {
           // Get definitions
           List<DataSourceParamKeyDefinition> keyDefinitionList =
               dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
-          RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
-
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+          }
           // For connecting, also need to handle the parameters
           for (DataSourceParamsHook hook : dataSourceParamsHooks) {
             hook.beforePersist(connectParams, keyDefinitionList);
@@ -771,7 +843,7 @@ public class DataSourceCoreRestfulApi {
           String userName =
               ModuleUserUtils.getOperationUser(request, "queryDataSourceByIds ids:" + idsJson);
 
-          List ids = new ObjectMapper().readValue(idsJson, List.class);
+          List ids = BDPJettyServerHelper.jacksonJson().readValue(idsJson, List.class);
           List<DataSource> dataSourceList = dataSourceInfoService.queryDataSourceInfo(ids);
           return Message.ok()
               .data("queryList", dataSourceList)
@@ -819,6 +891,134 @@ public class DataSourceCoreRestfulApi {
         "Fail to query page of data source[查询数据源失败]");
   }
 
+  @ApiOperation(
+      value = "queryDataSourceWithConnectParms",
+      notes = "query datasource",
+      response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "system", dataType = "String"),
+    @ApiImplicitParam(name = "name", dataType = "Long"),
+    @ApiImplicitParam(name = "typeId", dataType = "Long"),
+    @ApiImplicitParam(name = "identifies", dataType = "String"),
+    @ApiImplicitParam(name = "currentPage", dataType = "Integer"),
+    @ApiImplicitParam(name = "pageSize", dataType = "Integer")
+  })
+  @RequestMapping(value = "/info/connect-params", method = RequestMethod.GET)
+  public Message queryDataSourceWithConnectParms(
+      @RequestParam(value = "system", required = false) String createSystem,
+      @RequestParam(value = "name", required = false) String dataSourceName,
+      @RequestParam(value = "typeId", required = false) Long dataSourceTypeId,
+      @RequestParam(value = "identifies", required = false) String identifies,
+      @RequestParam(value = "currentPage", required = false) Integer currentPage,
+      @RequestParam(value = "pageSize", required = false) Integer pageSize,
+      HttpServletRequest request) {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          String permissionUser = ModuleUserUtils.getOperationUser(request, "queryDataSource");
+
+          DataSourceVo dataSourceVo =
+              new DataSourceVo(dataSourceName, dataSourceTypeId, identifies, createSystem);
+          dataSourceVo.setCurrentPage(null != currentPage ? currentPage : 1);
+          dataSourceVo.setPageSize(null != pageSize ? pageSize : 10);
+
+          if (AuthContext.isAdministrator(permissionUser)) {
+            permissionUser = null;
+          }
+          dataSourceVo.setPermissionUser(permissionUser);
+          PageInfo<DataSource> pageInfo =
+              dataSourceInfoService.queryDataSourceInfoPage(dataSourceVo);
+          List<DataSource> queryList = pageInfo.getList();
+          for (DataSource dataSource : queryList) {
+            DataSource dataSourceConnect =
+                dataSourceInfoService.getDataSourceInfoForConnect(dataSource.getDataSourceName());
+            if (dataSourceConnect == null) {
+              return Message.error("No Exists The DataSource [不存在该数据源]");
+            }
+            Map<String, Object> connectParams = dataSourceConnect.getConnectParams();
+            List<DataSourceParamKeyDefinition> keyDefinitionList =
+                dataSourceRelateService.getKeyDefinitionsByType(
+                    dataSourceConnect.getDataSourceTypeId());
+            if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+              RestfulApiHelper.decryptPasswordKey(keyDefinitionList, connectParams);
+            }
+            connectParams.remove(AESUtils.PASSWORD);
+            dataSource.setConnectParams(connectParams);
+          }
+          return Message.ok().data("queryList", queryList).data("totalPage", pageInfo.getTotal());
+        },
+        "Fail to query page of data source[查询数据源失败]");
+  }
+
+  @ApiOperation(
+      value = "encryptDatasourcePassword",
+      notes = "encrypt datasource password",
+      response = Message.class)
+  @RequestMapping(value = "/encrypt", method = RequestMethod.GET)
+  public Message encryptDatasourcePassword(
+      @RequestParam(value = "isEncrypt", required = false) String isEncrypt,
+      HttpServletRequest request) {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+              && StringUtils.isNotBlank(isEncrypt)) {
+            // 处理linkis_ps_dm_datasource表和处理linkis_ps_dm_datasource_version的password字段加密
+            String permissionUser = ModuleUserUtils.getOperationUser(request, "encrypt");
+            DataSourceVo dataSourceVo = new DataSourceVo();
+            dataSourceVo.setCurrentPage(1);
+            dataSourceVo.setPageSize(10000);
+            if (AuthContext.isAdministrator(permissionUser)) {
+              permissionUser = null;
+            }
+            dataSourceVo.setPermissionUser(permissionUser);
+            dataSourceInfoService
+                .queryDataSourceInfoPage(dataSourceVo)
+                .getList()
+                .forEach(s -> dealDatasoueceData(s, isEncrypt));
+          }
+          return Message.ok();
+        },
+        "Fail to aes of data source[加密数据源密码失败]");
+  }
+
+  @ApiOperation(
+      value = "getDataSourceByTypeName",
+      notes = "get data source by datasource type name",
+      response = Message.class)
+  @RequestMapping(value = "/info-by-type", method = RequestMethod.GET)
+  public Message getDataSourceListByTypes(
+      HttpServletRequest request,
+      @RequestParam String typeName,
+      @RequestParam(required = false, defaultValue = "1") Integer currentPage,
+      @RequestParam(required = false, defaultValue = "10") Integer pageSize) {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          String userName = ModuleUserUtils.getOperationUser(request, "getDataSourceByTypeName");
+          if (AuthContext.isAdministrator(userName)) {
+            userName = null;
+          }
+          List<DataSourceType> dataSourceTypes =
+              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
+          DataSourceType targetDataSourceType =
+              dataSourceTypes.stream()
+                  .filter(type -> type.getName().equals(typeName))
+                  .findFirst()
+                  .orElse(null);
+          if (targetDataSourceType != null) {
+            DataSourceVo dataSourceVo = new DataSourceVo();
+            dataSourceVo.setDataSourceTypeId(Long.valueOf(targetDataSourceType.getId()));
+            dataSourceVo.setPermissionUser(userName);
+            dataSourceVo.setCurrentPage(currentPage);
+            dataSourceVo.setPageSize(pageSize);
+            PageInfo<DataSource> pageInfo =
+                dataSourceInfoService.queryDataSourceInfoPage(dataSourceVo);
+            List<DataSource> queryList = pageInfo.getList();
+            return Message.ok().data("queryList", queryList).data("totalPage", pageInfo.getTotal());
+          } else {
+            return Message.error("No data source type found with name: " + typeName);
+          }
+        },
+        "Fail to get all types of data source[获取数据源列表失败]");
+  }
   /**
    * Inner method to insert data source
    *
@@ -861,7 +1061,109 @@ public class DataSourceCoreRestfulApi {
         (k, v) -> {
           if (v instanceof String) {
             connectParams.put(k, v.toString().trim());
-            logger.info("connectParams put key:{} with value:{}", k, v.toString().trim());
+            if (!k.equals(AESUtils.PASSWORD)) {
+              logger.info("connectParams put key:{} with value:{}", k, v.toString().trim());
+            }
+          }
+        });
+  }
+
+  private void dealDatasoueceData(DataSource dataSourceInfo, String isEncrypt) {
+    DataSource dataSourceInfoBrief =
+        dataSourceInfoService.getDataSourceInfoBrief(dataSourceInfo.getId());
+    if (StringUtils.isNotBlank(dataSourceInfoBrief.getParameter())
+        && dataSourceInfoBrief.getParameter().contains(AESUtils.PASSWORD)) {
+      Map datasourceParmMap =
+          BDPJettyServerHelper.gson()
+              .fromJson(dataSourceInfoBrief.getParameter().toString(), Map.class);
+      if (!datasourceParmMap
+              .getOrDefault(AESUtils.IS_ENCRYPT, AESUtils.DECRYPT)
+              .equals(AESUtils.ENCRYPT)
+          && isEncrypt.equals(AESUtils.ENCRYPT)) {
+        datasourceParmMap.put(
+            AESUtils.PASSWORD,
+            AESUtils.encrypt(
+                datasourceParmMap.get(AESUtils.PASSWORD).toString(),
+                AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+        datasourceParmMap.put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
+        dataSourceInfoBrief.setParameter(BDPJettyServerHelper.gson().toJson(datasourceParmMap));
+        dataSourceInfoService.updateDataSourceInfo(dataSourceInfoBrief);
+      }
+      if (datasourceParmMap
+              .getOrDefault(AESUtils.IS_ENCRYPT, AESUtils.DECRYPT)
+              .equals(AESUtils.ENCRYPT)
+          && isEncrypt.equals(AESUtils.DECRYPT)) {
+        datasourceParmMap.put(
+            AESUtils.PASSWORD,
+            AESUtils.decrypt(
+                datasourceParmMap.get(AESUtils.PASSWORD).toString(),
+                AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+        datasourceParmMap.remove(AESUtils.IS_ENCRYPT);
+        dataSourceInfoBrief.setParameter(BDPJettyServerHelper.gson().toJson(datasourceParmMap));
+        dataSourceInfoService.updateDataSourceInfo(dataSourceInfoBrief);
+      }
+      dealDatasoueceVersionData(dataSourceInfoBrief, isEncrypt);
+    }
+  }
+
+  private void dealDatasoueceVersionData(DataSource dataSourceInfo, String isEncrypt) {
+    // 处理linkis_ps_dm_datasource_version中的password,解密base64，加密AES
+    List<DatasourceVersion> datasourceVersionList =
+        dataSourceVersionDao.getVersionsFromDatasourceId(dataSourceInfo.getId());
+    datasourceVersionList.forEach(
+        datasourceVersion -> {
+          // 加密
+          if (StringUtils.isNotBlank(datasourceVersion.getParameter())
+              && datasourceVersion.getParameter().contains(AESUtils.PASSWORD)) {
+            Map datasourceVersionMap =
+                BDPJettyServerHelper.gson().fromJson(datasourceVersion.getParameter(), Map.class);
+            if (!datasourceVersionMap
+                    .getOrDefault(AESUtils.IS_ENCRYPT, AESUtils.DECRYPT)
+                    .equals(AESUtils.ENCRYPT)
+                && isEncrypt.equals(AESUtils.ENCRYPT)) {
+              try {
+                Object password =
+                    CryptoUtils.string2Object(
+                        datasourceVersionMap.get(AESUtils.PASSWORD).toString());
+                datasourceVersionMap.put(
+                    AESUtils.PASSWORD,
+                    AESUtils.encrypt(
+                        password.toString(), AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+                datasourceVersionMap.put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
+                datasourceVersion.setParameter(
+                    BDPJettyServerHelper.gson().toJson(datasourceVersionMap));
+                dataSourceVersionDao.updateByDatasourceVersion(datasourceVersion);
+              } catch (Exception e) {
+                logger.warn(
+                    "error encrypt  linkis_ps_dm_datasource_version id :"
+                        + datasourceVersion.getDatasourceId()
+                        + " version:"
+                        + datasourceVersion.getVersionId());
+              }
+            }
+            // 解密
+            if (datasourceVersionMap
+                    .getOrDefault(AESUtils.IS_ENCRYPT, AESUtils.DECRYPT)
+                    .equals(AESUtils.ENCRYPT)
+                && isEncrypt.equals(AESUtils.DECRYPT)) {
+              try {
+                String password = datasourceVersionMap.get(AESUtils.PASSWORD).toString();
+                String decryptPassword =
+                    AESUtils.decrypt(password, AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue());
+                datasourceVersionMap.put(
+                    AESUtils.PASSWORD, CryptoUtils.object2String(decryptPassword));
+                datasourceVersionMap.remove(AESUtils.IS_ENCRYPT);
+                datasourceVersion.setParameter(
+                    BDPJettyServerHelper.gson().toJson(datasourceVersionMap));
+                dataSourceVersionDao.updateByDatasourceVersion(datasourceVersion);
+              } catch (Exception e) {
+                logger.warn(
+                    "error encrypt  linkis_ps_dm_datasource_version id :"
+                        + datasourceVersion.getDatasourceId()
+                        + " version:"
+                        + datasourceVersion.getVersionId());
+              }
+            }
           }
         });
   }

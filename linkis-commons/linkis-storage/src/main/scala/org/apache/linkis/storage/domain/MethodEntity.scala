@@ -19,9 +19,7 @@ package org.apache.linkis.storage.domain
 
 import java.lang.reflect.Type
 
-import com.google.gson.GsonBuilder
-import org.json4s.DefaultFormats
-import org.json4s.jackson.Serialization.write
+import com.google.gson.{GsonBuilder, ToNumberPolicy}
 
 /**
  * @param id
@@ -58,23 +56,24 @@ case class MethodEntity(
 
 object MethodEntitySerializer {
 
-  implicit val formats = DefaultFormats
-  import org.json4s.jackson.JsonMethods._
-  val gson = new GsonBuilder().setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").create
+  val gson = new GsonBuilder()
+    .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
+    .setObjectToNumberStrategy(ToNumberPolicy.LAZILY_PARSED_NUMBER)
+    .create
 
   /**
    * Serialized to code as a MethodEntity object 序列化为code为MethodEntity对象
    * @param code
    * @return
    */
-  def deserializer(code: String): MethodEntity = parse(code).extract[MethodEntity]
+  def deserializer(code: String): MethodEntity = gson.fromJson(code, classOf[MethodEntity])
 
   /**
    * Serialize MethodEntity to code 序列化MethodEntity为code
    * @param methodEntity
    * @return
    */
-  def serializer(methodEntity: MethodEntity): String = write(methodEntity)
+  def serializer(methodEntity: MethodEntity): String = gson.toJson(methodEntity)
 
   /**
    * Serialize a java object as a string 序列化java对象为字符串

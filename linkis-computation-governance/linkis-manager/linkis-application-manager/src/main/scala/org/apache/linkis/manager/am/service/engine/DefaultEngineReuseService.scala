@@ -18,7 +18,7 @@
 package org.apache.linkis.manager.am.service.engine
 
 import org.apache.linkis.common.exception.LinkisRetryException
-import org.apache.linkis.common.utils.{Logging, Utils}
+import org.apache.linkis.common.utils.{CodeAndRunTypeUtils, Logging, Utils}
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.am.conf.AMConfiguration
@@ -26,18 +26,27 @@ import org.apache.linkis.manager.am.label.EngineReuseLabelChooser
 import org.apache.linkis.manager.am.selector.NodeSelector
 import org.apache.linkis.manager.am.utils.AMUtils
 import org.apache.linkis.manager.common.constant.AMConstant
+import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.EngineNode
 import org.apache.linkis.manager.common.protocol.engine.{EngineReuseRequest, EngineStopRequest}
 import org.apache.linkis.manager.common.utils.ManagerUtils
+import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf
+import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf.{
+  PYTHON_VERSION_KEY,
+  SPARK_PYTHON_VERSION_KEY
+}
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
 import org.apache.linkis.manager.label.entity.engine.ReuseExclusionLabel
 import org.apache.linkis.manager.label.entity.node.AliasServiceInstanceLabel
 import org.apache.linkis.manager.label.service.{NodeLabelService, UserLabelService}
-import org.apache.linkis.manager.label.utils.LabelUtils
+import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
+import org.apache.linkis.manager.persistence.NodeManagerPersistence
+import org.apache.linkis.manager.service.common.label.LabelFilter
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 
+import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
 import org.springframework.beans.factory.annotation.Autowired
@@ -66,6 +75,15 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
 
   @Autowired
   private var engineStopService: EngineStopService = _
+
+  @Autowired
+  private var engineCreateService: DefaultEngineCreateService = _
+
+  @Autowired
+  private var labelFilter: LabelFilter = _
+
+  @Autowired
+  private var nodeManagerPersistence: NodeManagerPersistence = _
 
   /**
    *   1. Obtain the EC corresponding to all labels 2. Judging reuse exclusion tags and fixed engine
@@ -144,14 +162,94 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
     var engineScoreList =
       getEngineNodeManager.getEngineNodes(instances.asScala.keys.toSeq.toArray)
 
+    // reuse EC according to template name
+    val confTemplateNameKey = "ec.resource.name"
+    val templateName: String =
+      getValueByKeyFromProps(confTemplateNameKey, engineReuseRequest.getProperties)
+    if (
+        StringUtils.isNotBlank(templateName) && AMConfiguration.EC_REUSE_WITH_TEMPLATE_RULE_ENABLE
+    ) {
+      engineScoreList = engineScoreList
+        .filter(engine => engine.getNodeStatus == NodeStatus.Unlock)
+        .filter(engine => {
+          val oldTemplateName: String =
+            getValueByKeyFromProps(confTemplateNameKey, parseParamsToMap(engine.getParams))
+          templateName.equalsIgnoreCase(oldTemplateName)
+        })
+      logger.info(s"${engineScoreList.length} engine by templateName can be reused.")
+    }
+
+    // 获取需要的资源
+    if (AMConfiguration.EC_REUSE_WITH_RESOURCE_RULE_ENABLE) {
+      val labels: util.List[Label[_]] =
+        engineCreateService.buildLabel(engineReuseRequest.getLabels, engineReuseRequest.getUser)
+      if (engineReuseRequest.getProperties == null) {
+        engineReuseRequest.setProperties(new util.HashMap[String, String]())
+      }
+
+      val engineType: String = LabelUtil.getEngineType(labels)
+      if (
+          StringUtils.isNotBlank(engineType) && AMConfiguration.EC_REUSE_WITH_RESOURCE_WITH_ECS
+            .contains(engineType.toLowerCase())
+      ) {
+        val resource = engineCreateService.generateResource(
+          engineReuseRequest.getProperties,
+          engineReuseRequest.getUser,
+          labelFilter.choseEngineLabel(labels),
+          AMConfiguration.ENGINE_START_MAX_TIME.getValue.toLong
+        )
+        val pythonVersion: String = getPythonVersion(engineReuseRequest.getProperties)
+
+        // 只对python相关的引擎做python版本匹配
+        val codeType = LabelUtil.getCodeType(labels)
+        val languageType = CodeAndRunTypeUtils.getLanguageTypeByCodeType(codeType)
+        val pythonFlag: Boolean = languageType == CodeAndRunTypeUtils.LANGUAGE_TYPE_PYTHON
+
+        // 过滤掉资源不满足的引擎
+        engineScoreList = engineScoreList
+          .filter(engine => engine.getNodeStatus == NodeStatus.Unlock)
+          .filter(engine => {
+            val enginePythonVersion: String = getPythonVersion(parseParamsToMap(engine.getParams))
+            var pythonVersionMatch: Boolean = true
+            if (
+                StringUtils.isNotBlank(pythonVersion) && StringUtils
+                  .isNotBlank(enginePythonVersion) && pythonFlag
+            ) {
+              pythonVersionMatch = pythonVersion.equalsIgnoreCase(enginePythonVersion)
+            }
+            if (!pythonVersionMatch) {
+              logger.info(
+                s"will be not reuse ${engine.getServiceInstance}, cause engine python version: $enginePythonVersion , param python version $pythonVersion is not match"
+              )
+            }
+            if (engine.getNodeResource.getUsedResource != null) {
+              // 引擎资源只有满足需要的资源才复用
+              pythonVersionMatch && engine.getNodeResource.getUsedResource
+                .notLess(resource.getMaxResource)
+            } else {
+              // 引擎正在启动中，比较锁住的资源，最终是否复用沿用之前复用逻辑
+              pythonVersionMatch && engine.getNodeResource.getLockedResource
+                .notLess(resource.getMaxResource)
+            }
+          })
+      }
+
+      if (engineScoreList.isEmpty) {
+        throw new LinkisRetryException(
+          AMConstant.ENGINE_ERROR_CODE,
+          s"No engine can be reused, cause all engine resources are not sufficient."
+        )
+      }
+    }
+
     var engine: EngineNode = null
     var count = 1
     val timeout =
       if (engineReuseRequest.getTimeOut <= 0) {
         AMConfiguration.ENGINE_REUSE_MAX_TIME.getValue.toLong
       } else engineReuseRequest.getTimeOut
-    val reuseLimit =
-      if (engineReuseRequest.getReuseCount <= 0) AMConfiguration.ENGINE_REUSE_COUNT_LIMIT.getValue
+    val reuseLimit: Int =
+      if (engineReuseRequest.getReuseCount <= 0) AMConfiguration.ENGINE_REUSE_COUNT_LIMIT
       else engineReuseRequest.getReuseCount
 
     def selectEngineToReuse: Boolean = {
@@ -214,6 +312,30 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
       )
     }
     engine
+  }
+
+  private def parseParamsToMap(params: String) = {
+    if (StringUtils.isNotBlank(params)) {
+      AMUtils.GSON.fromJson(params, classOf[util.Map[String, String]])
+    } else {
+      null
+    }
+  }
+
+  private def getValueByKeyFromProps(key: String, paramsMap: util.Map[String, String]) = {
+    if (paramsMap != null) {
+      paramsMap.getOrDefault(key, "")
+    } else {
+      ""
+    }
+  }
+
+  private def getPythonVersion(prop: util.Map[String, String]): String = {
+    var pythonVersion: String = getValueByKeyFromProps(PYTHON_VERSION_KEY, prop)
+    if (StringUtils.isBlank(pythonVersion)) {
+      pythonVersion = getValueByKeyFromProps(SPARK_PYTHON_VERSION_KEY, prop)
+    }
+    pythonVersion
   }
 
 }

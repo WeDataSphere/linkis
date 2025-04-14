@@ -17,6 +17,8 @@
 
 package org.apache.linkis.entrance.interceptor.impl;
 
+import org.apache.linkis.governance.common.entity.job.JobRequest;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,6 +27,8 @@ class TemplateConfUtilsTest {
 
   @Test
   void getCustomTemplateConfName() {
+    JobRequest js = new JobRequest();
+    StringBuilder logBuilder = new StringBuilder();
     String sqlCode =
         ""
             + "--注解\n"
@@ -35,7 +39,8 @@ class TemplateConfUtilsTest {
             + " --@set yy=123\n"
             + "  --注解";
 
-    String res = TemplateConfUtils.getCustomTemplateConfName(sqlCode, "sql");
+    js.setExecutionCode(sqlCode);
+    String res = TemplateConfUtils.getCustomTemplateConfName(js, "sql", logBuilder);
     assertEquals(res, "");
 
     String sqlCode2 =
@@ -47,8 +52,8 @@ class TemplateConfUtilsTest {
             + "   select \"--注解\" as test\n"
             + " --@set yy=123\n"
             + "  --注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode2, "sql");
+    js.setExecutionCode(sqlCode2);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "sql", logBuilder);
     assertEquals(res, "");
 
     String sqlCode3 =
@@ -61,8 +66,8 @@ class TemplateConfUtilsTest {
             + "   select \"--注解\" as test\n"
             + " --@set yy=123\n"
             + "  --注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode3, "sql");
+    js.setExecutionCode(sqlCode3);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "sql", logBuilder);
     assertEquals(res, "345");
 
     String sqlCode4 =
@@ -71,8 +76,8 @@ class TemplateConfUtilsTest {
             + "   select \"--注解\" as test\n"
             + " --@set yy=123\n"
             + "  --注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode4, "sql");
+    js.setExecutionCode(sqlCode4);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "sql", logBuilder);
     assertEquals(res, "name1");
 
     String sqlCode5 =
@@ -85,8 +90,8 @@ class TemplateConfUtilsTest {
             + "   select \"--注解\" as test\n"
             + "#@set yy=123\n"
             + "  #注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode5, "python");
+    js.setExecutionCode(sqlCode5);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "python", logBuilder);
     assertEquals(res, "pyname1");
 
     String sqlCode6 =
@@ -95,8 +100,8 @@ class TemplateConfUtilsTest {
             + "   select \"//注解\" as test\n"
             + "//@set yy=123\n"
             + "  #注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode6, "scala");
+    js.setExecutionCode(sqlCode6);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "scala", logBuilder);
     assertEquals(res, "scalaname1");
 
     String sqlCode7 =
@@ -105,25 +110,27 @@ class TemplateConfUtilsTest {
             + "   select \"--注解\" as test\n"
             + " --@set yy=123\n"
             + "  --注解";
-
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode7, "hql");
+    js.setExecutionCode(sqlCode7);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "hql", logBuilder);
     assertEquals(res, "hqlname1");
 
     String sqlCode8 =
         "---@set ec.resource.name=linkis_test2;\n"
             + "        ---@set ec.resource.name=scriptis_test hive;\n"
             + "        select * from dss autotest.demo data limit 100;";
-    res = TemplateConfUtils.getCustomTemplateConfName(sqlCode8, "hql");
+    js.setExecutionCode(sqlCode8);
+    res = TemplateConfUtils.getCustomTemplateConfName(js, "hql", logBuilder);
     assertEquals(res, "linkis_test2");
   }
 
   @Test
   void getCustomTemplateConfName2() {
-
+    JobRequest js = new JobRequest();
+    StringBuilder logBuilder = new StringBuilder();
     String sqlCode9 =
         "---@set ec.resource.name=linkis_test2;\r\n---@set ec.resource.name=scriptis_test_hive;\r\n--@set limitn=100\r\nselect * from dss_autotest.demo_data  limit ${limitn};\r\n";
-
-    String res = TemplateConfUtils.getCustomTemplateConfName(sqlCode9, "hql");
+    js.setExecutionCode(sqlCode9);
+    String res = TemplateConfUtils.getCustomTemplateConfName(js, "hql", logBuilder);
     assertEquals(res, "linkis_test2");
   }
 }
