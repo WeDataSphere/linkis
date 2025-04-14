@@ -273,14 +273,19 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
         incomplete ++= code
         response match {
           case e: ErrorExecuteResponse =>
-            failedTasks.increase()
-            logger.error("execute code failed!", e.t)
             val props: util.Map[String, Object] = engineConnTask.getProperties
-            if (
-                !props.isEmpty && "true".equals(props.getOrDefault("linkis.ai.sql.enable", "false"))
-            ) {
-              return response
+            val aiSqlEnable: String = props.getOrDefault("linkis.ai.sql.enable", "false").toString
+            val retryNum: Int =
+              Integer.valueOf(props.getOrDefault("linkis.ai.retry.num", "0").toString)
+            if (!props.isEmpty && "true".equals(aiSqlEnable) && retryNum > 0) {
+              logger.info(
+                s"aisql execute failed, with index: ${index} retryNum: ${retryNum}, and will retry",
+                e.t
+              )
+              return ErrorRetryExecuteResponse(e.message, index, e.t)
             } else {
+              failedTasks.increase()
+              logger.error("execute code failed!", e.t)
               return response
             }
           case SuccessExecuteResponse() =>

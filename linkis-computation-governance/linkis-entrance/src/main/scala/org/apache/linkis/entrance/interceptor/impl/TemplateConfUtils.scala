@@ -243,20 +243,21 @@ object TemplateConfUtils extends Logging {
           templateName = getCustomTemplateConfName(jobRequest, codeType, logAppender)
         }
 
+        // 处理runtime参数中的模板名称，用于失败任务重试的时候使用模板参数重试
+        if (StringUtils.isBlank(templateName)) {
+          templateName =
+            runtimeMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_NAME_KEY, "").toString
+        }
+
         // code template name > start params template uuid
         if (StringUtils.isBlank(templateName)) {
           logger.debug("jobRequest startMap param template name is empty")
 
           logger.info("jobRequest startMap params :{} ", startMap)
-          var templateUuid = startMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
+          val templateUuid = startMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
 
           if (StringUtils.isBlank(templateUuid)) {
             logger.debug("jobRequest startMap param template id is empty")
-            templateUuid = runtimeMap.getOrDefault(LabelKeyConstant.TEMPLATE_CONF_KEY, "").toString
-          }
-
-          if (StringUtils.isBlank(templateUuid)) {
-            logger.debug("jobRequest runtimeMap param template id is empty")
           } else {
             logger.info("try to get template conf list with template uid:{} ", templateUuid)
             logAppender.append(
@@ -305,9 +306,17 @@ object TemplateConfUtils extends Logging {
         // 针对aisql处理模板参数
         val codeType: String = LabelUtil.getCodeType(jobRequest.getLabels)
 
-        if (LANGUAGE_TYPE_AI_SQL.equals(codeType)) {
+        if (
+            LANGUAGE_TYPE_AI_SQL.equals(codeType) && templateConflist != null && templateConflist
+              .size() > 0
+        ) {
+          logAppender.append(
+            LogUtils.generateWarn(
+              s"If task execution fails, the template $templateName configuration parameters will be used to rerun the task\n"
+            )
+          )
           // 缓存配置到startUp
-          startMap.put(LabelKeyConstant.TEMPLATE_CONF_KEY, templateConflist)
+          startMap.put(LabelKeyConstant.TEMPLATE_CONF_NAME_KEY, templateConflist)
           // 清理旧的
           TaskUtils.clearStartupMap(params)
           // 添加新的
