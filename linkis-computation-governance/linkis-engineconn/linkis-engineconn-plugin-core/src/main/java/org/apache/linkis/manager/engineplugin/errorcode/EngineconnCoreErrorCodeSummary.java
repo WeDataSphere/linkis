@@ -70,8 +70,7 @@ public enum EngineconnCoreErrorCodeSummary implements LinkisErrorCode {
   NO_PLUGIN_FOUND(70063, "No plugin found , please check your configuration(未找到插件，请检查您的配置)"),
   PLUGIN_NOT_FOUND(70063, ""),
   NO_WRITE_PERMISSION(70064, "Have no write permission to directory(对目录没有写权限)"),
-  PLUGIN_FAIL_TO_LOAD_RES(70064, ""),
-  PYTHON_CODE_INVALID(70065, "Invalid python code.(当前代码存在非法获取系统信息或执行非法命令等危险操作，禁止执行)");
+  PLUGIN_FAIL_TO_LOAD_RES(70064, "");
 
   /** (errorCode)错误码 */
   private final int errorCode;

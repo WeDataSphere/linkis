@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.engineconn.common.utils
+package org.apache.linkis.entrance.utils
 
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.engineconn.common.conf.EngineConnConf

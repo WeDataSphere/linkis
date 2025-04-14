@@ -19,9 +19,6 @@ package org.apache.linkis.manager.engineplugin.python.executor
 
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.Utils
-import org.apache.linkis.engineconn.common.conf.EngineConnConf
-import org.apache.linkis.engineconn.common.exception.EngineConnException
-import org.apache.linkis.engineconn.common.utils.SafeUtils
 import org.apache.linkis.engineconn.computation.executor.execute.{
   ComputationExecutor,
   EngineExecutionContext
@@ -40,10 +37,8 @@ import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf.{
   SPARK_PYTHON_VERSION_KEY
 }
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
-import org.apache.linkis.manager.engineplugin.errorcode.EngineconnCoreErrorCodeSummary
 import org.apache.linkis.manager.engineplugin.python.conf.PythonEngineConfiguration
 import org.apache.linkis.manager.label.entity.Label
-import org.apache.linkis.manager.label.entity.engine.EngineType
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.scheduler.executer.{ExecuteResponse, SuccessExecuteResponse}
@@ -81,17 +76,6 @@ class PythonEngineConnExecutor(id: Int, pythonSession: PythonSession, outputPrin
       engineExecutionContext: EngineExecutionContext,
       code: String
   ): ExecuteResponse = {
-    if (
-        EngineConnConf.PYTHON_SAFE_CHECK_SWITCH.getValue.contains(
-          EngineType.PYTHON.toString
-        ) && (!SafeUtils
-          .isCodeSafe(code))
-    ) {
-      throw EngineConnException(
-        EngineconnCoreErrorCodeSummary.PYTHON_CODE_INVALID.getErrorCode,
-        EngineconnCoreErrorCodeSummary.PYTHON_CODE_INVALID.getErrorDesc
-      )
-    }
     val pythonVersion = engineExecutionContext.getProperties
       .getOrDefault(PYTHON_VERSION_KEY, pythonDefaultVersion)
       .toString

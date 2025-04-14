@@ -349,13 +349,5 @@ object EntranceConfiguration {
   val SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS: String =
     CommonVars[String]("spark.dynamicAllocation.additional.confs", "").getValue
 
-  val SPARK3_VERSION_COERCION_USERS: String =
-    CommonVars[String]("spark.version.coercion.users", "").getHotValue()
-
-  val SPARK3_VERSION_COERCION_DEPARTMENT: String =
-    CommonVars[String]("spark.version.coercion.department.id", "").getHotValue()
-
-  val SPARK3_VERSION_COERCION_SWITCH: Boolean =
-    CommonVars[Boolean]("spark.version.coercion.switch", false).getValue
-
+  val PYTHON_SAFE_CHECK_SWITCH = CommonVars("linkis.python.safe.check.switch", true).getValue
 }
