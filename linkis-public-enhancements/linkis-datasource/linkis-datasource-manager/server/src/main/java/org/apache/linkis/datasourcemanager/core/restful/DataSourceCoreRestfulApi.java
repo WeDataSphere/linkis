@@ -19,6 +19,8 @@ package org.apache.linkis.datasourcemanager.core.restful;
 
 import org.apache.linkis.common.exception.ErrorException;
 import org.apache.linkis.common.utils.AESUtils;
+import org.apache.linkis.datasource.client.impl.LinkisDataSourceRemoteClient;
+import org.apache.linkis.datasource.client.request.GetInfoPublishedByUserIpPortAction;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSource;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
@@ -503,6 +505,71 @@ public class DataSourceCoreRestfulApi {
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
+  }
+
+  @ApiOperation(
+      value = "getPublishedInfoByDataSourceName",
+      notes = "get published info by data source name",
+      response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String")
+  })
+  @RequestMapping(
+      value = "/publishedInfo/{datasourceTypeName}/{ip}/{port}",
+      method = RequestMethod.GET)
+  public Message getPublishedInfoByIpPort(
+      @PathVariable("datasourceTypeName") String datasourceTypeName,
+      @PathVariable("ip") String ip,
+      @PathVariable("port") String port,
+      HttpServletRequest request)
+      throws UnsupportedEncodingException {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          String userName =
+              ModuleUserUtils.getOperationUser(
+                  request, "getPublishedInfoByIpPort ip:" + ip + ",port:" + port);
+          DataSource dataSource =
+              dataSourceInfoService.getDataSourcePublishInfo(
+                  datasourceTypeName, ip, port, userName);
+          if (dataSource == null) {
+            return Message.error("No Exists The DataSource [不存在该数据源]");
+          }
+          if (!AuthContext.hasPermission(dataSource, userName)) {
+            return Message.error("Don't have query permission for data source [没有数据源的查询权限]");
+          }
+          List<DataSourceParamKeyDefinition> keyDefinitionList =
+              dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
+          // Decrypt
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
+          return Message.ok().data("info", dataSource);
+        },
+        "Fail to access data source[获取数据源信息失败]");
+  }
+
+  @RequestMapping(
+      value = "/publishedInfo/{datasourceTypeName}/{ip}/{port}/test",
+      method = RequestMethod.GET)
+  public Message test(
+      @PathVariable("datasourceTypeName") String datasourceTypeName,
+      @PathVariable("ip") String ip,
+      @PathVariable("port") String port,
+      HttpServletRequest request)
+      throws UnsupportedEncodingException {
+    LinkisDataSourceRemoteClient dataSourceClient = new LinkisDataSourceRemoteClient();
+    String userName =
+        ModuleUserUtils.getOperationUser(
+            request, "getPublishedInfoByIpPort ip:" + ip + ",port:" + port);
+    GetInfoPublishedByUserIpPortAction action =
+        GetInfoPublishedByUserIpPortAction.builder()
+            .setDatasourceTypeName(datasourceTypeName)
+            .setUser(userName)
+            .setIp(ip)
+            .setPort(port)
+            .build(); // ignore parameter 'system'
+    DataSource datasource = dataSourceClient.getInfoPublishedByIpPort(action).getDataSource();
+    return Message.ok().data("info", datasource);
   }
 
   /**
