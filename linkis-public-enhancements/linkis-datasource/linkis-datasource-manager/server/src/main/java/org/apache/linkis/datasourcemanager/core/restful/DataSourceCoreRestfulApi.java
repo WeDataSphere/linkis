@@ -508,11 +508,13 @@ public class DataSourceCoreRestfulApi {
   }
 
   @ApiOperation(
-      value = "getPublishedInfoByDataSourceName",
-      notes = "get published info by data source name",
+      value = "Get published info by data source name, IP and port",
+      notes = "Retrieve published information of a data source by its type name, IP and port",
       response = Message.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String")
+    @ApiImplicitParam(name = "datasourceTypeName", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "ip", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "port", required = true, dataType = "String")
   })
   @RequestMapping(
       value = "/publishedInfo/{datasourceTypeName}/{ip}/{port}",
@@ -546,30 +548,6 @@ public class DataSourceCoreRestfulApi {
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
-  }
-
-  @RequestMapping(
-      value = "/publishedInfo/{datasourceTypeName}/{ip}/{port}/test",
-      method = RequestMethod.GET)
-  public Message test(
-      @PathVariable("datasourceTypeName") String datasourceTypeName,
-      @PathVariable("ip") String ip,
-      @PathVariable("port") String port,
-      HttpServletRequest request)
-      throws UnsupportedEncodingException {
-    LinkisDataSourceRemoteClient dataSourceClient = new LinkisDataSourceRemoteClient();
-    String userName =
-        ModuleUserUtils.getOperationUser(
-            request, "getPublishedInfoByIpPort ip:" + ip + ",port:" + port);
-    GetInfoPublishedByUserIpPortAction action =
-        GetInfoPublishedByUserIpPortAction.builder()
-            .setDatasourceTypeName(datasourceTypeName)
-            .setUser(userName)
-            .setIp(ip)
-            .setPort(port)
-            .build(); // ignore parameter 'system'
-    DataSource datasource = dataSourceClient.getInfoPublishedByIpPort(action).getDataSource();
-    return Message.ok().data("info", datasource);
   }
 
   /**
