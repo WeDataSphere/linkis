@@ -44,6 +44,7 @@ import org.apache.linkis.governance.common.paser.CodeParser
 import org.apache.linkis.governance.common.protocol.task.{EngineConcurrentInfo, RequestTask}
 import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.manager.common.entity.enumeration.{NodeHealthy, NodeStatus}
+import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{
   CodeLanguageLabel,
   EngineType,
@@ -273,7 +274,7 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
         incomplete ++= code
         response match {
           case e: ErrorExecuteResponse =>
-            val props: util.Map[String, Object] = engineConnTask.getProperties
+            val props: util.Map[String, String] = engineCreationContext.getOptions
             val aiSqlEnable: String = props.getOrDefault("linkis.ai.sql.enable", "false").toString
             val retryNum: Int =
               Integer.valueOf(props.getOrDefault("linkis.ai.retry.num", "0").toString)
