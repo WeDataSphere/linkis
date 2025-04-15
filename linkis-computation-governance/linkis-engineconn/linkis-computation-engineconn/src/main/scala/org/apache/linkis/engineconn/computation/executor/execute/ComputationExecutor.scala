@@ -278,11 +278,11 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
             val aiSqlEnable: String = props.getOrDefault("linkis.ai.sql.enable", "false").toString
             val retryNum: Int =
               Integer.valueOf(props.getOrDefault("linkis.ai.retry.num", "0").toString)
+            logger.info(
+              s"aisql execute failed, with index: ${index} retryNum: ${retryNum}, and will retry",
+              e.t
+            )
             if (!props.isEmpty && "true".equals(aiSqlEnable) && retryNum > 0) {
-              logger.info(
-                s"aisql execute failed, with index: ${index} retryNum: ${retryNum}, and will retry",
-                e.t
-              )
               return ErrorRetryExecuteResponse(e.message, index, e.t)
             } else {
               failedTasks.increase()
@@ -359,6 +359,7 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
     }
     logger.info(s"Finished to execute task ${engineConnTask.getTaskId}")
     // lastTask = null
+    logger.info(s"response type: ${response.getClass}")
     response
   } {
     LoggerUtils.removeJobIdMDC()
