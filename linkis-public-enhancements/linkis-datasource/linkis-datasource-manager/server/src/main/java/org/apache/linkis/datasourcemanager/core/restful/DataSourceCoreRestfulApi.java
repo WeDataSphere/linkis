@@ -147,13 +147,7 @@ public class DataSourceCoreRestfulApi {
     return RestfulApiHelper.doAndResponse(
         () -> {
           String userName = ModuleUserUtils.getOperationUser(request, "getKeyDefinitionsByType");
-          List<DataSourceType> dataSourceTypes =
-              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
-          DataSourceType targetDataSourceType =
-              dataSourceTypes.stream()
-                  .filter(type -> type.getName().equals(typeName))
-                  .findFirst()
-                  .orElse(null);
+          DataSourceType targetDataSourceType = getDatasoutceTypeID(typeName, request);
           if (targetDataSourceType != null) {
             List<DataSourceParamKeyDefinition> keyDefinitions =
                 dataSourceRelateService.getKeyDefinitionsByType(
@@ -240,6 +234,12 @@ public class DataSourceCoreRestfulApi {
               + " has been existed [数据源: "
               + dataSource.getDataSourceName()
               + " 已经存在]");
+    }
+    DataSourceType starrocksType = getDatasoutceTypeID("starrocks", request);
+    if (null != starrocksType) {
+      dataSource.setDataSourceTypeId(Long.parseLong(starrocksType.getId()));
+    } else {
+      return Message.error("The StarRocks data source type does not exist");
     }
     // 创建数据源
     insertDatasource(dataSource, userName);
@@ -1069,13 +1069,7 @@ public class DataSourceCoreRestfulApi {
           if (AuthContext.isAdministrator(userName)) {
             userName = null;
           }
-          List<DataSourceType> dataSourceTypes =
-              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
-          DataSourceType targetDataSourceType =
-              dataSourceTypes.stream()
-                  .filter(type -> type.getName().equals(typeName))
-                  .findFirst()
-                  .orElse(null);
+          DataSourceType targetDataSourceType = getDatasoutceTypeID(typeName, request);
           if (targetDataSourceType != null) {
             DataSourceVo dataSourceVo = new DataSourceVo();
             dataSourceVo.setDataSourceTypeId(Long.valueOf(targetDataSourceType.getId()));
@@ -1139,6 +1133,16 @@ public class DataSourceCoreRestfulApi {
             }
           }
         });
+  }
+
+  private DataSourceType getDatasoutceTypeID(
+      String dataSourceTypeName, HttpServletRequest request) {
+    List<DataSourceType> dataSourceTypes =
+        dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
+    return dataSourceTypes.stream()
+        .filter(type -> type.getName().equals(dataSourceTypeName))
+        .findFirst()
+        .orElse(null);
   }
 
   private DataSource insertDatasource(DataSource dataSource, String userName) {
