@@ -19,8 +19,7 @@ package org.apache.linkis.datasourcemanager.core.restful;
 
 import org.apache.linkis.common.exception.ErrorException;
 import org.apache.linkis.common.utils.AESUtils;
-import org.apache.linkis.datasource.client.impl.LinkisDataSourceRemoteClient;
-import org.apache.linkis.datasource.client.request.GetInfoPublishedByUserIpPortAction;
+import org.apache.linkis.common.variable.DateTypeUtils;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSource;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
@@ -61,12 +60,7 @@ import javax.validation.Validator;
 import javax.validation.groups.Default;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -197,15 +191,6 @@ public class DataSourceCoreRestfulApi {
     return RestfulApiHelper.doAndResponse(
         () -> {
           String userName = ModuleUserUtils.getOperationUser(request, "insertJsonInfo");
-
-          // Bean validation
-          Set<ConstraintViolation<DataSource>> result =
-              beanValidator.validate(dataSource, Default.class);
-          if (result.size() > 0) {
-            throw new ConstraintViolationException(result);
-          }
-          // Escape the data source name
-          dataSource.setCreateUser(userName);
           if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
             return Message.error(
                 "The data source named: "
@@ -214,23 +199,66 @@ public class DataSourceCoreRestfulApi {
                     + dataSource.getDataSourceName()
                     + " 已经存在]");
           }
-          Map<String, Object> connectParams = dataSource.getConnectParams();
-          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
-              && connectParams.containsKey(AESUtils.PASSWORD)) {
-            dataSource
-                .getConnectParams()
-                .replace(
-                    AESUtils.PASSWORD,
-                    AESUtils.encrypt(
-                        connectParams.get(AESUtils.PASSWORD).toString(),
-                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
-            // 标记密码已经加密
-            dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
-          }
-          insertDataSource(dataSource);
+          insertDatasource(dataSource, userName);
           return Message.ok().data("insertId", dataSource.getId());
         },
         "Fail to insert data source[新增数据源失败]");
+  }
+
+  @ApiOperation(value = "insertJsonInfo", notes = "insert json info", response = Message.class)
+  @ApiOperationSupport(ignoreParameters = {"dataSource"})
+  @ApiImplicitParams({
+    @ApiImplicitParam(
+        name = "createSystem",
+        required = true,
+        dataType = "String",
+        example = "linkis"),
+    @ApiImplicitParam(name = "dataSourceDesc", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "dataSourceTypeId", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "labels", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "connectParams", required = true, dataType = "List"),
+    @ApiImplicitParam(name = "host", dataType = "String", example = "127.0.0.1"),
+    @ApiImplicitParam(name = "password", dataType = "String"),
+    @ApiImplicitParam(name = "port", dataType = "String", example = "9523"),
+    @ApiImplicitParam(name = "subSystem", dataType = "String"),
+    @ApiImplicitParam(name = "username", dataType = "String")
+  })
+  @RequestMapping(value = "/info/json/starrocks", method = RequestMethod.POST)
+  public Message insertJson(@RequestBody DataSource dataSource, HttpServletRequest request) {
+    String userName = ModuleUserUtils.getOperationUser(request, "insertJsonStarrocks");
+    dataSource.setDataSourceName(
+        String.join(
+            "_",
+            "starrocks",
+            userName,
+            DateTypeUtils.dateFormatSecondLocal().get().format(new Date())));
+    if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
+      return Message.error(
+          "The data source named: "
+              + dataSource.getDataSourceName()
+              + " has been existed [数据源: "
+              + dataSource.getDataSourceName()
+              + " 已经存在]");
+    }
+    // 创建数据源
+    insertDatasource(dataSource, userName);
+    Map<String, Object> stringHashMap = new HashMap<>();
+    stringHashMap.put("connectParams", dataSource.getConnectParams());
+    stringHashMap.put("comment", "初始化版本");
+    // 创建数据源version
+    Message message = insertJsonParameter(dataSource.getId(), stringHashMap, request);
+    if (message.getStatus() == 1) {
+      return message;
+    }
+    long publishedVersionId = Long.parseLong(message.getData().get("version").toString());
+    dataSource.setPublishedVersionId(publishedVersionId);
+    // 发布数据源version
+    message = publishByDataSourceId(dataSource.getId(), publishedVersionId, request);
+    if (message.getStatus() == 1) {
+      return message;
+    }
+    return Message.ok().data("datasource", dataSource);
   }
 
   @ApiOperation(
@@ -1111,6 +1139,32 @@ public class DataSourceCoreRestfulApi {
             }
           }
         });
+  }
+
+  private DataSource insertDatasource(DataSource dataSource, String userName) {
+    // Bean validation
+    Set<ConstraintViolation<DataSource>> result = beanValidator.validate(dataSource, Default.class);
+    if (result.size() > 0) {
+      throw new ConstraintViolationException(result);
+    }
+    // Escape the data source name
+    dataSource.setCreateUser(userName);
+
+    Map<String, Object> connectParams = dataSource.getConnectParams();
+    if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+        && connectParams.containsKey(AESUtils.PASSWORD)) {
+      dataSource
+          .getConnectParams()
+          .replace(
+              AESUtils.PASSWORD,
+              AESUtils.encrypt(
+                  connectParams.get(AESUtils.PASSWORD).toString(),
+                  AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+      // 标记密码已经加密
+      dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
+    }
+    insertDataSource(dataSource);
+    return dataSource;
   }
 
   private void dealDatasoueceData(DataSource dataSourceInfo, String isEncrypt) {
