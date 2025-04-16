@@ -210,7 +210,7 @@ public class DataSourceCoreRestfulApi {
         example = "linkis"),
     @ApiImplicitParam(name = "dataSourceDesc", required = true, dataType = "String"),
     @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "dataSourceTypeId", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "dataSourceTypeName", required = true, dataType = "String"),
     @ApiImplicitParam(name = "labels", required = true, dataType = "String"),
     @ApiImplicitParam(name = "connectParams", required = true, dataType = "List"),
     @ApiImplicitParam(name = "host", dataType = "String"),
@@ -222,15 +222,13 @@ public class DataSourceCoreRestfulApi {
   @RequestMapping(value = "/info/json/create", method = RequestMethod.POST)
   public Message insertJson(@RequestBody DataSource dataSource, HttpServletRequest request) {
     String userName = ModuleUserUtils.getOperationUser(request, "insertJsonCreate");
-    DataSourceType dataSourceType =
-        dataSourceRelateService.getDataSourceType(dataSource.getDataSourceTypeId());
-    if (!DatasourceConf.INSERT_DATAESOURCE_LIMIT.getValue().contains(dataSourceType.getName())) {
+    if (!DatasourceConf.INSERT_DATAESOURCE_LIMIT.getValue().contains(dataSource.getDataSourceTypeName())) {
       return Message.error("Data source creation only supports starrocks");
     }
     dataSource.setDataSourceName(
         String.join(
             "_",
-            dataSourceType.getName(),
+            dataSource.getDataSourceTypeName(),
             userName,
             DateTypeUtils.dateFormatSecondLocal().get().format(new Date())));
     if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
