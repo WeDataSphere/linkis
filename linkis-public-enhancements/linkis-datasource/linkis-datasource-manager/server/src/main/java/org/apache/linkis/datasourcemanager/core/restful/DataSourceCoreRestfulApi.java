@@ -27,6 +27,7 @@ import org.apache.linkis.datasourcemanager.common.domain.DataSourceType;
 import org.apache.linkis.datasourcemanager.common.domain.DatasourceVersion;
 import org.apache.linkis.datasourcemanager.common.util.CryptoUtils;
 import org.apache.linkis.datasourcemanager.common.util.json.Json;
+import org.apache.linkis.datasourcemanager.core.conf.DatasourceConf;
 import org.apache.linkis.datasourcemanager.core.dao.DataSourceVersionDao;
 import org.apache.linkis.datasourcemanager.core.formdata.FormDataTransformerFactory;
 import org.apache.linkis.datasourcemanager.core.formdata.MultiPartFormDataTransformer;
@@ -212,19 +213,24 @@ public class DataSourceCoreRestfulApi {
     @ApiImplicitParam(name = "dataSourceTypeId", required = true, dataType = "String"),
     @ApiImplicitParam(name = "labels", required = true, dataType = "String"),
     @ApiImplicitParam(name = "connectParams", required = true, dataType = "List"),
-    @ApiImplicitParam(name = "host", dataType = "String", example = "127.0.0.1"),
+    @ApiImplicitParam(name = "host", dataType = "String"),
     @ApiImplicitParam(name = "password", dataType = "String"),
-    @ApiImplicitParam(name = "port", dataType = "String", example = "9523"),
+    @ApiImplicitParam(name = "port", dataType = "String"),
     @ApiImplicitParam(name = "subSystem", dataType = "String"),
     @ApiImplicitParam(name = "username", dataType = "String")
   })
-  @RequestMapping(value = "/info/json/starrocks", method = RequestMethod.POST)
+  @RequestMapping(value = "/info/json/create", method = RequestMethod.POST)
   public Message insertJson(@RequestBody DataSource dataSource, HttpServletRequest request) {
-    String userName = ModuleUserUtils.getOperationUser(request, "insertJsonStarrocks");
+    String userName = ModuleUserUtils.getOperationUser(request, "insertJsonCreate");
+    DataSourceType dataSourceType =
+        dataSourceRelateService.getDataSourceType(dataSource.getDataSourceTypeId());
+    if (!DatasourceConf.INSERT_DATAESOURCE_LIMIT.getValue().contains(dataSourceType.getName())) {
+      return Message.error("Data source creation only supports starrocks");
+    }
     dataSource.setDataSourceName(
         String.join(
             "_",
-            "starrocks",
+            dataSourceType.getName(),
             userName,
             DateTypeUtils.dateFormatSecondLocal().get().format(new Date())));
     if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
@@ -234,12 +240,6 @@ public class DataSourceCoreRestfulApi {
               + " has been existed [数据源: "
               + dataSource.getDataSourceName()
               + " 已经存在]");
-    }
-    DataSourceType starrocksType = getDatasoutceTypeID("starrocks", request);
-    if (null != starrocksType) {
-      dataSource.setDataSourceTypeId(Long.parseLong(starrocksType.getId()));
-    } else {
-      return Message.error("The StarRocks data source type does not exist");
     }
     // 创建数据源
     insertDatasource(dataSource, userName);

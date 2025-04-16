@@ -18,6 +18,7 @@
 package org.apache.linkis.entrance.utils
 
 import org.apache.linkis.common.utils.Logging
+
 import java.util.regex.Pattern
 
 object SafeUtils extends Logging {
