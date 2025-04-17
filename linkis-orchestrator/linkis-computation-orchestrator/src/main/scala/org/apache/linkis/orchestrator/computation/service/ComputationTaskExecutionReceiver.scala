@@ -92,10 +92,21 @@ class ComputationTaskExecutionReceiver extends TaskExecutionReceiver with Loggin
         .getByEngineConnAndTaskId(serviceInstance, taskStatus.execId)
         .foreach { codeExecutor =>
           OrchestratorLoggerUtils.setJobIdMDC(codeExecutor.getExecTask)
+
+          taskStatus match {
+            case rts: ResponseTaskStatusWithExecuteCodeIndex =>
+              logger.info(s"execute error with index: ${rts.errorIndex}")
+              codeExecutor.getExecTask.updateIndexMap(
+                "execute.error.code.index",
+                rts.errorIndex.toString
+              )
+            case _ =>
+          }
           val event = TaskStatusEvent(codeExecutor.getExecTask, taskStatus.status)
           logger.info(
             s"From engineConn receive status info:$taskStatus, now post to listenerBus event: $event"
           )
+
           codeExecutor.getExecTask.getPhysicalContext.broadcastSyncEvent(event)
           codeExecutor.getEngineConnExecutor.updateLastUpdateTime()
           isExist = true
@@ -173,6 +184,16 @@ class ComputationTaskExecutionReceiver extends TaskExecutionReceiver with Loggin
       .getByEngineConnAndTaskId(serviceInstance, responseTaskError.execId)
       .foreach { codeExecutor =>
         OrchestratorLoggerUtils.setJobIdMDC(codeExecutor.getExecTask)
+        responseTaskError match {
+          case rte: ResponseTaskExecuteWithExecuteCodeIndex =>
+            logger.info(s"execute error with index: ${rte.errorIndex}")
+            codeExecutor.getExecTask.updateIndexMap(
+              "execute.error.code.index",
+              rte.errorIndex.toString
+            )
+          case _ =>
+        }
+
         val event = TaskErrorResponseEvent(codeExecutor.getExecTask, responseTaskError.errorMsg)
         logger.info(
           s"From engineConn receive responseTaskError  info${responseTaskError.execId}, now post to listenerBus event: ${event.execTask.getIDInfo()}"
