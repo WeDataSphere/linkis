@@ -35,7 +35,6 @@ import org.apache.linkis.manager.common.entity.resource.{
   LoadResource,
   NodeResource
 }
-import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
 import org.apache.linkis.manager.engineplugin.jdbc.ConnectionManager
 import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration
@@ -53,6 +52,7 @@ import org.apache.linkis.manager.engineplugin.jdbc.monitor.ProgressMonitor
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{EngineTypeLabel, UserCreatorLabel}
 import org.apache.linkis.protocol.CacheableProtocol
+import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.rpc.{RPCMapCache, Sender}
 import org.apache.linkis.scheduler.executer.{
@@ -70,9 +70,8 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.util.CollectionUtils
 
-import java.sql.{Connection, ResultSet, SQLException, Statement}
+import java.sql.{Connection, ResultSet, Statement}
 import java.util
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable.ArrayBuffer
@@ -306,30 +305,28 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
         )
       val connDsType: String =
         executorProperties.getOrDefault(JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_TYPE, "")
-      val userName: String = executorProperties.getOrDefault(
-        JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_PARAM_USERNAME,
-        ""
-      )
+      val submitUser: String = executorProperties.getOrDefault(TaskConstant.SUBMIT_USER, "")
+      val executeUser: String =
+        executorProperties.getOrDefault(TaskConstant.EXECUTE_USER, submitUser)
       logger.info(
-        s"use conn param get dataSourceInfo: executeUser:${execSqlUser} ip:${connHost}, port:${connPort}, dsType:${connDsType}, connUser: ${userName}"
+        s"use conn param get dataSourceInfo: executeUser:${execSqlUser} ip:${connHost}, " +
+          s"port:${connPort}, dsType:${connDsType}, " +
+          s"createUser:${submitUser} connUser: ${executeUser}"
       )
       if (
           StringUtils.isBlank(connHost) || StringUtils
-            .isBlank(connPort) || StringUtils.isBlank(connDsType) || StringUtils.isBlank(userName)
+            .isBlank(connPort) || StringUtils.isBlank(connDsType) || StringUtils.isBlank(
+            submitUser
+          ) || StringUtils.isBlank(executeUser)
       ) {
         throw new JDBCGetDatasourceInfoException(
           JDBC_GET_DATASOURCEINFO_ERROR.getErrorCode,
           JDBC_GET_DATASOURCEINFO_ERROR.getErrorDesc + " 缺失部分连接参数"
         )
       }
-      if (!execSqlUser.equals(userName)) {
-        throw new JDBCGetDatasourceInfoException(
-          JDBC_GET_DATASOURCEINFO_ERROR.getErrorCode,
-          JDBC_GET_DATASOURCEINFO_ERROR.getErrorDesc + " 执行用户和连接用户不匹配"
-        )
-      }
       dataSourceInfo = JDBCMultiDatasourceParser.queryDatasourceInfoByConnParams(
-        userName,
+        submitUser,
+        executeUser,
         connHost,
         connPort,
         connDsType

@@ -84,13 +84,11 @@ class AsyncExecTaskRunnerImpl(override val task: ExecTask)
       }
     } { case e: Throwable =>
       logger.error(s"Failed to execute task ${task.getIDInfo}", e)
-      val response: DefaultFailedTaskResponse = new DefaultFailedTaskResponse(
+      this.taskResponse = new DefaultFailedTaskResponse(
         e.getMessage,
         OrchestratorErrorCodeSummary.EXECUTION_ERROR_CODE,
         e
       )
-      response.errorIndex = task.params.getOrElse("execute.error.code.index", "-1").toInt
-      this.taskResponse = response
       transientStatus(ExecutionNodeStatus.Failed)
     }
     OrchestratorLoggerUtils.removeJobIdMDC()
