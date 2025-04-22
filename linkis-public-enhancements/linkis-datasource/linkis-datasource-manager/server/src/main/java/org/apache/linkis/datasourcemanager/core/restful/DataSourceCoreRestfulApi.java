@@ -553,22 +553,22 @@ public class DataSourceCoreRestfulApi {
       notes = "Retrieve published information of a data source by its type name, IP and port",
       response = Message.class)
   @ApiImplicitParams({
-    @ApiImplicitParam(name = "datasourceTypeName", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "ip", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "datasourceUser", required = true, dataType = "String"),
-    @ApiImplicitParam(name = "port", required = true, dataType = "String")
+          @ApiImplicitParam(name = "datasourceTypeName", required = true, dataType = "String"),
+          @ApiImplicitParam(name = "owner", required = true, dataType = "String"),
+          @ApiImplicitParam(name = "datasourceUser", required = true, dataType = "String"),
+          @ApiImplicitParam(name = "ip", required = true, dataType = "String"),
+          @ApiImplicitParam(name = "port", required = true, dataType = "String")
   })
   @RequestMapping(
-      value = "/publishedInfo/{datasourceTypeName}/{datasourceUser}/{owner}/{ip}/{port}",
+      value = "/publishedInfo/{datasourceTypeName}/{owner}/{datasourceUser}/{ip}/{port}",
       method = RequestMethod.GET)
   public Message getPublishedInfoByIpPort(
       @PathVariable("datasourceTypeName") String datasourceTypeName,
-      @PathVariable("ip") String ip,
-      @PathVariable("port") String port,
       @PathVariable("owner") String owner,
       @PathVariable("datasourceUser") String datasourceUser,
-      HttpServletRequest request)
-      throws UnsupportedEncodingException {
+      @PathVariable("ip") String ip,
+      @PathVariable("port") String port,
+      HttpServletRequest request) {
     return RestfulApiHelper.doAndResponse(
         () -> {
           ModuleUserUtils.getOperationUser(

@@ -138,7 +138,8 @@ public class DataSourceInfoServiceImpl implements DataSourceInfoService {
           String parameter =
               dataSourceVersionDao.selectOneVersion(
                   dataSourceInfo.getId(), dataSourceInfo.getPublishedVersionId());
-          if (parameter.contains(ip)
+          if (StringUtils.isNotBlank(parameter)
+              && parameter.contains(ip)
               && parameter.contains(port)
               && parameter.contains(datasourceUser)) {
             dataSource = dataSourceInfo;
