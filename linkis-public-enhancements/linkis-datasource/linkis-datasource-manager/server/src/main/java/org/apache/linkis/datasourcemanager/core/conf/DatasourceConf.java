@@ -23,4 +23,6 @@ public class DatasourceConf {
 
   public static CommonVars<String> INSERT_DATAESOURCE_LIMIT =
       CommonVars.apply("linkis.create.datasource.allow", "starrocks");
+
+  public static String SYSTEM_USER_REGEX = "^hduser\\d+$";
 }
