@@ -576,12 +576,11 @@ public class DataSourceCoreRestfulApi {
     @ApiImplicitParam(name = "port", required = true, dataType = "String")
   })
   @RequestMapping(
-      value = "/publishedInfo/{datasourceTypeName}/{owner}/{datasourceUser}/{ip}/{port}",
+      value = "/publishedInfo/{datasourceTypeName}/{owner}/{ip}/{port}",
       method = RequestMethod.GET)
   public Message getPublishedInfoByIpPort(
       @PathVariable("datasourceTypeName") String datasourceTypeName,
       @PathVariable("owner") String owner,
-      @PathVariable("datasourceUser") String datasourceUser,
       @PathVariable("ip") String ip,
       @PathVariable("port") String port,
       HttpServletRequest request) {
@@ -595,8 +594,7 @@ public class DataSourceCoreRestfulApi {
           }
 
           DataSource dataSource =
-              dataSourceInfoService.getDataSourcePublishInfo(
-                  datasourceTypeName, ip, port, owner, datasourceUser);
+              dataSourceInfoService.getDataSourcePublishInfo(datasourceTypeName, ip, port, owner);
           if (dataSource == null) {
             return Message.error("No Exists The DataSource [不存在该数据源]");
           }

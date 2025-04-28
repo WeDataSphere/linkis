@@ -126,7 +126,7 @@ public class DataSourceInfoServiceImpl implements DataSourceInfoService {
 
   @Override
   public DataSource getDataSourcePublishInfo(
-      String datasourceTypeName, String ip, String port, String owner, String datasourceUser) {
+      String datasourceTypeName, String ip, String port, String owner) {
     try {
       // 2. 查询数据源列表
       List<DataSource> dataSourceList =
@@ -152,7 +152,7 @@ public class DataSourceInfoServiceImpl implements DataSourceInfoService {
                   StringUtils.isNotBlank(entry.getValue())
                       && entry.getValue().contains(ip)
                       && entry.getValue().contains(port)
-                      && entry.getValue().contains(datasourceUser))
+                      && entry.getValue().contains(owner))
           .sorted(
               Comparator.comparing(
                   entry -> entry.getKey().getCreateTime(), Comparator.reverseOrder()))
