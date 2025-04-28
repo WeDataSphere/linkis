@@ -23,5 +23,4 @@ public class DatasourceConf {
 
   public static CommonVars<String> INSERT_DATAESOURCE_LIMIT =
       CommonVars.apply("linkis.create.datasource.allow", "starrocks");
-
 }
