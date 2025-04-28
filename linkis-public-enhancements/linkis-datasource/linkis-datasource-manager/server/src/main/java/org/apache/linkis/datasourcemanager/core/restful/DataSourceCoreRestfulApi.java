@@ -229,9 +229,6 @@ public class DataSourceCoreRestfulApi {
     if (StringUtils.isBlank(owner)) {
       return Message.error("Parameter createUser cannot be empty （参数 createUser 不能为空）");
     }
-    if (owner.matches(DatasourceConf.SYSTEM_USER_REGEX)) {
-      return Message.error("Prohibit system users from creating data sources （禁止系统用户创建数据源）");
-    }
     if (StringUtils.isBlank(dataSourceTypeName)) {
       return Message.error(
           "Parameter dataSourceTypeName cannot be empty （参数 dataSourceTypeName 不能为空）");
