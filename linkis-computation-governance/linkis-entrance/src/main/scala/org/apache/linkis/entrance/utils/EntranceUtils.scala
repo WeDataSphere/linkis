@@ -151,6 +151,7 @@ object EntranceUtils extends Logging {
       return engineType
     }
     // 组装请求url
+    logger.info(s"开始调用Doctoris diagnose，引擎默认值：$engineType")
     var url = EntranceConfiguration.DOCTOR_URL + EntranceConfiguration.DOCTOR_DYNAMIC_ENGINE_URL
     val timestampStr = String.valueOf(System.currentTimeMillis)
     val signature = SHAUtils.Encrypt(
@@ -195,10 +196,12 @@ object EntranceUtils extends Logging {
       if (MapUtils.isNotEmpty(responseMapJson) && responseMapJson.containsKey("data")) {
         val dataMap = MapUtils.getMap(responseMapJson, "data")
         engineType = dataMap.get("engine").toString
+        logger.info(s"调用Doctoris diagnose引擎切换成功：engineType: $engineType")
       }
     } catch {
       case e: Exception =>
         logger.warn(s"调用Doctoris diagnose接口失败：sql: $sql", e)
+        logger.info(s"调用Doctoris diagnose引擎切换失败：engineType: $engineType")
     } finally {
       httpClient.close()
     }
