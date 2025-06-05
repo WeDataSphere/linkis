@@ -382,4 +382,6 @@ object EntranceConfiguration {
   val AI_SQL_DYNAMIC_ENGINE_SWITCH =
     CommonVars("linkis.aisql.dynamic.engine.type.switch", false).getValue
 
+  val DOCTOR_REQUEST_TIMEOUT = CommonVars("linkis.doctor.http.timeout", 30000).getValue
+
 }

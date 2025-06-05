@@ -137,8 +137,17 @@ object EntranceUtils extends Logging {
   }
 
   def getDynamicEngineType(sql: String): String = {
-    var engineType = ""
+    var engineType = "spark"
     if (!EntranceConfiguration.AI_SQL_DYNAMIC_ENGINE_SWITCH) {
+      return engineType
+    }
+    // 参数校验
+    if (
+        StringUtils.isBlank(EntranceConfiguration.LINKIS_SYSTEM_NAME) ||
+        StringUtils.isBlank(EntranceConfiguration.DOCTOR_SIGNATURE_TOKEN) ||
+        StringUtils.isBlank(EntranceConfiguration.DOCTOR_CLUSTER) ||
+        StringUtils.isBlank(EntranceConfiguration.DOCTOR_URL)
+    ) {
       return engineType
     }
     // 组装请求url
@@ -164,7 +173,10 @@ object EntranceUtils extends Logging {
     parm.put("queueResourceUsage", "")
     parm.put("cluster", EntranceConfiguration.DOCTOR_CLUSTER)
     val json = BDPJettyServerHelper.gson.toJson(parm)
-    val requestConfig = RequestConfig.DEFAULT
+    val requestConfig = RequestConfig
+      .custom()
+      .setConnectTimeout(EntranceConfiguration.DOCTOR_REQUEST_TIMEOUT)
+      .build()
     val entity = new StringEntity(
       json,
       ContentType.create(ContentType.APPLICATION_JSON.getMimeType, StandardCharsets.UTF_8.toString)
