@@ -394,6 +394,4 @@ object EntranceConfiguration {
 
   val DOCTOR_HTTP_MAX_CONNECT = CommonVars("linkis.aisql.doctor.http.max.connect", 20).getValue
 
-  val DOCTOR_HTTP_MAX_CONNECT = CommonVars("linkis.aisql.doctor.http.max.connect", 40).getValue
-
 }
