@@ -210,7 +210,7 @@ object EntranceUtils extends Logging {
     } catch {
       case e: Exception =>
         logger.warn(s"调用Doctoris接口异常：sql: $sql ,entity: $entity,responseStr: $responseStr", e)
-        printlog = s"Doctoris component exception, using default engine：$engineType"
+        printlog = s"Aisql automatically switches component exception, using default engine：$engineType"
         logAppender.append(LogUtils.generateInfo(s"$printlog\n"))
     }
     if (StringUtils.isNotBlank(responseStr)) {
@@ -235,7 +235,7 @@ object EntranceUtils extends Logging {
       } catch {
         case e: Exception =>
           logger.warn(s"Doctoris返回数据解析失败：josn: $responseStr", e)
-          printlog = s"Doctoris data parse exception, using the engine's default values：$engineType"
+          printlog = s"Aisql automatically switches data parse exception, using the engine's default values：$engineType"
       } finally {
         logAppender.append(LogUtils.generateInfo(s"$printlog\n"))
       }
