@@ -64,8 +64,8 @@ object EntranceUtils extends Logging {
   private val httpClient: CloseableHttpClient = HttpClients
     .custom()
     .setDefaultCookieStore(cookieStore)
-    .setMaxConnTotal(100)
-    .setMaxConnPerRoute(50)
+    .setMaxConnTotal(EntranceConfiguration.DOCTOR_HTTP_MAX_CONNECT)
+    .setMaxConnPerRoute(EntranceConfiguration.DOCTOR_HTTP_MAX_CONNECT / 2)
     .setConnectionManager(connectionManager)
     .build()
 
