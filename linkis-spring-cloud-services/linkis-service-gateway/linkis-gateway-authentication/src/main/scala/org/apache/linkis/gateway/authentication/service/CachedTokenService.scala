@@ -17,7 +17,8 @@
 
 package org.apache.linkis.gateway.authentication.service
 
-import org.apache.linkis.common.utils.Utils
+import org.apache.linkis.common.conf.Configuration
+import org.apache.linkis.common.utils.{RSAUtils, Utils}
 import org.apache.linkis.gateway.authentication.bo.{Token, User}
 import org.apache.linkis.gateway.authentication.bo.impl.TokenImpl
 import org.apache.linkis.gateway.authentication.conf.TokenConfiguration
@@ -51,7 +52,27 @@ class CachedTokenService extends TokenService {
     .build(new CacheLoader[String, Token]() {
 
       override def load(tokenName: String): Token = {
-        val tokenEntity: TokenEntity = tokenDao.selectTokenByName(tokenName)
+        val tokenEntity: TokenEntity = if (Configuration.LINKIS_RSA_TOKEN_SWITCH) {
+          // 开关打开情况下，对token进行判断
+          if (tokenName.startsWith(RSAUtils.prefix)) {
+            // 传的是密文，直接查询tokenSign（密文保存在这里）
+            tokenDao.selectTokenBySign(tokenName)
+          } else {
+            // 传的是明文,需要执行截取规则后，查询tokenName
+            val token = tokenDao.selectTokenByName(RSAUtils.tokenSubRule(tokenName))
+            val realToken = RSAUtils.dncryptWithLinkisPublicKey(token.getTokenSign)
+            if (!tokenName.equals(realToken)) {
+              throw new TokenNotExistException(
+                INVALID_TOKEN.getErrorCode,
+                INVALID_TOKEN.getErrorDesc
+              )
+            }
+            token
+          }
+        } else {
+          // 开关没有打开情况下，旧数据没有加密，维持明文查询tokenName
+          tokenDao.selectTokenByName(tokenName)
+        }
         if (tokenEntity != null) {
           new TokenImpl().convertFrom(tokenEntity)
         } else {

@@ -80,6 +80,12 @@ object Configuration extends Logging {
 
   val IS_VIEW_FS_ENV = CommonVars("wds.linkis.env.is.viewfs", true)
 
+  val LINKIS_RSA_TOKEN_SWITCH = CommonVars("linkis.rsa.token.switch", false).getValue
+
+  val LINKIS_RSA_PUBLIC_KEY = CommonVars("linkis.rsa.public.key", "")
+
+  val LINKIS_RSA_PRIVATE_KEY = CommonVars("linkis.rsa.private.key", "")
+
   val ERROR_MSG_TIP =
     CommonVars(
       "linkis.jobhistory.error.msg.tip",
