@@ -289,7 +289,7 @@ abstract class UserPwdAbstractUserRestful extends AbstractUserRestful with Loggi
     } else if (StringUtils.isBlank(password)) {
       return Message.error("Password can not be blank(密码不能为空)！")
     }
-    if (userName.matches("hduser[0-9a-zA-Z_]+")) {
+    if (userName.startsWith("hduser")) {
       return Message.error("System users are prohibited from logging in（系统用户禁止登录）！")
     }
     if (
