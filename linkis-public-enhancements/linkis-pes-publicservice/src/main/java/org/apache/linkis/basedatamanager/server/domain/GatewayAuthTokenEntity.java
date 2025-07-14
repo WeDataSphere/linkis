@@ -35,6 +35,7 @@ public class GatewayAuthTokenEntity implements Serializable {
   /** */
   private String tokenName;
 
+  /** */
   private String tokenSign;
 
   /** */
