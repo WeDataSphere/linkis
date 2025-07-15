@@ -30,6 +30,10 @@ import org.apache.linkis.gateway.authentication.exception.{
   TokenAuthException,
   TokenNotExistException
 }
+import org.apache.linkis.server.toScalaBuffer
+
+import org.apache.commons.collections.CollectionUtils
+import org.apache.commons.lang3.StringUtils
 
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -58,14 +62,29 @@ class CachedTokenService extends TokenService {
             // 传的是密文，直接查询tokenSign（密文保存在这里）
             tokenDao.selectTokenBySign(tokenName)
           } else {
-            // 传的是明文,需要执行截取规则后，查询tokenName
-            val token = tokenDao.selectTokenByName(RSAUtils.tokenSubRule(tokenName))
-            val realToken = RSAUtils.dncryptWithLinkisPublicKey(token.getTokenSign)
-            if (!tokenName.equals(realToken)) {
-              throw new TokenNotExistException(
-                INVALID_TOKEN.getErrorCode,
-                INVALID_TOKEN.getErrorDesc
-              )
+            // 传入明文，首次执行模糊查询（兼容明文token未被加密，TokenSign为空，导致查询token异常）
+            val tokenList = tokenDao.selectTokenByNameWithLike(tokenName)
+            var token: TokenEntity = null
+            if (CollectionUtils.isNotEmpty(tokenList)) {
+              tokenList.foreach { tokenTmp =>
+                if (
+                    tokenTmp != null && StringUtils.isBlank(tokenTmp.getTokenSign) && tokenName
+                      .equals(tokenTmp.getTokenName)
+                ) {
+                  token = tokenTmp
+                }
+              }
+            }
+            if (null == token) {
+              // 兼容token被加密后，传入明文场景，需要执行截取规则后，查询tokenName
+              token = tokenDao.selectTokenByName(RSAUtils.tokenSubRule(tokenName))
+              val realToken = RSAUtils.dncryptWithLinkisPublicKey(token.getTokenSign)
+              if (!tokenName.equals(realToken)) {
+                throw new TokenNotExistException(
+                  INVALID_TOKEN.getErrorCode,
+                  INVALID_TOKEN.getErrorDesc
+                )
+              }
             }
             token
           }

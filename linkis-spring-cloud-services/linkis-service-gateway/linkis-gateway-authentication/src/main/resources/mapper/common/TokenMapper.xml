@@ -45,6 +45,16 @@
         </where>
     </select>
 
+    <select id="selectTokenByNameWithLike" parameterType="String" resultMap="tokenEntityMap">
+        select * from
+        <include refid="tableName"/>
+        <where>
+            <if test="tokenName != null and tokenName != ''">
+                token_name like concat('%',#{tokenName},'%')
+            </if>
+        </where>
+    </select>
+
     <select id="selectTokenBySign" parameterType="String" resultMap="tokenEntityMap">
         select * from
         <include refid="tableName"/>
