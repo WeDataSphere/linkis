@@ -17,7 +17,7 @@
 
 package org.apache.linkis.common.conf
 
-import org.apache.linkis.common.utils.Logging
+import org.apache.linkis.common.utils.{Logging, RSAUtils}
 
 import org.apache.commons.lang3.StringUtils
 
@@ -108,7 +108,14 @@ object Configuration extends Logging {
     if (StringUtils.isBlank(token)) {
       false
     } else {
-      token.toUpperCase().startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
+      if (Configuration.LINKIS_RSA_TOKEN_SWITCH && token.startsWith(RSAUtils.PREFIX)) {
+        RSAUtils
+          .dncryptWithLinkisPublicKey(token)
+          .toUpperCase()
+          .startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
+      } else {
+        token.toUpperCase().startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
+      }
     }
   }
 

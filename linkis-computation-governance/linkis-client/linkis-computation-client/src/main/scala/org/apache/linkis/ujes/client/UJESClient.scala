@@ -184,7 +184,9 @@ abstract class UJESClient extends Closeable with Logging {
   }
 
   def getEncryptToken(token: String, user: String): String = {
-    val encryptTokenResult = executeUJESJob(EncryptTokenAction.newBuilder().setUser(user).setToken(token).build()).asInstanceOf[EncryptTokenResult]
+    val encryptTokenResult = executeUJESJob(
+      EncryptTokenAction.newBuilder().setUser(user).setToken(token).build()
+    ).asInstanceOf[EncryptTokenResult]
     encryptTokenResult.encryptToken
   }
 

@@ -110,12 +110,13 @@ public class SecurityUtilsTest {
     String url3 = "jdbc:mysql://127.0.0.1:10000/db_name?k1=v1&k2";
     Assertions.assertEquals(baseUrl + "?k1=v1&" + securityStr, SecurityUtils.getJdbcUrl(url3));
   }
-    @Test
-    public void testRSA() {
-        String originalData = "WDSL-LINKIS-AUTH-g";
-        String encryptData = RSAUtils.encryptWithLinkisPublicKey(originalData);
-        String dncryptData = RSAUtils.dncryptWithLinkisPublicKey(encryptData);
-        Assertions.assertEquals(dncryptData,originalData);
+
+  @Test
+  public void testRSA() {
+    String originalData = "rsa-test-str";
+    String encryptData = RSAUtils.encryptWithLinkisPublicKey(originalData);
+    String dncryptData = RSAUtils.dncryptWithLinkisPublicKey(encryptData);
+    Assertions.assertEquals(dncryptData, originalData);
   }
 
   @Test

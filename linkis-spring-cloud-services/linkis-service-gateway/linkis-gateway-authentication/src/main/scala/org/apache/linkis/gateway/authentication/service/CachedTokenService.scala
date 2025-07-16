@@ -58,7 +58,7 @@ class CachedTokenService extends TokenService {
       override def load(tokenName: String): Token = {
         val tokenEntity: TokenEntity = if (Configuration.LINKIS_RSA_TOKEN_SWITCH) {
           // 开关打开情况下，对token进行判断
-          if (tokenName.startsWith(RSAUtils.prefix)) {
+          if (tokenName.startsWith(RSAUtils.PREFIX)) {
             // 传的是密文，直接查询tokenSign（密文保存在这里）
             tokenDao.selectTokenBySign(tokenName)
           } else {

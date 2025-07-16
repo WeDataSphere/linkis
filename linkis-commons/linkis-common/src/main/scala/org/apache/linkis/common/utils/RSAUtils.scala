@@ -18,10 +18,12 @@
 package org.apache.linkis.common.utils
 
 import org.apache.linkis.common.conf.Configuration
+
 import org.apache.commons.codec.binary.Hex
 import org.apache.commons.net.util.Base64
 
 import javax.crypto.Cipher
+
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
 import java.security.{KeyFactory, KeyPair, KeyPairGenerator, PrivateKey, PublicKey}
@@ -30,7 +32,7 @@ import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 object RSAUtils extends Logging {
   private implicit val keyPair = genKeyPair(2048)
 
-  implicit val prefix = "{RSA}"
+  implicit val PREFIX = "{RSA}"
 
   def genKeyPair(keyLength: Int): KeyPair = {
     val keyPair = KeyPairGenerator.getInstance("RSA")
@@ -118,7 +120,7 @@ object RSAUtils extends Logging {
     val encryptedData = RSAUtils.encrypt(data.getBytes, keyPair.getPublic)
     // 将加密后的数据进行 Base64 编码，并添加前缀
     val encodedEncryptedData =
-      prefix + new String(Base64.encodeBase64URLSafe(encryptedData))
+      PREFIX + new String(Base64.encodeBase64URLSafe(encryptedData))
     encodedEncryptedData
   }
 
@@ -139,7 +141,7 @@ object RSAUtils extends Logging {
     val keyPair =
       new KeyPair(RSAUtils.stringToPublicKey(publicKey), RSAUtils.stringToPrivateKey(privateKey))
     // 检查数据是否以指定前缀开头
-    if (decodedData.startsWith(prefix)) {
+    if (decodedData.startsWith(PREFIX)) {
       // 去掉前缀，获取加密数据部分
       val dataSub = decodedData.substring(5)
       // 将加密数据进行 Base64 解码
@@ -150,7 +152,7 @@ object RSAUtils extends Logging {
       val decryptedString = new String(decryptedData)
       decryptedString
     } else {
-      logger.warn(s"token信息非$prefix 开头，不执行解密！")
+      logger.warn(s"token信息非$PREFIX 开头，不执行解密！")
       data
     }
   }
@@ -158,11 +160,13 @@ object RSAUtils extends Logging {
   /**
    * 从给定的 token 中提取前半部分字符串。
    *
-   * @param token 输入的完整 token 字符串。
-   * @return 提取的 token 前半部分字符串。
-   *
+   * @param token
+   *   输入的完整 token 字符串。
+   * @return
+   *   提取的 token 前半部分字符串。
    */
   def tokenSubRule(token: String): String = {
     token.substring(0, token.length / 2)
   }
+
 }
