@@ -112,7 +112,7 @@ object Configuration extends Logging {
         RSAUtils
           .dncryptWithLinkisPublicKey(token)
           .toUpperCase()
-          .startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
+          .contains(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
       } else {
         token.toUpperCase().startsWith(GOVERNANCE_STATION_ADMIN_TOKEN_STARTWITH)
       }
