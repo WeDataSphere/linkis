@@ -41,7 +41,7 @@ class ClientConfig private () {
   private var authTokenValue: String = _
   private var connectTimeout: Long = _
   private var readTimeout: Long = _
-  private var maxConnection: Int = 20
+  private var maxConnection: Int = _
   private var retryEnabled: Boolean = _
   private var retryHandler: RetryHandler = _
   private var ssl: Boolean = false
