@@ -110,6 +110,10 @@ public class GatewayAuthTokenRestfulApi {
     if (!Configuration.isAdmin(username)) {
       return Message.error("User '" + username + "' is not admin user[非管理员用户]");
     }
+    String tokenName = gatewayAuthToken.getTokenName();
+    if (tokenName.length() > 128) {
+      return Message.error("token 长度需少于128");
+    }
     gatewayAuthToken.setCreateTime(new Date());
     gatewayAuthToken.setUpdateTime(new Date());
     gatewayAuthToken.setBusinessOwner("BDP");
