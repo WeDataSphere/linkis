@@ -39,16 +39,20 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Api(tags = "GatewayAuthTokenRestfulApi")
 @RestController
 @RequestMapping(path = "/basedata-manager/gateway-auth-token")
 public class GatewayAuthTokenRestfulApi {
+  private final Logger LOGGER = LoggerFactory.getLogger(getClass());
   @Autowired GatewayAuthTokenService gatewayAuthTokenService;
 
   @ApiImplicitParams({
@@ -106,6 +110,10 @@ public class GatewayAuthTokenRestfulApi {
     if (!Configuration.isAdmin(username)) {
       return Message.error("User '" + username + "' is not admin user[非管理员用户]");
     }
+    String tokenName = gatewayAuthToken.getTokenName();
+    if (tokenName.length() > 128) {
+      return Message.error("token 长度需少于128");
+    }
     gatewayAuthToken.setCreateTime(new Date());
     gatewayAuthToken.setUpdateTime(new Date());
     gatewayAuthToken.setBusinessOwner("BDP");
@@ -113,6 +121,12 @@ public class GatewayAuthTokenRestfulApi {
 
     ModuleUserUtils.getOperationUser(
         request, "Add a Gateway Auth Token Record," + gatewayAuthToken.toString());
+    if (Configuration.LINKIS_RSA_TOKEN_SWITCH()) {
+      String tokenSubRule = RSAUtils.tokenSubRule(gatewayAuthToken.getTokenName());
+      String encryptToken = RSAUtils.encryptWithLinkisPublicKey(gatewayAuthToken.getTokenName());
+      gatewayAuthToken.setTokenName(tokenSubRule);
+      gatewayAuthToken.setTokenSign(encryptToken);
+    }
     boolean result = gatewayAuthTokenService.save(gatewayAuthToken);
     return Message.ok("").data("result", result);
   }
@@ -204,7 +218,14 @@ public class GatewayAuthTokenRestfulApi {
   @ApiOperation(value = "decrypt-token", notes = "decrypt token", httpMethod = "GET")
   @RequestMapping(path = "/decrypt-token", method = RequestMethod.GET)
   public Message decryptToken(HttpServletRequest request, String token) {
-    ModuleUserUtils.getOperationUser(request, "Try to decrypt auth token with token");
+    String username =
+        ModuleUserUtils.getOperationUser(request, "Try to decrypt auth token with token");
+    if (Configuration.isNotAdmin(username)) {
+      return Message.error("Only admin can decrypt token(仅管理员解密token)");
+    }
+    if (StringUtils.isBlank(token)) {
+      return Message.error(" token can not be empty [token不能为空]");
+    }
     try {
       String decryptToken = token;
       if (Configuration.LINKIS_RSA_TOKEN_SWITCH() && decryptToken.startsWith(RSAUtils.PREFIX())) {
@@ -247,6 +268,10 @@ public class GatewayAuthTokenRestfulApi {
   @ApiOperation(value = "encrypt-token-all", notes = "encrypt history token ", httpMethod = "GET")
   @RequestMapping(path = "/encrypt-token-all", method = RequestMethod.GET)
   public Message encryptTokenAll(HttpServletRequest request) {
+    String username = ModuleUserUtils.getOperationUser(request, "Try to encrypt history tokens");
+    if (Configuration.isNotAdmin(username)) {
+      return Message.error("Only admin can encrypt token(仅管理员加密token)");
+    }
     // 处理旧明文token，对明文token执行加密，并更新数据库
     if (!Configuration.LINKIS_RSA_TOKEN_SWITCH()) {
       return Message.ok().data("msg", "Linkis集群未开启RSA开关，不执行加密");
@@ -258,10 +283,14 @@ public class GatewayAuthTokenRestfulApi {
               || (!entity.getTokenSign().startsWith(RSAUtils.PREFIX()))) {
             String tokenName = entity.getTokenName();
             String encryptToken = RSAUtils.encryptWithLinkisPublicKey(tokenName);
-            tokenName = tokenName.substring(0, tokenName.length() / 2);
+            tokenName = RSAUtils.tokenSubRule(tokenName);
             entity.setTokenName(tokenName);
             entity.setTokenSign(encryptToken);
-            gatewayAuthTokenService.updateById(entity);
+            try {
+              gatewayAuthTokenService.updateById(entity);
+            } catch (Exception e) {
+              LOGGER.warn("历史token加密失败，token id：" + entity.getId());
+            }
           }
         });
     return Message.ok();
@@ -270,15 +299,23 @@ public class GatewayAuthTokenRestfulApi {
   @ApiOperation(value = "decrypt-token-all", notes = "decrypt history token ", httpMethod = "GET")
   @RequestMapping(path = "/decrypt-token-all", method = RequestMethod.GET)
   public Message decryptTokenAll(HttpServletRequest request) {
+    String username = ModuleUserUtils.getOperationUser(request, "Try to decrypt history tokens");
+    if (Configuration.isNotAdmin(username)) {
+      return Message.error("Only admin can decrypt token(仅管理员解密token)");
+    }
     // 处理旧明文token，对明文token执行解密，并更新数据库
     List<GatewayAuthTokenEntity> list = gatewayAuthTokenService.list();
     list.forEach(
         entity -> {
-          if (entity.getTokenSign().startsWith(RSAUtils.PREFIX())) {
+          if (null != entity.getTokenSign()
+              && entity.getTokenSign().startsWith(RSAUtils.PREFIX())) {
             String tokenName = RSAUtils.dncryptWithLinkisPublicKey(entity.getTokenSign());
-            entity.setTokenName(tokenName);
-            entity.setTokenSign(null);
-            gatewayAuthTokenService.updateById(entity);
+            UpdateWrapper<GatewayAuthTokenEntity> updateWrapper = new UpdateWrapper<>();
+            updateWrapper
+                .set("token_name", tokenName)
+                .set("token_sign", null)
+                .eq("id", entity.getId());
+            gatewayAuthTokenService.update(updateWrapper);
           }
         });
     return Message.ok();
