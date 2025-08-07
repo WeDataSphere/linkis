@@ -42,7 +42,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -332,8 +331,7 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
     if (CollectionUtils.isEmpty(serviceInstances)) return Collections.emptyMap();
     Map<ServiceInstance, List<PersistenceLabel>> resultMap = new HashMap<>();
     List<Map<String, Object>> nodeRelationsByLabels =
-        listLabelRelationByServiceInstance(serviceInstances, 100);
-    logger.info("list label relation end, with size: {}", nodeRelationsByLabels.size());
+        labelManagerMapper.listLabelRelationByServiceInstance(serviceInstances);
     Map<String, List<Map<String, Object>>> groupByInstanceMap =
         nodeRelationsByLabels.stream()
             .collect(
@@ -373,14 +371,5 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
   @Override
   public List<ServiceInstance> getNodeByLabelKeyValue(String labelKey, String stringValue) {
     return labelManagerMapper.getNodeByLabelKeyValue(labelKey, stringValue);
-  }
-
-  public List<Map<String, Object>> listLabelRelationByServiceInstance(
-      List<ServiceInstance> nodes, int batchSize) {
-
-    return Lists.partition(nodes, batchSize).stream()
-        .map(batch -> labelManagerMapper.listLabelRelationByServiceInstance(batch))
-        .flatMap(List::stream)
-        .collect(Collectors.toList());
   }
 }
