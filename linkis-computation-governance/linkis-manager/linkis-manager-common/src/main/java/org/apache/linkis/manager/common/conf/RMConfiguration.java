@@ -32,6 +32,9 @@ public class RMConfiguration {
   public static final CommonVars<TimeType> LOCK_RELEASE_CHECK_INTERVAL =
       CommonVars.apply("wds.linkis.manager.rm.lock.release.check.interval", new TimeType("5m"));
 
+  public static final CommonVars<TimeType> LOCK_FAILED_LABEL_RESOURCE_DEAL_INTERVAL =
+          CommonVars.apply("wds.linkis.manager.rm.lock.failed.deal.interval", new TimeType("10s"));
+
   // Resource parameter(资源参数)
   public static final CommonVars<Integer> USER_AVAILABLE_CPU =
       CommonVars.apply("wds.linkis.rm.client.core.max", 10);
