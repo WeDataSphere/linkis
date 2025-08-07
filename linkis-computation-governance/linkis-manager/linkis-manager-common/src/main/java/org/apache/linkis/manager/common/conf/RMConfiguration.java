@@ -76,4 +76,7 @@ public class RMConfiguration {
       CommonVars.apply("wds.linkis.rm.default.kubernetes.cluster.type", "K8S");
   public static final CommonVars<Integer> EXTERNAL_RETRY_NUM =
       CommonVars.apply("wds.linkis.rm.external.retry.num", 3);
+
+  public static final CommonVars<Integer> LABEL_SERVICE_PARTITION_NUM =
+          CommonVars.apply("wds.linkis.label.service.partition.num", 100);
 }
