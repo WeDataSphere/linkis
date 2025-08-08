@@ -85,7 +85,8 @@ object EntranceConfiguration {
    */
   val WDS_LINKIS_INSTANCE = CommonVars("wds.linkis.rm.instance", 10)
 
-  val WDS_LINKIS_ENTRANCE_RUNNING_JOB = CommonVars("wds.linkis.entrance.runningjob.max", WDS_LINKIS_INSTANCE.getValue)
+  val WDS_LINKIS_ENTRANCE_RUNNING_JOB =
+    CommonVars("wds.linkis.entrance.runningjob.max", WDS_LINKIS_INSTANCE.getValue)
 
   val ENTRANCE_INSTANCE_MIN = CommonVars("wds.linkis.entrance.runningjob.min", 5)
 

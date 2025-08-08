@@ -165,11 +165,12 @@ object EntranceGroupFactory {
    * @return
    */
   def getUserMaxRunningJobs(keyAndValue: util.Map[String, String]): Int = {
-    val userDefinedRunningJobs = if (keyAndValue.containsKey(EntranceConfiguration.WDS_LINKIS_ENTRANCE_RUNNING_JOB.key)) {
-      EntranceConfiguration.WDS_LINKIS_ENTRANCE_RUNNING_JOB.getValue(keyAndValue)
-    } else {
-      EntranceConfiguration.WDS_LINKIS_INSTANCE.getValue(keyAndValue)
-    }
+    val userDefinedRunningJobs =
+      if (keyAndValue.containsKey(EntranceConfiguration.WDS_LINKIS_ENTRANCE_RUNNING_JOB.key)) {
+        EntranceConfiguration.WDS_LINKIS_ENTRANCE_RUNNING_JOB.getValue(keyAndValue)
+      } else {
+        EntranceConfiguration.WDS_LINKIS_INSTANCE.getValue(keyAndValue)
+      }
     val entranceNum = EntranceUtils.getRunningEntranceNumber()
     Math.max(
       EntranceConfiguration.ENTRANCE_INSTANCE_MIN.getValue,
