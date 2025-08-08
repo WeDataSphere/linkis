@@ -25,7 +25,12 @@ import org.apache.linkis.manager.am.vo.CanCreateECRes
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{AMEMNode, AMEngineNode, EngineNode, InfoRMNode}
-import org.apache.linkis.manager.common.entity.persistence.{PersistenceLabel, PersistenceLock, PersistenceNodeMetrics, PersistenceResource}
+import org.apache.linkis.manager.common.entity.persistence.{
+  PersistenceLabel,
+  PersistenceLock,
+  PersistenceNodeMetrics,
+  PersistenceResource
+}
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.errorcode.ManagerCommonErrorCodeSummary
 import org.apache.linkis.manager.common.exception.{RMErrorException, RMWarnException}
@@ -37,16 +42,33 @@ import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.em.EMInstanceLabel
 import org.apache.linkis.manager.label.entity.engine.EngineInstanceLabel
 import org.apache.linkis.manager.label.service.NodeLabelService
-import org.apache.linkis.manager.persistence.{LabelManagerPersistence, NodeManagerPersistence, NodeMetricManagerPersistence, ResourceManagerPersistence}
-import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource, ResourceInfo, ResultResource}
+import org.apache.linkis.manager.persistence.{
+  LabelManagerPersistence,
+  NodeManagerPersistence,
+  NodeMetricManagerPersistence,
+  ResourceManagerPersistence
+}
+import org.apache.linkis.manager.rm.{
+  AvailableResource,
+  NotEnoughResource,
+  ResourceInfo,
+  ResultResource
+}
 import org.apache.linkis.manager.rm.domain.RMLabelContainer
 import org.apache.linkis.manager.rm.entity.{LabelResourceMapping, ResourceOperationType}
 import org.apache.linkis.manager.rm.entity.ResourceOperationType.{LOCK, RELEASE, USED}
 import org.apache.linkis.manager.rm.exception.{RMErrorCode, RMLockFailedRetryException}
 import org.apache.linkis.manager.rm.external.service.ExternalResourceService
-import org.apache.linkis.manager.rm.service.{LabelResourceService, RequestResourceService, ResourceLockService, ResourceManager}
+import org.apache.linkis.manager.rm.service.{
+  LabelResourceService,
+  RequestResourceService,
+  ResourceLockService,
+  ResourceManager
+}
 import org.apache.linkis.manager.rm.utils.RMUtils
+
 import org.apache.commons.lang3.StringUtils
+
 import org.springframework.beans.factory.InitializingBean
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
@@ -55,9 +77,11 @@ import java.text.MessageFormat
 import java.util
 import java.util.{Date, UUID}
 import java.util.concurrent.{LinkedBlockingDeque, LinkedBlockingQueue, TimeUnit}
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
+
 import com.google.common.collect.Lists
 
 @Component
@@ -124,7 +148,9 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
     Utils.defaultScheduler.scheduleAtFixedRate(
       new Runnable {
         override def run(): Unit = {
-          logger.debug(s"Start force dealing locked failed resourceLabel resources. waitForDealResourceLabels size ${waitForDealResourceLabels.size()}")
+          logger.debug(
+            s"Start force dealing locked failed resourceLabel resources. waitForDealResourceLabels size ${waitForDealResourceLabels.size()}"
+          )
           val labelResourceMapping = waitForDealResourceLabels.poll(100, TimeUnit.MILLISECONDS)
           if (labelResourceMapping != null) {
             resourceDeal(labelResourceMapping)
@@ -474,12 +500,18 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
         .foreach { label =>
           val persistenceLock = Utils.tryCatch {
             tryLockOneLabel(label, -1, labelContainer.getUserCreatorLabel.getUser)
-          } {
-            case t: Exception =>
-              logger.warn(s"${engineInstanceLabel.getStringValue} used resource for resourceLabel $label failed, wait for dealing! Reason: ${t.getMessage}.")
-              val labelResourceMapping = new LabelResourceMapping(label, addedResource, ResourceOperationType.USED, labelContainer.getUserCreatorLabel.getUser)
-              waitForDealResourceLabels.offer(labelResourceMapping)
-              null
+          } { case t: Exception =>
+            logger.warn(
+              s"${engineInstanceLabel.getStringValue} used resource for resourceLabel $label failed, wait for dealing! Reason: ${t.getMessage}."
+            )
+            val labelResourceMapping = new LabelResourceMapping(
+              label,
+              addedResource,
+              ResourceOperationType.USED,
+              labelContainer.getUserCreatorLabel.getUser
+            )
+            waitForDealResourceLabels.offer(labelResourceMapping)
+            null
           }
           if (persistenceLock != null) Utils.tryFinally {
             labelContainer.setCurrentLabel(label)
@@ -495,9 +527,15 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
                 labelResource,
                 labelContainer.getCombinedResourceLabel.getStringValue
               )
-              labelResourceSet.add(
-                new LabelResourceMapping(label, addedResource, ResourceOperationType.USED)
-              )
+              labelResourceSet
+                .add(
+                  new LabelResourceMapping(
+                    label,
+                    addedResource,
+                    ResourceOperationType.USED,
+                    labelContainer.getUserCreatorLabel.getUser
+                  )
+                )
               resourceCheck(label, labelResource)
             }
           } {
@@ -581,24 +619,20 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
     }
   }
 
-  private def resourceDeal(
-                            labelResourceMapping: LabelResourceMapping): Unit = {
+  private def resourceDeal(labelResourceMapping: LabelResourceMapping): Unit = {
     logger.info(s"try to deal labelResource $labelResourceMapping.")
     val persistenceLock = Utils.tryCatch {
       tryLockOneLabel(labelResourceMapping.getLabel(), -1, labelResourceMapping.getUser)
-    } {
-      case t: Exception =>
-        logger.error(s"Failed to deal labelResource $labelResourceMapping, wait for retry.", t)
-        waitForDealResourceLabels.addFirst(labelResourceMapping)
-        return
+    } { case t: Exception =>
+      logger.error(s"Failed to deal labelResource $labelResourceMapping, wait for retry.", t)
+      waitForDealResourceLabels.addFirst(labelResourceMapping)
+      return
     }
     Utils.tryCatch {
       val resource = labelResourceService.getLabelResource(labelResourceMapping.getLabel())
       labelResourceMapping.getResourceOperationType match {
         case RELEASE =>
-          resource.setLeftResource(
-            resource.getLeftResource.add(labelResourceMapping.getResource())
-          )
+          resource.setLeftResource(resource.getLeftResource.add(labelResourceMapping.getResource()))
           resource.setLockedResource(
             resource.getLockedResource.minus(labelResourceMapping.getResource())
           )
@@ -692,30 +726,45 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
         .foreach { label =>
           Utils.tryCatch {
             val persistenceLock = Utils.tryCatch {
-              tryLockOneLabel(label, RMUtils.RM_RESOURCE_LOCK_WAIT_TIME.getValue, labelContainer.getUserCreatorLabel.getUser)
-            } {
-              case t: Exception =>
-                logger.warn(s"${labelContainer.getEngineInstanceLabel.getServiceInstance} release resource for resourceLabel $label failed, wait for dealing! Reason: ${t.getMessage}.")
-                if (
+              tryLockOneLabel(
+                label,
+                RMUtils.RM_RESOURCE_LOCK_WAIT_TIME.getValue,
+                labelContainer.getUserCreatorLabel.getUser
+              )
+            } { case t: Exception =>
+              logger.warn(
+                s"${labelContainer.getEngineInstanceLabel.getServiceInstance} release resource for resourceLabel $label failed, wait for dealing! Reason: ${t.getMessage}."
+              )
+              if (
                   null != usedResource.getUsedResource && usedResource.getUsedResource.moreThan(
                     Resource
                       .initResource(usedResource.getResourceType)
                   )
-                ) {
-                  val labelResourceMapping = new LabelResourceMapping(label, usedResource.getUsedResource, ResourceOperationType.USED, labelContainer.getUserCreatorLabel.getUser)
-                  waitForDealResourceLabels.offer(labelResourceMapping)
-                }
-                if (
+              ) {
+                val labelResourceMapping = new LabelResourceMapping(
+                  label,
+                  usedResource.getUsedResource,
+                  ResourceOperationType.USED,
+                  labelContainer.getUserCreatorLabel.getUser
+                )
+                waitForDealResourceLabels.offer(labelResourceMapping)
+              }
+              if (
                   null != usedResource.getLockedResource && usedResource.getLockedResource
                     .moreThan(
                       Resource
                         .initResource(usedResource.getResourceType)
                     )
-                ) {
-                  val labelResourceMapping = new LabelResourceMapping(label, usedResource.getLockedResource, ResourceOperationType.USED, labelContainer.getUserCreatorLabel.getUser)
-                  waitForDealResourceLabels.offer(labelResourceMapping)
-                }
-                null
+              ) {
+                val labelResourceMapping = new LabelResourceMapping(
+                  label,
+                  usedResource.getLockedResource,
+                  ResourceOperationType.USED,
+                  labelContainer.getUserCreatorLabel.getUser
+                )
+                waitForDealResourceLabels.offer(labelResourceMapping)
+              }
+              null
             }
             if (persistenceLock != null) Utils.tryFinally {
               val labelResource = labelResourceService.getLabelResource(label)
