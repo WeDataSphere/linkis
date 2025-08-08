@@ -20,6 +20,7 @@ package org.apache.linkis.entrance.orchestrator.plugin
 import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.conf.EntranceConfiguration
+import org.apache.linkis.entrance.scheduler.EntranceGroupFactory
 import org.apache.linkis.entrance.utils.EntranceUtils
 import org.apache.linkis.governance.common.protocol.conf.{RequestQueryEngineConfigWithGlobalConfig, ResponseQueryConfig}
 import org.apache.linkis.manager.label.entity.Label

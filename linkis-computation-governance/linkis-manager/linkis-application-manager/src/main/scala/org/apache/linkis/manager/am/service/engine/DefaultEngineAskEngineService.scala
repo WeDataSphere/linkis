@@ -163,7 +163,9 @@ class DefaultEngineAskEngineService
           )
           if (null != sender) {
             sender.send(EngineCreateSuccess(engineAskAsyncId, reuseNode, true))
-            logger.info(s"Task: $taskId has sent EngineCreateSuccess($engineAskAsyncId, reuse=true) to Entrance.")
+            logger.info(
+              s"Task: $taskId has sent EngineCreateSuccess($engineAskAsyncId, reuse=true) to Entrance."
+            )
           } else {
             logger.warn(f"Task: $taskId will not send async using null sender.")
           }
@@ -183,10 +185,12 @@ class DefaultEngineAskEngineService
     EngineAskAsyncResponse(engineAskAsyncId, Sender.getThisServiceInstance)
   }
 
-  private def createEngine(engineAskRequest: EngineAskRequest,
-                            taskId: String,
-                           engineAskAsyncId: String,
-                           sender: Sender): Unit = {
+  private def createEngine(
+      engineAskRequest: EngineAskRequest,
+      taskId: String,
+      engineAskAsyncId: String,
+      sender: Sender
+  ): Unit = {
     val createNodeThread = Future {
       LoggerUtils.setJobIdMDC(taskId)
       val (engineCreateKey, semaphore) =
@@ -238,7 +242,9 @@ class DefaultEngineAskEngineService
         )
         if (null != sender) {
           sender.send(EngineCreateSuccess(engineAskAsyncId, createEngineNode))
-          logger.info(s"Task: $taskId has sent EngineCreateSuccess($engineAskAsyncId, reuse=false) to Entrance.")
+          logger.info(
+            s"Task: $taskId has sent EngineCreateSuccess($engineAskAsyncId, reuse=false) to Entrance."
+          )
         } else {
           logger.warn(s"Task: $taskId will not send async using null sender.")
         }
@@ -256,13 +262,15 @@ class DefaultEngineAskEngineService
     futureDeal(createNodeThread, taskId, engineAskAsyncId, sender, "create")
   }
 
-  private def futureDeal(future: Future[_],
-                         taskId: String,
-                         engineAskAsyncId: String,
-                         sender: Sender,
-                         functionStr: String): Unit = {
+  private def futureDeal(
+      future: Future[_],
+      taskId: String,
+      engineAskAsyncId: String,
+      sender: Sender,
+      functionStr: String
+  ): Unit = {
     future.onComplete {
-      case Success(_) => _
+      case Success(_) => ()
       case Failure(exception) =>
         LoggerUtils.setJobIdMDC(taskId)
         val retryFlag = exception match {

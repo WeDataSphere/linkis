@@ -333,7 +333,8 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
     if (CollectionUtils.isEmpty(serviceInstances)) return Collections.emptyMap();
     Map<ServiceInstance, List<PersistenceLabel>> resultMap = new HashMap<>();
     List<Map<String, Object>> nodeRelationsByLabels =
-        listLabelRelationByServiceInstance(serviceInstances, RMConfiguration.LABEL_SERVICE_PARTITION_NUM.getValue());
+        listLabelRelationByServiceInstance(
+            serviceInstances, RMConfiguration.LABEL_SERVICE_PARTITION_NUM.getValue());
     logger.info("list label relation end, with size: {}", nodeRelationsByLabels.size());
     Map<String, List<Map<String, Object>>> groupByInstanceMap =
         nodeRelationsByLabels.stream()

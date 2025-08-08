@@ -35,7 +35,9 @@ class HotspotExclusionRule extends NodeSelectRule with Logging {
 
   override def ruleFiltering(nodes: Array[Node]): Array[Node] = {
     if (AMConfiguration.NODE_SELECT_HOTSPOT_EXCLUSION_RULE) {
-      if (AMConfiguration.NODE_SELECT_HOTSPOT_EXCLUSION_SHUFFLE_RULER.defaultValue == AMConfiguration.NODE_SELECT_HOTSPOT_EXCLUSION_SHUFFLE_RULER.getValue) {
+      if (
+          AMConfiguration.NODE_SELECT_HOTSPOT_EXCLUSION_SHUFFLE_RULER.defaultValue == AMConfiguration.NODE_SELECT_HOTSPOT_EXCLUSION_SHUFFLE_RULER.getValue
+      ) {
         randomShuffle(nodes)
       } else {
         Random.shuffle(nodes.toSeq).toArray
