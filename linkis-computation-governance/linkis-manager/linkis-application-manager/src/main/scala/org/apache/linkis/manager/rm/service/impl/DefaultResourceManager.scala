@@ -744,7 +744,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
                 val labelResourceMapping = new LabelResourceMapping(
                   label,
                   usedResource.getUsedResource,
-                  ResourceOperationType.USED,
+                  ResourceOperationType.RELEASE,
                   labelContainer.getUserCreatorLabel.getUser
                 )
                 waitForDealResourceLabels.offer(labelResourceMapping)
@@ -759,7 +759,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
                 val labelResourceMapping = new LabelResourceMapping(
                   label,
                   usedResource.getLockedResource,
-                  ResourceOperationType.USED,
+                  ResourceOperationType.RELEASE,
                   labelContainer.getUserCreatorLabel.getUser
                 )
                 waitForDealResourceLabels.offer(labelResourceMapping)
