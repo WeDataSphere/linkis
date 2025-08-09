@@ -36,6 +36,7 @@ import org.apache.linkis.manager.common.errorcode.ManagerCommonErrorCodeSummary
 import org.apache.linkis.manager.common.exception.{RMErrorException, RMWarnException}
 import org.apache.linkis.manager.common.protocol.engine.{EngineAskRequest, EngineCreateRequest}
 import org.apache.linkis.manager.common.utils.{ManagerUtils, ResourceUtils}
+import org.apache.linkis.manager.label.LabelManagerUtils
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.Label
@@ -75,7 +76,7 @@ import org.springframework.stereotype.Component
 
 import java.text.MessageFormat
 import java.util
-import java.util.{Date, UUID}
+import java.util.{Date, List, UUID}
 import java.util.concurrent.{LinkedBlockingDeque, LinkedBlockingQueue, TimeUnit}
 
 import scala.collection.JavaConverters._
@@ -905,13 +906,69 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
    */
 
   override def getResourceInfo(serviceInstances: Array[ServiceInstance]): ResourceInfo = {
+    var resourceInfo: ResourceInfo = null
+    val getBatchEnable = RMConfiguration.GET_RESOURCE_BY_LABEL_VALUE_ENABLED.getValue
+    val startTime = System.currentTimeMillis
+    if (getBatchEnable) {
+      resourceInfo = getInstancesResourceBatch(serviceInstances)
+    } else {
+      // old
+      resourceInfo = getInstancesResource(serviceInstances)
+    }
+    logger.info(
+      s"getResourceInfo with serviceInstances size: ${serviceInstances.length} resource size: ${resourceInfo.resourceInfo
+        .size()}, cost: ${(System.currentTimeMillis - startTime) / 1000.0} s"
+    )
+    resourceInfo
+  }
+
+  private def getInstancesResourceBatch(serviceInstances: Array[ServiceInstance]): ResourceInfo = {
+    val resourceInfo = ResourceInfo(Lists.newArrayList())
+    val labelValues: java.util.ArrayList[String] = new java.util.ArrayList[String]()
+    for (serviceInstance <- serviceInstances) {
+      val engineInstanceLabel: EngineInstanceLabel =
+        LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(classOf[EngineInstanceLabel])
+      engineInstanceLabel.setServiceName(serviceInstance.getApplicationName)
+      engineInstanceLabel.setInstance(serviceInstance.getInstance)
+      val label = LabelManagerUtils.convertPersistenceLabel(engineInstanceLabel)
+      val labelValue = label.getStringValue()
+      labelValues.add(labelValue)
+    }
+    val persistenceResources: util.List[PersistenceResource] =
+      resourceManagerPersistence.getResourceByLabelValues(labelValues)
+    if (persistenceResources != null && persistenceResources.size() > 0) {
+      if (persistenceResources.size() != serviceInstances.length) {
+        logger.error(
+          s"resource query failed. serviceInstances size: ${serviceInstances.length}, resource size: ${persistenceResources.size()}"
+        )
+        return resourceInfo
+      }
+      persistenceResources.asScala.foreach({ resource =>
+        val rmNode = new InfoRMNode
+        val persistenceResource = resource.asInstanceOf[PersistenceResource]
+        val serviceInstanceArray: Array[ServiceInstance] =
+          serviceInstances.filter { serviceInstance =>
+            persistenceResource.getLabelValue.contains(serviceInstance.getInstance)
+          }
+        if (serviceInstanceArray == null || serviceInstanceArray.length != 1) {
+          logger.error("logic error. please optimization.")
+        }
+        val serviceInstance = serviceInstanceArray(0)
+        val aggregatedResource = ResourceUtils.fromPersistenceResource(persistenceResource)
+        rmNode.setServiceInstance(serviceInstance)
+        rmNode.setNodeResource(aggregatedResource)
+        resourceInfo.resourceInfo.add(rmNode)
+      })
+
+    }
+    resourceInfo
+  }
+
+  private def getInstancesResource(serviceInstances: Array[ServiceInstance]): ResourceInfo = {
     val resourceInfo = ResourceInfo(Lists.newArrayList())
     serviceInstances.foreach({ serviceInstance =>
       val rmNode = new InfoRMNode
       var aggregatedResource: NodeResource = null
-      val engineConnSpringName = GovernanceCommonConf.ENGINE_CONN_SPRING_NAME.getValue
-      val engineConnManagerSpringName =
-        GovernanceCommonConf.ENGINE_CONN_MANAGER_SPRING_NAME.getValue
       serviceInstance.getApplicationName match {
         case GovernanceCommonConf.ENGINE_CONN_SPRING_NAME.getValue =>
           val engineInstanceLabel = LabelBuilderFactoryContext.getLabelBuilderFactory.createLabel(

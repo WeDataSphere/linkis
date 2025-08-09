@@ -79,4 +79,7 @@ public class RMConfiguration {
 
   public static final CommonVars<Integer> LABEL_SERVICE_PARTITION_NUM =
       CommonVars.apply("wds.linkis.label.service.partition.num", 100);
+
+  public static final CommonVars<Boolean> GET_RESOURCE_BY_LABEL_VALUE_ENABLED =
+      CommonVars.apply("wds.linkis.get.resource.by.label.value.enable", false);
 }
