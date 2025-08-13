@@ -28,6 +28,8 @@ public interface HiveMetaDao {
 
   String getLocationByDbAndTable(MetadataQueryParam queryParam);
 
+  String getLocationByDbAndTableSlave(MetadataQueryParam queryParam);
+
   Map<String, Object> getStorageInfo(MetadataQueryParam queryParam);
 
   /**
@@ -76,13 +78,19 @@ public interface HiveMetaDao {
 
   List<String> getPartitions(MetadataQueryParam queryParam);
 
+  List<String> getPartitionsSlave(MetadataQueryParam queryParam);
+
   List<Map<String, Object>> getColumns(MetadataQueryParam queryParam);
+
+  List<Map<String, Object>> getColumnsSlave(MetadataQueryParam queryParam);
 
   Map<String, Object> getStorageDescriptionIDByDbTableNameAndUser(MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getColumnsByStorageDescriptionID(MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getPartitionKeys(MetadataQueryParam queryParam);
+
+  List<Map<String, Object>> getPartitionKeysSlave(MetadataQueryParam queryParam);
 
   String getTableComment(@Param("DbName") String DbName, @Param("tableName") String tableName);
 
