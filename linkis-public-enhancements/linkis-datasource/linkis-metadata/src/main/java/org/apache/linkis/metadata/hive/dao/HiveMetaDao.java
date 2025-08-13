@@ -84,6 +84,8 @@ public interface HiveMetaDao {
 
   List<Map<String, Object>> getPartitionKeys(MetadataQueryParam queryParam);
 
+  List<Map<String, Object>> getPartitionKeysAndOrder(MetadataQueryParam queryParam);
+
   String getTableComment(@Param("DbName") String DbName, @Param("tableName") String tableName);
 
   List<String> getCanWriteDbsByUser(@Param("userName") String userName);

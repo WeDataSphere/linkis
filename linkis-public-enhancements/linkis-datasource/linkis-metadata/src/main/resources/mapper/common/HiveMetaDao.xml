@@ -140,8 +140,9 @@
         select t2.TBL_NAME as NAME, t2.TBL_TYPE as TYPE, t2.CREATE_TIME as CREATE_TIME,
                t2.LAST_ACCESS_TIME as LAST_ACCESS_TIME, t2.OWNER as OWNER
         from TBLS t2
+        JOIN DBS t3 ON t2.DB_ID = t3.DB_ID
         where t2.TBL_NAME=#{tableName,jdbcType=VARCHAR}
-        and t2.DB_ID=(select DB_ID from DBS t3 where t3.NAME = #{dbName,jdbcType=VARCHAR})
+        and t3.NAME = #{dbName,jdbcType=VARCHAR}
     </select>
 
 
@@ -211,6 +212,14 @@
     </select>
 
     <select id="getPartitionKeys" resultType="map"  parameterType="map">
+        select  PKEY_COMMENT, PKEY_NAME, PKEY_TYPE from PARTITION_KEYS
+        inner join TBLS ON `PARTITION_KEYS`.TBL_ID = TBLS.TBL_ID
+        inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID
+        where TBLS.TBL_NAME = #{tableName,jdbcType=VARCHAR}
+        and `DBS`.NAME =#{dbName,jdbcType=VARCHAR};
+    </select>
+
+    <select id="getPartitionKeysAndOrder" resultType="map"  parameterType="map">
         select  PKEY_COMMENT, PKEY_NAME, PKEY_TYPE from PARTITION_KEYS
         inner join TBLS ON `PARTITION_KEYS`.TBL_ID = TBLS.TBL_ID
         inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID

@@ -223,7 +223,13 @@ public class MdqServiceImpl implements MdqService {
   public MdqTableBaseInfoVO getTableBaseInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> tables =
         hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
-    List<Map<String, Object>> partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    boolean slaveEnable = MdqConfiguration.HVIE_METADATA_SALVE_SWITCH();
+    List<Map<String, Object>> partitionKeys = null;
+    if (slaveEnable) {
+      partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    } else {
+      partitionKeys = hiveMetaDao.getPartitionKeysAndOrder(queryParam);
+    }
     Optional<Map<String, Object>> tableOptional =
         tables
             .parallelStream()
@@ -253,7 +259,13 @@ public class MdqServiceImpl implements MdqService {
   @Override
   public List<MdqTableFieldsInfoVO> getTableFieldsInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> columns = hiveMetaDao.getColumns(queryParam);
-    List<Map<String, Object>> partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    boolean slaveEnable = MdqConfiguration.HVIE_METADATA_SALVE_SWITCH();
+    List<Map<String, Object>> partitionKeys = null;
+    if (slaveEnable) {
+      partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    } else {
+      partitionKeys = hiveMetaDao.getPartitionKeysAndOrder(queryParam);
+    }
     List<MdqTableFieldsInfoVO> normalColumns =
         DomainCoversionUtils.normalColumnListToMdqTableFieldsInfoVOList(columns);
     List<MdqTableFieldsInfoVO> partitions =

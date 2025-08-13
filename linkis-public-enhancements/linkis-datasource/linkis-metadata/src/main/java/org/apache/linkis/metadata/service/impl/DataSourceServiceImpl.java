@@ -20,6 +20,7 @@ package org.apache.linkis.metadata.service.impl;
 import org.apache.linkis.common.utils.ByteTimeUtils;
 import org.apache.linkis.hadoop.common.utils.HDFSUtils;
 import org.apache.linkis.hadoop.common.utils.KerberosUtils;
+import org.apache.linkis.metadata.conf.MdqConfiguration;
 import org.apache.linkis.metadata.hive.config.DSEnum;
 import org.apache.linkis.metadata.hive.config.DataSource;
 import org.apache.linkis.metadata.hive.dao.HiveMetaDao;
@@ -328,7 +329,13 @@ public class DataSourceServiceImpl implements DataSourceService {
   public JsonNode queryTableMeta(MetadataQueryParam queryParam) {
     logger.info("getTable:" + queryParam.getTableName());
     List<Map<String, Object>> columns = hiveMetaDao.getColumns(queryParam);
-    List<Map<String, Object>> partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    boolean slaveEnable = MdqConfiguration.HVIE_METADATA_SALVE_SWITCH();
+    List<Map<String, Object>> partitionKeys = null;
+    if (slaveEnable) {
+      partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    } else {
+      partitionKeys = hiveMetaDao.getPartitionKeysAndOrder(queryParam);
+    }
     return getJsonNodesFromColumnMap(columns, partitionKeys);
   }
 
@@ -359,7 +366,13 @@ public class DataSourceServiceImpl implements DataSourceService {
   public JsonNode queryTableMetaBySDID(MetadataQueryParam queryParam) {
     logger.info("getTableMetabysdid : sdid = {}", queryParam.getSdId());
     List<Map<String, Object>> columns = hiveMetaDao.getColumnsByStorageDescriptionID(queryParam);
-    List<Map<String, Object>> partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    boolean slaveEnable = MdqConfiguration.HVIE_METADATA_SALVE_SWITCH();
+    List<Map<String, Object>> partitionKeys = null;
+    if (slaveEnable) {
+      partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    } else {
+      partitionKeys = hiveMetaDao.getPartitionKeysAndOrder(queryParam);
+    }
     return getJsonNodesFromColumnMap(columns, partitionKeys);
   }
 
