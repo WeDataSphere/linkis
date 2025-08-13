@@ -254,7 +254,7 @@ public class MdqServiceImpl implements MdqService {
   public List<MdqTableFieldsInfoVO> getTableFieldsInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> columns;
     List<Map<String, Object>> partitionKeys;
-    if (MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
       columns = hiveMetaDao.getColumns(queryParam);
       partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
     } else {
@@ -274,7 +274,7 @@ public class MdqServiceImpl implements MdqService {
   public MdqTableStatisticInfoVO getTableStatisticInfoFromHive(
       MetadataQueryParam queryParam, String partitionSort) throws IOException {
     List<String> partitions;
-    if (MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
       partitions = hiveMetaDao.getPartitions(queryParam);
     } else {
       partitions = hiveMetaDao.getPartitionsSlave(queryParam);
@@ -285,7 +285,7 @@ public class MdqServiceImpl implements MdqService {
     mdqTableStatisticInfoVO.setFieldsNum(getTableFieldsInfoFromHive(queryParam).size());
 
     String tableLocation = getTableLocation(queryParam);
-    // mdqTableStatisticInfoVO.setTableSize(getTableSize(tableLocation));
+    mdqTableStatisticInfoVO.setTableSize(getTableSize(tableLocation));
     mdqTableStatisticInfoVO.setFileNum(getTableFileNum(tableLocation));
     if (partitions.isEmpty()) {
       // 非分区表
@@ -347,11 +347,20 @@ public class MdqServiceImpl implements MdqService {
     return statisticInfoVOS;
   }
 
-  public MdqTableStatisticInfoVO getTableSizeInfo(
-      MetadataQueryParam queryParam, String partitionSort) throws IOException {
+  @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
+  public MdqTableStatisticInfoVO getTableInfo(MetadataQueryParam queryParam) throws IOException {
     MdqTableStatisticInfoVO mdqTableStatisticInfoVO = new MdqTableStatisticInfoVO();
+    mdqTableStatisticInfoVO.setRowNum(0); // 下个版本
+    mdqTableStatisticInfoVO.setTableLastUpdateTime(null);
+    mdqTableStatisticInfoVO.setFieldsNum(getTableFieldsInfoFromHive(queryParam).size());
     String tableLocation = getTableLocation(queryParam);
     mdqTableStatisticInfoVO.setTableSize(getTableSize(tableLocation));
+    mdqTableStatisticInfoVO.setFileNum(getTableFileNum(tableLocation));
+    mdqTableStatisticInfoVO.setPartitionsNum(0);
+    int partitionsNum = getPartitionsNum(tableLocation);
+    if (partitionsNum > 0) {
+      mdqTableStatisticInfoVO.setPartitionsNum(partitionsNum);
+    }
     return mdqTableStatisticInfoVO;
   }
 
@@ -404,7 +413,7 @@ public class MdqServiceImpl implements MdqService {
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   public String getTableLocation(MetadataQueryParam queryParam) {
     String tableLocation;
-    if (MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
       tableLocation = hiveMetaDao.getLocationByDbAndTable(queryParam);
     } else {
       tableLocation = hiveMetaDao.getLocationByDbAndTableSlave(queryParam);

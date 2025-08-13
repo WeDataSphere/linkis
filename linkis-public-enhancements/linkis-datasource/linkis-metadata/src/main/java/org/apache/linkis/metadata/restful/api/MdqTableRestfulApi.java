@@ -217,26 +217,19 @@ public class MdqTableRestfulApi {
   @ApiOperation(value = "getTableSizeInfo", notes = "get table size info", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "database", required = false, dataType = "String", value = "database"),
-    @ApiImplicitParam(name = "tableName", dataType = "String"),
-    @ApiImplicitParam(name = "pageNow", required = true, dataType = "String", value = "page now"),
-    @ApiImplicitParam(name = "pageSize", required = true, dataType = "String", value = "page size"),
-    @ApiImplicitParam(name = "partitionSort", required = true, dataType = "String")
+    @ApiImplicitParam(name = "tableName", dataType = "String")
   })
-  @RequestMapping(path = "getTableSizeInfo", method = RequestMethod.GET)
-  public Message getTableSizeInfo(
+  @RequestMapping(path = "getTableInfo", method = RequestMethod.GET)
+  public Message getTableInfo(
       @RequestParam(value = "database", required = false) String database,
       @RequestParam(value = "tableName", required = false) String tableName,
-      @RequestParam(value = "pageNow", defaultValue = "1") int pageNow,
-      @RequestParam(value = "pageSize", defaultValue = "1000") int pageSize,
-      @RequestParam(value = "partitionSort", defaultValue = "desc") String partitionSort,
       HttpServletRequest req)
       throws IOException {
     String userName = ModuleUserUtils.getOperationUser(req, "getTableSizeInfo " + tableName);
     MetadataQueryParam queryParam =
         MetadataQueryParam.of(userName).withDbName(database).withTableName(tableName);
-    MdqTableStatisticInfoVO tableStatisticInfo =
-        mdqService.getTableSizeInfo(queryParam, partitionSort);
-    return Message.ok().data("tableStatisticInfo", tableStatisticInfo);
+    MdqTableStatisticInfoVO tableStatisticInfo = mdqService.getTableInfo(queryParam);
+    return Message.ok().data("tableInfo", tableStatisticInfo);
   }
 
   @ApiOperation(

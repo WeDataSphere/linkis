@@ -77,6 +77,5 @@ public interface MdqService {
       MetadataQueryParam queryParam, String partitionName)
       throws IOException, MdqIllegalParamException;
 
-  MdqTableStatisticInfoVO getTableSizeInfo(MetadataQueryParam queryParam, String partitionSort)
-      throws IOException;
+  MdqTableStatisticInfoVO getTableInfo(MetadataQueryParam queryParam) throws IOException;
 }
