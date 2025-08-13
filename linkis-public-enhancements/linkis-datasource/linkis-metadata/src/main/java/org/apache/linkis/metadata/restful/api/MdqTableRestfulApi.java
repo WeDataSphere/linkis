@@ -214,7 +214,7 @@ public class MdqTableRestfulApi {
     return data;
   }
 
-  @ApiOperation(value = "getTableSizeInfo", notes = "get table size info", response = Message.class)
+  @ApiOperation(value = "getTableInfo", notes = "get table size info", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "database", required = false, dataType = "String", value = "database"),
     @ApiImplicitParam(name = "tableName", dataType = "String")
@@ -225,7 +225,7 @@ public class MdqTableRestfulApi {
       @RequestParam(value = "tableName", required = false) String tableName,
       HttpServletRequest req)
       throws IOException {
-    String userName = ModuleUserUtils.getOperationUser(req, "getTableSizeInfo " + tableName);
+    String userName = ModuleUserUtils.getOperationUser(req, "getTableInfo " + tableName);
     MetadataQueryParam queryParam =
         MetadataQueryParam.of(userName).withDbName(database).withTableName(tableName);
     MdqTableStatisticInfoVO tableStatisticInfo = mdqService.getTableInfo(queryParam);
