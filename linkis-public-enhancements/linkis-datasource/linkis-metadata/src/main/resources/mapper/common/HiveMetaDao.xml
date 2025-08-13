@@ -173,7 +173,7 @@
     </select>
 
     <select id="getPartitionsSlave" resultType="java.lang.String"  parameterType="map">
-        /*slave*/select `PARTITIONS`.PART_NAME from `PARTITIONS`
+        /*slave*/ select `PARTITIONS`.PART_NAME from `PARTITIONS`
         inner join TBLS ON `PARTITIONS`.TBL_ID = TBLS.TBL_ID
         inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID
         where  TBLS.TBL_NAME = #{tableName,jdbcType=VARCHAR}
@@ -247,7 +247,7 @@
     </select>
 
     <select id="getPartitionKeysSlave" resultType="map"  parameterType="map">
-        select  PKEY_COMMENT, PKEY_NAME, PKEY_TYPE from PARTITION_KEYS
+        /*slave*/ select  PKEY_COMMENT, PKEY_NAME, PKEY_TYPE from PARTITION_KEYS
         inner join TBLS ON `PARTITION_KEYS`.TBL_ID = TBLS.TBL_ID
         inner join `DBS` ON TBLS.DB_ID=`DBS`.DB_ID
         where TBLS.TBL_NAME = #{tableName,jdbcType=VARCHAR}
