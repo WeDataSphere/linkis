@@ -32,6 +32,6 @@ object MdqConfiguration {
     CommonVars.apply("linkis.hdfs.max.retry.count", 10)
 
   val HVIE_METADATA_SALVE_SWITCH: Boolean =
-    CommonVars.apply("linkis.hive.metadata.salve.switch", false).getValue
+    CommonVars.apply("linkis.hive.metadata.slave.switch", false).getValue
 
 }
