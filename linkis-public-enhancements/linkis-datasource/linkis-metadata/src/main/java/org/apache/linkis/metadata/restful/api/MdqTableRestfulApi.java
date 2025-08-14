@@ -214,6 +214,24 @@ public class MdqTableRestfulApi {
     return data;
   }
 
+  @ApiOperation(value = "getTableInfo", notes = "get table size info", response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "database", required = false, dataType = "String", value = "database"),
+    @ApiImplicitParam(name = "tableName", dataType = "String")
+  })
+  @RequestMapping(path = "getTableInfo", method = RequestMethod.GET)
+  public Message getTableInfo(
+      @RequestParam(value = "database", required = false) String database,
+      @RequestParam(value = "tableName", required = false) String tableName,
+      HttpServletRequest req)
+      throws IOException {
+    String userName = ModuleUserUtils.getOperationUser(req, "getTableInfo " + tableName);
+    MetadataQueryParam queryParam =
+        MetadataQueryParam.of(userName).withDbName(database).withTableName(tableName);
+    MdqTableStatisticInfoVO tableStatisticInfo = mdqService.getTableInfo(queryParam);
+    return Message.ok().data("tableInfo", tableStatisticInfo);
+  }
+
   @ApiOperation(
       value = "getPartitionStatisticInfo",
       notes = "get partition statistic info",
