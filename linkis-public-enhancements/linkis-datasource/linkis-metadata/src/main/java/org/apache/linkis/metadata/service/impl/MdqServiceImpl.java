@@ -223,7 +223,12 @@ public class MdqServiceImpl implements MdqService {
   public MdqTableBaseInfoVO getTableBaseInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> tables =
         hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
-    List<Map<String, Object>> partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    List<Map<String, Object>> partitionKeys;
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+      partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
+    } else {
+      partitionKeys = hiveMetaDao.getPartitionKeysSlave(queryParam);
+    }
     Optional<Map<String, Object>> tableOptional =
         tables
             .parallelStream()
@@ -233,8 +238,12 @@ public class MdqServiceImpl implements MdqService {
         tableOptional.orElseThrow(() -> new IllegalArgumentException("table不存在"));
     MdqTableBaseInfoVO mdqTableBaseInfoVO =
         DomainCoversionUtils.mapToMdqTableBaseInfoVO(table, queryParam.getDbName());
-    String tableComment =
-        hiveMetaDao.getTableComment(queryParam.getDbName(), queryParam.getTableName());
+    String tableComment;
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+      tableComment = hiveMetaDao.getTableComment(queryParam.getDbName(), queryParam.getTableName());
+    } else {
+      tableComment = hiveMetaDao.getTableCommentSlave(queryParam.getDbName(), queryParam.getTableName());
+    }
     mdqTableBaseInfoVO.getBase().setComment(tableComment);
     mdqTableBaseInfoVO.getBase().setPartitionTable(!partitionKeys.isEmpty());
     return mdqTableBaseInfoVO;
