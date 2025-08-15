@@ -55,7 +55,7 @@ public interface HiveMetaDao {
       @Param("userName") String userName, @Param("roles") List<String> roles);
 
   List<String> getDbsByUserAndRolesSlave(
-          @Param("userName") String userName, @Param("roles") List<String> roles);
+      @Param("userName") String userName, @Param("roles") List<String> roles);
 
   /**
    * get all list of DBS NAME
@@ -70,13 +70,13 @@ public interface HiveMetaDao {
       MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getTablesByDbNameAndUserAndRolesFromDbPrvsSlave(
-          MetadataQueryParam queryParam);
+      MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getTablesByDbNameAndUserAndRolesFromTblPrvs(
       MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getTablesByDbNameAndUserAndRolesFromTblPrvsSlave(
-          MetadataQueryParam queryParam);
+      MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getTablesByDbName(MetadataQueryParam queryParam);
 
@@ -108,7 +108,8 @@ public interface HiveMetaDao {
 
   Map<String, Object> getStorageDescriptionIDByDbTableNameAndUser(MetadataQueryParam queryParam);
 
-  Map<String, Object> getStorageDescriptionIDByDbTableNameAndUserSlave(MetadataQueryParam queryParam);
+  Map<String, Object> getStorageDescriptionIDByDbTableNameAndUserSlave(
+      MetadataQueryParam queryParam);
 
   List<Map<String, Object>> getColumnsByStorageDescriptionID(MetadataQueryParam queryParam);
 

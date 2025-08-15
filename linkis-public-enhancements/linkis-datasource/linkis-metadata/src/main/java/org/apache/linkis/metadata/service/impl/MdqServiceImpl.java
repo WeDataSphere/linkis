@@ -32,10 +32,7 @@ import org.apache.linkis.metadata.domain.mdq.po.MdqField;
 import org.apache.linkis.metadata.domain.mdq.po.MdqImport;
 import org.apache.linkis.metadata.domain.mdq.po.MdqLineage;
 import org.apache.linkis.metadata.domain.mdq.po.MdqTable;
-import org.apache.linkis.metadata.domain.mdq.vo.MdqTableBaseInfoVO;
-import org.apache.linkis.metadata.domain.mdq.vo.MdqTableFieldsInfoVO;
-import org.apache.linkis.metadata.domain.mdq.vo.MdqTablePartitionStatisticInfoVO;
-import org.apache.linkis.metadata.domain.mdq.vo.MdqTableStatisticInfoVO;
+import org.apache.linkis.metadata.domain.mdq.vo.*;
 import org.apache.linkis.metadata.hive.config.DSEnum;
 import org.apache.linkis.metadata.hive.config.DataSource;
 import org.apache.linkis.metadata.hive.dao.HiveMetaDao;
@@ -242,7 +239,8 @@ public class MdqServiceImpl implements MdqService {
     if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
       tableComment = hiveMetaDao.getTableComment(queryParam.getDbName(), queryParam.getTableName());
     } else {
-      tableComment = hiveMetaDao.getTableCommentSlave(queryParam.getDbName(), queryParam.getTableName());
+      tableComment =
+          hiveMetaDao.getTableCommentSlave(queryParam.getDbName(), queryParam.getTableName());
     }
     mdqTableBaseInfoVO.getBase().setComment(tableComment);
     mdqTableBaseInfoVO.getBase().setPartitionTable(!partitionKeys.isEmpty());
@@ -357,19 +355,14 @@ public class MdqServiceImpl implements MdqService {
   }
 
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
-  public MdqTableStatisticInfoVO getTableInfo(MetadataQueryParam queryParam) throws IOException {
-    MdqTableStatisticInfoVO mdqTableStatisticInfoVO = new MdqTableStatisticInfoVO();
+  public MdqTableStatisticInfoDTO getTableInfo(MetadataQueryParam queryParam) throws IOException {
+    MdqTableStatisticInfoDTO mdqTableStatisticInfoVO = new MdqTableStatisticInfoDTO();
     mdqTableStatisticInfoVO.setRowNum(0); // 下个版本
     mdqTableStatisticInfoVO.setTableLastUpdateTime(null);
     mdqTableStatisticInfoVO.setFieldsNum(getTableFieldsInfoFromHive(queryParam).size());
     String tableLocation = getTableLocation(queryParam);
     mdqTableStatisticInfoVO.setTableSize(getTableSize(tableLocation));
     mdqTableStatisticInfoVO.setFileNum(getTableFileNum(tableLocation));
-    mdqTableStatisticInfoVO.setPartitionsNum(0);
-    int partitionsNum = getPartitionsNum(tableLocation);
-    if (partitionsNum > 0) {
-      mdqTableStatisticInfoVO.setPartitionsNum(partitionsNum);
-    }
     return mdqTableStatisticInfoVO;
   }
 
