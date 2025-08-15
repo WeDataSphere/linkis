@@ -356,14 +356,14 @@ public class MdqServiceImpl implements MdqService {
 
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   public MdqTableStatisticInfoDTO getTableInfo(MetadataQueryParam queryParam) throws IOException {
-    MdqTableStatisticInfoDTO mdqTableStatisticInfoVO = new MdqTableStatisticInfoDTO();
-    mdqTableStatisticInfoVO.setRowNum(0); // 下个版本
-    mdqTableStatisticInfoVO.setTableLastUpdateTime(null);
-    mdqTableStatisticInfoVO.setFieldsNum(getTableFieldsInfoFromHive(queryParam).size());
+    MdqTableStatisticInfoDTO mdqTableStatisticInfoDTO = new MdqTableStatisticInfoDTO();
+    mdqTableStatisticInfoDTO.setRowNum(0); // 下个版本
+    mdqTableStatisticInfoDTO.setTableLastUpdateTime(null);
+    mdqTableStatisticInfoDTO.setFieldsNum(getTableFieldsInfoFromHive(queryParam).size());
     String tableLocation = getTableLocation(queryParam);
-    mdqTableStatisticInfoVO.setTableSize(getTableSize(tableLocation));
-    mdqTableStatisticInfoVO.setFileNum(getTableFileNum(tableLocation));
-    return mdqTableStatisticInfoVO;
+    mdqTableStatisticInfoDTO.setTableSize(getTableSize(tableLocation));
+    mdqTableStatisticInfoDTO.setFileNum(getTableFileNum(tableLocation));
+    return mdqTableStatisticInfoDTO;
   }
 
   /**
