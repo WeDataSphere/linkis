@@ -80,7 +80,7 @@ public class HiveMetaWithPermissionServiceImpl implements HiveMetaWithPermission
           dbsByUserAndRoles = hiveMetaDao.getDbsByUserAndRoles(userName, roles);
         } else {
           roles = hiveMetaDao.getRolesByUserSlave(userName);
-          dbsByUserAndRoles= hiveMetaDao.getDbsByUserAndRolesSlave(userName, roles);
+          dbsByUserAndRoles = hiveMetaDao.getDbsByUserAndRolesSlave(userName, roles);
         }
         return dbsByUserAndRoles;
       } else {

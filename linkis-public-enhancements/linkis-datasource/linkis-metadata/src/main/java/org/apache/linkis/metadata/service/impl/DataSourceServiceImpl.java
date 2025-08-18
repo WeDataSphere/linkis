@@ -378,17 +378,17 @@ public class DataSourceServiceImpl implements DataSourceService {
     return getJsonNodesFromColumnMap(columns, partitionKeys);
   }
 
-    @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
-    public String getTableLocation(MetadataQueryParam queryParam) {
-        String tableLocation;
-        if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
-            tableLocation = hiveMetaDao.getLocationByDbAndTable(queryParam);
-        } else {
-            tableLocation = hiveMetaDao.getLocationByDbAndTableSlave(queryParam);
-        }
-        logger.info("tableLocation:" + tableLocation);
-        return tableLocation;
+  @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
+  public String getTableLocation(MetadataQueryParam queryParam) {
+    String tableLocation;
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+      tableLocation = hiveMetaDao.getLocationByDbAndTable(queryParam);
+    } else {
+      tableLocation = hiveMetaDao.getLocationByDbAndTableSlave(queryParam);
     }
+    logger.info("tableLocation:" + tableLocation);
+    return tableLocation;
+  }
 
   @Override
   public JsonNode getTableSize(MetadataQueryParam queryParam) {
@@ -505,11 +505,11 @@ public class DataSourceServiceImpl implements DataSourceService {
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   @Override
   public Map<String, Object> getStorageInfo(MetadataQueryParam queryParam) {
-      if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
-          return hiveMetaDao.getStorageInfo(queryParam);
-      } else {
-          return hiveMetaDao.getStorageInfoSlave(queryParam);
-      }
+    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+      return hiveMetaDao.getStorageInfo(queryParam);
+    } else {
+      return hiveMetaDao.getStorageInfoSlave(queryParam);
+    }
   }
 
   private FileStatus getFileStatus(String location) throws IOException {
