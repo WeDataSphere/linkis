@@ -180,10 +180,10 @@ class DefaultEngineAskEngineService
         }
         LoggerUtils.removeJobIdMDC()
       }(reuseExecutor)
-      futureDeal(reuseNodeThread, taskId, engineAskAsyncId, sender, "reuse")
       logger.info(
         s"reuseExecutor: poolSize: ${reuseThreadPool.getPoolSize}, activeCount: ${reuseThreadPool.getActiveCount}, queueSize: ${reuseThreadPool.getQueue.size()}"
       )
+      futureDeal(reuseNodeThread, taskId, engineAskAsyncId, sender, "reuse")
     } else {
       createEngine(engineAskRequest, taskId, engineAskAsyncId, sender)
     }
@@ -265,10 +265,10 @@ class DefaultEngineAskEngineService
       }
 
     }(createExecutor)
-    futureDeal(createNodeThread, taskId, engineAskAsyncId, sender, "create")
     logger.info(
       s"createExecutor: poolSize: ${createThreadPool.getPoolSize}, activeCount: ${createThreadPool.getActiveCount}, queueSize: ${createThreadPool.getQueue.size()}"
     )
+    futureDeal(createNodeThread, taskId, engineAskAsyncId, sender, "create")
   }
 
   private def futureDeal(
