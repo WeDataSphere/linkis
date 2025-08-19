@@ -346,7 +346,8 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
   }
 
   override def getScoredNodeMapsByLabelsReuse(
-      labels: util.List[Label[_]]
+      labels: util.List[Label[_]],
+      shuffEnable: Boolean
   ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
     // Try to convert the label list to key value list
     if (null != labels && labels.asScala.nonEmpty) {
@@ -358,7 +359,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       return getScoredNodeMapsByLabels(
         inputLabels.asJava,
         necessaryLabels.asJava,
-        isShellReuse = true
+        shuffEnable
       )
     }
     new util.HashMap[ScoreServiceInstance, util.List[Label[_]]]()
@@ -374,7 +375,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
   private def getScoredNodeMapsByLabels(
       labels: util.List[PersistenceLabel],
       necessaryLabels: util.List[PersistenceLabel],
-      isShellReuse: Boolean = false
+      shuffEnable: Boolean = false
   ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
     // Get the in-degree relations ( Label -> Nodes )
     val inNodeDegree = labelManagerPersistence.getNodeRelationsByLabels(
@@ -406,7 +407,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
 
     // Get the out-degree relations ( Node -> Label )
     val instancesList = instances.toList.asJava
-    val outNodeDegree = if (isShellReuse && RMConfiguration.LABEL_SERVICE_INSTANCE_SHUFF_SWITCH.getValue) {
+    val outNodeDegree = if (shuffEnable) {
       labelManagerPersistence.getLabelRelationsByServiceInstance(
         serviceInstanceShuff(instancesList)
       )
