@@ -221,7 +221,7 @@ public class MdqServiceImpl implements MdqService {
     List<Map<String, Object>> tables =
         hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
     List<Map<String, Object>> partitionKeys;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
     } else {
       partitionKeys = hiveMetaDao.getPartitionKeysSlave(queryParam);
@@ -236,7 +236,7 @@ public class MdqServiceImpl implements MdqService {
     MdqTableBaseInfoVO mdqTableBaseInfoVO =
         DomainCoversionUtils.mapToMdqTableBaseInfoVO(table, queryParam.getDbName());
     String tableComment;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       tableComment = hiveMetaDao.getTableComment(queryParam.getDbName(), queryParam.getTableName());
     } else {
       tableComment =
@@ -261,7 +261,7 @@ public class MdqServiceImpl implements MdqService {
   public List<MdqTableFieldsInfoVO> getTableFieldsInfoFromHive(MetadataQueryParam queryParam) {
     List<Map<String, Object>> columns;
     List<Map<String, Object>> partitionKeys;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       columns = hiveMetaDao.getColumns(queryParam);
       partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
     } else {
@@ -281,7 +281,7 @@ public class MdqServiceImpl implements MdqService {
   public MdqTableStatisticInfoVO getTableStatisticInfoFromHive(
       MetadataQueryParam queryParam, String partitionSort) throws IOException {
     List<String> partitions;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       partitions = hiveMetaDao.getPartitions(queryParam);
     } else {
       partitions = hiveMetaDao.getPartitionsSlave(queryParam);
@@ -415,7 +415,7 @@ public class MdqServiceImpl implements MdqService {
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   public String getTableLocation(MetadataQueryParam queryParam) {
     String tableLocation;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       tableLocation = hiveMetaDao.getLocationByDbAndTable(queryParam);
     } else {
       tableLocation = hiveMetaDao.getLocationByDbAndTableSlave(queryParam);

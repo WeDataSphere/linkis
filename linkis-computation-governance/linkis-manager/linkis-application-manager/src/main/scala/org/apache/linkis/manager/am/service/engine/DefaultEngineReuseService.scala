@@ -173,7 +173,7 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
       var localInstances: util.Map[ScoreServiceInstance, util.List[Label[_]]] =
         instanceCache.getIfPresent(cacheKey)
       if (localInstances == null) {
-        localInstances = nodeLabelService.getScoredNodeMapsByLabels(filterLabelList)
+        localInstances = nodeLabelService.getScoredNodeMapsByLabelsReuse(filterLabelList)
         instanceCache.put(cacheKey, localInstances)
       }
       localInstances
