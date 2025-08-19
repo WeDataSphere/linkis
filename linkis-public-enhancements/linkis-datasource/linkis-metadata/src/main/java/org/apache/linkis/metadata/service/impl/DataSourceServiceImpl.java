@@ -330,7 +330,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     logger.info("getTable:" + queryParam.getTableName());
     List<Map<String, Object>> columns;
     List<Map<String, Object>> partitionKeys;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       columns = hiveMetaDao.getColumns(queryParam);
       partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
     } else {
@@ -368,7 +368,7 @@ public class DataSourceServiceImpl implements DataSourceService {
     logger.info("getTableMetabysdid : sdid = {}", queryParam.getSdId());
     List<Map<String, Object>> columns;
     List<Map<String, Object>> partitionKeys;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       columns = hiveMetaDao.getColumns(queryParam);
       partitionKeys = hiveMetaDao.getPartitionKeys(queryParam);
     } else {
@@ -381,7 +381,7 @@ public class DataSourceServiceImpl implements DataSourceService {
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   public String getTableLocation(MetadataQueryParam queryParam) {
     String tableLocation;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       tableLocation = hiveMetaDao.getLocationByDbAndTable(queryParam);
     } else {
       tableLocation = hiveMetaDao.getLocationByDbAndTableSlave(queryParam);
@@ -419,7 +419,7 @@ public class DataSourceServiceImpl implements DataSourceService {
   public JsonNode getPartitionSize(MetadataQueryParam queryParam) {
 
     Long partitionSize;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       partitionSize = hiveMetaDao.getPartitionSize(queryParam);
     } else {
       partitionSize = hiveMetaDao.getPartitionSizeSlave(queryParam);
@@ -438,7 +438,7 @@ public class DataSourceServiceImpl implements DataSourceService {
   @Override
   public JsonNode getPartitions(MetadataQueryParam queryParam) {
     List<String> partitions;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       partitions = hiveMetaDao.getPartitions(queryParam);
     } else {
       partitions = hiveMetaDao.getPartitionsSlave(queryParam);
@@ -489,7 +489,7 @@ public class DataSourceServiceImpl implements DataSourceService {
   @Override
   public boolean partitionExists(MetadataQueryParam queryParam) {
     List<String> partitions;
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       partitions = hiveMetaDao.getPartitions(queryParam);
     } else {
       partitions = hiveMetaDao.getPartitionsSlave(queryParam);
@@ -505,7 +505,7 @@ public class DataSourceServiceImpl implements DataSourceService {
   @DataSource(name = DSEnum.FIRST_DATA_SOURCE)
   @Override
   public Map<String, Object> getStorageInfo(MetadataQueryParam queryParam) {
-    if (!MdqConfiguration.HVIE_METADATA_SALVE_SWITCH()) {
+    if (!MdqConfiguration.HIVE_METADATA_SALVE_SWITCH()) {
       return hiveMetaDao.getStorageInfo(queryParam);
     } else {
       return hiveMetaDao.getStorageInfoSlave(queryParam);
