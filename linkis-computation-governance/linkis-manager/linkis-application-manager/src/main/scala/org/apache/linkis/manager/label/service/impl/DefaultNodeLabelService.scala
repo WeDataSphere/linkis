@@ -356,11 +356,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       // Extra the necessary labels whose feature equals Feature.CORE or Feature.SUITABLE
       val necessaryLabels = requireLabels.map(LabelManagerUtils.convertPersistenceLabel)
       val inputLabels = labels.asScala.map(LabelManagerUtils.convertPersistenceLabel)
-      return getScoredNodeMapsByLabels(
-        inputLabels.asJava,
-        necessaryLabels.asJava,
-        shuffEnable
-      )
+      return getScoredNodeMapsByLabels(inputLabels.asJava, necessaryLabels.asJava, shuffEnable)
     }
     new util.HashMap[ScoreServiceInstance, util.List[Label[_]]]()
   }

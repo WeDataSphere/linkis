@@ -206,7 +206,7 @@ public class AMConfiguration {
   public static final CommonVars<String> ENGINE_REUSE_CACHE_SUPPORT_ENGINES =
       CommonVars.apply("wds.linkis.manager.am.engine.reuse.cache.support.engines", "shell");
   public static final CommonVars<String> ENGINE_REUSE_SHUFF_SUPPORT_ENGINES =
-          CommonVars.apply("wds.linkis.manager.am.engine.reuse.shuff.support.engines", "shell");
+      CommonVars.apply("wds.linkis.manager.am.engine.reuse.shuff.support.engines", "shell");
 
   public static String getDefaultMultiEngineUser() {
     String jvmUser = Utils.getJvmUser();
