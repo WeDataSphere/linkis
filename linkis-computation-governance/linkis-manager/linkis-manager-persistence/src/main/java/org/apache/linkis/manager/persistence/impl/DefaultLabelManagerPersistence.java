@@ -329,17 +329,12 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
 
   @Override
   public Map<ServiceInstance, List<PersistenceLabel>> getLabelRelationsByServiceInstance(
-      List<ServiceInstance> serviceInstances, Boolean isReuse) {
+      List<ServiceInstance> serviceInstances) {
     if (CollectionUtils.isEmpty(serviceInstances)) return Collections.emptyMap();
     Map<ServiceInstance, List<PersistenceLabel>> resultMap = new HashMap<>();
-    List<Map<String, Object>> nodeRelationsByLabels;
-    if (isReuse) {
-      nodeRelationsByLabels = listLabelRelationByServiceInstanceShuff(serviceInstances);
-    } else {
-      nodeRelationsByLabels =
-          listLabelRelationByServiceInstance(
-              serviceInstances, RMConfiguration.LABEL_SERVICE_PARTITION_NUM.getValue());
-    }
+    List<Map<String, Object>> nodeRelationsByLabels =
+        listLabelRelationByServiceInstance(
+            serviceInstances, RMConfiguration.LABEL_SERVICE_PARTITION_NUM.getValue());
     logger.info("list label relation end, with size: {}", nodeRelationsByLabels.size());
     Map<String, List<Map<String, Object>>> groupByInstanceMap =
         nodeRelationsByLabels.stream()
@@ -389,17 +384,5 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
         .map(batch -> labelManagerMapper.listLabelRelationByServiceInstance(batch))
         .flatMap(List::stream)
         .collect(Collectors.toList());
-  }
-
-  private List<Map<String, Object>> listLabelRelationByServiceInstanceShuff(
-      List<ServiceInstance> serviceInstances) {
-    List<ServiceInstance> shuffledInstances = new ArrayList<>(serviceInstances);
-    if (shuffledInstances.size() > RMConfiguration.LABEL_SERVICE_INSTANCE_SHUFF_NUM.getValue()) {
-      Collections.shuffle(shuffledInstances);
-      // 截取前limit个元素
-      shuffledInstances =
-          shuffledInstances.subList(0, RMConfiguration.LABEL_SERVICE_INSTANCE_SHUFF_NUM.getValue());
-    }
-    return labelManagerMapper.listLabelRelationByServiceInstance(shuffledInstances);
   }
 }

@@ -344,21 +344,6 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
     new util.HashMap[ScoreServiceInstance, util.List[Label[_]]]()
   }
 
-  override def getScoredNodeMapsByLabelsReuse(
-      labels: util.List[Label[_]]
-  ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
-    // Try to convert the label list to key value list
-    if (null != labels && labels.asScala.nonEmpty) {
-      // Get the persistence labels by kvList
-      val requireLabels = labels.asScala.filter(_.getFeature == Feature.CORE)
-      // Extra the necessary labels whose feature equals Feature.CORE or Feature.SUITABLE
-      val necessaryLabels = requireLabels.map(LabelManagerUtils.convertPersistenceLabel)
-      val inputLabels = labels.asScala.map(LabelManagerUtils.convertPersistenceLabel)
-      return getScoredNodeMapsByLabels(inputLabels.asJava, necessaryLabels.asJava, isReuse = true)
-    }
-    new util.HashMap[ScoreServiceInstance, util.List[Label[_]]]()
-  }
-
   /**
    *   1. Get the relationship between the incoming label and node 2. get all instances by input
    *      labels 3. get instance all labels 4. Judge labels
@@ -368,8 +353,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
    */
   private def getScoredNodeMapsByLabels(
       labels: util.List[PersistenceLabel],
-      necessaryLabels: util.List[PersistenceLabel],
-      isReuse: Boolean = false
+      necessaryLabels: util.List[PersistenceLabel]
   ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
     // Get the in-degree relations ( Label -> Nodes )
     val inNodeDegree = labelManagerPersistence.getNodeRelationsByLabels(
@@ -401,7 +385,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
 
     // Get the out-degree relations ( Node -> Label )
     val outNodeDegree =
-      labelManagerPersistence.getLabelRelationsByServiceInstance(instances.toList.asJava, isReuse)
+      labelManagerPersistence.getLabelRelationsByServiceInstance(instances.toList.asJava)
     // outNodeDegree cannot be empty
     if (outNodeDegree.asScala.nonEmpty) {
       val necessaryLabelKeys =
@@ -467,7 +451,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       serviceInstanceList: util.List[ServiceInstance]
   ): util.HashMap[String, util.List[Label[_]]] = {
     val resultMap = new util.HashMap[String, util.List[Label[_]]]()
-    val map = labelManagerPersistence.getLabelRelationsByServiceInstance(serviceInstanceList, false)
+    val map = labelManagerPersistence.getLabelRelationsByServiceInstance(serviceInstanceList)
     serviceInstanceList.asScala.foreach(serviceInstance => {
       val LabelList = Option(map.get(serviceInstance))
         .map(

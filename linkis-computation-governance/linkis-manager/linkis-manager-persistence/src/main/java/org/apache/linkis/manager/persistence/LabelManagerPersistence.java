@@ -90,7 +90,7 @@ public interface LabelManagerPersistence {
       List<PersistenceLabel> labelIds);
 
   Map<ServiceInstance, List<PersistenceLabel>> getLabelRelationsByServiceInstance(
-      List<ServiceInstance> serviceInstances, Boolean isReuse);
+      List<ServiceInstance> serviceInstances);
 
   /**
    * 通过labelkey 和StringValue找到唯一的label，返回值可能为null
