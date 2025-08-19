@@ -138,7 +138,7 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
       }
     }
 
-    val instances = nodeLabelService.getScoredNodeMapsByLabels(filterLabelList)
+    val instances = nodeLabelService.getScoredNodeMapsByLabelsReuse(filterLabelList)
 
     if (null != instances && null != exclusionInstances && exclusionInstances.nonEmpty) {
       val instancesKeys = instances.asScala.keys.toArray
