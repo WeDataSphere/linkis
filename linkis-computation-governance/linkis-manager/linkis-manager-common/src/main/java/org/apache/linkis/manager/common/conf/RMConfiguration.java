@@ -83,6 +83,9 @@ public class RMConfiguration {
   public static final CommonVars<Integer> LABEL_SERVICE_INSTANCE_SHUFF_NUM =
       CommonVars.apply("wds.linkis.label.service.instance.shuff.num", 100);
 
+  public static final CommonVars<Boolean> LABEL_SERVICE_INSTANCE_SHUFF_SWITCH =
+          CommonVars.apply("wds.linkis.label.service.instance.shuff.switch", false);
+
   public static final CommonVars<Boolean> GET_RESOURCE_BY_LABEL_VALUE_ENABLED =
       CommonVars.apply("wds.linkis.get.resource.by.label.value.enable", false);
 }

@@ -406,7 +406,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
 
     // Get the out-degree relations ( Node -> Label )
     val instancesList = instances.toList.asJava
-    val outNodeDegree = if (isShellReuse) {
+    val outNodeDegree = if (isShellReuse && RMConfiguration.LABEL_SERVICE_INSTANCE_SHUFF_SWITCH.getValue) {
       labelManagerPersistence.getLabelRelationsByServiceInstance(
         serviceInstanceShuff(instancesList)
       )
