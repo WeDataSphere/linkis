@@ -166,9 +166,12 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
     val instances = if (cacheEnable) {
       var localInstances: util.Map[ScoreServiceInstance, util.List[Label[_]]] =
         instanceCache.getIfPresent(cacheKey)
-      if (localInstances == null) {
-        localInstances = nodeLabelService.getScoredNodeMapsByLabelsReuse(filterLabelList, shuffEnable)
-        instanceCache.put(cacheKey, localInstances)
+      if (localInstances == null) this synchronized {
+        localInstances = instanceCache.getIfPresent(cacheKey)
+        if (localInstances == null) {
+          localInstances = nodeLabelService.getScoredNodeMapsByLabelsReuse(filterLabelList, shuffEnable)
+          instanceCache.put(cacheKey, localInstances)
+        }
       }
       localInstances
     } else nodeLabelService.getScoredNodeMapsByLabelsReuse(filterLabelList, shuffEnable)
@@ -195,10 +198,12 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
 
     var engineScoreList = if (cacheEnable) {
       var localEngineList: Array[EngineNode] = engineNodesCache.getIfPresent(cacheKey)
-      if (localEngineList == null) {
-        localEngineList = getEngineNodeManager.getEngineNodes(instances.asScala.keys.toSeq.toArray)
-        engineNodesCache.put(cacheKey, localEngineList)
-      }
+      if (localEngineList == null) this synchronized {
+        localEngineList = engineNodesCache.getIfPresent(cacheKey)
+        if (localEngineList == null) {
+          localEngineList = getEngineNodeManager.getEngineNodes(instances.asScala.keys.toSeq.toArray)
+          engineNodesCache.put(cacheKey, localEngineList)
+        }
       localEngineList
     } else getEngineNodeManager.getEngineNodes(instances.asScala.keys.toSeq.toArray)
 
