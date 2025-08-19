@@ -29,14 +29,23 @@ import org.apache.linkis.manager.common.utils.ManagerUtils
 import org.apache.linkis.manager.label.LabelManagerUtils
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.{Feature, InheritableLabel, Label}
-import org.apache.linkis.manager.label.entity.engine.{EngineInstanceLabel, EngineTypeLabel, UserCreatorLabel}
+import org.apache.linkis.manager.label.entity.engine.{
+  EngineInstanceLabel,
+  EngineTypeLabel,
+  UserCreatorLabel
+}
 import org.apache.linkis.manager.label.score.{LabelScoreServiceInstance, NodeLabelScorer}
 import org.apache.linkis.manager.label.service.NodeLabelService
 import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
-import org.apache.linkis.manager.persistence.{LabelManagerPersistence, NodeManagerPersistence, NodeMetricManagerPersistence}
+import org.apache.linkis.manager.persistence.{
+  LabelManagerPersistence,
+  NodeManagerPersistence,
+  NodeMetricManagerPersistence
+}
 import org.apache.linkis.manager.rm.service.LabelResourceService
 import org.apache.linkis.manager.rm.utils.{RMUtils, UserConfiguration}
 import org.apache.linkis.server.toScalaBuffer
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -45,6 +54,7 @@ import org.springframework.util.CollectionUtils
 import java.util
 import java.util.{ArrayList, Collections, List}
 import java.util.stream.Collectors
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
@@ -336,8 +346,8 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
   }
 
   override def getScoredNodeMapsByLabelsReuse(
-                                          labels: util.List[Label[_]]
-                                        ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
+      labels: util.List[Label[_]]
+  ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
     // Try to convert the label list to key value list
     if (null != labels && labels.asScala.nonEmpty) {
       // Get the persistence labels by kvList
@@ -345,7 +355,11 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       // Extra the necessary labels whose feature equals Feature.CORE or Feature.SUITABLE
       val necessaryLabels = requireLabels.map(LabelManagerUtils.convertPersistenceLabel)
       val inputLabels = labels.asScala.map(LabelManagerUtils.convertPersistenceLabel)
-      return getScoredNodeMapsByLabels(inputLabels.asJava, necessaryLabels.asJava, isShellReuse = true)
+      return getScoredNodeMapsByLabels(
+        inputLabels.asJava,
+        necessaryLabels.asJava,
+        isShellReuse = true
+      )
     }
     new util.HashMap[ScoreServiceInstance, util.List[Label[_]]]()
   }
@@ -393,7 +407,9 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
     // Get the out-degree relations ( Node -> Label )
     val instancesList = instances.toList.asJava
     val outNodeDegree = if (isShellReuse) {
-      labelManagerPersistence.getLabelRelationsByServiceInstance(serviceInstanceShuff(instancesList))
+      labelManagerPersistence.getLabelRelationsByServiceInstance(
+        serviceInstanceShuff(instancesList)
+      )
     } else {
       labelManagerPersistence.getLabelRelationsByServiceInstance(instances.toList.asJava)
     }
@@ -561,7 +577,9 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       .toArray
   }
 
-  private def serviceInstanceShuff(serviceInstances: java.util.List[ServiceInstance]): util.List[ServiceInstance] = {
+  private def serviceInstanceShuff(
+      serviceInstances: java.util.List[ServiceInstance]
+  ): util.List[ServiceInstance] = {
     var shuffledInstances = new util.ArrayList[ServiceInstance](serviceInstances)
     if (shuffledInstances.size > RMConfiguration.LABEL_SERVICE_INSTANCE_SHUFF_NUM.getValue) {
       Collections.shuffle(shuffledInstances)
