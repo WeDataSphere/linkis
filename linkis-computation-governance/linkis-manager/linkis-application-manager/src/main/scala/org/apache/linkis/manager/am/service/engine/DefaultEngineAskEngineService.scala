@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service
 import java.net.SocketTimeoutException
 import java.util
 import java.util.Locale
-import java.util.concurrent.{ConcurrentHashMap, Semaphore}
+import java.util.concurrent.{ConcurrentHashMap, Semaphore, ThreadPoolExecutor}
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters.asScalaBufferConverter
@@ -78,20 +78,23 @@ class DefaultEngineAskEngineService
 
   private val labelBuilderFactory = LabelBuilderFactoryContext.getLabelBuilderFactory
 
-  private val reuseExecutor: ExecutionContextExecutorService =
-    Utils.newCachedExecutionContext(
+  private val (reuseExecutor, reuseThreadPool)
+      : (ExecutionContextExecutorService, ThreadPoolExecutor) =
+    Utils.newCachedExecutionContextWithExecutor(
       AMConfiguration.REUSE_ENGINE_ASYNC_MAX_THREAD_SIZE,
       "ReuseEngineService-Thread-"
     )
 
-  private val createExecutor: ExecutionContextExecutorService =
-    Utils.newCachedExecutionContext(
+  private val (createExecutor, createThreadPool)
+      : (ExecutionContextExecutorService, ThreadPoolExecutor) =
+    Utils.newCachedExecutionContextWithExecutor(
       AMConfiguration.CREATE_ENGINE_ASYNC_MAX_THREAD_SIZE,
       "CreateEngineService-Thread-"
     )
 
-  private val errorSendExecutor: ExecutionContextExecutorService =
-    Utils.newCachedExecutionContext(
+  private val (errorSendExecutor, errorSendThreadPool)
+      : (ExecutionContextExecutorService, ThreadPoolExecutor) =
+    Utils.newCachedExecutionContextWithExecutor(
       AMConfiguration.ASK_ENGINE_ERROR_ASYNC_MAX_THREAD_SIZE,
       "AskEngineErrorService-Thread-"
     )
@@ -178,6 +181,9 @@ class DefaultEngineAskEngineService
         LoggerUtils.removeJobIdMDC()
       }(reuseExecutor)
       futureDeal(reuseNodeThread, taskId, engineAskAsyncId, sender, "reuse")
+      logger.info(
+        s"reuseExecutor: poolSize: ${reuseThreadPool.getPoolSize}, activeCount: ${reuseThreadPool.getActiveCount}, queueSize: ${reuseThreadPool.getQueue.size()}"
+      )
     } else {
       createEngine(engineAskRequest, taskId, engineAskAsyncId, sender)
     }
@@ -260,6 +266,9 @@ class DefaultEngineAskEngineService
 
     }(createExecutor)
     futureDeal(createNodeThread, taskId, engineAskAsyncId, sender, "create")
+    logger.info(
+      s"createExecutor: poolSize: ${createThreadPool.getPoolSize}, activeCount: ${createThreadPool.getActiveCount}, queueSize: ${createThreadPool.getQueue.size()}"
+    )
   }
 
   private def futureDeal(
@@ -304,6 +313,9 @@ class DefaultEngineAskEngineService
           LoggerUtils.removeJobIdMDC()
         }
     }(errorSendExecutor)
+    logger.info(
+      s"errorSendExecutor: poolSize: ${errorSendThreadPool.getPoolSize}, activeCount: ${errorSendThreadPool.getActiveCount}, queueSize: ${errorSendThreadPool.getQueue.size()}"
+    )
   }
 
   /**
