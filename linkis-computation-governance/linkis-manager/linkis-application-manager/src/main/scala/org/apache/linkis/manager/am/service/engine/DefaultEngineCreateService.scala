@@ -41,11 +41,12 @@ import org.apache.linkis.manager.engineplugin.common.launch.entity.{
 }
 import org.apache.linkis.manager.engineplugin.common.resource.TimeoutEngineResourceRequest
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
+import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
-import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
+import org.apache.linkis.manager.label.entity.engine.{EngineType, EngineTypeLabel}
 import org.apache.linkis.manager.label.entity.node.AliasServiceInstanceLabel
 import org.apache.linkis.manager.label.service.{NodeLabelService, UserLabelService}
-import org.apache.linkis.manager.label.utils.LabelUtils
+import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
 import org.apache.linkis.manager.persistence.NodeMetricManagerPersistence
 import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource}
 import org.apache.linkis.manager.rm.service.ResourceManager
@@ -186,6 +187,7 @@ class DefaultEngineCreateService
     if (engineCreateRequest.getProperties == null) {
       engineCreateRequest.setProperties(new util.HashMap[String, String]())
     }
+
     val resource =
       generateResource(
         engineCreateRequest.getProperties,

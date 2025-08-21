@@ -323,7 +323,7 @@ object EntranceConfiguration {
     CommonVars[String]("linkis.ai.sql.hive.template.keys", "hive,mapreduce").getValue
 
   val AI_SQL_CREATORS: String =
-    CommonVars[String]("linkis.ai.sql.support.creators", "IDE").getValue
+    CommonVars[String]("linkis.ai.sql.support.creators", "IDE,MCP").getValue
 
   val AI_SQL_KEY: CommonVars[String] =
     CommonVars[String]("linkis.ai.sql.enable", "true")
@@ -333,36 +333,6 @@ object EntranceConfiguration {
 
   val AI_SQL_RETRY_ONCE: CommonVars[Boolean] =
     CommonVars[Boolean]("linkis.ai.sql.once.enable", true)
-
-  val SPARK_SHUFFLE_SERVICE_ENABLED: Boolean =
-    CommonVars[Boolean]("spark.shuffle.service.enabled", true).getValue
-
-  val SPARK_EXECUTOR_CORES: Int =
-    CommonVars[Int]("spark.executor.cores", 4).getValue
-
-  val SPARK_EXECUTOR_MEMORY: String =
-    CommonVars[String]("spark.executor.memory", "17G").getValue
-
-  val SPARK_EXECUTOR_INSTANCES: Int =
-    CommonVars[Int]("spark.executor.instances", 1).getValue
-
-  val SPARK_EXECUTOR_MEMORY_OVERHEAD: String =
-    CommonVars[String]("spark.executor.memoryOverhead", "3G").getValue
-
-  val SPARK3_PYTHON_VERSION: String =
-    CommonVars[String]("spark.python.version", "python3").getValue
-
-  val SPARK_DYNAMIC_ALLOCATION_ENABLED: Boolean =
-    CommonVars[Boolean]("spark.dynamicAllocation.enabled", true).getValue
-
-  val SPARK_DYNAMIC_ALLOCATION_MIN_EXECUTORS: Int =
-    CommonVars[Int]("spark.dynamicAllocation.minExecutors", 1).getValue
-
-  val SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS: Int =
-    CommonVars[Int]("spark.dynamicAllocation.maxExecutors", 50).getValue
-
-  val SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS: String =
-    CommonVars[String]("spark.dynamicAllocation.additional.confs", "").getValue
 
   val SPARK3_VERSION_COERCION_USERS: String =
     CommonVars[String]("spark.version.coercion.users", "").getHotValue()
@@ -396,5 +366,24 @@ object EntranceConfiguration {
   val DOCTOR_REQUEST_TIMEOUT = CommonVars("linkis.aisql.doctor.http.timeout", 30000).getValue
 
   val DOCTOR_HTTP_MAX_CONNECT = CommonVars("linkis.aisql.doctor.http.max.connect", 20).getValue
+
+  val SPARK_EXECUTOR_CORES = CommonVars.apply("spark.executor.cores", "2");
+
+  var SPARK_EXECUTOR_MEMORY = CommonVars.apply("spark.executor.memory", "6G");
+
+  var SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS =
+    CommonVars.apply("spark.dynamicAllocation.maxExecutors", "50");
+
+  var SPARK_EXECUTOR_INSTANCES = CommonVars.apply("spark.executor.instances", "1");
+
+  var SPARK_EXECUTOR_MEMORY_OVERHEAD = CommonVars.apply("spark.executor.memoryOverhead", "2G");
+
+  var SPARK3_PYTHON_VERSION = CommonVars.apply("spark.python.version", "python3");
+
+  var SPARK_DYNAMIC_ALLOCATION_ENABLED =
+    CommonVars.apply("spark.dynamic.allocation.enabled", false).getValue
+
+  var SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS =
+    CommonVars.apply("spark.dynamic.allocation.additional.confs", "").getValue
 
 }
