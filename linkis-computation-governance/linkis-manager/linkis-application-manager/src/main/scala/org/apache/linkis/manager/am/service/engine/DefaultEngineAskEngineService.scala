@@ -211,11 +211,37 @@ class DefaultEngineAskEngineService
               )
           }
         }
+
         // If the original labels contain engineInstance, remove it first (如果原来的labels含engineInstance ，先去掉)
         engineAskRequest.getLabels.remove(LabelKeyConstant.ENGINE_INSTANCE_KEY)
         // 添加引擎启动驱动任务id标签
         val labels: util.Map[String, AnyRef] = engineAskRequest.getLabels
         labels.put(LabelKeyConstant.DRIVER_TASK_KEY, taskId)
+
+        logger.info(s"Task: ${taskId} start to reuse engine.")
+        var reuseNode: EngineNode = null
+        if (!engineAskRequest.getLabels.containsKey(LabelKeyConstant.EXECUTE_ONCE_KEY)) {
+          val engineReuseRequest = new EngineReuseRequest()
+          engineReuseRequest.setLabels(engineAskRequest.getLabels)
+          engineReuseRequest.setTimeOut(engineAskRequest.getTimeOut)
+          engineReuseRequest.setUser(engineAskRequest.getUser)
+          engineReuseRequest.setProperties(engineAskRequest.getProperties)
+          reuseNode = Utils.tryCatch(engineReuseService.reuseEngine(engineReuseRequest, sender)) {
+            t: Throwable =>
+              t match {
+                case retryException: LinkisRetryException =>
+                  logger.info(
+                    s"Task: $taskId user ${engineAskRequest.getUser} reuse engine failed ${t.getMessage}"
+                  )
+                case _ =>
+                  logger.info(
+                    s"Task: $taskId user ${engineAskRequest.getUser} reuse engine failed",
+                    t
+                  )
+              }
+              null
+          }
+        }
 
         val engineCreateRequest = new EngineCreateRequest
         engineCreateRequest.setLabels(engineAskRequest.getLabels)
