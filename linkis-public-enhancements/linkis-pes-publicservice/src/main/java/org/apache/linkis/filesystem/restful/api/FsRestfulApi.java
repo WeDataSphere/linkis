@@ -20,6 +20,7 @@ package org.apache.linkis.filesystem.restful.api;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.io.FsPath;
 import org.apache.linkis.common.io.FsWriter;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.common.utils.ByteTimeUtils;
 import org.apache.linkis.common.utils.ResultSetUtils;
 import org.apache.linkis.filesystem.entity.DirFileTree;
@@ -32,6 +33,8 @@ import org.apache.linkis.filesystem.util.WorkspaceUtil;
 import org.apache.linkis.filesystem.utils.UserGroupUtils;
 import org.apache.linkis.filesystem.validator.PathValidator$;
 import org.apache.linkis.governance.common.utils.LoggerUtils;
+import org.apache.linkis.hadoop.common.conf.HadoopConf;
+import org.apache.linkis.hadoop.common.utils.HDFSUtils;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.apache.linkis.storage.conf.LinkisStorageConf;
@@ -68,7 +71,9 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -81,6 +86,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.apache.linkis.filesystem.conf.WorkSpaceConfiguration.*;
 import static org.apache.linkis.filesystem.constant.WorkSpaceConstants.*;
+import static org.apache.linkis.manager.label.utils.LabelUtils.logger;
 
 @Api(tags = "file system")
 @RestController
@@ -612,7 +618,8 @@ public class FsRestfulApi {
         name = "pageSize",
         required = true,
         dataType = "Integer",
-        defaultValue = "5000")
+        defaultValue = "5000"),
+    @ApiImplicitParam(name = "maskedFieldNames", required = false, dataType = "String")
   })
   @RequestMapping(path = "/openFile", method = RequestMethod.GET)
   public Message openFile(
@@ -624,7 +631,8 @@ public class FsRestfulApi {
       @RequestParam(value = "enableLimit", defaultValue = "") String enableLimit,
       @RequestParam(value = "columnPage", required = false, defaultValue = "1") Integer columnPage,
       @RequestParam(value = "columnPageSize", required = false, defaultValue = "500")
-          Integer columnPageSize)
+          Integer columnPageSize,
+      @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames)
       throws IOException, WorkSpaceException {
 
     Message message = Message.ok();
@@ -726,10 +734,16 @@ public class FsRestfulApi {
         } catch (Exception e) {
           LOGGER.info("Failed to set flag", e);
         }
-
-        message
-            .data("metadata", newMap == null ? metaMap : newMap)
-            .data("fileContent", result.getSecond());
+        // 增加字段屏蔽
+        Set<String> maskedFields =
+            StringUtils.isBlank(maskedFieldNames)
+                ? Collections.emptySet()
+                : new HashSet<>(Arrays.asList(maskedFieldNames.toLowerCase().split(",")));
+        Object resultmap = newMap == null ? metaMap : newMap;
+        Map[] metadata = filterMaskedFieldsFromMetadata(resultmap, maskedFields);
+        List<String[]> fileContent =
+            removeFieldsFromContent(resultmap, result.getSecond(), maskedFields);
+        message.data("metadata", metadata).data("fileContent", fileContent);
         message.data("type", fileSource.getFileSplits()[0].type());
         message.data("totalLine", fileSource.getTotalLine());
         return message.data("page", page).data("totalPage", 0);
@@ -758,6 +772,86 @@ public class FsRestfulApi {
       LoggerUtils.removeJobIdMDC();
       IOUtils.closeQuietly(fileSource);
     }
+  }
+  /**
+   * 删除指定字段的内容
+   *
+   * @param metadata 元数据数组，包含字段信息
+   * @param contentList 需要处理的二维字符串数组
+   * @param fieldsToRemove 需要删除的字段集合
+   * @return 处理后的字符串数组，若输入无效返回空集合而非null
+   */
+  @SuppressWarnings("unchecked")
+  private List<String[]> removeFieldsFromContent(
+      Object metadata, List<String[]> contentList, Set<String> fieldsToRemove) {
+    // 1. 参数校验
+    if (metadata == null
+        || fieldsToRemove == null
+        || fieldsToRemove.isEmpty()
+        || contentList == null
+        || !(metadata instanceof Map[])) {
+      return contentList;
+    }
+
+    // 2. 安全类型转换
+    Map<String, Object>[] fieldMetadata = (Map<String, Object>[]) metadata;
+
+    // 3. 收集需要删除的列索引（去重并排序）
+    List<Integer> columnsToRemove =
+        IntStream.range(0, fieldMetadata.length)
+            .filter(
+                i -> {
+                  Map<String, Object> meta = fieldMetadata[i];
+                  Object columnName = meta.get("columnName");
+                  return columnName != null && fieldsToRemove.contains(columnName.toString().toLowerCase());
+                })
+            .distinct()
+            .boxed()
+            .sorted((a, b) -> Integer.compare(b, a))
+            .collect(Collectors.toList());
+
+    // 如果没有需要删除的列，直接返回副本
+    if (columnsToRemove.isEmpty()) {
+      return new ArrayList<>(contentList);
+    }
+    // 4. 对每行数据进行处理（删除指定列）
+    return contentList.stream()
+        .map(
+            row -> {
+              if (row == null || row.length == 0) {
+                return row;
+              }
+              // 创建可变列表以便删除元素
+              List<String> rowList = new ArrayList<>(Arrays.asList(row));
+              // 从后向前删除列，避免索引变化问题
+              for (int columnIndex : columnsToRemove) {
+                if (columnIndex < rowList.size()) {
+                  rowList.remove(columnIndex);
+                }
+              }
+              return rowList.toArray(new String[0]);
+            })
+        .collect(Collectors.toList());
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map[] filterMaskedFieldsFromMetadata(Object metadata, Set<String> maskedFields) {
+    // 1. 参数校验
+    if (metadata == null || maskedFields == null || !(metadata instanceof Map[])) {
+      return new Map[0];
+    }
+
+    // 2. 类型转换（已通过校验，可安全强转）
+    Map<String, Object>[] originalMaps = (Map<String, Object>[]) metadata;
+
+    // 3. 过滤逻辑（提取谓词增强可读性）
+    Predicate<Map<String, Object>> isNotMaskedField =
+        map -> !maskedFields.contains(map.get("columnName").toString().toLowerCase());
+
+    // 4. 流处理 + 结果转换
+    return Arrays.stream(originalMaps)
+        .filter(isNotMaskedField)
+        .toArray(Map[]::new); // 等价于 toArray(new Map[0])
   }
 
   /**
@@ -1480,5 +1574,100 @@ public class FsRestfulApi {
       CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
     }
     return Message.ok().data("fileDataList", resultMap);
+  }
+
+  @ApiOperation(
+      value = "copy-keytab-files",
+      notes = "copy keytab file from hdfs",
+      response = Message.class)
+  @RequestMapping(path = "/copy-keytab-files", method = RequestMethod.GET)
+  public Message copyAndEncryptKeytab(HttpServletRequest req, String user) {
+    final String operation = "copy-and-encrypt-keytab";
+    final String owner = "hadoop";
+    final String group = "hadoop";
+    final String permission = "rw-r-----";
+    // 1. 获取用户信息并校验功能开关
+    String username = ModuleUserUtils.getOperationUser(req, operation);
+    if (!Configuration.LINKIS_KEYTAB_SWITCH()) {
+      logger.info("Keytab copy feature is disabled for user: {}", username);
+      return Message.ok("Keytab copy feature is disabled");
+    }
+    if (!Configuration.isAdmin(username)) {
+      return Message.error("User '" + username + "' is not admin user[非管理员用户]");
+    }
+    try {
+      // 2. 初始化路径和文件系统
+      String sourcePath = HadoopConf.KEYTAB_FILE().getValue();
+      String targetPath = HadoopConf.LINKIS_KEYTAB_FILE().getValue();
+      FsPath hdfsKeytabPath = new FsPath(sourcePath);
+      FsPath linkisKeytabPath = new FsPath(targetPath);
+      FileSystem fs = fsService.getFileSystem(username, hdfsKeytabPath);
+      // 3. 验证源路径
+      if (!fs.exists(hdfsKeytabPath)) {
+        String errorMsg = String.format("Source path does not exist: %s", sourcePath);
+        logger.error(errorMsg);
+        return Message.error(errorMsg);
+      }
+      // 4. 确保目标目录存在
+      if (!fs.exists(linkisKeytabPath)) {
+        logger.info("Creating target directory: {}", targetPath);
+        fs.mkdirs(linkisKeytabPath);
+        // 设置目标目录权限
+        fs.setOwner(linkisKeytabPath, owner);
+        fs.setPermission(linkisKeytabPath, "rwxr-x---");
+        fs.setGroup(linkisKeytabPath, group);
+      }
+      // 5. 处理每个keytab文件
+      List<FsPath> sourceFiles = fs.list(hdfsKeytabPath);
+      if (StringUtils.isNotBlank(user)) {
+        sourceFiles =
+            sourceFiles.stream()
+                .filter(fsPath -> fsPath.getPath().endsWith(user + HDFSUtils.KEYTAB_SUFFIX()))
+                .collect(Collectors.toList());
+      }
+      if (sourceFiles.isEmpty()) {
+        logger.warn("No keytab files found in source directory: {}", sourcePath);
+        return Message.ok("No keytab files to copy");
+      }
+      int successCount = 0;
+      for (FsPath sourceFile : sourceFiles) {
+        try {
+          String fileName = sourceFile.getPath().replace(sourcePath, targetPath);
+          FsPath targetFile = new FsPath(fileName);
+          // 读取源文件内容
+          byte[] keyTabFileByte = IOUtils.toByteArray(fs.read(sourceFile));
+          // 加密内容
+          String encryptedContent = AESUtils.encrypt(keyTabFileByte, AESUtils.PASSWORD);
+          // 写入目标文件
+          try (OutputStream out = new BufferedOutputStream(fs.write(targetFile, true))) {
+            out.write(encryptedContent.getBytes(Configuration.BDP_ENCODING().getValue()));
+          }
+          // 设置文件权限
+          fs.setOwner(targetFile, owner);
+          fs.setPermission(targetFile, permission);
+          fs.setGroup(targetFile, group);
+          successCount++;
+          logger.debug("Successfully processed keytab file: {}", fileName);
+        } catch (Exception e) {
+          logger.error("Failed to process keytab file: {}", sourceFile.getPath(), e);
+          // 继续处理下一个文件
+        }
+      }
+      // 6. 返回处理结果
+      if (successCount == sourceFiles.size()) {
+        logger.info("Successfully processed all {} keytab files", successCount);
+        return Message.ok(String.format("Successfully processed %d keytab files", successCount));
+      } else {
+        String msg =
+            String.format(
+                "Processed %d of %d keytab files, some failed", successCount, sourceFiles.size());
+        logger.warn(msg);
+        return Message.warn(msg);
+      }
+    } catch (Exception e) {
+      String errorMsg = "Failed to copy and encrypt keytab files";
+      logger.error(errorMsg, e);
+      return Message.error(errorMsg + ": " + e.getMessage());
+    }
   }
 }

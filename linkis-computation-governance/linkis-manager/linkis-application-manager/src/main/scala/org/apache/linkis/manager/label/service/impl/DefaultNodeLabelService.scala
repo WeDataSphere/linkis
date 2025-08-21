@@ -374,6 +374,7 @@ class DefaultNodeLabelService extends NodeLabelService with Logging {
       shuffEnable: Boolean = false
   ): util.Map[ScoreServiceInstance, util.List[Label[_]]] = {
     // Get the in-degree relations ( Label -> Nodes )
+    logger.info(s"get node relations by labels size: ${labels.size()}")
     val inNodeDegree = labelManagerPersistence.getNodeRelationsByLabels(
       if (necessaryLabels.asScala.nonEmpty) necessaryLabels else labels
     )
