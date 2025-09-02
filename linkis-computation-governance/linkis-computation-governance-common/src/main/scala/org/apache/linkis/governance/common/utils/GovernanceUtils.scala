@@ -156,7 +156,7 @@ object GovernanceUtils extends Logging {
       resStb.append("result")
         .append("/")
         .append(dateString)
-        .append("/") // 新增：小时层级
+        .append("/")
         .append(creator)
         .toString()
     }
