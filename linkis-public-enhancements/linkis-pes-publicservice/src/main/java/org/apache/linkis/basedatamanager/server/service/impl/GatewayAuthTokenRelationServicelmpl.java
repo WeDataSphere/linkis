@@ -15,20 +15,17 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.metadata.conf
+package org.apache.linkis.basedatamanager.server.service.impl;
 
-import org.apache.linkis.common.conf.CommonVars
+import org.apache.linkis.basedatamanager.server.dao.GatewayAuthTokenRelationMapper;
+import org.apache.linkis.basedatamanager.server.domain.GatewayAuthRelationTokenEntity;
+import org.apache.linkis.basedatamanager.server.service.GatewayAuthTokenRelationService;
 
-object MdqConfiguration {
-  val DEFAULT_STORED_TYPE = CommonVars("bdp.dataworkcloud.datasource.store.type", "orc")
-  val DEFAULT_PARTITION_NAME = CommonVars("bdp.dataworkcloud.datasource.default.par.name", "ds")
+import org.springframework.stereotype.Service;
 
-  val SPARK_MDQ_IMPORT_CLAZZ = CommonVars(
-    "wds.linkis.spark.mdq.import.clazz",
-    "org.apache.linkis.engineplugin.spark.imexport.LoadData"
-  )
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-  val HDFS_INIT_MAX_RETRY_COUNT: CommonVars[Integer] =
-    CommonVars.apply("linkis.hdfs.max.retry.count", 10)
-
-}
+@Service
+public class GatewayAuthTokenRelationServicelmpl
+    extends ServiceImpl<GatewayAuthTokenRelationMapper, GatewayAuthRelationTokenEntity>
+    implements GatewayAuthTokenRelationService {}

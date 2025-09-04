@@ -35,11 +35,13 @@ import org.apache.linkis.manager.common.entity.resource.{
   LoadResource,
   NodeResource
 }
-import org.apache.linkis.manager.engineplugin.common.conf.EngineConnPluginConf
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
 import org.apache.linkis.manager.engineplugin.jdbc.ConnectionManager
 import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration
-import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration.NOT_SUPPORT_LIMIT_DBS
+import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration.{
+  NOT_SUPPORT_LIMIT_DBS,
+  SUPPORT_CONN_PARAM_EXECUTE_ENABLE
+}
 import org.apache.linkis.manager.engineplugin.jdbc.constant.JDBCEngineConnConstant
 import org.apache.linkis.manager.engineplugin.jdbc.errorcode.JDBCErrorCodeSummary.JDBC_GET_DATASOURCEINFO_ERROR
 import org.apache.linkis.manager.engineplugin.jdbc.exception.{
@@ -50,6 +52,7 @@ import org.apache.linkis.manager.engineplugin.jdbc.monitor.ProgressMonitor
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{EngineTypeLabel, UserCreatorLabel}
 import org.apache.linkis.protocol.CacheableProtocol
+import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.rpc.{RPCMapCache, Sender}
 import org.apache.linkis.scheduler.executer.{
@@ -62,14 +65,14 @@ import org.apache.linkis.storage.domain.{Column, DataType}
 import org.apache.linkis.storage.resultset.ResultSetFactory
 import org.apache.linkis.storage.resultset.table.{TableMetaData, TableRecord}
 
+import org.apache.commons.collections.MapUtils
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 
 import org.springframework.util.CollectionUtils
 
-import java.sql.{Connection, ResultSet, SQLException, Statement}
+import java.sql.{Connection, ResultSet, Statement}
 import java.util
-import java.util.Collections
 import java.util.concurrent.ConcurrentHashMap
 
 import scala.collection.mutable.ArrayBuffer
@@ -289,6 +292,43 @@ class JDBCEngineConnExecutor(override val outputPrintLimit: Int, val id: Int)
     if (StringUtils.isBlank(dataSourceName)) {
       dataSourceName = JDBCEngineConnConstant.JDBC_DEFAULT_DATASOURCE_TAG
     }
+    if (MapUtils.isEmpty(dataSourceInfo) && SUPPORT_CONN_PARAM_EXECUTE_ENABLE) {
+      val connHost: String =
+        executorProperties.getOrDefault(
+          JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_PARAM_HOST,
+          ""
+        )
+      val connPort: String =
+        executorProperties.getOrDefault(
+          JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_PARAM_PORT,
+          ""
+        )
+      val connDsType: String =
+        executorProperties.getOrDefault(JDBCEngineConnConstant.JDBC_ENGINE_RUN_TIME_DS_TYPE, "")
+      val submitUser: String = executorProperties.getOrDefault(TaskConstant.SUBMIT_USER, "")
+      val executeUser: String =
+        executorProperties.getOrDefault(TaskConstant.EXECUTE_USER, submitUser)
+
+      if (
+          StringUtils.isNotBlank(connHost) && StringUtils
+            .isNotBlank(connPort) && StringUtils
+            .isNotBlank(connDsType) && StringUtils.isNotBlank(executeUser)
+      ) {
+        logger.info(
+          s"use conn ip and port get dataSourceInfo: executeUser:${execSqlUser} ip:${connHost}, " +
+            s"port:${connPort}, dsType:${connDsType}, " +
+            s"createUser:${submitUser} connUser: ${executeUser}"
+        )
+        dataSourceInfo = JDBCMultiDatasourceParser.queryDatasourceInfoByConnParams(
+          executeUser,
+          executeUser,
+          connHost,
+          connPort,
+          connDsType
+        )
+      }
+    }
+
     // runtime jdbc params > jdbc datasource info > jdbc engine global config
     if (dataSourceInfo != null && !dataSourceInfo.isEmpty) {
       globalConfig.putAll(dataSourceInfo)

@@ -15,20 +15,24 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.metadata.conf
+package org.apache.linkis.datasource.client.response
 
-import org.apache.linkis.common.conf.CommonVars
+import org.apache.linkis.datasourcemanager.common.domain.DataSource
+import org.apache.linkis.httpclient.dws.DWSHttpClient
+import org.apache.linkis.httpclient.dws.annotation.DWSHttpMessageResult
+import org.apache.linkis.httpclient.dws.response.DWSResult
 
-object MdqConfiguration {
-  val DEFAULT_STORED_TYPE = CommonVars("bdp.dataworkcloud.datasource.store.type", "orc")
-  val DEFAULT_PARTITION_NAME = CommonVars("bdp.dataworkcloud.datasource.default.par.name", "ds")
+import scala.beans.BeanProperty
 
-  val SPARK_MDQ_IMPORT_CLAZZ = CommonVars(
-    "wds.linkis.spark.mdq.import.clazz",
-    "org.apache.linkis.engineplugin.spark.imexport.LoadData"
-  )
+@DWSHttpMessageResult(
+  "/api/rest_j/v\\d+/data-source-manager/publishedInfo/(\\S+)/(\\S+)/(\\S+)/(\\S+)"
+)
+class GetInfoPublishedByUserIpPortResult extends DWSResult {
+  @BeanProperty var info: java.util.Map[String, Any] = _
 
-  val HDFS_INIT_MAX_RETRY_COUNT: CommonVars[Integer] =
-    CommonVars.apply("linkis.hdfs.max.retry.count", 10)
+  def getDataSource: DataSource = {
+    val str = DWSHttpClient.jacksonJson.writeValueAsString(info)
+    DWSHttpClient.jacksonJson.readValue(str, classOf[DataSource])
+  }
 
 }

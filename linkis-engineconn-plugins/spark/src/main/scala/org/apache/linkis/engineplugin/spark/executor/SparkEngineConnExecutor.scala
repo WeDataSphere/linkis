@@ -201,8 +201,11 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     logger.info("Set jobGroup to " + jobGroup)
     sc.setJobGroup(jobGroup, _code, true)
 
-    // print job configuration, only the first paragraph
-    if (isFirstParagraph == true) {
+    // print job configuration, only the first paragraph or retry
+    val errorIndex: Integer = Integer.valueOf(
+      engineExecutionContext.getProperties.getOrDefault("execute.error.code.index", "-1").toString
+    )
+    if (isFirstParagraph || (errorIndex + 1 == engineExecutorContext.getCurrentParagraph)) {
       Utils.tryCatch({
         val executorNum: Int = sc.getConf.get("spark.executor.instances").toInt
         val executorMem: Long =
@@ -447,19 +450,37 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
       engineConnTask: EngineConnTask,
       executeResponse: ExecuteResponse
   ): Unit = {
-    if (
-        EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue && sparkTmpConf.nonEmpty && this
-          .isInstanceOf[SparkSqlExecutor]
-    ) {
-      val sqlContext = this.asInstanceOf[SparkSqlExecutor].getSparkEngineSession.sqlContext
-      val differentValues = sparkTmpConf.filter { case (key, value) =>
-        !sqlContext.getConf(key).equals(value)
+    try {
+      if (
+          EngineConnConf.ENGINE_CONF_REVENT_SWITCH.getValue
+          && sparkTmpConf.nonEmpty
+          && this.isInstanceOf[SparkSqlExecutor]
+      ) {
+
+        val sqlExecutor = this.asInstanceOf[SparkSqlExecutor]
+        Option(sqlExecutor.getSparkEngineSession)
+          .flatMap(session => Option(session.sqlContext))
+          .foreach { sqlContext =>
+            sparkTmpConf.foreach { case (key, value) =>
+              if (value != null && !value.equals(sqlContext.getConf(key))) {
+                sqlContext.setConf(key, value)
+              }
+            }
+            // 清理多出来的配置
+            sqlContext.getAllConfs.keys.foreach { key =>
+              if (!sparkTmpConf.contains(key)) {
+                logger.info(s"Clearing extra configuration key: $key")
+                sqlContext.setConf(key, "")
+              }
+            }
+          }
       }
-      differentValues.foreach { case (key, value) =>
-        sqlContext.setConf(key, value)
-      }
+    } catch {
+      case e: Exception =>
+        logger.error(s"Error in afterExecute for task ${engineConnTask.getTaskId}", e)
+    } finally {
+      super.afterExecute(engineConnTask, executeResponse)
     }
-    super.afterExecute(engineConnTask, executeResponse)
   }
 
 }

@@ -21,7 +21,6 @@ import org.apache.linkis.DataWorkCloudApplication
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.engineconn.acessible.executor.entity.AccessibleExecutor
-import org.apache.linkis.engineconn.acessible.executor.info.DefaultNodeHealthyInfoManager
 import org.apache.linkis.engineconn.acessible.executor.listener.event.{
   TaskLogUpdateEvent,
   TaskResponseErrorEvent,
@@ -30,6 +29,7 @@ import org.apache.linkis.engineconn.acessible.executor.listener.event.{
 import org.apache.linkis.engineconn.acessible.executor.utils.AccessibleExecutorUtils.currentEngineIsUnHealthy
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
+import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf.SUPPORT_PARTIAL_RETRY_FOR_FAILED_TASKS_ENABLED
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
 import org.apache.linkis.engineconn.computation.executor.exception.HookExecuteException
 import org.apache.linkis.engineconn.computation.executor.hook.ComputationExecutorHook
@@ -43,14 +43,8 @@ import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
 import org.apache.linkis.governance.common.paser.CodeParser
 import org.apache.linkis.governance.common.protocol.task.{EngineConcurrentInfo, RequestTask}
 import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
-import org.apache.linkis.manager.common.entity.enumeration.{NodeHealthy, NodeStatus}
-import org.apache.linkis.manager.label.entity.engine.{
-  CodeLanguageLabel,
-  EngineType,
-  EngineTypeLabel,
-  RunType,
-  UserCreatorLabel
-}
+import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
+import org.apache.linkis.manager.label.entity.engine.{EngineType, UserCreatorLabel}
 import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.scheduler.executer._
@@ -58,12 +52,12 @@ import org.apache.linkis.scheduler.executer._
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
+import java.util
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters._
 
-import DataWorkCloudApplication.getApplicationContext
 import com.google.common.cache.{Cache, CacheBuilder}
 
 abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
@@ -257,37 +251,75 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
           Array(hookedCode)
         }
       engineExecutionContext.setTotalParagraph(codes.length)
+
+      val retryEnable: Boolean = SUPPORT_PARTIAL_RETRY_FOR_FAILED_TASKS_ENABLED
+
       codes.indices.foreach({ index =>
         if (ExecutionNodeStatus.Cancelled == engineConnTask.getStatus) {
           return ErrorExecuteResponse("Job is killed by user!", null)
         }
-        val code = codes(index)
-        engineExecutionContext.setCurrentParagraph(index + 1)
-        response = Utils.tryCatch(if (incomplete.nonEmpty) {
-          executeCompletely(engineExecutionContext, code, incomplete.toString())
-        } else executeLine(engineExecutionContext, code)) { t =>
-          ErrorExecuteResponse(ExceptionUtils.getRootCauseMessage(t), t)
+        var executeFlag = true
+        val errorIndex: Int = Integer.valueOf(
+          engineConnTask.getProperties.getOrDefault("execute.error.code.index", "-1").toString
+        )
+        engineExecutionContext.getProperties.put("execute.error.code.index", errorIndex.toString)
+        // 重试的时候如果执行过则跳过执行
+        if (retryEnable && errorIndex > 0 && index < errorIndex) {
+          engineExecutionContext.appendStdout(
+            LogUtils.generateInfo(
+              s"aisql retry with errorIndex: ${errorIndex}, current sql index: ${index} will skip."
+            )
+          )
+          executeFlag = false
         }
-        // info(s"Finished to execute task ${engineConnTask.getTaskId}")
-        incomplete ++= code
-        response match {
-          case e: ErrorExecuteResponse =>
-            failedTasks.increase()
-            logger.error("execute code failed!", e.t)
-            return response
-          case SuccessExecuteResponse() =>
-            engineExecutionContext.appendStdout("\n")
-            incomplete.setLength(0)
-          case e: OutputExecuteResponse =>
-            incomplete.setLength(0)
-            val output =
-              if (StringUtils.isNotEmpty(e.getOutput) && e.getOutput.length > outputPrintLimit) {
-                e.getOutput.substring(0, outputPrintLimit)
-              } else e.getOutput
-            engineExecutionContext.appendStdout(output)
-            if (StringUtils.isNotBlank(e.getOutput)) engineExecutionContext.sendResultSet(e)
-          case _: IncompleteExecuteResponse =>
-            incomplete ++= incompleteSplitter
+        if (executeFlag) {
+          val code = codes(index)
+          engineExecutionContext.setCurrentParagraph(index + 1)
+          response = Utils.tryCatch(if (incomplete.nonEmpty) {
+            executeCompletely(engineExecutionContext, code, incomplete.toString())
+          } else executeLine(engineExecutionContext, code)) { t =>
+            ErrorExecuteResponse(ExceptionUtils.getRootCauseMessage(t), t)
+          }
+          // info(s"Finished to execute task ${engineConnTask.getTaskId}")
+          incomplete ++= code
+          response match {
+            case e: ErrorExecuteResponse =>
+              val props: util.Map[String, String] = engineCreationContext.getOptions
+              val aiSqlEnable: String = props.getOrDefault("linkis.ai.sql.enable", "false").toString
+              val retryNum: Int =
+                Integer.valueOf(props.getOrDefault("linkis.ai.retry.num", "0").toString)
+
+              if (retryEnable && !props.isEmpty && "true".equals(aiSqlEnable) && retryNum > 0) {
+                logger.info(
+                  s"aisql execute failed, with index: ${index} retryNum: ${retryNum}, and will retry",
+                  e.t
+                )
+                engineExecutionContext.appendStdout(
+                  LogUtils.generateInfo(
+                    s"aisql execute failed, with index: ${index} retryNum: ${retryNum}, and will retry"
+                  )
+                )
+                engineConnTask.getProperties.put("execute.error.code.index", index.toString)
+                return ErrorRetryExecuteResponse(e.message, index, e.t)
+              } else {
+                failedTasks.increase()
+                logger.error("execute code failed!", e.t)
+                return response
+              }
+            case SuccessExecuteResponse() =>
+              engineExecutionContext.appendStdout("\n")
+              incomplete.setLength(0)
+            case e: OutputExecuteResponse =>
+              incomplete.setLength(0)
+              val output =
+                if (StringUtils.isNotEmpty(e.getOutput) && e.getOutput.length > outputPrintLimit) {
+                  e.getOutput.substring(0, outputPrintLimit)
+                } else e.getOutput
+              engineExecutionContext.appendStdout(output)
+              if (StringUtils.isNotBlank(e.getOutput)) engineExecutionContext.sendResultSet(e)
+            case _: IncompleteExecuteResponse =>
+              incomplete ++= incompleteSplitter
+          }
         }
       })
       Utils.tryCatch(engineExecutionContext.close()) { t =>

@@ -128,11 +128,12 @@ public class EntranceSpringConfiguration {
       new SparkCodeCheckInterceptor(),
       new SQLCodeCheckInterceptor(),
       new LabelCheckInterceptor(),
-      new AISQLTransformInterceptor(),
       new ParserVarLabelInterceptor(),
       new VarSubstitutionInterceptor(),
+      new AISQLTransformInterceptor(),
       new LogPathCreateInterceptor(),
       new ScalaCodeInterceptor(),
+      new PythonCodeCheckInterceptor(),
       new SQLLimitEntranceInterceptor(),
       new CommentInterceptor(),
       new UserCreatorIPCheckInterceptor()

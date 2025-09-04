@@ -215,6 +215,9 @@ object EntranceConfiguration {
   val TEMPLATE_CONF_ADD_ONCE_LABEL_ENABLE =
     CommonVars("wds.linkis.entrance.template.add.once.label.enable", false)
 
+  val SUPPORT_TEMPLATE_CONF_RETRY_ENABLE =
+    CommonVars("linkis.entrance.template.retry.enable", false)
+
   val ENABLE_ENTRANCE_DIRTY_DATA_CLEAR: CommonVars[Boolean] =
     CommonVars[Boolean]("linkis.entrance.auto.clean.dirty.data.enable", true)
 
@@ -284,10 +287,7 @@ object EntranceConfiguration {
     CommonVars[Boolean]("linkis.entrance.enable.hdfs.res.dir.private", false).getValue
 
   val UNSUPPORTED_RETRY_CODES =
-    CommonVars(
-      "linkis.entrance.unsupported.retry.codes",
-      "INSERT INTO,CREATE TABLE,ALTER TABLE,CREATE TEMPORARY,TRUNCATE TABLE,MERGE INTO,DROP TABLE"
-    ).getValue
+    CommonVars("linkis.entrance.unsupported.retry.codes", "NOCODE").getValue
 
   val SUPPORTED_RETRY_ERROR_CODES =
     CommonVars(
@@ -298,7 +298,13 @@ object EntranceConfiguration {
   val SUPPORTED_RETRY_ERROR_DESC =
     CommonVars(
       "linkis.entrance.supported.retry.error.desc",
-      "Spark application has already stopped,Spark application sc has already stopped,Failed to allocate a page,dataFrame to local exception"
+      "Spark application has already stopped,Spark application sc has already stopped,Failed to allocate a page,dataFrame to local exception,org.apache.spark.sql.catalyst.expressions.codegen.CodeGenerator"
+    ).getValue
+
+  val SUPPORT_ADD_RETRY_CODE_KEYS =
+    CommonVars(
+      "linkis.entrance.supported.add.retry.code.keys",
+      "dataFrame to local exception,org.apache.spark.sql.catalyst.expressions.codegen.CodeGenerator"
     ).getValue
 
   val TASK_RETRY_ENABLED: Boolean =
@@ -306,6 +312,12 @@ object EntranceConfiguration {
 
   val AI_SQL_DEFAULT_SPARK_ENGINE_TYPE: String =
     CommonVars[String]("linkis.ai.sql.default.spark.engine.type", "spark-3.4.4").getValue
+
+  val AI_SQL_DEFAULT_HIVE_ENGINE_TYPE: String =
+    CommonVars[String]("linkis.ai.sql.default.hive.engine.type", "hive-2.3.3").getValue
+
+  val AI_SQL_HIVE_TEMPLATE_KEYS: String =
+    CommonVars[String]("linkis.ai.sql.hive.template.keys", "hive,mapreduce").getValue
 
   val AI_SQL_CREATORS: String =
     CommonVars[String]("linkis.ai.sql.support.creators", "IDE").getValue
@@ -348,5 +360,38 @@ object EntranceConfiguration {
 
   val SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS: String =
     CommonVars[String]("spark.dynamicAllocation.additional.confs", "").getValue
+
+  val SPARK3_VERSION_COERCION_USERS: String =
+    CommonVars[String]("spark.version.coercion.users", "").getHotValue()
+
+  val SPARK3_VERSION_COERCION_DEPARTMENT: String =
+    CommonVars[String]("spark.version.coercion.department.id", "").getHotValue()
+
+  val SPARK3_VERSION_COERCION_SWITCH: Boolean =
+    CommonVars[Boolean]("spark.version.coercion.switch", false).getValue
+
+  val PYTHON_SAFE_CHECK_SWITCH = CommonVars("linkis.python.safe.check.switch", false).getValue
+
+  val DOCTOR_URL = CommonVars("linkis.doctor.url", "").getValue
+
+  val DOCTOR_DYNAMIC_ENGINE_URL = CommonVars(
+    "linkis.aisql.doctor.api",
+    "/api/v1/external/engine/diagnose?app_id=$app_id&timestamp=$timestamp&nonce=$nonce&signature=$signature"
+  ).getValue
+
+  val DOCTOR_SIGNATURE_TOKEN = CommonVars("linkis.doctor.signature.token", "").getValue
+
+  val DOCTOR_NONCE = CommonVars.apply("linkis.doctor.signature.nonce", "").getValue
+
+  val LINKIS_SYSTEM_NAME = CommonVars("linkis.system.name", "").getValue
+
+  val DOCTOR_CLUSTER = CommonVars("linkis.aisql.doctor.cluster", "").getValue
+
+  val AI_SQL_DYNAMIC_ENGINE_SWITCH =
+    CommonVars("linkis.aisql.dynamic.engine.type.switch", false).getValue
+
+  val DOCTOR_REQUEST_TIMEOUT = CommonVars("linkis.aisql.doctor.http.timeout", 10000).getValue
+
+  val DOCTOR_HTTP_MAX_CONNECT = CommonVars("linkis.aisql.doctor.http.max.connect", 20).getValue
 
 }

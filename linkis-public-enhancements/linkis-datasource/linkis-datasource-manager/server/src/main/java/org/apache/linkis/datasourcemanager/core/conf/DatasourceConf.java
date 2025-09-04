@@ -15,20 +15,12 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.metadata.conf
+package org.apache.linkis.datasourcemanager.core.conf;
 
-import org.apache.linkis.common.conf.CommonVars
+import org.apache.linkis.common.conf.CommonVars;
 
-object MdqConfiguration {
-  val DEFAULT_STORED_TYPE = CommonVars("bdp.dataworkcloud.datasource.store.type", "orc")
-  val DEFAULT_PARTITION_NAME = CommonVars("bdp.dataworkcloud.datasource.default.par.name", "ds")
+public class DatasourceConf {
 
-  val SPARK_MDQ_IMPORT_CLAZZ = CommonVars(
-    "wds.linkis.spark.mdq.import.clazz",
-    "org.apache.linkis.engineplugin.spark.imexport.LoadData"
-  )
-
-  val HDFS_INIT_MAX_RETRY_COUNT: CommonVars[Integer] =
-    CommonVars.apply("linkis.hdfs.max.retry.count", 10)
-
+  public static CommonVars<String> INSERT_DATAESOURCE_LIMIT =
+      CommonVars.apply("linkis.create.datasource.allow", "starrocks");
 }

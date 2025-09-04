@@ -15,20 +15,14 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.metadata.conf
+package org.apache.linkis.basedatamanager.server.service;
 
-import org.apache.linkis.common.conf.CommonVars
+import org.apache.linkis.basedatamanager.server.domain.GatewayAuthRelationTokenEntity;
 
-object MdqConfiguration {
-  val DEFAULT_STORED_TYPE = CommonVars("bdp.dataworkcloud.datasource.store.type", "orc")
-  val DEFAULT_PARTITION_NAME = CommonVars("bdp.dataworkcloud.datasource.default.par.name", "ds")
+import com.baomidou.mybatisplus.extension.service.IService;
 
-  val SPARK_MDQ_IMPORT_CLAZZ = CommonVars(
-    "wds.linkis.spark.mdq.import.clazz",
-    "org.apache.linkis.engineplugin.spark.imexport.LoadData"
-  )
-
-  val HDFS_INIT_MAX_RETRY_COUNT: CommonVars[Integer] =
-    CommonVars.apply("linkis.hdfs.max.retry.count", 10)
-
-}
+/**
+ * @description Database operation Service for the [linkis_mg_gateway_auth_token] table
+ * @createDate 2022-07-13 10:42:13
+ */
+public interface GatewayAuthTokenRelationService extends IService<GatewayAuthRelationTokenEntity> {}

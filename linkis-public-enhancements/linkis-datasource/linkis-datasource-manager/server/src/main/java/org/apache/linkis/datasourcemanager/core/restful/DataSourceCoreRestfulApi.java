@@ -19,6 +19,7 @@ package org.apache.linkis.datasourcemanager.core.restful;
 
 import org.apache.linkis.common.exception.ErrorException;
 import org.apache.linkis.common.utils.AESUtils;
+import org.apache.linkis.common.variable.DateTypeUtils;
 import org.apache.linkis.datasourcemanager.common.auth.AuthContext;
 import org.apache.linkis.datasourcemanager.common.domain.DataSource;
 import org.apache.linkis.datasourcemanager.common.domain.DataSourceParamKeyDefinition;
@@ -26,6 +27,7 @@ import org.apache.linkis.datasourcemanager.common.domain.DataSourceType;
 import org.apache.linkis.datasourcemanager.common.domain.DatasourceVersion;
 import org.apache.linkis.datasourcemanager.common.util.CryptoUtils;
 import org.apache.linkis.datasourcemanager.common.util.json.Json;
+import org.apache.linkis.datasourcemanager.core.conf.DatasourceConf;
 import org.apache.linkis.datasourcemanager.core.dao.DataSourceVersionDao;
 import org.apache.linkis.datasourcemanager.core.formdata.FormDataTransformerFactory;
 import org.apache.linkis.datasourcemanager.core.formdata.MultiPartFormDataTransformer;
@@ -41,6 +43,7 @@ import org.apache.linkis.server.BDPJettyServerHelper;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,12 +62,7 @@ import javax.validation.Validator;
 import javax.validation.groups.Default;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import com.github.pagehelper.PageInfo;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -151,13 +149,7 @@ public class DataSourceCoreRestfulApi {
     return RestfulApiHelper.doAndResponse(
         () -> {
           String userName = ModuleUserUtils.getOperationUser(request, "getKeyDefinitionsByType");
-          List<DataSourceType> dataSourceTypes =
-              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
-          DataSourceType targetDataSourceType =
-              dataSourceTypes.stream()
-                  .filter(type -> type.getName().equals(typeName))
-                  .findFirst()
-                  .orElse(null);
+          DataSourceType targetDataSourceType = getDatasoutceTypeID(typeName, request);
           if (targetDataSourceType != null) {
             List<DataSourceParamKeyDefinition> keyDefinitions =
                 dataSourceRelateService.getKeyDefinitionsByType(
@@ -195,15 +187,6 @@ public class DataSourceCoreRestfulApi {
     return RestfulApiHelper.doAndResponse(
         () -> {
           String userName = ModuleUserUtils.getOperationUser(request, "insertJsonInfo");
-
-          // Bean validation
-          Set<ConstraintViolation<DataSource>> result =
-              beanValidator.validate(dataSource, Default.class);
-          if (result.size() > 0) {
-            throw new ConstraintViolationException(result);
-          }
-          // Escape the data source name
-          dataSource.setCreateUser(userName);
           if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
             return Message.error(
                 "The data source named: "
@@ -212,23 +195,96 @@ public class DataSourceCoreRestfulApi {
                     + dataSource.getDataSourceName()
                     + " 已经存在]");
           }
-          Map<String, Object> connectParams = dataSource.getConnectParams();
-          if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
-              && connectParams.containsKey(AESUtils.PASSWORD)) {
-            dataSource
-                .getConnectParams()
-                .replace(
-                    AESUtils.PASSWORD,
-                    AESUtils.encrypt(
-                        connectParams.get(AESUtils.PASSWORD).toString(),
-                        AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
-            // 标记密码已经加密
-            dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
-          }
-          insertDataSource(dataSource);
+          insertDatasource(dataSource, userName);
           return Message.ok().data("insertId", dataSource.getId());
         },
         "Fail to insert data source[新增数据源失败]");
+  }
+
+  @ApiOperation(value = "insertJsonInfo", notes = "insert json info", response = Message.class)
+  @ApiOperationSupport(ignoreParameters = {"dataSource"})
+  @ApiImplicitParams({
+    @ApiImplicitParam(
+        name = "createSystem",
+        required = true,
+        dataType = "String",
+        example = "linkis"),
+    @ApiImplicitParam(name = "dataSourceDesc", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "dataSourceTypeName", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "labels", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "connectParams", required = true, dataType = "List"),
+    @ApiImplicitParam(name = "host", dataType = "String"),
+    @ApiImplicitParam(name = "password", dataType = "String"),
+    @ApiImplicitParam(name = "port", dataType = "String"),
+    @ApiImplicitParam(name = "subSystem", dataType = "String"),
+    @ApiImplicitParam(name = "username", dataType = "String")
+  })
+  @RequestMapping(value = "/info/json/create", method = RequestMethod.POST)
+  public Message insertJson(@RequestBody DataSource dataSource, HttpServletRequest request) {
+    ModuleUserUtils.getOperationUser(request, "insertJsonCreate");
+    String datasourceUser = dataSource.getCreateUser();
+    String dataSourceTypeName = dataSource.getDataSourceTypeName();
+    // 参数校验
+    if (StringUtils.isBlank(datasourceUser)) {
+      return Message.error("Parameter createUser cannot be empty （参数 createUser 不能为空）");
+    }
+    if (StringUtils.isBlank(dataSourceTypeName)) {
+      return Message.error(
+          "Parameter dataSourceTypeName cannot be empty （参数 dataSourceTypeName 不能为空）");
+    }
+    Map<String, Object> connectParams = dataSource.getConnectParams();
+    if (MapUtils.isEmpty(connectParams)) {
+      return Message.error("Parameter connectParams cannot be empty （参数 connectParams 不能为空）");
+    }
+    // 定义需要校验的参数
+    String[] requiredParams = {"host", "port", "driverClassName", "username", "password"};
+    for (String param : requiredParams) {
+      Object value = connectParams.get(param);
+      if (value == null || StringUtils.isEmpty(value.toString())) {
+        return Message.error("Parameter " + param + " cannot be empty （参数 " + param + " 不能为空）");
+      }
+    }
+    // 限制仅支持starrocks
+    if (!DatasourceConf.INSERT_DATAESOURCE_LIMIT.getValue().contains(dataSourceTypeName)) {
+      return Message.error("DataSource Create Only Support starrocks");
+    }
+    // 参数调整
+    dataSource.setDataSourceName(
+        String.join(
+            "_",
+            dataSourceTypeName,
+            datasourceUser,
+            DateTypeUtils.dateFormatSecondLocal().get().format(new Date())));
+    if (dataSourceInfoService.existDataSource(dataSource.getDataSourceName())) {
+      return Message.error(
+          "The data source named: "
+              + dataSource.getDataSourceName()
+              + " has been existed [数据源: "
+              + dataSource.getDataSourceName()
+              + " 已经存在]");
+    }
+    DataSourceType dataSourceType = getDatasoutceTypeID(dataSourceTypeName, request);
+    if (dataSourceType != null)
+      dataSource.setDataSourceTypeId(Long.valueOf(dataSourceType.getId()));
+    // 创建数据源
+    insertDatasource(dataSource, datasourceUser);
+    Map<String, Object> stringHashMap = new HashMap<>();
+    stringHashMap.put("connectParams", dataSource.getConnectParams());
+    stringHashMap.put("comment", "初始化版本");
+    // 创建数据源version
+    Message message = insertJsonParameter(dataSource.getId(), stringHashMap, request);
+    if (message.getStatus() == 1) {
+      return message;
+    }
+    long publishedVersionId = Long.parseLong(message.getData().get("version").toString());
+    dataSource.setPublishedVersionId(publishedVersionId);
+    // 发布数据源version
+    message = publishByDataSourceId(dataSource.getId(), publishedVersionId, request);
+    if (message.getStatus() == 1) {
+      return message;
+    }
+    return Message.ok().data("datasource", dataSource);
   }
 
   @ApiOperation(
@@ -247,22 +303,22 @@ public class DataSourceCoreRestfulApi {
         required = true,
         dataType = "String",
         example = "1650426189000"),
-    @ApiImplicitParam(name = "createUser", required = true, dataType = "String", example = "hive"),
+    @ApiImplicitParam(name = "createUser", required = true, dataType = "String"),
     @ApiImplicitParam(name = "dataSourceDesc", required = true, dataType = "String"),
     @ApiImplicitParam(name = "dataSourceName", required = true, dataType = "String"),
     @ApiImplicitParam(name = "dataSourceTypeId", required = true, dataType = "String"),
     @ApiImplicitParam(name = "labels", required = true, dataType = "String"),
     @ApiImplicitParam(name = "connectParams", required = true, dataType = "List"),
-    @ApiImplicitParam(name = "host", dataType = "String", example = "127.0.0.1"),
+    @ApiImplicitParam(name = "host", dataType = "String"),
     @ApiImplicitParam(name = "password", dataType = "String"),
-    @ApiImplicitParam(name = "port", dataType = "String", example = "9523"),
+    @ApiImplicitParam(name = "port", dataType = "String"),
     @ApiImplicitParam(name = "subSystem", dataType = "String"),
     @ApiImplicitParam(name = "username", dataType = "String"),
-    @ApiImplicitParam(name = "expire", dataType = "boolean", example = "false"),
-    @ApiImplicitParam(name = "file", dataType = "String", example = "adn"),
-    @ApiImplicitParam(name = "modifyTime", dataType = "String", example = "1657611440000"),
-    @ApiImplicitParam(name = "modifyUser", dataType = "String", example = "hadoop"),
-    @ApiImplicitParam(name = "versionId", dataType = "String", example = "18")
+    @ApiImplicitParam(name = "expire", dataType = "boolean"),
+    @ApiImplicitParam(name = "file", dataType = "String"),
+    @ApiImplicitParam(name = "modifyTime", dataType = "String"),
+    @ApiImplicitParam(name = "modifyUser", dataType = "String"),
+    @ApiImplicitParam(name = "versionId", dataType = "String")
   })
   @ApiOperationSupport(ignoreParameters = {"dataSource"})
   @RequestMapping(value = "/info/{dataSourceId}/json", method = RequestMethod.PUT)
@@ -500,6 +556,58 @@ public class DataSourceCoreRestfulApi {
           if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
             RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
           }
+          return Message.ok().data("info", dataSource);
+        },
+        "Fail to access data source[获取数据源信息失败]");
+  }
+
+  @ApiOperation(
+      value = "Get published info by data source name, IP and port",
+      notes = "Retrieve published information of a data source by its type name, IP and port",
+      response = Message.class)
+  @ApiImplicitParams({
+    @ApiImplicitParam(name = "datasourceTypeName", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "datasourceUser", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "ip", required = true, dataType = "String"),
+    @ApiImplicitParam(name = "port", required = true, dataType = "String")
+  })
+  @RequestMapping(
+      value = "/publishedInfo/{datasourceTypeName}/{datasourceUser}/{ip}/{port}",
+      method = RequestMethod.GET)
+  public Message getPublishedInfoByIpPort(
+      @PathVariable("datasourceTypeName") String datasourceTypeName,
+      @PathVariable("datasourceUser") String datasourceUser,
+      @PathVariable("ip") String ip,
+      @PathVariable("port") String port,
+      HttpServletRequest request) {
+    return RestfulApiHelper.doAndResponse(
+        () -> {
+          String username =
+              ModuleUserUtils.getOperationUser(
+                  request, "getPublishedInfoByIpPort ip:" + ip + ",port:" + port);
+          if (StringUtils.isBlank(datasourceUser)) {
+            return Message.error(
+                "Parameter datasourceUser cannot be empty （参数 datasourceUser 不能为空）");
+          }
+
+          DataSource dataSource =
+              dataSourceInfoService.getDataSourcePublishInfo(
+                  datasourceTypeName, ip, port, datasourceUser);
+          if (dataSource == null) {
+            return Message.error("No Exists The DataSource [不存在该数据源]");
+          }
+          if (!AuthContext.hasPermission(dataSource, username)) {
+            return Message.error("Don't have query permission for data source [没有数据源的查询权限]");
+          }
+          List<DataSourceParamKeyDefinition> keyDefinitionList =
+              dataSourceRelateService.getKeyDefinitionsByType(dataSource.getDataSourceTypeId());
+          // Decrypt
+          if (!AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()) {
+            RestfulApiHelper.decryptPasswordKey(keyDefinitionList, dataSource.getConnectParams());
+          }
+          DataSourceType dataSourceType = new DataSourceType();
+          dataSourceType.setName(datasourceTypeName);
+          dataSource.setDataSourceType(dataSourceType);
           return Message.ok().data("info", dataSource);
         },
         "Fail to access data source[获取数据源信息失败]");
@@ -996,13 +1104,7 @@ public class DataSourceCoreRestfulApi {
           if (AuthContext.isAdministrator(userName)) {
             userName = null;
           }
-          List<DataSourceType> dataSourceTypes =
-              dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
-          DataSourceType targetDataSourceType =
-              dataSourceTypes.stream()
-                  .filter(type -> type.getName().equals(typeName))
-                  .findFirst()
-                  .orElse(null);
+          DataSourceType targetDataSourceType = getDatasoutceTypeID(typeName, request);
           if (targetDataSourceType != null) {
             DataSourceVo dataSourceVo = new DataSourceVo();
             dataSourceVo.setDataSourceTypeId(Long.valueOf(targetDataSourceType.getId()));
@@ -1066,6 +1168,42 @@ public class DataSourceCoreRestfulApi {
             }
           }
         });
+  }
+
+  private DataSourceType getDatasoutceTypeID(
+      String dataSourceTypeName, HttpServletRequest request) {
+    List<DataSourceType> dataSourceTypes =
+        dataSourceRelateService.getAllDataSourceTypes(request.getHeader("Content-Language"));
+    return dataSourceTypes.stream()
+        .filter(type -> type.getName().equals(dataSourceTypeName))
+        .findFirst()
+        .orElse(null);
+  }
+
+  private DataSource insertDatasource(DataSource dataSource, String userName) {
+    // Bean validation
+    Set<ConstraintViolation<DataSource>> result = beanValidator.validate(dataSource, Default.class);
+    if (result.size() > 0) {
+      throw new ConstraintViolationException(result);
+    }
+    // Escape the data source name
+    dataSource.setCreateUser(userName);
+
+    Map<String, Object> connectParams = dataSource.getConnectParams();
+    if (AESUtils.LINKIS_DATASOURCE_AES_SWITCH.getValue()
+        && connectParams.containsKey(AESUtils.PASSWORD)) {
+      dataSource
+          .getConnectParams()
+          .replace(
+              AESUtils.PASSWORD,
+              AESUtils.encrypt(
+                  connectParams.get(AESUtils.PASSWORD).toString(),
+                  AESUtils.LINKIS_DATASOURCE_AES_KEY.getValue()));
+      // 标记密码已经加密
+      dataSource.getConnectParams().put(AESUtils.IS_ENCRYPT, AESUtils.ENCRYPT);
+    }
+    insertDataSource(dataSource);
+    return dataSource;
   }
 
   private void dealDatasoueceData(DataSource dataSourceInfo, String isEncrypt) {
