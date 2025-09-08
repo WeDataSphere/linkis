@@ -41,7 +41,6 @@
     <license>
       <name>Apache 2.0 License</name>
       <url>http://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
     </license>
   </licenses>
   <developers>
@@ -105,7 +104,7 @@
   <properties>
     <revision>1.14.0-wds</revision>
     <jedis.version>2.9.2</jedis.version>
-    <spark.version>3.2.4</spark.version>
+    <spark.version>2.4.3</spark.version>
     <hadoop.version>3.1.4</hadoop.version>
     <hbase.version>1.2.1</hbase.version>
     <jruby.verison>9.3.4.0</jruby.verison>
@@ -1491,12 +1490,12 @@
       </properties>
     </profile>
     <profile>
-      <id>spark-3.2</id>
+      <id>spark-3</id>
       <properties>
         <revision>1.14.0-wds-spark3</revision>
         <json4s.version>3.7.0-M11</json4s.version>
-        <spark.version>3.2.1</spark.version>
-        <scala.version>2.12.15</scala.version>
+        <spark.version>3.2.4</spark.version>
+        <scala.version>2.12.17</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
         <jackson-bom.version>2.14.2</jackson-bom.version>
       </properties>
