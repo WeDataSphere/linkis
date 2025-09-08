@@ -104,7 +104,7 @@
   <properties>
     <revision>1.14.0-vh</revision>
     <jedis.version>2.9.2</jedis.version>
-    <spark.version>2.4.3</spark.version>
+    <spark.version>3.2.4</spark.version>
     <hadoop.version>3.1.4</hadoop.version>
     <hbase.version>1.2.1</hbase.version>
     <jruby.verison>9.3.4.0</jruby.verison>
