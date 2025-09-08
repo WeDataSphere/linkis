@@ -102,7 +102,7 @@
     </snapshotRepository>
   </distributionManagement>
   <properties>
-    <revision>1.14.0-wds</revision>
+    <revision>1.14.0-vh</revision>
     <jedis.version>2.9.2</jedis.version>
     <spark.version>2.4.3</spark.version>
     <hadoop.version>3.1.4</hadoop.version>
