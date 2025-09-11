@@ -351,6 +351,17 @@ object TaskConversions extends Logging {
     }
     taskVO.setObserveInfo(job.getObserveInfo)
     taskVO.setMetrics(job.getMetrics)
+    
+    // 从metrics中提取引擎日志路径信息
+    if (null != metrics) {
+      if (metrics.containsKey("engineLogPath") && metrics.get("engineLogPath") != null) {
+        taskVO.setEngineLogPath(metrics.get("engineLogPath").toString)
+      }
+      if (metrics.containsKey("udfLogPath") && metrics.get("udfLogPath") != null) {
+        taskVO.setUdfLogPath(metrics.get("udfLogPath").toString)
+      }
+    }
+    
     taskVO
   }
 

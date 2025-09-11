@@ -199,6 +199,13 @@ object EntranceConfiguration {
   val CLI_HEARTBEAT_THRESHOLD_SECONDS =
     CommonVars[Long]("linkis.entrance.cli.heartbeat.threshold.sec", 30L).getValue
 
+  // 引擎日志路径功能配置
+  val ENGINE_LOG_PATH_FEATURE_ENABLE =
+    CommonVars[Boolean]("linkis.entrance.engine.log.path.enable", false)
+
+  val UDF_LOG_PATH_FEATURE_ENABLE =
+    CommonVars[Boolean]("linkis.entrance.udf.log.path.enable", false)
+
   val LOG_PUSH_INTERVAL_TIME =
     CommonVars("wds.linkis.entrance.log.push.interval.time", 5 * 60 * 1000)
 

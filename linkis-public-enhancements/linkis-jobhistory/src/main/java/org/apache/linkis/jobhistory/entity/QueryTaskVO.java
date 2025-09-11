@@ -66,6 +66,9 @@ public class QueryTaskVO {
 
   private String metrics;
 
+  private String engineLogPath;
+  private String udfLogPath;
+
   public List<SubJobDetail> getSubJobs() {
     return subJobs;
   }
@@ -338,5 +341,21 @@ public class QueryTaskVO {
 
   public void setMetrics(String metrics) {
     this.metrics = metrics;
+  }
+
+  public String getEngineLogPath() {
+    return engineLogPath;
+  }
+
+  public void setEngineLogPath(String engineLogPath) {
+    this.engineLogPath = engineLogPath;
+  }
+
+  public String getUdfLogPath() {
+    return udfLogPath;
+  }
+
+  public void setUdfLogPath(String udfLogPath) {
+    this.udfLogPath = udfLogPath;
   }
 }

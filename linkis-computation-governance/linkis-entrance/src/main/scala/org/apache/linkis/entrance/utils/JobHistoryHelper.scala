@@ -25,7 +25,9 @@ import org.apache.linkis.entrance.execute.EntranceJob
 import org.apache.linkis.governance.common.constant.job.JobRequestConstants
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.governance.common.protocol.job._
+import org.apache.linkis.governance.common.utils.ECPathUtils
 import org.apache.linkis.manager.common.protocol.resource.ResourceWithStatus
+import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.query.cache.{CacheTaskResult, RequestReadCache}
 import org.apache.linkis.rpc.Sender
@@ -35,6 +37,7 @@ import org.apache.commons.lang3.StringUtils
 
 import javax.servlet.http.HttpServletRequest
 
+import java.io.File
 import java.util
 import java.util.Date
 
@@ -361,6 +364,62 @@ object JobHistoryHelper extends Logging {
     }
     if (null != infoMap && infoMap.containsKey(TaskConstant.JOB_IS_REUSE)) {
       metricsMap.put(TaskConstant.JOB_IS_REUSE, infoMap.get(TaskConstant.JOB_IS_REUSE))
+    }
+
+    // 添加引擎日志路径到metrics
+    addEngineLogPathToMetrics(jobRequest, metricsMap, infoMap)
+  }
+
+  /**
+   * 添加引擎日志路径到metrics中
+   * Add engine log path to metrics
+   *
+   * @param jobRequest jobRequest对象
+   * @param metricsMap metrics映射
+   * @param infoMap 信息映射
+   */
+  private def addEngineLogPathToMetrics(
+      jobRequest: JobRequest,
+      metricsMap: util.Map[String, AnyRef],
+      infoMap: util.Map[String, AnyRef]
+  ): Unit = {
+    // 检查功能开关
+    if (!EntranceConfiguration.ENGINE_LOG_PATH_FEATURE_ENABLE.getValue) {
+      return
+    }
+
+    Utils.tryCatch {
+      // 获取必要参数
+      val user = jobRequest.getSubmitUser
+      val ticketId = if (null != infoMap && infoMap.containsKey(TaskConstant.TICKET_ID)) {
+        infoMap.get(TaskConstant.TICKET_ID).asInstanceOf[String]
+      } else {
+        null
+      }
+      
+      // 使用标准API获取引擎类型
+      val engineType = LabelUtil.getEngineType(jobRequest.getLabels)
+      
+      if (StringUtils.isNotBlank(user) && StringUtils.isNotBlank(ticketId) && StringUtils.isNotBlank(engineType)) {
+        // 构建引擎日志路径 - 参考DefaultLocalDirsHandleService的实现
+        val pathSuffix = ECPathUtils.getECWOrkDirPathSuffix(user, ticketId, engineType)
+        val engineLogPath = pathSuffix + File.separator + "logs"
+        
+        // 将引擎日志路径插入到metrics中
+        metricsMap.put("engineLogPath", engineLogPath)
+        logger.info(s"Added engineLogPath to metrics: $engineLogPath for user: $user, ticketId: $ticketId, engineType: $engineType")
+        
+        // 如果启用UDF日志路径功能，也添加UDF日志路径
+        if (EntranceConfiguration.UDF_LOG_PATH_FEATURE_ENABLE.getValue) {
+          val udfLogPath = pathSuffix + File.separator + "logs" + File.separator + "udf"
+          metricsMap.put("udfLogPath", udfLogPath)
+          logger.info(s"Added udfLogPath to metrics: $udfLogPath for user: $user, ticketId: $ticketId, engineType: $engineType")
+        }
+      } else {
+        logger.warn(s"Cannot build engine log path due to missing parameters: user=$user, ticketId=$ticketId, engineType=$engineType")
+      }
+    } { t =>
+      logger.warn("Failed to add engine log path to metrics", t)
     }
   }
 
