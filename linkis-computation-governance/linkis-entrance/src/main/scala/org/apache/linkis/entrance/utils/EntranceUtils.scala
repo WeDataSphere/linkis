@@ -160,18 +160,18 @@ object EntranceUtils extends Logging {
    */
   def getDynamicEngineType(sql: String, logAppender: java.lang.StringBuilder): String = {
     val defaultEngineType = "spark"
-    
+
     if (!EntranceConfiguration.AI_SQL_DYNAMIC_ENGINE_SWITCH) {
       return defaultEngineType
     }
-    
+
     logger.info(s"AISQL automatically switches engines and begins to call Doctoris")
-    
+
     val params = new util.HashMap[String, AnyRef]()
     params.put("sql", sql)
     params.put("highStability", "")
     params.put("queueResourceUsage", "")
-    
+
     val request = DoctorRequest(
       apiUrl = EntranceConfiguration.DOCTOR_DYNAMIC_ENGINE_URL,
       params = params,
@@ -179,7 +179,7 @@ object EntranceUtils extends Logging {
       successMessage = "Aisql intelligent selection engines, Suggest",
       exceptionMessage = "Aisql intelligent selection component exception"
     )
-    
+
     val response = callDoctorService(request, logAppender)
     response.result
   }
@@ -255,7 +255,7 @@ object EntranceUtils extends Logging {
     val params = new util.HashMap[String, AnyRef]()
     params.put("sql", sql)
     params.put("user", user)
-    
+
     val request = DoctorRequest(
       apiUrl = EntranceConfiguration.DOCTOR_ENCRYPT_SQL_URL,
       params = params,
@@ -263,11 +263,11 @@ object EntranceUtils extends Logging {
       successMessage = "Sensitive SQL Check result",
       exceptionMessage = "Sensitive SQL Check exception"
     )
-    
+
     val response = callDoctorService(request, logAppender)
     (response.result.toBoolean, response.reason)
   }
-  
+
   /**
    * Doctor服务调用通用框架
    */
@@ -298,16 +298,16 @@ object EntranceUtils extends Logging {
       logInfo(s"${request.exceptionMessage}, using default: ${request.defaultValue}", logAppender)
       return DoctorResponse(success = false, result = request.defaultValue)
     }
-    
+
     try {
       val startTime = System.currentTimeMillis()
       val url = buildDoctorRequestUrl(request.apiUrl)
       val response = executeDoctorHttpRequest(url, request.params)
-      
+
       if (StringUtils.isBlank(response)) {
         return DoctorResponse(success = false, result = request.defaultValue)
       }
-      
+
       parseDoctorResponse(response, startTime, request, logAppender)
     } catch {
       case e: Exception =>
@@ -316,7 +316,7 @@ object EntranceUtils extends Logging {
         DoctorResponse(success = false, result = request.defaultValue)
     }
   }
-  
+
   /**
    * 检查Doctor配置参数是否有效
    */
@@ -326,7 +326,7 @@ object EntranceUtils extends Logging {
     StringUtils.isNotBlank(EntranceConfiguration.DOCTOR_CLUSTER) &&
     StringUtils.isNotBlank(EntranceConfiguration.DOCTOR_URL)
   }
-  
+
   /**
    * 构建Doctor请求URL
    */
@@ -339,14 +339,14 @@ object EntranceUtils extends Logging {
       ) + EntranceConfiguration.DOCTOR_SIGNATURE_TOKEN,
       null
     )
-    
+
     (EntranceConfiguration.DOCTOR_URL + apiUrl)
       .replace("$app_id", EntranceConfiguration.LINKIS_SYSTEM_NAME)
       .replace("$timestamp", timestampStr)
       .replace("$nonce", EntranceConfiguration.DOCTOR_NONCE)
       .replace("$signature", signature)
   }
-  
+
   /**
    * 执行Doctor HTTP请求
    */
@@ -354,7 +354,7 @@ object EntranceUtils extends Logging {
     val httpPost = new HttpPost(url)
     // 添加通用参数
     params.put("cluster", EntranceConfiguration.DOCTOR_CLUSTER)
-    
+
     val json = BDPJettyServerHelper.gson.toJson(params)
     val requestConfig = RequestConfig
       .custom()
@@ -362,7 +362,7 @@ object EntranceUtils extends Logging {
       .setConnectionRequestTimeout(EntranceConfiguration.DOCTOR_REQUEST_TIMEOUT)
       .setSocketTimeout(EntranceConfiguration.DOCTOR_REQUEST_TIMEOUT)
       .build()
-      
+
     val entity = new StringEntity(
       json,
       ContentType.create(ContentType.APPLICATION_JSON.getMimeType, StandardCharsets.UTF_8.toString)
@@ -370,11 +370,11 @@ object EntranceUtils extends Logging {
     entity.setContentEncoding(StandardCharsets.UTF_8.toString)
     httpPost.setConfig(requestConfig)
     httpPost.setEntity(entity)
-    
+
     val execute = httpClient.execute(httpPost)
     EntityUtils.toString(execute.getEntity, StandardCharsets.UTF_8.toString)
   }
-  
+
   /**
    * 解析Doctor响应结果
    */
@@ -388,23 +388,34 @@ object EntranceUtils extends Logging {
       val endTime = System.currentTimeMillis()
       val responseMapJson: Map[String, Object] =
         BDPJettyServerHelper.gson.fromJson(responseStr, classOf[Map[_, _]])
-        
+
       if (MapUtils.isNotEmpty(responseMapJson) && responseMapJson.containsKey("data")) {
         val dataMap = MapUtils.getMap(responseMapJson, "data")
         val duration = (endTime - startTime) / 1000.0
-        
+
         // 根据不同的API返回不同的结果
         if (request.apiUrl.contains("encrypt")) {
           // 敏感信息检查API
           val sensitive = dataMap.get("sensitive").toString.toBoolean
           val reason = dataMap.get("reason").toString
-          logInfo(s"${request.successMessage}: $sensitive, This decision took $duration seconds", logAppender)
-          DoctorResponse(success = true, result = sensitive.toString, reason = reason, duration = duration)
+          logInfo(
+            s"${request.successMessage}: $sensitive, This decision took $duration seconds",
+            logAppender
+          )
+          DoctorResponse(
+            success = true,
+            result = sensitive.toString,
+            reason = reason,
+            duration = duration
+          )
         } else {
           // 动态引擎选择API
           val engineType = dataMap.get("engine").toString
           val reason = dataMap.get("reason").toString
-          logInfo(s"${request.successMessage}: $engineType, Hit rules: $reason, This decision took $duration seconds", logAppender)
+          logInfo(
+            s"${request.successMessage}: $engineType, Hit rules: $reason, This decision took $duration seconds",
+            logAppender
+          )
           DoctorResponse(success = true, result = engineType, reason = reason, duration = duration)
         }
       } else {
@@ -420,7 +431,7 @@ object EntranceUtils extends Logging {
         DoctorResponse(success = false, result = request.defaultValue)
     }
   }
-  
+
   /**
    * 记录日志信息
    */

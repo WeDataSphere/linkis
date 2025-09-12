@@ -406,4 +406,7 @@ object EntranceConfiguration {
   var DOCTOR_SENSITIVE_SQL_CHECK_WHITELIST =
     CommonVars[String]("linkis.doctor.sensitive.sql.check.whitelist", "").getValue
 
+  var DOCTOR_SENSITIVE_SQL_CHECK_ENGINETYPE =
+    CommonVars[String]("linkis.doctor.sensitive.sql.check.engine.type", "hive,spark").getValue
+
 }

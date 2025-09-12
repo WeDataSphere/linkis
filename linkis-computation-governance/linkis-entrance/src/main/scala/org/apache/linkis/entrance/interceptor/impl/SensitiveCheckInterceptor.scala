@@ -25,6 +25,8 @@ import org.apache.linkis.entrance.utils.EntranceUtils
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.utils.LabelUtil
 
+import org.apache.commons.lang3.StringUtils
+
 import java.lang
 
 class SensitiveCheckInterceptor extends EntranceInterceptor {
@@ -38,21 +40,30 @@ class SensitiveCheckInterceptor extends EntranceInterceptor {
     val codeType = Option(LabelUtil.getCodeType(labellist))
       .map(_.toLowerCase())
       .getOrElse("")
-    
+
     val languageType = CodeAndRunTypeUtils.getLanguageTypeByCodeType(codeType)
     if (!EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_RUNTYPE.contains(languageType)) {
       return jobRequest
     }
 
-    val creator = LabelUtil.getUserCreator(labellist)._2
-    if (!EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_CREATOR.contains(creator)) {
+    val creator = LabelUtil.getUserCreatorLabel(labellist).getCreator
+    if (
+        StringUtils.isNotBlank(
+          EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_CREATOR
+        ) && (!EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_CREATOR.contains(creator))
+    ) {
+      return jobRequest
+    }
+
+    val engineType = LabelUtil.getEngineTypeLabel(labellist).getEngineType
+    if (!EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_ENGINETYPE.contains(engineType)) {
       return jobRequest
     }
 
     // 检查执行用户和提交用户
     checkUserSensitivity(jobRequest.getExecuteUser, jobRequest, logAppender)
     checkUserSensitivity(jobRequest.getSubmitUser, jobRequest, logAppender)
-    
+
     jobRequest
   }
 
@@ -66,11 +77,8 @@ class SensitiveCheckInterceptor extends EntranceInterceptor {
   ): Unit = {
     val departmentId = EntranceUtils.getUserDepartmentId(user)
     if (EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_DEPARTMENT.contains(departmentId)) {
-      val (result, reason) = EntranceUtils.sensitiveSqlCheck(
-        jobRequest.getExecutionCode,
-        user,
-        logAppender
-      )
+      val (result, reason) =
+        EntranceUtils.sensitiveSqlCheck(jobRequest.getExecutionCode, user, logAppender)
       if (result && !EntranceConfiguration.DOCTOR_SENSITIVE_SQL_CHECK_WHITELIST.contains(user)) {
         throw CodeCheckException(20054, "当前操作涉及明文信息读取，禁止执行该操作, 原因：" + reason)
       }
