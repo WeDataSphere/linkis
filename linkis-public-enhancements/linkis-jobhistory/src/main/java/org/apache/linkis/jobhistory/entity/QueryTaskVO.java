@@ -68,6 +68,7 @@ public class QueryTaskVO {
 
   private String engineLogPath;
   private String udfLogPath;
+  private String ecmInstance;
 
   public List<SubJobDetail> getSubJobs() {
     return subJobs;
@@ -357,5 +358,13 @@ public class QueryTaskVO {
 
   public void setUdfLogPath(String udfLogPath) {
     this.udfLogPath = udfLogPath;
+  }
+
+  public String getEcmInstance() {
+    return ecmInstance;
+  }
+
+  public void setEcmInstance(String ecmInstance) {
+    this.ecmInstance = ecmInstance;
   }
 }
