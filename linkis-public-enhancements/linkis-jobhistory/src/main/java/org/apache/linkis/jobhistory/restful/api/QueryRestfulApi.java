@@ -99,11 +99,17 @@ public class QueryRestfulApi {
   @ApiOperation(value = "getTaskByID", notes = "get task by id", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "jobId", required = true, dataType = "long", example = "12345"),
-    @ApiImplicitParam(name = "brief", required = false, dataType = "boolean", value = "only return brief info if true")
+    @ApiImplicitParam(
+        name = "brief",
+        required = false,
+        dataType = "boolean",
+        value = "only return brief info if true")
   })
   @RequestMapping(path = "/{id}/get", method = RequestMethod.GET)
-  public Message getTaskByID(HttpServletRequest req, @PathVariable("id") Long jobId,
-                             @RequestParam(value = "brief", required = false, defaultValue = "false") Boolean brief) {
+  public Message getTaskByID(
+      HttpServletRequest req,
+      @PathVariable("id") Long jobId,
+      @RequestParam(value = "brief", required = false, defaultValue = "false") Boolean brief) {
     String username = SecurityFilter.getLoginUsername(req);
     if (Configuration.isJobHistoryAdmin(username)
         || !JobhistoryConfiguration.JOB_HISTORY_SAFE_TRIGGER()
@@ -111,7 +117,9 @@ public class QueryRestfulApi {
       username = null;
     }
     JobHistory jobHistory = null;
-    if (brief || JobhistoryConfiguration.JOB_HISTORY_QUERY_EXECUTION_CODE_SWITCH()) {
+    if (brief) {
+      jobHistory = jobHistoryQueryService.getJobHistoryByIdAndNameBrief(jobId, username);
+    } else if (JobhistoryConfiguration.JOB_HISTORY_QUERY_EXECUTION_CODE_SWITCH()) {
       // 简要模式或配置为不查询执行代码时，使用NoCode方法
       jobHistory = jobHistoryQueryService.getJobHistoryByIdAndNameNoCode(jobId, username);
     } else {
@@ -124,7 +132,7 @@ public class QueryRestfulApi {
         log.error("Exchange executionCode for job with id : {} failed, {}", jobHistory.getId(), e);
       }
     }
-    
+
     QueryTaskVO taskVO;
     if (brief) {
       taskVO = TaskConversions.jobHistory2BriefTaskVO(jobHistory);

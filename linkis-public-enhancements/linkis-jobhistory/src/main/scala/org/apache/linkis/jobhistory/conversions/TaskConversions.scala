@@ -355,7 +355,6 @@ object TaskConversions extends Logging {
   }
 
   /**
-   * 
    * status、progress、id、execid、log_path、result_location、umUser、executeUser、errDesc、errCode
    */
   def jobHistory2BriefTaskVO(job: JobHistory): QueryTaskVO = {
