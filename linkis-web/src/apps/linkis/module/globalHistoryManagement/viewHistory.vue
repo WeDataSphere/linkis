@@ -223,7 +223,7 @@ export default {
             instance: this.jobhistoryTask.engineInstance || '',
             ticketId: this.jobhistoryTask.ticketId || '',
             engineType: this.jobhistoryTask.engineType || '',
-            logDirSuffix: this.jobhistoryTask.udfLogPath || '',
+            logDirSuffix: this.jobhistoryTask.engineLogPath || '',
           })
         }
 
