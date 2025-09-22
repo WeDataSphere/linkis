@@ -325,7 +325,7 @@ function remote_access_to_ec_logs() {
   local_log_path=$(cat $task_path"/json/$job_id"_detail.json | grep -a "$engine_local_log_path")
   # 2023-08-12 12:02:32.002 INFO EngineConn local log path: ServiceInstance(linkis-cg-engineconn, gz.xg.bdpdws110001.webank:21715) /data/bdp/linkis/hadoop/20230812/shell/663e2ca0-f5df-42e1-b0b1-34728373eabc/logs 2023-08-12 12:02:32.002 INFO EngineConn local log path: ServiceInstance(linkis-cg-engineconn, gz.xg.bdpdws110001.webank:21715) /data/bdp/linkis/hadoop/20230812/shell/663e2ca0-f5df-42e1-b0b1-34728373eabc/logs
   local_log_path_arr=(${local_log_path//:/ })
-  # 数据格式见日志工具脚本使用文档：http://docs.localhost/docs/Jbve3vgjEN8zCpT2
+
   # 获取倒数第三个元素下标
   thirdToLastIndex=$((${#local_log_path_arr[@]} - 3))
   # 服务名
