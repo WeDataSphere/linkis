@@ -31,6 +31,7 @@ import org.apache.linkis.manager.engineplugin.common.launch.process.LaunchConsta
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
 import org.apache.linkis.manager.engineplugin.errorcode.EngineconnCoreErrorCodeSummary._
 import org.apache.linkis.manager.label.entity.engine.EngineTypeLabel
+import org.apache.linkis.manager.label.utils.LabelUtil
 
 import org.apache.commons.lang3.StringUtils
 
@@ -94,7 +95,13 @@ abstract class JavaProcessEngineConnLaunchBuilder
       commandLine += s"-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${variable(RANDOM_PORT)}"
     }
     commandLine += "-cp"
-    commandLine += variable(CLASSPATH)
+    val engineTypeLabel = LabelUtil.getEngineTypeLabel(engineConnBuildRequest.labels)
+    if (engineTypeLabel.getEngineType.toLowerCase().equals("hive")) {
+      commandLine += variable(PWD) + "/lib/guava-30.0-jre.jar:" + variable(CLASSPATH)
+    } else {
+      commandLine += variable(CLASSPATH)
+
+    }
     commandLine += getMainClass
     commandLine ++= Seq(
       "1>",
