@@ -969,16 +969,6 @@
         <artifactId>jakarta.annotation-api</artifactId>
         <version>${annotation-api.version}</version>
       </dependency>
-      <dependency>
-        <groupId>cn.webank</groupId>
-        <artifactId>wedatasphere-sdk-common</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
-      </dependency>
-      <dependency>
-        <groupId>cn.webank</groupId>
-        <artifactId>wedatasphere-sdk-biz</artifactId>
-        <version>1.1.6-SNAPSHOT</version>
-      </dependency>
 
       <!-- spring -->
       <dependency>
