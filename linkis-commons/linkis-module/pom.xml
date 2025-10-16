@@ -364,6 +364,12 @@
       <groupId>cn.webank</groupId>
       <artifactId>wedatasphere-sdk-common</artifactId>
       <version>1.1.6-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>cn.webank.bsp</groupId>
+          <artifactId>encrypt</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -372,8 +378,8 @@
       <version>1.1.6-SNAPSHOT</version>
       <exclusions>
         <exclusion>
-          <artifactId>jsqlparser</artifactId>
           <groupId>com.github.jsqlparser</groupId>
+          <artifactId>jsqlparser</artifactId>
         </exclusion>
         <exclusion>
           <groupId>cn.webank.bsp</groupId>
@@ -414,6 +420,10 @@
         <exclusion>
           <groupId>io.projectreactor.netty</groupId>
           <artifactId>reactor-netty-http</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>com.alibaba</groupId>
+          <artifactId>druid</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
