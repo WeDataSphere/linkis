@@ -366,8 +366,8 @@
       <version>1.1.6-SNAPSHOT</version>
       <exclusions>
         <exclusion>
-          <groupId>cn.webank.bsp</groupId>
-          <artifactId>encrypt</artifactId>
+          <groupId>com.alibaba</groupId>
+          <artifactId>druid</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -377,50 +377,6 @@
       <artifactId>wedatasphere-sdk-biz</artifactId>
       <version>1.1.6-SNAPSHOT</version>
       <exclusions>
-        <exclusion>
-          <groupId>com.github.jsqlparser</groupId>
-          <artifactId>jsqlparser</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>cn.webank.bsp</groupId>
-          <artifactId>encrypt</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>mysql</groupId>
-          <artifactId>mysql-connector-java</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.quartz-scheduler</groupId>
-          <artifactId>quartz</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.quartz-scheduler</groupId>
-          <artifactId>quartz-jobs</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.mybatis</groupId>
-          <artifactId>mybatis</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.mybatis</groupId>
-          <artifactId>mybatis-spring</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.github.pagehelper</groupId>
-          <artifactId>pagehelper-spring-boot-starter</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.github.pagehelper</groupId>
-          <artifactId>pagehelper</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>com.google.protobuf</groupId>
-          <artifactId>protobuf-java</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.projectreactor.netty</groupId>
-          <artifactId>reactor-netty-http</artifactId>
-        </exclusion>
         <exclusion>
           <groupId>com.alibaba</groupId>
           <artifactId>druid</artifactId>
