@@ -369,6 +369,10 @@
           <groupId>com.alibaba</groupId>
           <artifactId>druid</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>cn.webank.bsp</groupId>
+          <artifactId>encrypt</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
@@ -380,6 +384,18 @@
         <exclusion>
           <groupId>com.alibaba</groupId>
           <artifactId>druid</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>cn.webank.bsp</groupId>
+          <artifactId>encrypt</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.quartz-scheduler</groupId>
+          <artifactId>quartz</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.quartz-scheduler</groupId>
+          <artifactId>quartz-jobs</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
