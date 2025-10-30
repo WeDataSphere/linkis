@@ -72,9 +72,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -742,7 +740,7 @@ public class FsRestfulApi {
               new HashSet<>(Arrays.asList(maskedFieldNames.toLowerCase().split(",")));
           Map[] metadata = ResultUtils.filterMaskedFieldsFromMetadata(resultmap, maskedFields);
           List<String[]> fileContent =
-                  ResultUtils.removeFieldsFromContent(resultmap, result.getSecond(), maskedFields);
+              ResultUtils.removeFieldsFromContent(resultmap, result.getSecond(), maskedFields);
           message.data("metadata", metadata).data("fileContent", fileContent);
         } else {
           message.data("metadata", resultmap).data("fileContent", result.getSecond());
@@ -776,8 +774,6 @@ public class FsRestfulApi {
       IOUtils.closeQuietly(fileSource);
     }
   }
-
-
 
   /**
    * 组装获取列索引
@@ -991,8 +987,8 @@ public class FsRestfulApi {
       }
 
       if (StringUtils.isNotBlank(maskedFieldNames)) {
-          // Apply field masking if maskedFieldNames is provided
-          ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
+        // Apply field masking if maskedFieldNames is provided
+        ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
