@@ -24,10 +24,12 @@ import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.common.utils.ByteTimeUtils;
 import org.apache.linkis.common.utils.ResultSetUtils;
 import org.apache.linkis.filesystem.entity.DirFileTree;
+import org.apache.linkis.filesystem.entity.FieldTruncationResult;
 import org.apache.linkis.filesystem.entity.LogLevel;
 import org.apache.linkis.filesystem.exception.WorkSpaceException;
 import org.apache.linkis.filesystem.exception.WorkspaceExceptionManager;
 import org.apache.linkis.filesystem.service.FsService;
+import org.apache.linkis.filesystem.util.FieldTruncationHelper;
 import org.apache.linkis.filesystem.util.FilesystemUtils;
 import org.apache.linkis.filesystem.util.WorkspaceUtil;
 import org.apache.linkis.filesystem.utils.UserGroupUtils;
@@ -72,7 +74,9 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -631,7 +635,8 @@ public class FsRestfulApi {
       @RequestParam(value = "columnPage", required = false, defaultValue = "1") Integer columnPage,
       @RequestParam(value = "columnPageSize", required = false, defaultValue = "500")
           Integer columnPageSize,
-      @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames)
+      @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames,
+      @RequestParam(value = "truncateColumn", required = false) String truncateColumn)
       throws IOException, WorkSpaceException {
 
     Message message = Message.ok();
@@ -642,6 +647,8 @@ public class FsRestfulApi {
     if (columnPage < 0 || columnPageSize < 0 || columnPageSize > 500) {
       throw WorkspaceExceptionManager.createException(80036, path);
     }
+
+    boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
 
     String userName = ModuleUserUtils.getOperationUser(req, "openFile " + path);
     LoggerUtils.setJobIdMDC("openFileThread_" + userName);
@@ -742,6 +749,31 @@ public class FsRestfulApi {
           List<String[]> fileContent =
               ResultUtils.removeFieldsFromContent(resultmap, result.getSecond(), maskedFields);
           message.data("metadata", metadata).data("fileContent", fileContent);
+        } else if (FIELD_TRUNCATION_ENABLED.getValue()) {
+          // 检测超长字段
+          List<String[]> fileContent = new ArrayList<>(result.getSecond());
+          FieldTruncationResult fieldTruncationResult =
+              FieldTruncationHelper.detectAndHandle(
+                  resultmap, fileContent, FIELD_VIEW_MAX_LENGTH.getValue(), false);
+          if (fieldTruncationResult.isHasOversizedFields()) {
+            if (truncateColumnSwitch) {
+              FieldTruncationResult fieldTruncationResults =
+                  FieldTruncationHelper.detectAndHandle(
+                      resultmap, fileContent, FIELD_VIEW_MAX_LENGTH.getValue(), true);
+              message
+                  .data("metadata", resultmap)
+                  .data("fileContent", fieldTruncationResults.getData());
+            } else {
+              message.data("oersizedFields", fieldTruncationResult.getOversizedFields());
+              message.data(
+                  "zh_msg",
+                  MessageFormat.format(
+                      "结果集存在字段值字符数超过{0}，请确认是否截取查询", LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
+              return message;
+            }
+          } else {
+            message.data("metadata", resultmap).data("fileContent", result.getSecond());
+          }
         } else {
           message.data("metadata", resultmap).data("fileContent", result.getSecond());
         }
@@ -910,6 +942,8 @@ public class FsRestfulApi {
       @RequestParam(value = "autoFormat", defaultValue = "false") Boolean autoFormat,
       @RequestParam(value = "keepNewline", defaultValue = "false") Boolean keepNewline,
       @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames)
+      @RequestParam(value = "keepNewline", defaultValue = "false") Boolean keepNewline,
+      @RequestParam(value = "truncateColumn", required = false) String truncateColumn)
       throws WorkSpaceException, IOException {
     ServletOutputStream outputStream = null;
     FsWriter fsWriter = null;
@@ -994,6 +1028,11 @@ public class FsRestfulApi {
         fileSource.write(fsWriter);
       }
 
+      boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
+      if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
+        fileSource.limitColumnLength(123);
+      }
+      fileSource.write(fsWriter);
       fsWriter.flush();
       LOGGER.info("userName {} Finished to resultsetToExcel File {}", userName, path);
     } catch (Exception e) {
