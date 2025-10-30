@@ -152,7 +152,7 @@ public class ResultUtils {
   }
 
   public static void dealMaskedField(
-      String maskedFieldNames, FsWriter fsWriter, FileSource fileSource) throws IOException {
+      String maskedFieldNames, FsWriter<?, ?> fsWriter, FileSource fileSource) throws IOException {
 
     LOGGER.info("Applying field masking for fields: {}", maskedFieldNames);
 
