@@ -86,4 +86,15 @@ object LinkisStorageConf {
   val FIELD_TRUNCATION_ENABLED =
     CommonVars("linkis.resultset.field.truncation.enabled", false).getValue
 
+  val FIELD_VIEW_MAX_LENGTH = CommonVars("linkis.resultset.field.view.max.length", 10000).getValue
+
+  val FIELD_DOWNLOAD_MAX_LENGTH =
+    CommonVars("linkis.resultset.field.download.max.length", 10000).getValue
+
+  val FIELD_EXPORT_MAX_LENGTH =
+    CommonVars("linkis.resultset.field.export.max.length", 32767).getValue
+
+  val OVERSIZED_FIELD_MAX_COUNT =
+    CommonVars("linkis.resultset.field.oversized.max.count", 20).getValue
+
 }

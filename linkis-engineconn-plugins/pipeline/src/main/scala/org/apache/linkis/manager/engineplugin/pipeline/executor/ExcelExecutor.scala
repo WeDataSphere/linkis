@@ -27,6 +27,7 @@ import org.apache.linkis.manager.engineplugin.pipeline.errorcode.PopelineErrorCo
 import org.apache.linkis.manager.engineplugin.pipeline.exception.PipeLineErrorException
 import org.apache.linkis.scheduler.executer.ExecuteResponse
 import org.apache.linkis.storage.FSFactory
+import org.apache.linkis.storage.conf.LinkisStorageConf.FIELD_TRUNCATION_ENABLED
 import org.apache.linkis.storage.excel.{ExcelFsWriter, StorageMultiExcelWriter}
 import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.source.FileSource
@@ -114,6 +115,8 @@ class ExcelExecutor extends PipeLineExecutor with Logging {
         if (StringUtils.isNotBlank(maskedFieldNames)) {
           logger.info(s"Applying field masking for Excel export: $maskedFieldNames")
           ResultUtils.dealMaskedField(maskedFieldNames, excelFsWriter, fileSource)
+        } else if (FIELD_TRUNCATION_ENABLED) {
+          ResultUtils.detectAndHandle(excelFsWriter, fileSource)
         } else {
           // Original stream write logic
           logger.info("No field masking, using stream write for Excel export")

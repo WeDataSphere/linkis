@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.filesystem.entity;
+package org.apache.linkis.storage.entity;
 
 /** Represents information about an oversized field in a result set */
 public class OversizedFieldInfo {

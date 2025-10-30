@@ -18,6 +18,9 @@
 package org.apache.linkis.storage.utils;
 
 import org.apache.linkis.common.io.FsWriter;
+import org.apache.linkis.storage.conf.LinkisStorageConf;
+import org.apache.linkis.storage.entity.FieldTruncationResult;
+import org.apache.linkis.storage.entity.OversizedFieldInfo;
 import org.apache.linkis.storage.resultset.table.TableMetaData;
 import org.apache.linkis.storage.resultset.table.TableRecord;
 import org.apache.linkis.storage.source.FileSource;
@@ -185,5 +188,203 @@ public class ResultUtils {
         "Field masking applied. Original columns: {}, Filtered columns: {}",
         ((Map[]) metadata).length,
         filteredMetadata.length);
+  }
+
+  /**
+   * Detect and handle oversized fields in result set
+   *
+   * @param metadata Column names list
+   * @param FileContent Data rows list (each row is an ArrayList or Object[])
+   * @param truncate Whether to truncate (false means detection only)
+   * @return FieldTruncationResult containing detection results and processed data
+   */
+  public static FieldTruncationResult detectAndHandle(
+      Object metadata, List<String[]> FileContent, boolean truncate) {
+
+    if (metadata == null || !(metadata instanceof Map[])) {
+      return new FieldTruncationResult();
+    }
+
+    // 2. 类型转换（已通过校验，可安全强转）
+    Map<String, Object>[] originalMaps = (Map<String, Object>[]) metadata;
+
+    // 提取列名
+    List<String> columnNames = new ArrayList<>();
+    if (metadata != null) {
+      for (Map meta : originalMaps) {
+        Object columnName = meta.get("columnName");
+        columnNames.add(columnName != null ? columnName.toString() : "");
+      }
+    }
+
+    // 转换 String[] 数组为 ArrayList<String>
+    List<ArrayList<String>> dataList = new ArrayList<>();
+    for (String[] row : FileContent) {
+      ArrayList<String> rowList = new ArrayList<>(Arrays.asList(row));
+      dataList.add(rowList);
+    }
+
+    int maxCount = LinkisStorageConf.OVERSIZED_FIELD_MAX_COUNT();
+    int maxLength = LinkisStorageConf.FIELD_VIEW_MAX_LENGTH();
+
+    // Detect oversized fields
+    List<OversizedFieldInfo> oversizedFields =
+        detectOversizedFields(columnNames, dataList, maxLength, maxCount);
+
+    boolean hasOversizedFields = !oversizedFields.isEmpty();
+
+    // Truncate if requested
+    List<ArrayList<String>> processedData = dataList;
+    if (truncate && hasOversizedFields) {
+      processedData = truncateFields(columnNames, dataList, maxLength);
+    }
+    List<String[]> convertedList =
+        processedData.stream()
+            .map(row -> row != null ? row.toArray(new String[0]) : null)
+            .collect(Collectors.toList());
+    return new FieldTruncationResult(hasOversizedFields, oversizedFields, maxCount, convertedList);
+  }
+
+  public static void detectAndHandle(FsWriter<?, ?> fsWriter, FileSource fileSource)
+      throws IOException {
+    // Collect data from file source
+    Pair<Object, ArrayList<String[]>> collectedData = fileSource.collect()[0];
+
+    Object metadata = collectedData.getFirst();
+
+    ArrayList<String[]> content = collectedData.getSecond();
+
+    FieldTruncationResult fieldTruncationResult = detectAndHandle(metadata, content, true);
+
+    List<String[]> data = fieldTruncationResult.getData();
+
+    // Convert Map[] to TableMetaData
+    TableMetaData tableMetaData = convertMapArrayToTableMetaData((Map<String, Object>[]) metadata);
+
+    // Write filtered data
+    fsWriter.addMetaData(tableMetaData);
+
+    for (String[] row : data) {
+      fsWriter.addRecord(new TableRecord(row));
+    }
+  }
+
+  /**
+   * Detect oversized fields
+   *
+   * @param metadata Column names
+   * @param dataList Data rows
+   * @param maxLength Max length threshold
+   * @param maxCount Max number of oversized fields to collect
+   * @return List of oversized field info
+   */
+  private static List<OversizedFieldInfo> detectOversizedFields(
+      List<String> metadata, List<ArrayList<String>> dataList, int maxLength, int maxCount) {
+
+    List<OversizedFieldInfo> oversizedFields = new ArrayList<>();
+
+    if (metadata == null || dataList == null || dataList.isEmpty()) {
+      return oversizedFields;
+    }
+
+    // Iterate through data rows
+    for (int rowIndex = 0; rowIndex < dataList.size(); rowIndex++) {
+      if (oversizedFields.size() >= maxCount) {
+        break; // Stop if we've collected enough
+      }
+
+      ArrayList<String> row = dataList.get(rowIndex);
+      if (row == null) {
+        continue;
+      }
+
+      // Check each field in the row
+      for (int colIndex = 0; colIndex < row.size() && colIndex < metadata.size(); colIndex++) {
+        if (oversizedFields.size() >= maxCount) {
+          break;
+        }
+
+        String fieldValue = row.get(colIndex);
+        int fieldLength = getFieldLength(fieldValue);
+
+        if (fieldLength > maxLength) {
+          String fieldName = metadata.get(colIndex);
+          oversizedFields.add(new OversizedFieldInfo(fieldName, rowIndex, fieldLength, maxLength));
+          LOGGER.info(
+              "Detected oversized field: field={}, row={}, actualLength={}, maxLength={}",
+              fieldName,
+              rowIndex,
+              fieldLength,
+              maxLength);
+        }
+      }
+    }
+
+    return oversizedFields;
+  }
+
+  /**
+   * Truncate oversized fields
+   *
+   * @param metadata Column names
+   * @param dataList Data rows
+   * @param maxLength Max length
+   * @return Truncated data list
+   */
+  private static List<ArrayList<String>> truncateFields(
+      List<String> metadata, List<ArrayList<String>> dataList, int maxLength) {
+
+    if (dataList == null || dataList.isEmpty()) {
+      return dataList;
+    }
+
+    List<ArrayList<String>> truncatedData = new ArrayList<>();
+
+    for (ArrayList<String> row : dataList) {
+      if (row == null) {
+        truncatedData.add(null);
+        continue;
+      }
+
+      ArrayList<String> truncatedRow = new ArrayList<>();
+      for (String fieldValue : row) {
+        String truncatedValue = truncateFieldValue(fieldValue, maxLength);
+        truncatedRow.add(truncatedValue);
+      }
+      truncatedData.add(truncatedRow);
+    }
+
+    return truncatedData;
+  }
+
+  /**
+   * Get field value character length
+   *
+   * @param value Field value
+   * @return Character length
+   */
+  private static int getFieldLength(Object value) {
+    if (value == null) {
+      return 0;
+    }
+    return value.toString().length();
+  }
+
+  /**
+   * Truncate single field value
+   *
+   * @param value Field value
+   * @param maxLength Max length
+   * @return Truncated value
+   */
+  private static String truncateFieldValue(Object value, int maxLength) {
+    if (value == null) {
+      return null;
+    }
+    String str = value.toString();
+    if (str.length() <= maxLength) {
+      return str;
+    }
+    return str.substring(0, maxLength);
   }
 }

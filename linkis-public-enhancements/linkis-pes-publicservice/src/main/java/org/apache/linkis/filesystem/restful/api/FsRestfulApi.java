@@ -24,12 +24,10 @@ import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.common.utils.ByteTimeUtils;
 import org.apache.linkis.common.utils.ResultSetUtils;
 import org.apache.linkis.filesystem.entity.DirFileTree;
-import org.apache.linkis.filesystem.entity.FieldTruncationResult;
 import org.apache.linkis.filesystem.entity.LogLevel;
 import org.apache.linkis.filesystem.exception.WorkSpaceException;
 import org.apache.linkis.filesystem.exception.WorkspaceExceptionManager;
 import org.apache.linkis.filesystem.service.FsService;
-import org.apache.linkis.filesystem.util.FieldTruncationHelper;
 import org.apache.linkis.filesystem.util.FilesystemUtils;
 import org.apache.linkis.filesystem.util.WorkspaceUtil;
 import org.apache.linkis.filesystem.utils.UserGroupUtils;
@@ -42,6 +40,7 @@ import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.apache.linkis.storage.conf.LinkisStorageConf;
 import org.apache.linkis.storage.csv.CSVFsWriter;
 import org.apache.linkis.storage.domain.FsPathListWithError;
+import org.apache.linkis.storage.entity.FieldTruncationResult;
 import org.apache.linkis.storage.excel.*;
 import org.apache.linkis.storage.exception.ColLengthExceedException;
 import org.apache.linkis.storage.fs.FileSystem;
@@ -74,9 +73,7 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
@@ -750,21 +747,21 @@ public class FsRestfulApi {
               ResultUtils.removeFieldsFromContent(resultmap, result.getSecond(), maskedFields);
           message.data("metadata", metadata).data("fileContent", fileContent);
         } else if (FIELD_TRUNCATION_ENABLED.getValue()) {
-          // 检测超长字段
-          List<String[]> fileContent = new ArrayList<>(result.getSecond());
           FieldTruncationResult fieldTruncationResult =
-              FieldTruncationHelper.detectAndHandle(
-                  resultmap, fileContent, FIELD_VIEW_MAX_LENGTH.getValue(), false);
+              ResultUtils.detectAndHandle(resultmap, result.getSecond(), false);
+          // 检测是否包含超长字段
           if (fieldTruncationResult.isHasOversizedFields()) {
+            // 用户选择是否截取
             if (truncateColumnSwitch) {
+              // 截取
               FieldTruncationResult fieldTruncationResults =
-                  FieldTruncationHelper.detectAndHandle(
-                      resultmap, fileContent, FIELD_VIEW_MAX_LENGTH.getValue(), true);
+                  ResultUtils.detectAndHandle(resultmap, result.getSecond(), true);
               message
                   .data("metadata", resultmap)
                   .data("fileContent", fieldTruncationResults.getData());
             } else {
-              message.data("oersizedFields", fieldTruncationResult.getOversizedFields());
+              // 提示
+              message.data("oversizedFields", fieldTruncationResult.getOversizedFields());
               message.data(
                   "zh_msg",
                   MessageFormat.format(
@@ -772,6 +769,7 @@ public class FsRestfulApi {
               return message;
             }
           } else {
+            // 不包含超长字段返回原逻辑
             message.data("metadata", resultmap).data("fileContent", result.getSecond());
           }
         } else {
@@ -941,8 +939,7 @@ public class FsRestfulApi {
       @RequestParam(value = "limit", defaultValue = "0") Integer limit,
       @RequestParam(value = "autoFormat", defaultValue = "false") Boolean autoFormat,
       @RequestParam(value = "keepNewline", defaultValue = "false") Boolean keepNewline,
-      @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames)
-      @RequestParam(value = "keepNewline", defaultValue = "false") Boolean keepNewline,
+      @RequestParam(value = "maskedFieldNames", required = false) String maskedFieldNames,
       @RequestParam(value = "truncateColumn", required = false) String truncateColumn)
       throws WorkSpaceException, IOException {
     ServletOutputStream outputStream = null;
@@ -1019,20 +1016,16 @@ public class FsRestfulApi {
         default:
           throw WorkspaceExceptionManager.createException(80015);
       }
-
+      boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
       if (StringUtils.isNotBlank(maskedFieldNames)) {
         // Apply field masking if maskedFieldNames is provided
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
+      } else if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
+        ResultUtils.detectAndHandle(fsWriter, fileSource);
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
       }
-
-      boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
-      if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
-        fileSource.limitColumnLength(123);
-      }
-      fileSource.write(fsWriter);
       fsWriter.flush();
       LOGGER.info("userName {} Finished to resultsetToExcel File {}", userName, path);
     } catch (Exception e) {

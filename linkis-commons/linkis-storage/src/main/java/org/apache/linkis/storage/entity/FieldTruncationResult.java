@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.filesystem.entity;
+package org.apache.linkis.storage.entity;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class FieldTruncationResult {
   private boolean hasOversizedFields;
   private List<OversizedFieldInfo> oversizedFields;
   private Integer maxOversizedFieldCount;
-  private Object data;
+  private List<String[]> data;
 
   public FieldTruncationResult() {}
 
@@ -32,7 +32,7 @@ public class FieldTruncationResult {
       boolean hasOversizedFields,
       List<OversizedFieldInfo> oversizedFields,
       Integer maxOversizedFieldCount,
-      Object data) {
+      List<String[]> data) {
     this.hasOversizedFields = hasOversizedFields;
     this.oversizedFields = oversizedFields;
     this.maxOversizedFieldCount = maxOversizedFieldCount;
@@ -63,11 +63,11 @@ public class FieldTruncationResult {
     this.maxOversizedFieldCount = maxOversizedFieldCount;
   }
 
-  public Object getData() {
+  public List<String[]> getData() {
     return data;
   }
 
-  public void setData(Object data) {
+  public void setData(List<String[]> data) {
     this.data = data;
   }
 }
