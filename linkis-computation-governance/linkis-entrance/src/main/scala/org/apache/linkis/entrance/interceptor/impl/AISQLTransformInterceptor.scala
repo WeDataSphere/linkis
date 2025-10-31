@@ -106,9 +106,10 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
         )
       } else {
         logger.info(s"start intelligent selection execution engine for ${jobRequest.getId}")
+
         /**
-         * Check for StarRocks engine switch if feature is enabled
-         * Priority: runtime parameters > script comment > template configuration
+         * Check for StarRocks engine switch if feature is enabled Priority: runtime parameters >
+         * script comment > template configuration
          */
         var forceEngineType: String = null
         if (AISQL_STARROCKS_SWITCH.getValue) {
@@ -147,7 +148,11 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
           }
         }
         val engineType: String = {
-          EntranceUtils.getDynamicEngineType(jobRequest.getExecutionCode, logAppender, forceEngineType)
+          EntranceUtils.getDynamicEngineType(
+            jobRequest.getExecutionCode,
+            logAppender,
+            forceEngineType
+          )
         }
         if ("hive".equals(engineType)) {
           changeEngineLabel(hiveEngineType, labels)
@@ -227,8 +232,10 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
   /**
    * Get engine type from runtime parameters
-   * @param params job request parameters
-   * @return engine type, such as "starrocks", null if not found
+   * @param params
+   *   job request parameters
+   * @return
+   *   engine type, such as "starrocks", null if not found
    */
   private def getRuntimeEngineType(params: util.Map[String, AnyRef]): String = {
     if (params == null) return null
@@ -242,8 +249,10 @@ class AISQLTransformInterceptor extends EntranceInterceptor with Logging {
 
   /**
    * Check if user is in StarRocks whitelist
-   * @param submitUser the user who submits the task
-   * @return true if user is in whitelist or whitelist is empty (allow all users), false otherwise
+   * @param submitUser
+   *   the user who submits the task
+   * @return
+   *   true if user is in whitelist or whitelist is empty (allow all users), false otherwise
    */
   private def isUserInStarRocksWhitelist(submitUser: String): Boolean = {
     val whitelistUsers = AISQL_STARROCKS_WHITELIST_USERS.getValue
