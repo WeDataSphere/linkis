@@ -27,6 +27,7 @@ import org.apache.linkis.manager.engineplugin.pipeline.errorcode.PopelineErrorCo
 import org.apache.linkis.manager.engineplugin.pipeline.exception.PipeLineErrorException
 import org.apache.linkis.scheduler.executer.ExecuteResponse
 import org.apache.linkis.storage.FSFactory
+import org.apache.linkis.storage.conf.LinkisStorageConf
 import org.apache.linkis.storage.conf.LinkisStorageConf.FIELD_TRUNCATION_ENABLED
 import org.apache.linkis.storage.excel.{ExcelFsWriter, StorageMultiExcelWriter}
 import org.apache.linkis.storage.fs.FileSystem
@@ -112,15 +113,30 @@ class ExcelExecutor extends PipeLineExecutor with Logging {
 
       try {
         // Apply field masking if maskedFieldNames is provided
-        if (StringUtils.isNotBlank(maskedFieldNames)) {
-          logger.info(s"Applying field masking for Excel export: $maskedFieldNames")
+        fileSource.addParams("nullValue", nullValue)
+        // 如果同时提供了字段屏蔽和字段截取参数，则先执行字段屏蔽，再执行字段截取
+        if (StringUtils.isNotBlank(maskedFieldNames) && FIELD_TRUNCATION_ENABLED) {
+          // 同时执行字段屏蔽和字段截取
+          ResultUtils.applyFieldMaskingAndTruncation(
+            maskedFieldNames,
+            excelFsWriter,
+            fileSource,
+            LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH
+          )
+        } else if (StringUtils.isNotBlank(maskedFieldNames)) {
+          // 只执行字段屏蔽
           ResultUtils.dealMaskedField(maskedFieldNames, excelFsWriter, fileSource)
         } else if (FIELD_TRUNCATION_ENABLED) {
-          ResultUtils.detectAndHandle(excelFsWriter, fileSource)
+          // 只执行字段截取
+          ResultUtils.detectAndHandle(
+            excelFsWriter,
+            fileSource,
+            LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH
+          )
         } else {
           // Original stream write logic
           logger.info("No field masking, using stream write for Excel export")
-          fileSource.addParams("nullValue", nullValue).write(excelFsWriter)
+          fileSource.write(excelFsWriter)
         }
       } finally {
         IOUtils.closeQuietly(excelFsWriter)

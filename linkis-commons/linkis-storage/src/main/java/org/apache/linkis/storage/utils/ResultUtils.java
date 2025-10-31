@@ -199,7 +199,7 @@ public class ResultUtils {
    * @return FieldTruncationResult containing detection results and processed data
    */
   public static FieldTruncationResult detectAndHandle(
-      Object metadata, List<String[]> FileContent, boolean truncate) {
+      Object metadata, List<String[]> FileContent, Integer maxLength, boolean truncate) {
 
     if (metadata == null || !(metadata instanceof Map[])) {
       return new FieldTruncationResult();
@@ -225,7 +225,6 @@ public class ResultUtils {
     }
 
     int maxCount = LinkisStorageConf.OVERSIZED_FIELD_MAX_COUNT();
-    int maxLength = LinkisStorageConf.FIELD_VIEW_MAX_LENGTH();
 
     // Detect oversized fields
     List<OversizedFieldInfo> oversizedFields =
@@ -245,8 +244,8 @@ public class ResultUtils {
     return new FieldTruncationResult(hasOversizedFields, oversizedFields, maxCount, convertedList);
   }
 
-  public static void detectAndHandle(FsWriter<?, ?> fsWriter, FileSource fileSource)
-      throws IOException {
+  public static void detectAndHandle(
+      FsWriter<?, ?> fsWriter, FileSource fileSource, Integer maxLength) throws IOException {
     // Collect data from file source
     Pair<Object, ArrayList<String[]>> collectedData = fileSource.collect()[0];
 
@@ -254,7 +253,8 @@ public class ResultUtils {
 
     ArrayList<String[]> content = collectedData.getSecond();
 
-    FieldTruncationResult fieldTruncationResult = detectAndHandle(metadata, content, true);
+    FieldTruncationResult fieldTruncationResult =
+        detectAndHandle(metadata, content, maxLength, true);
 
     List<String[]> data = fieldTruncationResult.getData();
 
@@ -284,7 +284,6 @@ public class ResultUtils {
       for (int i = 0; i < columns.length; i++) {
         if (oversizedFieldNames.contains(columns[i].columnName())) {
           // Get the max length for this field
-          Integer maxLength = fieldMaxLengthMap.get(columns[i].columnName());
           String truncatedInfo =
               maxLength != null ? "(truncated to " + maxLength + " chars)" : "(truncated)";
           // Create a new column with truncation info suffix to indicate truncation
@@ -436,7 +435,8 @@ public class ResultUtils {
    * @throws IOException
    */
   public static void applyFieldMaskingAndTruncation(
-      String maskedFieldNames, FsWriter<?, ?> fsWriter, FileSource fileSource) throws IOException {
+      String maskedFieldNames, FsWriter<?, ?> fsWriter, FileSource fileSource, Integer maxLength)
+      throws IOException {
 
     LOGGER.info("Applying both field masking and truncation");
     // First collect data from file source
@@ -457,7 +457,7 @@ public class ResultUtils {
 
     // Then apply field truncation
     FieldTruncationResult fieldTruncationResult =
-        detectAndHandle(filteredMetadata, filteredContent, true);
+        detectAndHandle(filteredMetadata, filteredContent, maxLength, true);
     List<String[]> finalData = fieldTruncationResult.getData();
 
     // Write data
@@ -486,7 +486,6 @@ public class ResultUtils {
       for (int i = 0; i < columns.length; i++) {
         if (oversizedFieldNames.contains(columns[i].columnName())) {
           // Get the max length for this field
-          Integer maxLength = fieldMaxLengthMap.get(columns[i].columnName());
           String truncatedInfo =
               maxLength != null ? "(truncated to " + maxLength + " chars)" : "(truncated)";
           // Create a new column with truncation info suffix to indicate truncation

@@ -752,13 +752,21 @@ public class FsRestfulApi {
           // 优先截取大字段
           if (FIELD_TRUNCATION_ENABLED.getValue()) {
             FieldTruncationResult fieldTruncationResult =
-                ResultUtils.detectAndHandle(resultmap, filteredContent, false);
+                ResultUtils.detectAndHandle(
+                    filteredMetadata,
+                    filteredContent,
+                    LinkisStorageConf.FIELD_VIEW_MAX_LENGTH(),
+                    false);
             if (fieldTruncationResult.isHasOversizedFields()) {
               // 检测到超长字段
               if (truncateColumnSwitch) {
                 // 用户选择截取
                 FieldTruncationResult truncationResult =
-                    ResultUtils.detectAndHandle(resultmap, filteredContent, true);
+                    ResultUtils.detectAndHandle(
+                        filteredMetadata,
+                        filteredContent,
+                        LinkisStorageConf.FIELD_VIEW_MAX_LENGTH(),
+                        true);
                 filteredContent = truncationResult.getData();
 
               } else {
@@ -1027,13 +1035,15 @@ public class FsRestfulApi {
           && FIELD_TRUNCATION_ENABLED.getValue()
           && truncateColumnSwitch) {
         // 同时执行字段屏蔽和字段截取
-        ResultUtils.applyFieldMaskingAndTruncation(maskedFieldNames, fsWriter, fileSource);
+        ResultUtils.applyFieldMaskingAndTruncation(
+            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else if (StringUtils.isNotBlank(maskedFieldNames)) {
         // 只执行字段屏蔽
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
       } else if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
         // 只执行字段截取
-        ResultUtils.detectAndHandle(fsWriter, fileSource);
+        ResultUtils.detectAndHandle(
+            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
@@ -1160,13 +1170,15 @@ public class FsRestfulApi {
           && FIELD_TRUNCATION_ENABLED.getValue()
           && truncateColumnSwitch) {
         // 同时执行字段屏蔽和字段截取
-        ResultUtils.applyFieldMaskingAndTruncation(maskedFieldNames, fsWriter, fileSource);
+        ResultUtils.applyFieldMaskingAndTruncation(
+            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else if (StringUtils.isNotBlank(maskedFieldNames)) {
         // 只执行字段屏蔽
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
       } else if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
         // 只执行字段截取
-        ResultUtils.detectAndHandle(fsWriter, fileSource);
+        ResultUtils.detectAndHandle(
+            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
