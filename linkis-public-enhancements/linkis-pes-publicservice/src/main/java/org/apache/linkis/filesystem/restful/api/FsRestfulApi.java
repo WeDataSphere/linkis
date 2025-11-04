@@ -1036,14 +1036,14 @@ public class FsRestfulApi {
           && truncateColumnSwitch) {
         // 同时执行字段屏蔽和字段截取
         ResultUtils.applyFieldMaskingAndTruncation(
-            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
+            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else if (StringUtils.isNotBlank(maskedFieldNames)) {
         // 只执行字段屏蔽
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
       } else if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
         // 只执行字段截取
         ResultUtils.detectAndHandle(
-            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
+            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
@@ -1171,14 +1171,14 @@ public class FsRestfulApi {
           && truncateColumnSwitch) {
         // 同时执行字段屏蔽和字段截取
         ResultUtils.applyFieldMaskingAndTruncation(
-            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
+            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else if (StringUtils.isNotBlank(maskedFieldNames)) {
         // 只执行字段屏蔽
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
       } else if (FIELD_TRUNCATION_ENABLED.getValue() && truncateColumnSwitch) {
         // 只执行字段截取
         ResultUtils.detectAndHandle(
-            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
+            fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
       } else {
         // Original stream write logic
         fileSource.write(fsWriter);
