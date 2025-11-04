@@ -391,10 +391,6 @@
         </exclusion>
         <exclusion>
           <groupId>org.quartz-scheduler</groupId>
-          <artifactId>quartz</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.quartz-scheduler</groupId>
           <artifactId>quartz-jobs</artifactId>
         </exclusion>
       </exclusions>

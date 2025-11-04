@@ -63,6 +63,14 @@
           <groupId>io.swagger</groupId>
           <artifactId>*</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>cn.webank</groupId>
+          <artifactId>wedatasphere-sdk-common</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>cn.webank</groupId>
+          <artifactId>wedatasphere-sdk-biz</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 

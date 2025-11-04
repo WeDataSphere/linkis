@@ -65,7 +65,12 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@SpringBootApplication(scanBasePackages = {"org.apache.linkis", "com.webank.wedatasphere"})
+@SpringBootApplication(
+    scanBasePackages = {
+      "org.apache.linkis",
+      "com.webank.wedatasphere",
+      "cn.webank.bdp.wedatasphere"
+    })
 @EnableDiscoveryClient
 @RefreshScope
 @EnableFeignClients
