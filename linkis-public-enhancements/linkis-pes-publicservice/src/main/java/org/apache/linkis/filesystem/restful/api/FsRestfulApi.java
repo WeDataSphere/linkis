@@ -787,6 +787,9 @@ public class FsRestfulApi {
             // 不执行字段屏蔽也不执行字段截取
             message.data("metadata", resultmap).data("fileContent", result.getSecond());
           }
+        } else {
+          // 不执行字段屏蔽也不执行字段截取
+          message.data("metadata", resultmap).data("fileContent", result.getSecond());
         }
         message.data("type", fileSource.getFileSplits()[0].type());
         message.data("totalLine", fileSource.getTotalLine());
