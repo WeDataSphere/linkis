@@ -388,15 +388,17 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
         ecResourceInfoService.getECResourceInfoRecordByInstance(
           engine.getServiceInstance.getInstance
         )
-      // 异步更新 metrics
-      AMUtils.updateMetricsAsync(
-        taskId,
-        engineNode.getTicketId,
-        engineNode.getServiceInstance,
-        engineNode.getEcmInstance,
-        engineNode.getLogDirSuffix,
-        isReuse = true
-      )
+      if (null != engineNode) {
+        // 异步更新 metrics
+        AMUtils.updateMetricsAsync(
+          taskId,
+          engineNode.getTicketId,
+          engineNode.getServiceInstance,
+          engineNode.getEcmInstance,
+          engineNode.getLogDirSuffix,
+          isReuse = true
+        )
+      }
     }
     engine
   }
