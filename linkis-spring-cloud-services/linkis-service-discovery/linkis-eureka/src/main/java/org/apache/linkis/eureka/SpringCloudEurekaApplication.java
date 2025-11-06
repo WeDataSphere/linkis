@@ -21,7 +21,12 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.netflix.eureka.server.EnableEurekaServer;
 
-@SpringBootApplication
+@SpringBootApplication(
+    scanBasePackages = {
+      "org.apache.linkis",
+      "com.webank.wedatasphere",
+      "cn.webank.bdp.wedatasphere"
+    })
 @EnableEurekaServer
 public class SpringCloudEurekaApplication {
 
