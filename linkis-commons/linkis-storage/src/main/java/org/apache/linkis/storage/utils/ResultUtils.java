@@ -336,6 +336,9 @@ public class ResultUtils {
       return oversizedFields;
     }
 
+    // 使用Set来存储已经检查过的超长字段名，避免重复检查
+    Set<String> detectedOversizedFields = new HashSet<>();
+
     // Iterate through data rows
     for (int rowIndex = 0; rowIndex < dataList.size(); rowIndex++) {
 
@@ -347,12 +350,20 @@ public class ResultUtils {
       // Check each field in the row
       for (int colIndex = 0; colIndex < row.size() && colIndex < metadata.size(); colIndex++) {
 
+        String fieldName = metadata.get(colIndex);
+
+        // 如果该字段已经被检测为超长字段，则跳过检查，提高效率
+        if (detectedOversizedFields.contains(fieldName)) {
+          continue;
+        }
+
         String fieldValue = row.get(colIndex);
         int fieldLength = getFieldLength(fieldValue);
 
         if (fieldLength > maxLength) {
-          String fieldName = metadata.get(colIndex);
           oversizedFields.add(new OversizedFieldInfo(fieldName, rowIndex, fieldLength, maxLength));
+          // 将超长字段名加入Set，避免重复检查
+          detectedOversizedFields.add(fieldName);
           LOGGER.info(
               "Detected oversized field: field={}, row={}, actualLength={}, maxLength={}",
               fieldName,
