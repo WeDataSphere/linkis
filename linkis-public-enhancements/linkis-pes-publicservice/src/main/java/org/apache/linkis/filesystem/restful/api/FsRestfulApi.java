@@ -661,6 +661,16 @@ public class FsRestfulApi {
 
     int[] columnIndices = null;
     FileSource fileSource = null;
+    String zh_msg = MessageFormat.format(
+            "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
+            LinkisStorageConf.LINKIS_RESULT_COL_LENGTH());
+    String en_msg = MessageFormat.format(
+            "There is a field value exceed {0} characters or col size exceed {1} in the result set. If you want to view it, please use the result set export function.",
+            LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
+            LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE());
+    String truncateColumn_msg = MessageFormat.format(
+            "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或确认截取展示数据内容",
+            LinkisStorageConf.LINKIS_RESULT_COL_LENGTH());
     try {
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
       if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) {
@@ -759,14 +769,9 @@ public class FsRestfulApi {
               // 检测到超长字段
               if (null == truncateColumn) {
                 message.data("oversizedFields", fieldTruncationResult.getOversizedFields());
-                message.data(
-                    "zh_msg",
-                    MessageFormat.format(
-                        "结果集存在字段值字符数超过{0}，请确认是否截取查询",
-                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
+                message.data("zh_msg",truncateColumn_msg);
                 return message;
               }
-
               boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
               if (truncateColumnSwitch) {
                 // 用户选择截取
@@ -782,17 +787,8 @@ public class FsRestfulApi {
                 // 用户未选择截取，提示用户
                 message.data("type", fileSource.getFileSplits()[0].type());
                 message.data("display_prohibited", true);
-                message.data(
-                    "zh_msg",
-                    MessageFormat.format(
-                        "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
-                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
-                message.data(
-                    "en_msg",
-                    MessageFormat.format(
-                        "There is a field value exceed {0} characters or col size exceed {1} in the result set. If you want to view it, please use the result set export function.",
-                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
-                        LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE()));
+                message.data("zh_msg", zh_msg);
+                message.data("en_msg", en_msg);
                 return message;
               }
             }
@@ -814,17 +810,8 @@ public class FsRestfulApi {
         LOGGER.info("Failed to open file {}", path, e);
         message.data("type", fileSource.getFileSplits()[0].type());
         message.data("display_prohibited", true);
-        message.data(
-            "zh_msg",
-            MessageFormat.format(
-                "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
-                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
-        message.data(
-            "en_msg",
-            MessageFormat.format(
-                "There is a field value exceed {0} characters or col size exceed {1} in the result set. If you want to view it, please use the result set export function.",
-                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
-                LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE()));
+        message.data("zh_msg", zh_msg);
+        message.data("en_msg", en_msg);
         return message;
       }
     } finally {
