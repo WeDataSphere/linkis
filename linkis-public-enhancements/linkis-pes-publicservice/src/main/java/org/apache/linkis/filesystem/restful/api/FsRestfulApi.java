@@ -645,7 +645,6 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80036, path);
     }
 
-
     String userName = ModuleUserUtils.getOperationUser(req, "openFile " + path);
     LoggerUtils.setJobIdMDC("openFileThread_" + userName);
     LOGGER.info("userName {} start to open File {}", userName, path);
@@ -761,10 +760,10 @@ public class FsRestfulApi {
               if (null == truncateColumn) {
                 message.data("oversizedFields", fieldTruncationResult.getOversizedFields());
                 message.data(
-                        "zh_msg",
-                        MessageFormat.format(
-                                "结果集存在字段值字符数超过{0}，请确认是否截取查询",
-                                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
+                    "zh_msg",
+                    MessageFormat.format(
+                        "结果集存在字段值字符数超过{0}，请确认是否截取查询",
+                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
                 return message;
               }
 
@@ -776,7 +775,7 @@ public class FsRestfulApi {
                         filteredMetadata,
                         filteredContent,
                         LinkisStorageConf.FIELD_VIEW_MAX_LENGTH(),
-                            truncateColumnSwitch);
+                        truncateColumnSwitch);
                 filteredContent = truncationResult.getData();
 
               } else {
@@ -784,16 +783,16 @@ public class FsRestfulApi {
                 message.data("type", fileSource.getFileSplits()[0].type());
                 message.data("display_prohibited", true);
                 message.data(
-                        "zh_msg",
-                        MessageFormat.format(
-                                "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
-                                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
+                    "zh_msg",
+                    MessageFormat.format(
+                        "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或使用字符串截取函数（substring、substr）截取相关字符即可前端展示数据内容",
+                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH()));
                 message.data(
-                        "en_msg",
-                        MessageFormat.format(
-                                "There is a field value exceed {0} characters or col size exceed {1} in the result set. If you want to view it, please use the result set export function.",
-                                LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
-                                LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE()));
+                    "en_msg",
+                    MessageFormat.format(
+                        "There is a field value exceed {0} characters or col size exceed {1} in the result set. If you want to view it, please use the result set export function.",
+                        LinkisStorageConf.LINKIS_RESULT_COL_LENGTH(),
+                        LinkisStorageConf.LINKIS_RESULT_COLUMN_SIZE()));
                 return message;
               }
             }
@@ -1055,11 +1054,14 @@ public class FsRestfulApi {
           && outputFileType.equals("xlsx")) {
         // 同时执行字段屏蔽和字段截取
         ResultUtils.applyFieldMaskingAndTruncation(
-            maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
+            maskedFieldNames,
+            fsWriter,
+            fileSource,
+            LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
       } else if (StringUtils.isNotBlank(maskedFieldNames)) {
         // 只执行字段屏蔽
         ResultUtils.dealMaskedField(maskedFieldNames, fsWriter, fileSource);
-      } else if (FIELD_TRUNCATION_ENABLED.getValue()&&outputFileType.equals("xlsx")) {
+      } else if (FIELD_TRUNCATION_ENABLED.getValue() && outputFileType.equals("xlsx")) {
         // 只执行字段截取
         ResultUtils.detectAndHandle(
             fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH());
@@ -1178,8 +1180,7 @@ public class FsRestfulApi {
         fileSource = fileSource.page(1, excelDownloadSize);
       }
       // 如果同时提供了字段屏蔽和字段截取参数，则先执行字段屏蔽，再执行字段截取
-      if (StringUtils.isNotBlank(maskedFieldNames)
-          && FIELD_TRUNCATION_ENABLED.getValue()) {
+      if (StringUtils.isNotBlank(maskedFieldNames) && FIELD_TRUNCATION_ENABLED.getValue()) {
         // 同时执行字段屏蔽和字段截取
         ResultUtils.applyFieldMaskingAndTruncation(
             maskedFieldNames, fsWriter, fileSource, LinkisStorageConf.FIELD_EXPORT_MAX_LENGTH());
