@@ -306,7 +306,7 @@ public class ResultUtils {
         oversizedFieldNames.forEach(joiner::add);
         String note =
             MessageFormat.format(
-                "结果集字段字符数超过{0}，以下字段将会被截取{1}",
+                "结果集存在字段值超过{0}字符，无法全量下载，以下字段截取前{0}字符展示：{1}",
                 LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH(), joiner);
         fsWriter.addMetaDataWithNote(tableMetaData, note);
       }
@@ -517,7 +517,7 @@ public class ResultUtils {
         oversizedFieldNames.forEach(joiner::add);
         String note =
             MessageFormat.format(
-                "结果集字段字符数超过{0}，以下字段将会被截取{1}",
+                "结果集存在字段值超过{0}字符，无法全量下载，以下字段截取前{0}字符展示：{1}",
                 LinkisStorageConf.FIELD_EXPORT_DOWNLOAD_LENGTH(), joiner);
         fsWriter.addMetaDataWithNote(tableMetaData, note);
       }
