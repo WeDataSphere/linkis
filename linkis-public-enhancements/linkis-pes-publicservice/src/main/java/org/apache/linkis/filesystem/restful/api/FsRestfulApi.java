@@ -674,6 +674,10 @@ public class FsRestfulApi {
         MessageFormat.format(
             "结果集存在字段值字符数超过{0}，如需查看全部数据请导出文件或确认截取展示数据内容",
             LinkisStorageConf.LINKIS_RESULT_COL_LENGTH());
+    String truncateColumn_en_msg =
+            MessageFormat.format(
+                    "The result set contains field values exceeding {0} characters. To view the full data, please export the file or confirm the displayed content is truncated",
+                    LinkisStorageConf.LINKIS_RESULT_COL_LENGTH());
     try {
       fileSource = FileSource$.MODULE$.create(fsPath, fileSystem);
       if (nullValue != null && BLANK.equalsIgnoreCase(nullValue)) {
@@ -773,6 +777,7 @@ public class FsRestfulApi {
               if (null == truncateColumn) {
                 message.data("oversizedFields", fieldTruncationResult.getOversizedFields());
                 message.data("zh_msg", truncateColumn_msg);
+                message.data("en_msg", truncateColumn_en_msg);
                 return message;
               }
               boolean truncateColumnSwitch = Boolean.parseBoolean(truncateColumn);
