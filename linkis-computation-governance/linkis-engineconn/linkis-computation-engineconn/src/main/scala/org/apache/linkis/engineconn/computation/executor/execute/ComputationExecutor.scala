@@ -91,13 +91,9 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
 
   protected var lastTask: EngineConnTask = _
 
-  private val MAX_TASK_EXECUTE_NUM = if (null != EngineConnObject.getEngineCreationContext) {
-    ComputationExecutorConf.ENGINE_MAX_TASK_EXECUTE_NUM.getValue(
-      EngineConnObject.getEngineCreationContext.getOptions
-    )
-  } else {
-    ComputationExecutorConf.ENGINE_MAX_TASK_EXECUTE_NUM.getValue
-  }
+  private val MAX_TASK_EXECUTE_NUM = ComputationExecutorConf.ENGINE_MAX_TASK_EXECUTE_NUM.getValue(
+    EngineConnObject.getEngineCreationContext.getOptions
+  )
 
   private val CLOSE_LOCKER = new Object
 

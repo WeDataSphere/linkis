@@ -18,7 +18,6 @@
 package org.apache.linkis.ujes.client
 
 import org.apache.commons.io.IOUtils
-import org.apache.linkis.common.conf.{CommonVars, Configuration}
 import org.apache.linkis.httpclient.dws.authentication.{StaticAuthenticationStrategy, TokenAuthenticationStrategy}
 import org.apache.linkis.httpclient.dws.config.{DWSClientConfig, DWSClientConfigBuilder}
 import org.apache.linkis.ujes.client.request.{EmsListAction, JobExecuteAction, JobObserveAction, ResultSetAction}
@@ -28,8 +27,6 @@ import java.util.concurrent.TimeUnit
 
 @Deprecated
 object JobObserveActionTest extends App {
-
-  val bmlToken = CommonVars("wds.linkis.bml.auth.token.value", Configuration.LINKIS_TOKEN.getValue).getValue
 
   val clientConfig = DWSClientConfigBuilder.newBuilder()
     .addServerUrl("127.0.0.1:9001") // Change to test gateway address
@@ -41,8 +38,8 @@ object JobObserveActionTest extends App {
     .retryEnabled(false)
     .readTimeout(30000)
     .setAuthenticationStrategy(new TokenAuthenticationStrategy())
-    .setAuthTokenKey("Validation-Code")
-    .setAuthTokenValue(bmlToken)
+    .setAuthTokenKey("BML-AUTH")
+    .setAuthTokenValue("BML-AUTH")
     .setDWSVersion("v1")
     .build()
   val client = new UJESClientImpl(clientConfig)

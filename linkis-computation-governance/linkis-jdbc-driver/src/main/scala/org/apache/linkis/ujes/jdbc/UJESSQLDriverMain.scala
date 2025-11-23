@@ -38,12 +38,7 @@ class UJESSQLDriverMain extends Driver with Logging {
 
   override def connect(url: String, properties: Properties): Connection = if (acceptsURL(url)) {
     val props = if (properties != null) properties else new Properties
-    // The putting is performed iteratively in order to avoid this error (Java > 8):
-    // [error] both method putAll in class Properties of type (x$1: java.util.Map[_, _])Unit
-    // [error] and  method putAll in class Hashtable of type (x$1: java.util.Map[_ <: Object, _ <: Object])Unit
-    parseURL(url).asScala.foreach { case (key, value) =>
-      props.put(key, value)
-    }
+    props.putAll(parseURL(url))
     logger.info(s"input url:$url, properties:$properties")
     val ujesClient = UJESClientFactory.getUJESClient(props)
     new LinkisSQLConnection(ujesClient, props)
@@ -105,12 +100,7 @@ class UJESSQLDriverMain extends Driver with Logging {
 
   override def getPropertyInfo(url: String, info: Properties): Array[DriverPropertyInfo] = {
     val props = if (info != null) info else new Properties
-    // The putting is performed iteratively in order to avoid this error (Java > 8):
-    // [error] both method putAll in class Properties of type (x$1: java.util.Map[_, _])Unit
-    // [error] and  method putAll in class Hashtable of type (x$1: java.util.Map[_ <: Object, _ <: Object])Unit
-    parseURL(url).asScala.foreach { case (key, value) =>
-      props.put(key, value)
-    }
+    props.putAll(parseURL(url))
     val hostProp = new DriverPropertyInfo(HOST, props.getProperty(HOST))
     hostProp.required = true
     val portProp = new DriverPropertyInfo(PORT, props.getProperty(PORT))
