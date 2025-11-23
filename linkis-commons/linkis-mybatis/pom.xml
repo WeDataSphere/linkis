@@ -33,10 +33,10 @@
       <artifactId>linkis-module</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>com.baomidou</groupId>
       <artifactId>mybatis-plus-boot-starter</artifactId>
+      <version>${mybatis-plus.boot.starter.version}</version>
       <exclusions>
         <exclusion>
           <groupId>org.springframework.boot</groupId>

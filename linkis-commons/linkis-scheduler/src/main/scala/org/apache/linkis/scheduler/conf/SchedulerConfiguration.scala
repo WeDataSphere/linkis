@@ -21,9 +21,6 @@ import org.apache.linkis.common.conf.{CommonVars, TimeType}
 
 object SchedulerConfiguration {
 
-  val PFIFO_SCHEDULER_STRATEGY = "pfifo"
-  val FIFO_SCHEDULER_STRATEGY = "fifo"
-
   val FIFO_CONSUMER_AUTO_CLEAR_ENABLED =
     CommonVars("wds.linkis.fifo.consumer.auto.clear.enabled", true)
 
@@ -41,7 +38,7 @@ object SchedulerConfiguration {
 
   // support fifo pfifo
   val FIFO_QUEUE_STRATEGY =
-    CommonVars("linkis.fifo.queue.strategy", FIFO_SCHEDULER_STRATEGY).getValue
+    CommonVars("linkis.fifo.queue.strategy", "fifo").getValue
 
   val SUPPORT_PRIORITY_TASK_USERS =
     CommonVars("linkis.fifo.queue.support.priority.users", "").getValue
@@ -54,4 +51,6 @@ object SchedulerConfiguration {
 
   val ENGINE_PRIORITY_RUNTIME_KEY = "wds.linkis.engine.runtime.priority"
 
+  val PFIFO_SCHEDULER_STRATEGY = "pfifo"
+  val FIFO_SCHEDULER_STRATEGY = "fifo"
 }

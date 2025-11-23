@@ -15,26 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.common.utils
+package org.apache.linkis.protocol
 
-object ParameterUtils {
+trait IRServiceGroupProtocol extends IRProtocol with InstanceProtocol {
+  val userWithCreator: UserWithCreator
 
-  private val startupConfRegex =
-    """--([a-z]+)-conf\s+(\S+)=([^=]+?)(?=\s*(?:--engineconn-conf|--spring-conf|$))""".r
-
-  def parseStartupParams(args: Array[String], handler: (String, String, String) => Unit): Unit = {
-    val argString = args.mkString(" ")
-    startupConfRegex.findAllMatchIn(argString).foreach { m =>
-      val prefix = m.group(1).trim
-      val key = m.group(2).trim
-      val value = m.group(3).trim
-      prefix match {
-        case "engineconn" | "spring" =>
-          handler(prefix, key, value)
-        case _ =>
-          throw new IllegalArgumentException(s"illegal command line, $prefix cannot recognize.")
-      }
-    }
-  }
-
+  def user: String = userWithCreator.user
+  def creator: String = userWithCreator.creator
 }
+
+case class UserWithCreator(user: String, creator: String)

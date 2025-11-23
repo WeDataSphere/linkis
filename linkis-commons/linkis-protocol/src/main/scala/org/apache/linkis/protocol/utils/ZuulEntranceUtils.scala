@@ -23,7 +23,7 @@ object ZuulEntranceUtils {
 
   private val INSTANCE_SPLIT_TOKEN = "_"
 
-  val EXEC_ID = "exec_id"
+  private val EXEC_ID = "exec_id"
 
   private val SPLIT_LEN = 3
 

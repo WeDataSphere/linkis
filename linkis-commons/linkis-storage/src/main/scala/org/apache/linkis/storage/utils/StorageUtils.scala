@@ -37,15 +37,9 @@ object StorageUtils extends Logging {
 
   val HDFS = "hdfs"
   val FILE = "file"
-  val OSS = "oss"
-  val S3 = "s3"
-  val BLOB = "https"
 
   val FILE_SCHEMA = "file://"
   val HDFS_SCHEMA = "hdfs://"
-  val OSS_SCHEMA = "oss://"
-  val S3_SCHEMA = "s3://"
-  val BLOB_SCHEMA = "https://"
 
   private val nf = NumberFormat.getInstance()
   nf.setGroupingUsed(false)
@@ -204,9 +198,7 @@ object StorageUtils extends Logging {
    * @return
    */
   def getFsPath(path: String): FsPath = {
-    if (
-        path.startsWith(FILE_SCHEMA) || path.startsWith(HDFS_SCHEMA) || path.startsWith(BLOB_SCHEMA)
-    ) new FsPath(path)
+    if (path.startsWith(FILE_SCHEMA) || path.startsWith(HDFS_SCHEMA)) new FsPath(path)
     else {
       new FsPath(FILE_SCHEMA + path)
     }

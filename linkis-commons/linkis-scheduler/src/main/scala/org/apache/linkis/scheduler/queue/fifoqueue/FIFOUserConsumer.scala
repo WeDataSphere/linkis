@@ -28,7 +28,6 @@ import org.apache.linkis.scheduler.executer.Executor
 import org.apache.linkis.scheduler.future.{BDPFuture, BDPFutureTask}
 import org.apache.linkis.scheduler.queue._
 
-import java.util
 import java.util.concurrent.{ExecutorService, Future}
 
 import scala.beans.BeanProperty
@@ -125,10 +124,9 @@ class FIFOUserConsumer(
     }
     var event: Option[SchedulerEvent] = getWaitForRetryEvent
     if (event.isEmpty) {
-      val maxAllowRunningJobs = fifoGroup.getMaxAllowRunningJobs
-      val currentRunningJobs = runningJobs.count(e => e != null && !e.isCompleted)
-      if (maxAllowRunningJobs <= currentRunningJobs) {
-        Utils.tryQuietly(Thread.sleep(1000)) // TODO 还可以优化，通过实现JobListener进行优化
+      val completedNums = runningJobs.filter(job => job == null || job.isCompleted)
+      if (completedNums.length < 1) {
+        Utils.tryQuietly(Thread.sleep(1000))
         return
       }
       while (event.isEmpty) {
@@ -151,6 +149,7 @@ class FIFOUserConsumer(
           } else getWaitForRetryEvent
       }
     }
+
     event.foreach { case job: Job =>
       logger.info(s"event not empty ${job.getState}  id: ${job.getId()}")
       Utils.tryCatch {
@@ -213,19 +212,6 @@ class FIFOUserConsumer(
   private def putToRunningJobs(job: Job): Unit = {
     val index = runningJobs.indexWhere(f => f == null || f.isCompleted)
     runningJobs(index) = job
-  }
-
-  protected def scanAllRetryJobsAndRemove(): util.List[Job] = {
-    val jobs = new util.ArrayList[Job]()
-    for (index <- runningJobs.indices) {
-      val job = runningJobs(index)
-      if (job != null && job.isJobCanRetry) {
-        jobs.add(job)
-        runningJobs(index) = null
-        logger.info(s"Job $job can retry, remove from runningJobs")
-      }
-    }
-    jobs
   }
 
   override def shutdown(): Unit = {

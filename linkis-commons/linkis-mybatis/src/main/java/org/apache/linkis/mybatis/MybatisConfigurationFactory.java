@@ -129,14 +129,12 @@ public class MybatisConfigurationFactory {
   @Bean
   public PageInterceptor pageInterceptor() {
     PageInterceptor pageInterceptor = new PageInterceptor();
-    String pagehelperDialect =
-        MybatisConfiguration.BDP_SERVER_MYBATIS_PAGEHELPER_DIALECT.getValue();
     Properties p = new Properties();
     //        p.setProperty("offsetAsPageNum", "true");
     //        p.setProperty("rowBoundsWithCount", "true");
     p.setProperty("reasonable", "true");
     p.setProperty("pageSizeZero", "true");
-    p.setProperty("helperDialect", pagehelperDialect);
+    p.setProperty("helperDialect", "mysql");
     pageInterceptor.setProperties(p);
     return pageInterceptor;
   }

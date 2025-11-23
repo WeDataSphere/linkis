@@ -50,7 +50,6 @@ abstract class AbstractRPCServerLoader extends RPCServerLoader with Logging {
       refreshed: => Boolean,
       serviceInstance: ServiceInstance
   ): Unit = {
-
     val instanceNotExists = new NoInstanceExistsException(
       APPLICATION_IS_NOT_EXISTS.getErrorCode,
       MessageFormat.format(

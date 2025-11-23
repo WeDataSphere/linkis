@@ -213,7 +213,7 @@ public class HDFSFileSystem extends FileSystem {
     if (fs == null) {
       throw new IOException("init HDFS FileSystem failed!");
     }
-    if (StorageConfiguration.FS_CHECKSUM_DISBALE()) {
+    if (StorageConfiguration.FS_CHECKSUM_DISBALE().getValue()) {
       fs.setVerifyChecksum(false);
       fs.setWriteChecksum(false);
     }
@@ -337,7 +337,7 @@ public class HDFSFileSystem extends FileSystem {
   private void resetRootHdfs() {
     if (fs != null) {
       String locker = user + LOCKER_SUFFIX;
-      synchronized (locker.intern()) {
+      synchronized (locker.intern()) { // NOSONAR
         if (fs != null) {
           if (HadoopConf.HDFS_ENABLE_CACHE()) {
             long currentTime = System.currentTimeMillis();
