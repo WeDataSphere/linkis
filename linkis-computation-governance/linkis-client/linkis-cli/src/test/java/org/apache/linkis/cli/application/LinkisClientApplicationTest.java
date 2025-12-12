@@ -28,15 +28,23 @@ public class LinkisClientApplicationTest {
 
   String[] cmdStr;
   String[] cmdStr2;
+  String[] cmdStr3;
 
   @BeforeEach
   public void before() {
     System.setProperty("conf.root", "src/test/resources/conf/");
     System.setProperty("user.name", "hadoop");
+    cmdStr3 = new String[] {"--version"};
     cmdStr2 =
         new String[] {
           "--gatewayUrl",
           "http://127.0.0.1:9001",
+          "--authStg",
+          "token",
+          "--authKey",
+          "Validation-Code",
+          "--authVal",
+          "BML-AUTH",
           "--status",
           //                    "--log",
           //          "--kill",
@@ -55,6 +63,12 @@ public class LinkisClientApplicationTest {
         new String[] {
           "--gatewayUrl",
           "http://127.0.0.1:9001",
+          "--authStg",
+          "token",
+          "--authKey",
+          "Validation-Code",
+          "--authVal",
+          "BML-AUTH",
           //                "--help",
           //                "--kill", "8249",
           //                "--status", "379",
@@ -163,7 +177,7 @@ public class LinkisClientApplicationTest {
   @Test
   public void testExec() {
     //    LinkisClientApplication.main(cmdStr);
-    //    LinkisClientApplication.main(cmdStr);
+    LinkisClientApplication.main(cmdStr3);
     //    LinkisClientApplication.main(cmdStr2);
     /*
     try {

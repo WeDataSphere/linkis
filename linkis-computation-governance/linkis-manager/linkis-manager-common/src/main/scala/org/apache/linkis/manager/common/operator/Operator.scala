@@ -32,7 +32,7 @@ trait Operator {
       case v => throw new GovernanceErrorException(20305, s"Unknown $v for key $key.")
     }
 
-  protected def getAsThrow[T](key: String, parameters: Map[String, Any]): T =
+  protected def getAsThrow[T](key: String)(implicit parameters: Map[String, Any]): T =
     parameters.get(key) match {
       case Some(t: T) => t
       case Some(t: Any) =>

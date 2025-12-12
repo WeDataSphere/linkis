@@ -29,13 +29,13 @@ class HotspotExclusionRuleTest {
   @Test def testRuleFiltering(): Unit = {
     val hotspotExclusionRule = new HotspotExclusionRule()
     val bufferNodes = new ArrayBuffer[AMEMNode]()
-    for (i <- 0 until 1) {
+    for (i <- 0 until 3) {
       val amEmNode = new AMEMNode();
       amEmNode.setServiceInstance(ServiceInstance("ecm", s"ecm:$i"))
       bufferNodes.append(amEmNode)
     }
     val res = hotspotExclusionRule.ruleFiltering(bufferNodes.toArray)
-    for (i <- 0 until 1) {
+    for (i <- 0 until 3) {
       assert(res(i).getServiceInstance.equals(bufferNodes(i).getServiceInstance))
     }
   }

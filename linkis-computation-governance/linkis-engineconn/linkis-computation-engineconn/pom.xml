@@ -72,10 +72,6 @@
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
-          <groupId>org.reflections</groupId>
-          <artifactId>reflections</artifactId>
-        </exclusion>
-        <exclusion>
           <groupId>org.apache.httpcomponents</groupId>
           <artifactId>httpclient</artifactId>
         </exclusion>

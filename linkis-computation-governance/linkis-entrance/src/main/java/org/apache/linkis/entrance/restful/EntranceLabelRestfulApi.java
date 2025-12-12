@@ -20,8 +20,6 @@ package org.apache.linkis.entrance.restful;
 import org.apache.linkis.DataWorkCloudApplication;
 import org.apache.linkis.common.ServiceInstance;
 import org.apache.linkis.common.conf.Configuration;
-import org.apache.linkis.entrance.EntranceServer;
-import org.apache.linkis.entrance.scheduler.EntranceSchedulerContext;
 import org.apache.linkis.instance.label.client.InstanceLabelClient;
 import org.apache.linkis.manager.label.constant.LabelKeyConstant;
 import org.apache.linkis.manager.label.constant.LabelValueConstant;
@@ -29,13 +27,11 @@ import org.apache.linkis.manager.label.entity.Label;
 import org.apache.linkis.protocol.label.InsLabelRefreshRequest;
 import org.apache.linkis.protocol.label.InsLabelRemoveRequest;
 import org.apache.linkis.rpc.Sender;
-import org.apache.linkis.scheduler.SchedulerContext;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
 import org.apache.commons.collections.CollectionUtils;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,12 +53,6 @@ import org.slf4j.LoggerFactory;
 public class EntranceLabelRestfulApi {
 
   private static final Logger logger = LoggerFactory.getLogger(EntranceLabelRestfulApi.class);
-  private EntranceServer entranceServer;
-
-  @Autowired
-  public void setEntranceServer(EntranceServer entranceServer) {
-    this.entranceServer = entranceServer;
-  }
 
   private static Boolean offlineFlag = false;
 
@@ -97,20 +87,10 @@ public class EntranceLabelRestfulApi {
     insLabelRefreshRequest.setLabels(labels);
     insLabelRefreshRequest.setServiceInstance(Sender.getThisServiceInstance());
     InstanceLabelClient.getInstance().refreshLabelsToInstance(insLabelRefreshRequest);
-    synchronized (offlineFlag) {
+    synchronized (offlineFlag) { // NOSONAR
       offlineFlag = true;
     }
     logger.info("Finished to modify the routelabel of entry to offline");
-
-    logger.info("Prepare to update all not execution task instances to empty string");
-    SchedulerContext schedulerContext =
-        entranceServer.getEntranceContext().getOrCreateScheduler().getSchedulerContext();
-    if (schedulerContext instanceof EntranceSchedulerContext) {
-      ((EntranceSchedulerContext) schedulerContext).setOfflineFlag(true);
-    }
-    entranceServer.updateAllNotExecutionTaskInstances(true);
-    logger.info("Finished to update all not execution task instances to empty string");
-
     return Message.ok();
   }
 
@@ -125,7 +105,7 @@ public class EntranceLabelRestfulApi {
     InsLabelRemoveRequest insLabelRemoveRequest = new InsLabelRemoveRequest();
     insLabelRemoveRequest.setServiceInstance(Sender.getThisServiceInstance());
     InstanceLabelClient.getInstance().removeLabelsFromInstance(insLabelRemoveRequest);
-    synchronized (offlineFlag) {
+    synchronized (offlineFlag) { // NOSONAR
       offlineFlag = false;
     }
     logger.info("Finished to backonline");

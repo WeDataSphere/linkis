@@ -92,9 +92,7 @@ abstract class AbstractEngineConnLaunchService extends EngineConnLaunchService w
         case pro: ProcessEngineConnLaunch =>
           val serviceInstance = ServiceInstance(
             GovernanceCommonConf.ENGINE_CONN_SPRING_NAME.getValue,
-            ECMUtils.getInstanceByPort(pro.getEngineConnPort),
-            pro.getMappingPorts,
-            pro.getMappingHost
+            ECMUtils.getInstanceByPort(pro.getEngineConnPort)
           )
           conn.setServiceInstance(serviceInstance)
         case _ =>

@@ -80,10 +80,6 @@ public class AMEngineNodeVo {
 
   private String engineType;
 
-  private String mappingPorts;
-
-  private String mappingHost;
-
   public String getEmInstance() {
     return emInstance;
   }
@@ -291,21 +287,5 @@ public class AMEngineNodeVo {
 
   public void setEngineType(String engineType) {
     this.engineType = engineType;
-  }
-
-  public String getMappingPorts() {
-    return mappingPorts;
-  }
-
-  public void setMappingPorts(String mappingPorts) {
-    this.mappingPorts = mappingPorts;
-  }
-
-  public String getMappingHost() {
-    return mappingHost;
-  }
-
-  public void setMappingHost(String mappingHost) {
-    this.mappingHost = mappingHost;
   }
 }
