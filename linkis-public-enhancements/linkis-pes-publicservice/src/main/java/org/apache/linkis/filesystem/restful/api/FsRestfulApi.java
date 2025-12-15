@@ -1428,7 +1428,7 @@ public class FsRestfulApi {
     @ApiImplicitParam(
         name = "logLevel",
         dataType = "String",
-        value = "日志级别，取值为 all,info,error,warn，缺省返回全部日志")
+        value = "Log level, values: all,info,error,warn, default returns all logs")
   })
   @RequestMapping(path = "/openLog", method = RequestMethod.GET)
   public Message openLog(
@@ -1458,7 +1458,7 @@ public class FsRestfulApi {
         > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
       throw WorkspaceExceptionManager.createException(80033, path);
     }
-    // 解析日志级别
+    // Parse log level
     LogLevel.Type targetLevel = LogLevel.Type.ALL;
     try {
       targetLevel = LogLevel.Type.valueOf(logLevel.toUpperCase());
