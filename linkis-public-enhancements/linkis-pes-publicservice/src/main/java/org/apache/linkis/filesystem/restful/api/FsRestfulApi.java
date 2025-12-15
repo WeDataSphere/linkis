@@ -1424,20 +1424,25 @@ public class FsRestfulApi {
   @ApiOperation(value = "openLog", notes = "open log", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "path", required = false, dataType = "String", value = "path"),
-    @ApiImplicitParam(name = "proxyUser", dataType = "String")
+    @ApiImplicitParam(name = "proxyUser", dataType = "String"),
+    @ApiImplicitParam(
+        name = "logLevel",
+        dataType = "String",
+        value = "日志级别，取值为 all,info,error,warn，缺省返回全部日志")
   })
   @RequestMapping(path = "/openLog", method = RequestMethod.GET)
   public Message openLog(
       HttpServletRequest req,
       @RequestParam(value = "path", required = false) String path,
-      @RequestParam(value = "proxyUser", required = false) String proxyUser)
+      @RequestParam(value = "proxyUser", required = false) String proxyUser,
+      @RequestParam(value = "logLevel", required = false, defaultValue = "all") String logLevel)
       throws IOException, WorkSpaceException {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
     String userName = ModuleUserUtils.getOperationUser(req, "openLog " + path);
     LoggerUtils.setJobIdMDC("openLogThread_" + userName);
-    LOGGER.info("userName {} start to openLog File {}", userName, path);
+    LOGGER.info("userName {} start to openLog File {}, logLevel: {}", userName, path, logLevel);
     if (proxyUser != null && Configuration.isJobHistoryAdmin(userName)) {
       userName = proxyUser;
     }
@@ -1453,6 +1458,13 @@ public class FsRestfulApi {
         > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
       throw WorkspaceExceptionManager.createException(80033, path);
     }
+    // 解析日志级别
+    LogLevel.Type targetLevel = LogLevel.Type.ALL;
+    try {
+      targetLevel = LogLevel.Type.valueOf(logLevel.toUpperCase());
+    } catch (IllegalArgumentException e) {
+      LOGGER.warn("Invalid logLevel: {}, use default level: ALL", logLevel);
+    }
     try (FileSource fileSource =
         FileSource$.MODULE$.create(fsPath, fileSystem).addParams("ifMerge", "false")) {
       Pair<Object, ArrayList<String[]>> collect = fileSource.collect()[0];
@@ -1465,7 +1477,19 @@ public class FsRestfulApi {
       snd.stream()
           .map(f -> f[0])
           .forEach(
-              s -> WorkspaceUtil.logMatch(s, start).forEach(i -> log[i].append(s).append("\n")));
+              s -> {
+                List<Integer> matchedIndices = WorkspaceUtil.logMatch(s, start);
+                if (targetLevel == LogLevel.Type.ALL) {
+                  // 返回所有日志
+                  matchedIndices.forEach(i -> log[i].append(s).append("\n"));
+                } else {
+                  // 只返回目标级别的日志
+                  int targetIndex = targetLevel.ordinal();
+                  if (matchedIndices.contains(targetIndex)) {
+                    log[targetIndex].append(s).append("\n");
+                  }
+                }
+              });
       LOGGER.info("userName {} Finished to openLog File {}", userName, path);
       LoggerUtils.removeJobIdMDC();
       return Message.ok()
