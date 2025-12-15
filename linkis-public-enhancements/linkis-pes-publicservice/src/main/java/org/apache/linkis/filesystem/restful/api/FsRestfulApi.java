@@ -1474,17 +1474,18 @@ public class FsRestfulApi {
               .toArray(StringBuilder[]::new);
       ArrayList<String[]> snd = collect.getSecond();
       LogLevel start = new LogLevel(LogLevel.Type.ALL);
+      LogLevel.Type finalTargetLevel = targetLevel;
       snd.stream()
           .map(f -> f[0])
           .forEach(
               s -> {
                 List<Integer> matchedIndices = WorkspaceUtil.logMatch(s, start);
-                if (targetLevel == LogLevel.Type.ALL) {
+                if (finalTargetLevel == LogLevel.Type.ALL) {
                   // 返回所有日志
                   matchedIndices.forEach(i -> log[i].append(s).append("\n"));
                 } else {
                   // 只返回目标级别的日志
-                  int targetIndex = targetLevel.ordinal();
+                  int targetIndex = finalTargetLevel.ordinal();
                   if (matchedIndices.contains(targetIndex)) {
                     log[targetIndex].append(s).append("\n");
                   }
