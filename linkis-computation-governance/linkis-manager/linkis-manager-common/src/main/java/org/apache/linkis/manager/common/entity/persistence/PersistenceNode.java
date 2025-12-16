@@ -37,6 +37,9 @@ public class PersistenceNode {
   private String creator;
   private String params;
 
+  private String mappingPorts;
+  private String mappingHost;
+
   public String getMark() {
     return mark;
   }
@@ -123,6 +126,22 @@ public class PersistenceNode {
 
   public void setCreator(String creator) {
     this.creator = creator;
+  }
+
+  public String getMappingPorts() {
+    return mappingPorts;
+  }
+
+  public void setMappingPorts(String mappingPorts) {
+    this.mappingPorts = mappingPorts;
+  }
+
+  public String getMappingHost() {
+    return mappingHost;
+  }
+
+  public void setMappingHost(String mappingHost) {
+    this.mappingHost = mappingHost;
   }
 
   public void setId(int id) {

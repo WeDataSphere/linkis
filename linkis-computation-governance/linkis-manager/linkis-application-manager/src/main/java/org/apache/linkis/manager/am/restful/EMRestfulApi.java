@@ -587,7 +587,7 @@ public class EMRestfulApi {
     @ApiImplicitParam(
         name = "serviceInstance",
         dataType = "String",
-        example = "gz.bdz.bdplxxxxx.webank:9102"),
+        example = "hostname.apache:9102"),
     @ApiImplicitParam(name = "username", dataType = "String", example = "hadoop")
   })
   @RequestMapping(path = "/reset-resource", method = RequestMethod.GET)

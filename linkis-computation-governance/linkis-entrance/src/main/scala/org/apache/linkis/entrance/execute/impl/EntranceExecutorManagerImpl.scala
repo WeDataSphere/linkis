@@ -25,5 +25,13 @@ import org.apache.linkis.scheduler.queue.GroupFactory
 class EntranceExecutorManagerImpl(groupFactory: GroupFactory)
     extends EntranceExecutorManager(groupFactory) {
 
+  override def getOrCreateInterceptors(): Array[ExecuteRequestInterceptor] = Array(
+    JobExecuteRequestInterceptor,
+    LabelExecuteRequestInterceptor,
+    ReconnectExecuteRequestInterceptor,
+    StorePathExecuteRequestInterceptor,
+    RuntimePropertiesExecuteRequestInterceptor
+  )
+
   override def setExecutorListener(engineListener: ExecutorListener): Unit = {}
 }

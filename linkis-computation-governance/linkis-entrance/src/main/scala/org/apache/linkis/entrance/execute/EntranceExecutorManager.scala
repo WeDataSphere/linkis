@@ -18,6 +18,7 @@
 package org.apache.linkis.entrance.execute
 
 import org.apache.linkis.common.exception.WarnException
+import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
@@ -37,6 +38,8 @@ abstract class EntranceExecutorManager(groupFactory: GroupFactory)
     with Logging {
 
   private val idGenerator = new AtomicLong(0)
+
+  def getOrCreateInterceptors(): Array[ExecuteRequestInterceptor]
 
   override def delete(executor: Executor): Unit = {
     if (null != executor) {
@@ -89,15 +92,30 @@ abstract class EntranceExecutorManager(groupFactory: GroupFactory)
         job.getJobRequest match {
           case jobReq: JobRequest =>
             val entranceEntranceExecutor =
-              if (EntranceConfiguration.LINKIS_ENTRANCE_SKIP_ORCHESTRATOR) {
-                new SimpleEntranceExecutor(
-                  jobReq.getId,
-                  SimpleExecuteBusContext.getOrchestratorListenerBusContext()
-                )
-              } else {
-                new DefaultEntranceExecutor(jobReq.getId)
-              }
+              new DefaultEntranceExecutor(jobReq.getId)
+            if (EntranceConfiguration.LINKIS_ENTRANCE_SKIP_ORCHESTRATOR) {
+              new SimpleEntranceExecutor(
+                jobReq.getId,
+                SimpleExecuteBusContext.getOrchestratorListenerBusContext()
+              )
+            } else {
+              new DefaultEntranceExecutor(jobReq.getId)
+            }
+            // getEngineConn Executor
+            job.getLogListener.foreach(
+              _.onLogUpdate(
+                job,
+                LogUtils.generateInfo("Your job is being scheduled by orchestrator.")
+              )
+            )
             jobReq.setUpdatedTime(new Date(System.currentTimeMillis()))
+
+            /**
+             * // val engineConnExecutor = engineConnManager.getAvailableEngineConnExecutor(mark)
+             * idToEngines.put(entranceEntranceExecutor.getId, entranceEntranceExecutor)
+             */
+//          instanceToEngines.put(engineConnExecutor.getServiceInstance.getInstance, entranceEntranceExecutor) // todo
+//          entranceEntranceExecutor.setInterceptors(getOrCreateInterceptors()) // todo
             entranceEntranceExecutor
           case _ =>
             throw new EntranceErrorException(

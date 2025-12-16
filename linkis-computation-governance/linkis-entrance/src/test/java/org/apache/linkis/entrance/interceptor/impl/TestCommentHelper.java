@@ -22,8 +22,6 @@ import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.util.StringUtils;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 public class TestCommentHelper {
   String sqlCode =
       ""
