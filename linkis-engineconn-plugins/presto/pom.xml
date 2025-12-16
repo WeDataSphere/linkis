@@ -26,6 +26,10 @@
 
   <artifactId>linkis-engineplugin-presto</artifactId>
 
+  <properties>
+    <presto.version>0.234</presto.version>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>org.apache.linkis</groupId>
@@ -65,6 +69,17 @@
       <groupId>com.facebook.presto</groupId>
       <artifactId>presto-client</artifactId>
       <version>${presto.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>com.squareup.okio</groupId>
+          <artifactId>okio</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okio</groupId>
+      <artifactId>okio</artifactId>
+      <version>${okio.version}</version>
     </dependency>
     <dependency>
       <groupId>com.facebook.presto</groupId>
