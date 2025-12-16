@@ -26,6 +26,11 @@
 
   <artifactId>linkis-engineplugin-hive</artifactId>
 
+  <properties>
+    <hive.version>2.3.3</hive.version>
+    <jackson.version>1.9.2</jackson.version>
+  </properties>
+
   <dependencies>
 
     <dependency>
@@ -105,6 +110,10 @@
         <exclusion>
           <groupId>org.apache.logging.log4j</groupId>
           <artifactId>log4j-slf4j-impl</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.airlift</groupId>
+          <artifactId>aircompressor</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -197,6 +206,14 @@
         <exclusion>
           <groupId>com.google.inject</groupId>
           <artifactId>guice</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.codehaus.jettison</groupId>
+          <artifactId>jettison</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>org.apache.velocity</groupId>
+          <artifactId>velocity</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
