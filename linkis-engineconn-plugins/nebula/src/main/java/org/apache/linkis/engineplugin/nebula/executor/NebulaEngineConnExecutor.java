@@ -284,6 +284,7 @@ public class NebulaEngineConnExecutor extends ConcurrentComputationExecutor {
       String password =
           AESUtils.isDecryptByConf(NebulaConfiguration.NEBULA_PASSWORD.getValue(configMap));
       Boolean reconnect = NebulaConfiguration.NEBULA_RECONNECT_ENABLED.getValue(configMap);
+
       String space = NebulaConfiguration.NEBULA_SPACE.getValue(configMap);
       try {
         session = nebulaPool.getSession(username, password, reconnect);
@@ -296,7 +297,6 @@ public class NebulaEngineConnExecutor extends ConcurrentComputationExecutor {
             NebulaErrorCodeSummary.NEBULA_CLIENT_INITIALIZATION_FAILED.getErrorCode(),
             NebulaErrorCodeSummary.NEBULA_CLIENT_INITIALIZATION_FAILED.getErrorDesc());
       }
-
       sessionCache.put(taskId, session);
       return session;
     }
