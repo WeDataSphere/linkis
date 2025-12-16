@@ -25,6 +25,9 @@
   </parent>
 
   <artifactId>linkis-engineplugin-pipeline</artifactId>
+  <properties>
+    <pipeline.version>1</pipeline.version>
+  </properties>
 
   <dependencies>
 
