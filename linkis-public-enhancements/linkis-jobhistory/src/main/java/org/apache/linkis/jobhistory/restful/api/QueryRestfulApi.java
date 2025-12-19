@@ -789,7 +789,9 @@ public class QueryRestfulApi {
       response = Message.class)
   @RequestMapping(path = "/diagnosis-query", method = RequestMethod.GET)
   public Message queryFailedTaskDiagnosis(
-      HttpServletRequest req, @RequestParam(value = "taskID", required = false) String taskID) {
+      HttpServletRequest req, 
+      @RequestParam(value = "taskID", required = false) String taskID,
+      @RequestParam(value = "diagnosisSource", required = false) String diagnosisSource) {
     String username = ModuleUserUtils.getOperationUser(req, "diagnosis-query");
     if (StringUtils.isBlank(taskID)) {
       return Message.error("Invalid jobId cannot be empty");
@@ -829,8 +831,11 @@ public class QueryRestfulApi {
     String diagnosisMsg = "";
     if (jobHistory != null) {
       String jobStatus = jobHistory.getStatus();
-      JobDiagnosis jobDiagnosis = jobHistoryDiagnosisService.selectByJobId(Long.valueOf(taskID));
+      JobDiagnosis jobDiagnosis = jobHistoryDiagnosisService.selectByJobId(Long.valueOf(taskID), diagnosisSource);
       if (null == jobDiagnosis) {
+        if (StringUtils.isNotBlank(diagnosisSource)) {
+          return Message.ok().data("diagnosisMsg", diagnosisMsg);
+        }
         diagnosisMsg = JobhistoryUtils.getDiagnosisMsg(taskID);
         jobDiagnosis = new JobDiagnosis();
         jobDiagnosis.setJobHistoryId(Long.valueOf(taskID));

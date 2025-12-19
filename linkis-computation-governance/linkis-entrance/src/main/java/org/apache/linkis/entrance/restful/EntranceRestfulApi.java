@@ -732,4 +732,6 @@ public class EntranceRestfulApi implements EntranceRestfulRemote {
     }
     return message;
   }
+
 }
+

@@ -155,4 +155,12 @@ object ComputationExecutorConf {
   val SUPPORT_PARTIAL_RETRY_FOR_FAILED_TASKS_ENABLED: Boolean =
     CommonVars[Boolean]("linkis.partial.retry.for.failed.task.enabled", false).getValue
 
+  // Task timeout diagnosis configuration
+  val TASK_TIMEOUT_DIAGNOSIS_ENABLED = CommonVars("linkis.ec.task.timeout.diagnosis.enabled", true, "Whether to enable task timeout diagnosis").getValue
+  val TASK_TIMEOUT_DIAGNOSIS_THRESHOLD_MINUTES = CommonVars("linkis.ec.task.timeout.diagnosis.threshold.minutes", 5, "Task running time threshold to trigger diagnosis").getValue
+  val TASK_DIAGNOSIS_THREAD_POOL_SIZE = CommonVars("linkis.ec.task.diagnosis.thread.pool.size", 10, "Thread pool size for task diagnosis").getValue
+  val TASK_DIAGNOSIS_API_URL = CommonVars("linkis.ec.task.diagnosis.api.url", "http://docs.weoa.com/compass/api/v2/external/diagnose/runtime/batchApp", "Doctoris diagnosis API URL").getValue
+  val TASK_DIAGNOSIS_APP_ID = CommonVars("linkis.ec.task.diagnosis.app.id", "", "Doctoris API app id").getValue
+  val TASK_DIAGNOSIS_APP_TOKEN = CommonVars("linkis.ec.task.diagnosis.app.token", "", "Doctoris API app token").getValue
+
 }
