@@ -22,7 +22,7 @@
 
 # For Node.js
 node_modules/
-
+h
 # generated file
 .mvn/wrapper/maven-wrapper.jar
 dist/
@@ -39,3 +39,4 @@ nohup.out
 .claude
 
 nul
+/DevSyncAgent-Agents-v2.13/
