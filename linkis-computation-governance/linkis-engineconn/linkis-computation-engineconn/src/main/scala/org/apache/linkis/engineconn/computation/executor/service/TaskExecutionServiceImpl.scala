@@ -26,24 +26,11 @@ import org.apache.linkis.engineconn.acessible.executor.service.LockService
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
 import org.apache.linkis.engineconn.computation.executor.async.AsyncConcurrentComputationExecutor
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
-import org.apache.linkis.engineconn.computation.executor.entity.{
-  CommonEngineConnTask,
-  EngineConnTask
-}
-import org.apache.linkis.engineconn.computation.executor.execute.{
-  ComputationExecutor,
-  ConcurrentComputationExecutor
-}
-import org.apache.linkis.engineconn.computation.executor.listener.{
-  ResultSetListener,
-  TaskProgressListener,
-  TaskStatusListener
-}
+import org.apache.linkis.engineconn.computation.executor.entity.{CommonEngineConnTask, EngineConnTask}
+import org.apache.linkis.engineconn.computation.executor.execute.{ComputationExecutor, ConcurrentComputationExecutor}
+import org.apache.linkis.engineconn.computation.executor.listener.{ResultSetListener, TaskProgressListener, TaskStatusListener}
 import org.apache.linkis.engineconn.computation.executor.upstream.event.TaskStatusChangedForUpstreamMonitorEvent
-import org.apache.linkis.engineconn.computation.executor.utlis.{
-  ComputationEngineConstant,
-  ComputationEngineUtils
-}
+import org.apache.linkis.engineconn.computation.executor.utlis.{ComputationEngineConstant, ComputationEngineUtils}
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.executor.ExecutorManager
 import org.apache.linkis.engineconn.executor.entity.ResourceFetchExecutor
@@ -51,49 +38,32 @@ import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext
 import org.apache.linkis.engineconn.executor.listener.event.EngineConnSyncEvent
 import org.apache.linkis.governance.common.constant.ec.ECConstants
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
-import org.apache.linkis.governance.common.exception.engineconn.{
-  EngineConnExecutorErrorCode,
-  EngineConnExecutorErrorException
-}
+import org.apache.linkis.governance.common.exception.engineconn.{EngineConnExecutorErrorCode, EngineConnExecutorErrorException}
 import org.apache.linkis.governance.common.protocol.task._
 import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.hadoop.common.utils.KerberosUtils
-import org.apache.linkis.manager.common.protocol.resource.{
-  ResponseTaskRunningInfo,
-  ResponseTaskYarnResource
-}
+import org.apache.linkis.manager.common.protocol.resource.{ResponseTaskRunningInfo, ResponseTaskYarnResource}
 import org.apache.linkis.manager.label.entity.Label
-import org.apache.linkis.manager.label.utils.LabelUtil
+import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.message.RequestProtocol
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 import org.apache.linkis.rpc.utils.RPCUtils
-import org.apache.linkis.scheduler.executer.{
-  ErrorExecuteResponse,
-  ErrorRetryExecuteResponse,
-  ExecuteResponse,
-  IncompleteExecuteResponse,
-  SubmitResponse
-}
+import org.apache.linkis.scheduler.executer.{ErrorExecuteResponse, ErrorRetryExecuteResponse, ExecuteResponse, IncompleteExecuteResponse, SubmitResponse}
 import org.apache.linkis.server.BDPJettyServerHelper
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
-
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
-
 import java.util
 import java.util.Map
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
-
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContextExecutorService
-
 import com.google.common.cache.{Cache, CacheBuilder}
 
 @Component
@@ -137,7 +107,7 @@ class TaskExecutionServiceImpl
   // Task timeout diagnosis related
   private val taskRunningStartTime: java.util.concurrent.ConcurrentHashMap[String, Long] = new java.util.concurrent.ConcurrentHashMap[String, Long]()
   private val diagnosisThreadPool = Utils.newFixedThreadPool(
-    ComputationExecutorConf.TASK_DIAGNOSIS_THREAD_POOL_SIZE.getValue,
+    ComputationExecutorConf.TASK_DIAGNOSIS_THREAD_POOL_SIZE,
     "TaskTimeoutDiagnosisThreadPool"
   )
   private val diagnosisResults: java.util.concurrent.ConcurrentHashMap[String, String] = new java.util.concurrent.ConcurrentHashMap[String, String]()
@@ -638,9 +608,14 @@ class TaskExecutionServiceImpl
     if (null != task) {
       val taskId = taskStatusChangedEvent.taskId
       val toStatus = taskStatusChangedEvent.toStatus
-      
       // Track task running time
       if (toStatus == ExecutionNodeStatus.Running) {
+        val engineType = LabelUtil.getEngineType(task.getLables.toList.asJava)
+        if (engineType.toLowerCase() != "spark") {
+          logger.info(s"Task $taskId is not a Spark task, skipping diagnosis")
+          return
+        }
+        task.
         // Record task start time when task enters running state
         taskRunningStartTime.put(taskId, System.currentTimeMillis())
         // Start a thread to check task running time periodically
@@ -694,7 +669,7 @@ class TaskExecutionServiceImpl
       
       logger.debug(s"Task $taskId is running for $runningMinutes minutes")
       
-      if (runningMinutes >= ComputationExecutorConf.TASK_TIMEOUT_DIAGNOSIS_THRESHOLD_MINUTES.getValue) {
+      if (runningMinutes >= ComputationExecutorConf.TASK_TIMEOUT_DIAGNOSIS_THRESHOLD_MINUTES) {
         // Check if diagnosis already triggered for this task
         if (!diagnosisResults.containsKey(taskId)) {
           logger.info(s"Task $taskId has been running for $runningMinutes minutes, triggering diagnosis")
@@ -731,7 +706,7 @@ class TaskExecutionServiceImpl
           logger.info(s"Starting diagnosis for task $taskId")
           
           // Only support Spark engine
-          val engineType = task.getProperties.getOrDefault(TaskConstant.ENGINE_TYPE, "").toString
+          val engineType = task.get.getOrDefault(TaskConstant.ENGINE_TYPE, "").toString
           if (engineType.toLowerCase != "spark") {
             logger.info(s"Task $taskId is not a Spark task, skipping diagnosis")
             return

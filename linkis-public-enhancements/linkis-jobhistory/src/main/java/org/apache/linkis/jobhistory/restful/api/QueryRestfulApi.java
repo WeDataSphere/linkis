@@ -787,6 +787,10 @@ public class QueryRestfulApi {
       value = "diagnosis-query",
       notes = "query failed task diagnosis msg",
       response = Message.class)
+  @ApiImplicitParams({
+          @ApiImplicitParam(name = "taskID", dataType = "String"),
+          @ApiImplicitParam(name = "diagnosisSource", dataType = "String", example = "doctoris"),
+  })
   @RequestMapping(path = "/diagnosis-query", method = RequestMethod.GET)
   public Message queryFailedTaskDiagnosis(
       HttpServletRequest req, 
@@ -832,10 +836,14 @@ public class QueryRestfulApi {
     if (jobHistory != null) {
       String jobStatus = jobHistory.getStatus();
       JobDiagnosis jobDiagnosis = jobHistoryDiagnosisService.selectByJobId(Long.valueOf(taskID), diagnosisSource);
-      if (null == jobDiagnosis) {
-        if (StringUtils.isNotBlank(diagnosisSource)) {
+      if (StringUtils.isNotBlank(diagnosisSource)) {
+        if (StringUtils.isNotBlank(jobDiagnosis.getDiagnosisContent())){
+          return Message.ok().data("diagnosisMsg", jobDiagnosis.getDiagnosisContent());
+        }else {
           return Message.ok().data("diagnosisMsg", diagnosisMsg);
         }
+      }
+      if (null == jobDiagnosis) {
         diagnosisMsg = JobhistoryUtils.getDiagnosisMsg(taskID);
         jobDiagnosis = new JobDiagnosis();
         jobDiagnosis.setJobHistoryId(Long.valueOf(taskID));

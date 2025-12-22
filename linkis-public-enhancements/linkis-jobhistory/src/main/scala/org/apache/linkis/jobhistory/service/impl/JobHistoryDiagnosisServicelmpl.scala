@@ -21,10 +21,14 @@ import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.jobhistory.dao.JobDiagnosisMapper
 import org.apache.linkis.jobhistory.entity.JobDiagnosis
 import org.apache.linkis.jobhistory.service.JobHistoryDiagnosisService
-import org.apache.linkis.jobhistory.dao.JobDiagnosisMapper
-import org.springframework.beans.factory.annotation.Autowired
 
-class JobHistoryDiagnosisServicelmpl extends JobHistoryDiagnosisService {
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.stereotype.Service
+
+import java.{lang, util}
+
+@Service
+class JobHistoryDiagnosisServicelmpl extends JobHistoryDiagnosisService with Logging {
 
   @Autowired
   private var jobDiagnosisMapper: JobDiagnosisMapper = _
@@ -44,6 +48,5 @@ class JobHistoryDiagnosisServicelmpl extends JobHistoryDiagnosisService {
   override def selectByJobId(jobId: lang.Long, diagnosisSource: String): JobDiagnosis = {
     jobDiagnosisMapper.selectByJobIdAndSource(jobId, diagnosisSource)
   }
-}
 
 }
