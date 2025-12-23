@@ -17,10 +17,16 @@
 
 package org.apache.linkis.manager.engineplugin.hbase.exception;
 
-import org.apache.linkis.common.exception.ErrorException;
+import org.apache.linkis.common.exception.ExceptionLevel;
+import org.apache.linkis.common.exception.LinkisRuntimeException;
 
-public class ExecutorInitException extends ErrorException {
+public class ExecutorInitException extends LinkisRuntimeException {
   public ExecutorInitException(int errCode, String desc) {
     super(errCode, desc);
+  }
+
+  @Override
+  public ExceptionLevel getLevel() {
+    return ExceptionLevel.ERROR;
   }
 }
