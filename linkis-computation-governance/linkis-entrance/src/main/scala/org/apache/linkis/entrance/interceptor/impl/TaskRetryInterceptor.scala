@@ -19,7 +19,12 @@ package org.apache.linkis.entrance.interceptor.impl
 
 import org.apache.linkis.common.utils.CodeAndRunTypeUtils.LANGUAGE_TYPE_AI_SQL
 import org.apache.linkis.common.utils.Logging
-import org.apache.linkis.entrance.conf.EntranceConfiguration.{AI_SQL_CREATORS, AI_SQL_KEY, TASK_RETRY_CODE_TYPE, TASK_RETRY_SWITCH}
+import org.apache.linkis.entrance.conf.EntranceConfiguration.{
+  AI_SQL_CREATORS,
+  AI_SQL_KEY,
+  TASK_RETRY_CODE_TYPE,
+  TASK_RETRY_SWITCH
+}
 import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.entity.Label
@@ -29,9 +34,7 @@ import org.apache.linkis.protocol.utils.TaskUtils
 import java.{lang, util}
 
 /**
- * 任务重试拦截器
- * 用于根据任务类型和配置，动态为任务添加重试开关
- * 在任务提交前对作业参数进行预处理，决定是否启用重试功能
+ * 任务重试拦截器 用于根据任务类型和配置，动态为任务添加重试开关 在任务提交前对作业参数进行预处理，决定是否启用重试功能
  */
 class TaskRetryInterceptor extends EntranceInterceptor with Logging {
 
@@ -39,16 +42,16 @@ class TaskRetryInterceptor extends EntranceInterceptor with Logging {
     // 获取AI SQL相关配置
     val aiSqlEnable: Boolean = "true".equals(AI_SQL_KEY.getValue)
     val supportAISQLCreator: String = AI_SQL_CREATORS.toLowerCase()
-    
+
     // 从标签提取任务元信息
     val labels: util.List[Label[_]] = jobRequest.getLabels
     val codeType: String = LabelUtil.getCodeType(labels)
     val creator: String = LabelUtil.getUserCreatorLabel(labels).getCreator
-    
+
     // 全局重试开关开启时处理
     if (TASK_RETRY_SWITCH.getValue) {
       val startMap: util.Map[String, AnyRef] = TaskUtils.getStartupMap(jobRequest.getParams)
-      
+
       // 分类型处理：AI SQL任务或配置支持的任务类型
       if (LANGUAGE_TYPE_AI_SQL.equals(codeType)) {
         // AI SQL任务需同时满足功能启用和创建者权限
@@ -59,11 +62,12 @@ class TaskRetryInterceptor extends EntranceInterceptor with Logging {
         // 普通任务只需满足类型支持
         startMap.put(TASK_RETRY_SWITCH.key, TASK_RETRY_SWITCH.getValue.asInstanceOf[AnyRef])
       }
-      
+
       // 更新作业参数
       TaskUtils.addStartupMap(jobRequest.getParams, startMap)
     }
-    
+
     jobRequest
   }
+
 }
