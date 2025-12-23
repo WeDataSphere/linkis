@@ -26,11 +26,24 @@ import org.apache.linkis.engineconn.acessible.executor.service.LockService
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
 import org.apache.linkis.engineconn.computation.executor.async.AsyncConcurrentComputationExecutor
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
-import org.apache.linkis.engineconn.computation.executor.entity.{CommonEngineConnTask, EngineConnTask}
-import org.apache.linkis.engineconn.computation.executor.execute.{ComputationExecutor, ConcurrentComputationExecutor}
-import org.apache.linkis.engineconn.computation.executor.listener.{ResultSetListener, TaskProgressListener, TaskStatusListener}
+import org.apache.linkis.engineconn.computation.executor.entity.{
+  CommonEngineConnTask,
+  EngineConnTask
+}
+import org.apache.linkis.engineconn.computation.executor.execute.{
+  ComputationExecutor,
+  ConcurrentComputationExecutor
+}
+import org.apache.linkis.engineconn.computation.executor.listener.{
+  ResultSetListener,
+  TaskProgressListener,
+  TaskStatusListener
+}
 import org.apache.linkis.engineconn.computation.executor.upstream.event.TaskStatusChangedForUpstreamMonitorEvent
-import org.apache.linkis.engineconn.computation.executor.utlis.{ComputationEngineConstant, ComputationEngineUtils}
+import org.apache.linkis.engineconn.computation.executor.utlis.{
+  ComputationEngineConstant,
+  ComputationEngineUtils
+}
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.executor.ExecutorManager
 import org.apache.linkis.engineconn.executor.entity.ResourceFetchExecutor
@@ -38,33 +51,51 @@ import org.apache.linkis.engineconn.executor.listener.ExecutorListenerBusContext
 import org.apache.linkis.engineconn.executor.listener.event.EngineConnSyncEvent
 import org.apache.linkis.governance.common.constant.ec.ECConstants
 import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
-import org.apache.linkis.governance.common.exception.engineconn.{EngineConnExecutorErrorCode, EngineConnExecutorErrorException}
+import org.apache.linkis.governance.common.exception.engineconn.{
+  EngineConnExecutorErrorCode,
+  EngineConnExecutorErrorException
+}
 import org.apache.linkis.governance.common.protocol.task._
 import org.apache.linkis.governance.common.utils.{JobUtils, LoggerUtils}
 import org.apache.linkis.hadoop.common.utils.KerberosUtils
-import org.apache.linkis.manager.common.protocol.resource.{ResponseTaskRunningInfo, ResponseTaskYarnResource}
+import org.apache.linkis.manager.common.protocol.resource.{
+  ResponseTaskRunningInfo,
+  ResponseTaskYarnResource
+}
 import org.apache.linkis.manager.label.entity.Label
-import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
+import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.protocol.message.RequestProtocol
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 import org.apache.linkis.rpc.utils.RPCUtils
-import org.apache.linkis.scheduler.executer.{ErrorExecuteResponse, ErrorRetryExecuteResponse, ExecuteResponse, IncompleteExecuteResponse, SubmitResponse}
+import org.apache.linkis.scheduler.executer.{
+  ErrorExecuteResponse,
+  ErrorRetryExecuteResponse,
+  ExecuteResponse,
+  IncompleteExecuteResponse,
+  SubmitResponse
+}
 import org.apache.linkis.server.BDPJettyServerHelper
+
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
 import javax.annotation.PostConstruct
+
 import java.util
 import java.util.Map
 import java.util.concurrent._
 import java.util.concurrent.atomic.AtomicInteger
+
 import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContextExecutorService
+
 import com.google.common.cache.{Cache, CacheBuilder}
+import org.apache.linkis.manager.label.entity.engine.EngineType
 
 @Component
 class TaskExecutionServiceImpl
@@ -103,14 +134,6 @@ class TaskExecutionServiceImpl
       ComputationExecutorConf.TASK_ASYNC_MAX_THREAD_SIZE,
       ComputationEngineConstant.TASK_EXECUTION_THREAD
     )
-
-  // Task timeout diagnosis related
-  private val taskRunningStartTime: java.util.concurrent.ConcurrentHashMap[String, Long] = new java.util.concurrent.ConcurrentHashMap[String, Long]()
-  private val diagnosisThreadPool = Utils.newFixedThreadPool(
-    ComputationExecutorConf.TASK_DIAGNOSIS_THREAD_POOL_SIZE,
-    "TaskTimeoutDiagnosisThreadPool"
-  )
-  private val diagnosisResults: java.util.concurrent.ConcurrentHashMap[String, String] = new java.util.concurrent.ConcurrentHashMap[String, String]()
 
   @PostConstruct
   def init(): Unit = {
@@ -606,30 +629,17 @@ class TaskExecutionServiceImpl
   override def onTaskStatusChanged(taskStatusChangedEvent: TaskStatusChangedEvent): Unit = {
     val task = getTaskByTaskId(taskStatusChangedEvent.taskId)
     if (null != task) {
-      val taskId = taskStatusChangedEvent.taskId
       val toStatus = taskStatusChangedEvent.toStatus
+      val engineType = LabelUtil.getEngineType(task.getLables.toList.asJava)
       // Track task running time
-      if (toStatus == ExecutionNodeStatus.Running) {
-        val engineType = LabelUtil.getEngineType(task.getLables.toList.asJava)
-        if (engineType.toLowerCase() != "spark") {
-          logger.info(s"Task $taskId is not a Spark task, skipping diagnosis")
-          return
-        }
-        task.
-        // Record task start time when task enters running state
-        taskRunningStartTime.put(taskId, System.currentTimeMillis())
-        // Start a thread to check task running time periodically
-        diagnosisThreadPool.submit(new Runnable {
-          override def run(): Unit = {
-            checkTaskRunningTime(taskId, task)
-          }
-        })
+      if (toStatus == ExecutionNodeStatus.Running&&engineType.toLowerCase() == EngineType.SPARK.toString) {
+        sendToEntrance(
+          task,
+          ResponseTaskStatus(taskStatusChangedEvent.taskId, taskStatusChangedEvent.toStatus)
+        )
       } else if (ExecutionNodeStatus.isCompleted(toStatus)) {
-        // Remove start time when task completes
-        taskRunningStartTime.remove(taskId)
         LogHelper.pushAllRemainLogs()
       }
-      
       if (
           !ComputationExecutorConf.TASK_IGNORE_UNCOMPLETED_STATUS || ExecutionNodeStatus
             .isCompleted(toStatus)
@@ -648,149 +658,6 @@ class TaskExecutionServiceImpl
           .toJson(taskStatusChangedEvent)
       )
     }
-  }
-
-  /**
-   * Check task running time and trigger diagnosis if needed
-   * @param taskId task id
-   * @param task EngineConnTask
-   */
-  private def checkTaskRunningTime(taskId: String, task: EngineConnTask): Unit = {
-    if (!ComputationExecutorConf.TASK_TIMEOUT_DIAGNOSIS_ENABLED) {
-      logger.info(s"Task timeout diagnosis is disabled, skipping check for task $taskId")
-      return
-    }
-    
-    // Check if task is still running
-    while (taskRunningStartTime.containsKey(taskId)) {
-      val startTime = taskRunningStartTime.get(taskId)
-      val currentTime = System.currentTimeMillis()
-      val runningMinutes = (currentTime - startTime) / (60 * 1000)
-      
-      logger.debug(s"Task $taskId is running for $runningMinutes minutes")
-      
-      if (runningMinutes >= ComputationExecutorConf.TASK_TIMEOUT_DIAGNOSIS_THRESHOLD_MINUTES) {
-        // Check if diagnosis already triggered for this task
-        if (!diagnosisResults.containsKey(taskId)) {
-          logger.info(s"Task $taskId has been running for $runningMinutes minutes, triggering diagnosis")
-          triggerDiagnosis(taskId, task)
-          // Only trigger diagnosis once per task
-          diagnosisResults.put(taskId, "diagnosis_triggered")
-        }
-        // Exit loop after triggering diagnosis
-        return
-      }
-      
-      // Sleep for 1 minute before next check
-      try {
-        Thread.sleep(60 * 1000)
-      } catch {
-        case e: InterruptedException =>
-          logger.warn(s"Thread interrupted while checking task $taskId running time", e)
-          return
-      }
-    }
-    
-    logger.debug(s"Task $taskId is no longer running, exiting check")
-  }
-
-  /**
-   * Trigger task diagnosis
-   * @param taskId task id
-   * @param task EngineConnTask
-   */
-  private def triggerDiagnosis(taskId: String, task: EngineConnTask): Unit = {
-    diagnosisThreadPool.submit(new Runnable {
-      override def run(): Unit = {
-        Utils.tryCatch {
-          logger.info(s"Starting diagnosis for task $taskId")
-          
-          // Only support Spark engine
-          val engineType = task.get.getOrDefault(TaskConstant.ENGINE_TYPE, "").toString
-          if (engineType.toLowerCase != "spark") {
-            logger.info(s"Task $taskId is not a Spark task, skipping diagnosis")
-            return
-          }
-          
-          // Implement Doctoris API call
-          // 1. Prepare API parameters
-          val cluster = "BDP" // TODO: Get from configuration or task properties
-          
-          // 2. Generate signature
-          val appId = ComputationExecutorConf.TASK_DIAGNOSIS_APP_ID.getValue
-          val appToken = ComputationExecutorConf.TASK_DIAGNOSIS_APP_TOKEN.getValue
-          val timestamp = System.currentTimeMillis().toString
-          val nonce = scala.util.Random.alphanumeric.take(5).mkString
-          
-          // Calculate SHA-256 signature
-          import java.security.MessageDigest
-          def sha256(str: String): String = {
-            val md = MessageDigest.getInstance("SHA-256")
-            val bytes = md.digest(str.getBytes("UTF-8"))
-            bytes.map("%02x".format(_)).mkString
-          }
-          
-          val signature1 = sha256(appId + nonce + timestamp)
-          val signature = sha256(signature1 + appToken)
-          
-          // 3. Build API URL
-          val apiUrl = new StringBuilder(ComputationExecutorConf.TASK_DIAGNOSIS_API_URL.getValue)
-          apiUrl.append(s"?cluster=$cluster")
-          apiUrl.append(s"&engineType=$engineType")
-          apiUrl.append(s"&app_id=$appId")
-          apiUrl.append(s"&timestamp=$timestamp")
-          apiUrl.append(s"&nonce=$nonce")
-          apiUrl.append(s"&signature=$signature")
-          
-          logger.info(s"Calling Doctoris API for task $taskId with URL: $apiUrl")
-          
-          // 4. Call API using OkHttp
-          import okhttp3._
-          
-          val client = new OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
-          
-          val request = new Request.Builder()
-            .url(apiUrl.toString)
-            .get()
-            .build()
-          
-          val response = client.newCall(request).execute()
-          
-          if (response.isSuccessful) {
-            val responseBody = response.body().string()
-            logger.info(s"Doctoris API response for task $taskId: $responseBody")
-            
-            // 5. Process response and store result
-            // Parse JSON response
-            val responseJson = ComputationEngineUtils.GSON.fromJson(responseBody, classOf[java.util.Map[String, Any]])
-            val code = responseJson.getOrDefault("code", 0).asInstanceOf[Number].intValue()
-            
-            if (code == 200) {
-              val data = responseJson.getOrDefault("data", "").toString
-              logger.info(s"Successfully got diagnosis result for task $taskId")
-              
-              // TODO: Store diagnosis result to database
-              // Store in memory for now
-              diagnosisResults.put(taskId, data)
-            } else {
-              val msg = responseJson.getOrDefault("msg", "Unknown error").toString
-              logger.error(s"Doctoris API returned error for task $taskId: $msg")
-            }
-          } else {
-            logger.error(s"Doctoris API call failed for task $taskId: ${response.code()} ${response.message()}")
-          }
-          
-          logger.info(s"Diagnosis completed for task $taskId")
-          
-        } {
-          case e: Exception =>
-            logger.error(s"Failed to execute diagnosis for task $taskId", e)
-        }
-      }
-    })
   }
 
   override def onProgressUpdate(taskProgressUpdateEvent: TaskProgressUpdateEvent): Unit =
