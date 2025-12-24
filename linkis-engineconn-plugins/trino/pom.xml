@@ -25,9 +25,6 @@
   </parent>
 
   <artifactId>linkis-engineplugin-trino</artifactId>
-  <properties>
-    <trino.version>371</trino.version>
-  </properties>
 
   <dependencies>
     <dependency>
