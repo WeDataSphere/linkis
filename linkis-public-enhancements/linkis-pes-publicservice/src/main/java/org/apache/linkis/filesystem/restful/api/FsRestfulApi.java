@@ -768,7 +768,7 @@ public class FsRestfulApi {
                 ResultUtils.removeFieldsFromContent(resultmap, filteredContent, maskedFields);
           }
           // 优先截取大字段
-          if (LinkisStorageConf.FIELD_TRUNCATION_ENABLED() && !enableLimitResult) {
+          if (LinkisStorageConf.FIELD_TRUNCATION_ENABLED() && enableLimitResult) {
             // 管理台请求(enableLimit=true)不进行字段长度拦截，兼容旧逻辑
             FieldTruncationResult fieldTruncationResult =
                 ResultUtils.detectAndHandle(
@@ -806,7 +806,7 @@ public class FsRestfulApi {
             }
           }
           if (StringUtils.isNotBlank(maskedFieldNames)
-              || (LinkisStorageConf.FIELD_TRUNCATION_ENABLED() && !enableLimitResult)) {
+              || (LinkisStorageConf.FIELD_TRUNCATION_ENABLED() && enableLimitResult)) {
             message.data("metadata", filteredMetadata).data("fileContent", filteredContent);
           } else {
             // 不执行字段屏蔽也不执行字段截取
