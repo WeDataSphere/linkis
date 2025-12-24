@@ -242,16 +242,15 @@ object EntranceUtils extends Logging {
       EngineType.SPARK.toString,
       LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
     )
-    Utils.tryCatch {
+    try {
       if (isSpark3) {
         logger.info(s"Task :${jobRequest.getId} using dynamic conf ")
         properties.put(
           EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
           EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
         )
-        TaskUtils.addStartupMap(params, properties)
       }
-    } { case e: Exception =>
+    } catch { case e: Exception =>
       logger.error(
         s"Task :${jobRequest.getId} using default dynamic conf, message {} ",
         e.getMessage
@@ -295,8 +294,9 @@ object EntranceUtils extends Logging {
           }
         }
         logInfo(s"use spark3 default conf. \n", logAppender)
-        TaskUtils.addStartupMap(params, properties)
       }
+    } finally {
+      TaskUtils.addStartupMap(params, properties)
     }
   }
 
