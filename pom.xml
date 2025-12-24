@@ -228,6 +228,8 @@
     <spring-cloud.version>2021.0.8</spring-cloud.version>
     <spring-cloud-alibaba.version>2021.0.6.0</spring-cloud-alibaba.version>
     <spring-cloud-common.version>3.1.7</spring-cloud-common.version>
+    <spring.boot.admin.version>2.7.16</spring.boot.admin.version>
+    <reactor-netty-http.version>1.0.39</reactor-netty-http.version>
     <azure.blob.bom>1.2.30</azure.blob.bom>
 
     <!-- platform encoding override -->
