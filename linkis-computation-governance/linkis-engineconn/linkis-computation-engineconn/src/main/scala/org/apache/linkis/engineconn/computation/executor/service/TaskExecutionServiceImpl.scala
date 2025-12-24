@@ -95,7 +95,6 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContextExecutorService
 
 import com.google.common.cache.{Cache, CacheBuilder}
-import org.apache.linkis.manager.label.entity.engine.EngineType
 
 @Component
 class TaskExecutionServiceImpl
@@ -629,17 +628,10 @@ class TaskExecutionServiceImpl
   override def onTaskStatusChanged(taskStatusChangedEvent: TaskStatusChangedEvent): Unit = {
     val task = getTaskByTaskId(taskStatusChangedEvent.taskId)
     if (null != task) {
-      val toStatus = taskStatusChangedEvent.toStatus
-      val engineType = LabelUtil.getEngineType(task.getLables.toList.asJava)
-      // Track task running time
-      if (toStatus == ExecutionNodeStatus.Running&&engineType.toLowerCase() == EngineType.SPARK.toString) {
-        sendToEntrance(
-          task,
-          ResponseTaskStatus(taskStatusChangedEvent.taskId, taskStatusChangedEvent.toStatus)
-        )
-      } else if (ExecutionNodeStatus.isCompleted(toStatus)) {
+      if (ExecutionNodeStatus.isCompleted(taskStatusChangedEvent.toStatus)) {
         LogHelper.pushAllRemainLogs()
       }
+      val toStatus = taskStatusChangedEvent.toStatus
       if (
           !ComputationExecutorConf.TASK_IGNORE_UNCOMPLETED_STATUS || ExecutionNodeStatus
             .isCompleted(toStatus)
