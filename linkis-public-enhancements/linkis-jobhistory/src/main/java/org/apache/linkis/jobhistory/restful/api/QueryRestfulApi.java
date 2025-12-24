@@ -788,12 +788,12 @@ public class QueryRestfulApi {
       notes = "query failed task diagnosis msg",
       response = Message.class)
   @ApiImplicitParams({
-          @ApiImplicitParam(name = "taskID", dataType = "String"),
-          @ApiImplicitParam(name = "diagnosisSource", dataType = "String", example = "doctoris"),
+    @ApiImplicitParam(name = "taskID", dataType = "String"),
+    @ApiImplicitParam(name = "diagnosisSource", dataType = "String", example = "doctoris"),
   })
   @RequestMapping(path = "/diagnosis-query", method = RequestMethod.GET)
   public Message queryFailedTaskDiagnosis(
-      HttpServletRequest req, 
+      HttpServletRequest req,
       @RequestParam(value = "taskID", required = false) String taskID,
       @RequestParam(value = "diagnosisSource", required = false) String diagnosisSource) {
     String username = ModuleUserUtils.getOperationUser(req, "diagnosis-query");
@@ -835,11 +835,12 @@ public class QueryRestfulApi {
     String diagnosisMsg = "";
     if (jobHistory != null) {
       String jobStatus = jobHistory.getStatus();
-      JobDiagnosis jobDiagnosis = jobHistoryDiagnosisService.selectByJobId(Long.valueOf(taskID), diagnosisSource);
+      JobDiagnosis jobDiagnosis =
+          jobHistoryDiagnosisService.selectByJobId(Long.valueOf(taskID), diagnosisSource);
       if (StringUtils.isNotBlank(diagnosisSource)) {
-        if (StringUtils.isNotBlank(jobDiagnosis.getDiagnosisContent())){
+        if (StringUtils.isNotBlank(jobDiagnosis.getDiagnosisContent())) {
           return Message.ok().data("diagnosisMsg", jobDiagnosis.getDiagnosisContent());
-        }else {
+        } else {
           return Message.ok().data("diagnosisMsg", diagnosisMsg);
         }
       }

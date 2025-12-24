@@ -25,6 +25,6 @@ public interface JobDiagnosisMapper {
   void deleteById(Long id);
 
   void update(JobDiagnosis jobDiagnosis);
-  
+
   JobDiagnosis selectByJobIdAndSource(Long jobHistoryId, String diagnosisSource);
 }
