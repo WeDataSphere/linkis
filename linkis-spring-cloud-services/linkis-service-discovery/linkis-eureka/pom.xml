@@ -84,7 +84,6 @@
       <artifactId>jersey-apache-client4</artifactId>
     </dependency>
 
-    <!-- WDS新增: actuator监控支持 -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -101,7 +100,6 @@
       </exclusions>
     </dependency>
 
-    <!-- WDS新增: prometheus监控支持 -->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-prometheus</artifactId>
