@@ -130,9 +130,30 @@ public class RestfulApiHelper {
     } catch (WarnException e) {
       return Message.warn(e.getMessage());
     } catch (Exception e) {
+      e.printStackTrace();
       return Message.error(failMessage, e);
     }
   }
+
+  //    /**
+  //     * @param tryOperation operate function
+  //     * @param failMessage message
+  //     */
+  //    public static Message doAndResponse(
+  //            TryOperation tryOperation, String method, String failMessage) {
+  //        try {
+  //            Message message = tryOperation.operateAndGetMessage();
+  //            return setMethod(message, method);
+  //        } catch (ParameterValidateException e) {
+  //            return setMethod(Message.error(e.getMessage()), method);
+  //        } catch (ConstraintViolationException e) {
+  //            return new BeanValidationExceptionMapper().toResponse(e);
+  //        } catch (WarnException e) {
+  //            return setMethod(Message.warn(e.getMessage()), method);
+  //        } catch (Exception e) {
+  //            return setMethod(Message.error(failMessage, e), method);
+  //        }
+  //    }
 
   private static Message setMethod(Message message, String method) {
     message.setMethod(method);

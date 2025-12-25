@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.kingbase;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import java.io.Closeable;
@@ -130,15 +131,47 @@ public class SqlConnection implements Closeable {
     return columns;
   }
 
-  private List<String> getPrimaryKeys(String table) throws SQLException {
+  //    /**
+  //     * Get primary keys
+  //     * @param connection connection
+  //     * @param table table name
+  //     * @return
+  //     * @throws SQLException
+  //     */
+  //    private List<String> getPrimaryKeys(Connection connection, String table) throws
+  // SQLException {
+  //        ResultSet rs = null;
+  //        List<String> primaryKeys = new ArrayList<>();
+  //        try {
+  //            DatabaseMetaData dbMeta = connection.getMetaData();
+  //            rs = dbMeta.getPrimaryKeys(null, null, table);
+  //            while(rs.next()){
+  //                primaryKeys.add(rs.getString("column_name"));
+  //            }
+  //            return primaryKeys;
+  //        }finally{
+  //            if(null != rs){
+  //                closeResource(connection, null, rs);
+  //            }
+  //        }
+  //    }
+
+  private List<String> getPrimaryKeys(
+      /*Connection connection, */ String table) throws SQLException {
     ResultSet rs = null;
     List<String> primaryKeys = new ArrayList<>();
+    //        try {
     DatabaseMetaData dbMeta = conn.getMetaData();
     rs = dbMeta.getPrimaryKeys(null, null, table);
     while (rs.next()) {
       primaryKeys.add(rs.getString("column_name"));
     }
     return primaryKeys;
+    /*}finally{
+        if(null != rs){
+            closeResource(connection, null, rs);
+        }
+    }*/
   }
 
   /**
@@ -189,7 +222,8 @@ public class SqlConnection implements Closeable {
       url += "?" + extraParamString;
     }
     try {
-      return DriverManager.getConnection(url, connectMessage.username, connectMessage.password);
+      return DriverManager.getConnection(
+          url, connectMessage.username, AESUtils.isDecryptByConf(connectMessage.password));
     } catch (Exception e) {
       e.printStackTrace();
       throw e;

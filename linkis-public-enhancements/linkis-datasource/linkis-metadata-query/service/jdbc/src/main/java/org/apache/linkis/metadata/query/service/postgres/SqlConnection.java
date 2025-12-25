@@ -18,9 +18,9 @@
 package org.apache.linkis.metadata.query.service.postgres;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.logging.log4j.util.Strings;
 
 import java.io.Closeable;
@@ -90,6 +90,8 @@ public class SqlConnection implements Closeable {
       rs =
           stmt.executeQuery(
               "SELECT tablename FROM pg_tables where schemaname = '" + schemaname + "'");
+      //            rs = stmt.executeQuery("SELECT table_name FROM
+      // information_schema.tables");
       while (rs.next()) {
         tableNames.add(rs.getString(1));
       }
@@ -107,7 +109,8 @@ public class SqlConnection implements Closeable {
     ResultSet rs = null;
     ResultSetMetaData meta;
     try {
-      List<String> primaryKeys = getPrimaryKeys(table);
+      List<String> primaryKeys =
+          getPrimaryKeys(/*getDBConnection(connectMessage, schemaname),  */ table);
       ps = conn.prepareStatement(columnSql);
       rs = ps.executeQuery();
       meta = rs.getMetaData();
@@ -135,15 +138,22 @@ public class SqlConnection implements Closeable {
    * @return
    * @throws SQLException
    */
-  private List<String> getPrimaryKeys(String table) throws SQLException {
+  private List<String> getPrimaryKeys(
+      /*Connection connection, */ String table) throws SQLException {
     ResultSet rs = null;
     List<String> primaryKeys = new ArrayList<>();
+    //        try {
     DatabaseMetaData dbMeta = conn.getMetaData();
     rs = dbMeta.getPrimaryKeys(null, null, table);
     while (rs.next()) {
       primaryKeys.add(rs.getString("column_name"));
     }
     return primaryKeys;
+    /*}finally{
+        if(null != rs){
+            closeResource(connection, null, rs);
+        }
+    }*/
   }
 
   /**
@@ -182,18 +192,19 @@ public class SqlConnection implements Closeable {
    */
   private Connection getDBConnection(ConnectMessage connectMessage, String database)
       throws ClassNotFoundException, SQLException {
+    String extraParamString =
+        connectMessage.extraParams.entrySet().stream()
+            .map(e -> String.join("=", e.getKey(), String.valueOf(e.getValue())))
+            .collect(Collectors.joining("&"));
     Class.forName(SQL_DRIVER_CLASS.getValue());
     String url =
         String.format(
             SQL_CONNECT_URL.getValue(), connectMessage.host, connectMessage.port, database);
-    if (MapUtils.isNotEmpty(connectMessage.extraParams)) {
-      String extraParamString =
-          connectMessage.extraParams.entrySet().stream()
-              .map(e -> String.join("=", e.getKey(), String.valueOf(e.getValue())))
-              .collect(Collectors.joining("&"));
+    if (!connectMessage.extraParams.isEmpty()) {
       url += "?" + extraParamString;
     }
-    return DriverManager.getConnection(url, connectMessage.username, connectMessage.password);
+    return DriverManager.getConnection(
+        url, connectMessage.username, AESUtils.isDecryptByConf(connectMessage.password));
   }
 
   /** Connect message */
