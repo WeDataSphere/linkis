@@ -98,6 +98,9 @@ CREATE TABLE `linkis_ps_python_module_info` (
 ALTER TABLE `linkis_cg_manager_service_instance` ADD COLUMN mapping_ports varchar(128);
 ALTER TABLE `linkis_cg_manager_service_instance` ADD COLUMN mapping_host varchar(128);
 
+-- Add token_sign column to linkis_token table for token signature support
+ALTER TABLE `linkis_token` ADD COLUMN `token_sign` VARCHAR(255) DEFAULT NULL COMMENT 'Token签名' AFTER `token_name`;
+
 
 
 

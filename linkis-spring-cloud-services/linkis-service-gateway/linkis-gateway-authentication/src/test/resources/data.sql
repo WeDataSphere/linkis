@@ -15,24 +15,6 @@
  * limitations under the License.
 */
 
-SET FOREIGN_KEY_CHECKS=0;
-SET REFERENTIAL_INTEGRITY FALSE;
-
-DROP TABLE IF EXISTS linkis_mg_gateway_auth_token CASCADE;
-CREATE TABLE IF NOT EXISTS linkis_mg_gateway_auth_token (
-  id int(11) NOT NULL AUTO_INCREMENT,
-  token_name varchar(128) NOT NULL,
-  legal_users varchar(512) NOT NULL,
-  legal_hosts varchar(512) NOT NULL,
-  business_owner varchar(32),
-  create_time datetime DEFAULT NULL,
-  update_time datetime DEFAULT NULL,
-  elapse_day  bigint(20) DEFAULT  NULL,
-  update_by   varchar(32),
-  PRIMARY KEY (id),
-  UNIQUE KEY token_name (token_name)
-);
-
 DELETE FROM linkis_mg_gateway_auth_token;
 -- ----------------------------
 -- Default Tokens
@@ -44,4 +26,4 @@ INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hos
 INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hosts`,`business_owner`,`create_time`,`update_time`,`elapse_day`,`update_by`) VALUES ('dss-AUTH','*','*','BDP',curdate(),curdate(),-1,'LINKIS');
 INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hosts`,`business_owner`,`create_time`,`update_time`,`elapse_day`,`update_by`) VALUES ('QUALITIS-AUTH','*','*','BDP',curdate(),curdate(),-1,'LINKIS');
 INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hosts`,`business_owner`,`create_time`,`update_time`,`elapse_day`,`update_by`) VALUES ('VALIDATOR-AUTH','*','*','BDP',curdate(),curdate(),-1,'LINKIS');
-INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hosts`,`business_owner`,`create_time`,`update_time`,`elapse_day`,`update_by`) VALUES ('LINKISCLI-AUTH','*','*','BDP',curdate(),curdate(),-1,'LINKIS');
+INSERT INTO `linkis_mg_gateway_auth_token`(`token_name`,`legal_users`,`legal_hosts`,`business_owner`,`create_time`,`update_time`,`elapse_day`,`update_by`) VALUES ('LINKISCLI-AUTH','*','*','BDP',curdate(),curdate(),-3,'LINKIS');

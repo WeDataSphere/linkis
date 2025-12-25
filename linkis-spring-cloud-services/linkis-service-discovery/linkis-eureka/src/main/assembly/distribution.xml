@@ -43,8 +43,8 @@
                 <exclude>aopalliance:aopalliance:jar</exclude>
                 <exclude>com.netflix.archaius:archaius-core:jar</exclude>
                 <exclude>org.aspectj:aspectjweaver:jar</exclude>
-                <exclude>org.bouncycastle:bcpkix-jdk18on:jar</exclude>
-                <exclude>org.bouncycastle:bcprov-jdk18on:jar</exclude>
+                <exclude>org.bouncycastle:bcpkix-jdk15on:jar</exclude>
+                <exclude>org.bouncycastle:bcprov-jdk15on:jar</exclude>
                 <exclude>org.checkerframework:checker-qual:jar</exclude>
                 <exclude>commons-collections:commons-collections:jar</exclude>
                 <exclude>commons-configuration:commons-configuration:jar</exclude>
@@ -70,6 +70,11 @@
                 <exclude>com.fasterxml.jackson.module:jackson-module-parameter-names:jar</exclude>
                 <exclude>jakarta.annotation:jakarta.annotation-api:jar</exclude>
                 <exclude>javax.inject:javax.inject:jar</exclude>
+                <exclude>com.sun.jersey.contribs:jersey-apache-client4:jar</exclude>
+                <exclude>com.sun.jersey:jersey-client:jar</exclude>
+                <exclude>com.sun.jersey:jersey-core:jar</exclude>
+                <exclude>com.sun.jersey:jersey-server:jar</exclude>
+                <exclude>com.sun.jersey:jersey-servlet:jar</exclude>
                 <exclude>org.codehaus.jettison:jettison:jar</exclude>
                 <exclude>joda-time:joda-time:jar</exclude>
                 <exclude>com.google.code.findbugs:jsr305:jar</exclude>
