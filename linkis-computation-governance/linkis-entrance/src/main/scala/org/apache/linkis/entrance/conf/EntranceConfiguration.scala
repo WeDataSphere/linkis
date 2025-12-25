@@ -326,7 +326,7 @@ object EntranceConfiguration {
     CommonVars[String]("linkis.ai.sql.enable", "true")
 
   val TASK_RETRY_SWITCH: CommonVars[Boolean] =
-    CommonVars[Boolean]("linkis.task.retry.switch", true)
+    CommonVars[Boolean]("linkis.task.retry.switch", false)
 
   val TASK_RETRY_CODE_TYPE: String =
     CommonVars[String]("linkis.task.retry.code.type", "aisql,jdbc").getValue
