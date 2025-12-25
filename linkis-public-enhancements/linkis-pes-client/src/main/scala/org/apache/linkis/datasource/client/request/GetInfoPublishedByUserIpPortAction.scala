@@ -101,7 +101,7 @@ object GetInfoPublishedByUserIpPortAction {
       if (datasourceUser == null) {
         throw new DataSourceClientBuilderException(OWNER_NEEDED.getErrorDesc)
       }
-      //      if (system == null) throw new DataSourceClientBuilderException(SYSTEM_NEEDED.getErrorDesc)
+//      if (system == null) throw new DataSourceClientBuilderException(SYSTEM_NEEDED.getErrorDesc)
       if (user == null) throw new DataSourceClientBuilderException(USER_NEEDED.getErrorDesc)
 
       val GetInfoPublishedByUserIpPortAction = new GetInfoPublishedByUserIpPortAction

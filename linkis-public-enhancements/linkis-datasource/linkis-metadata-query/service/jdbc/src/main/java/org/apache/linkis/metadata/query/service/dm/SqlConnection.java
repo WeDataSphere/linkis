@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.dm;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import org.apache.commons.lang3.StringUtils;
@@ -131,15 +132,22 @@ public class SqlConnection implements Closeable {
     return columns;
   }
 
-  private List<String> getPrimaryKeys(String schema, String table) throws SQLException {
+  private List<String> getPrimaryKeys(
+      /*Connection connection, */ String schema, String table) throws SQLException {
     ResultSet rs = null;
     List<String> primaryKeys = new ArrayList<>();
+    //        try {
     DatabaseMetaData dbMeta = conn.getMetaData();
     rs = dbMeta.getPrimaryKeys(null, schema, table);
     while (rs.next()) {
       primaryKeys.add(rs.getString("COLUMN_NAME"));
     }
     return primaryKeys;
+    /*}finally{
+        if(null != rs){
+            closeResource(connection, null, rs);
+        }
+    }*/
   }
   /**
    * Get Column Comment
@@ -212,7 +220,7 @@ public class SqlConnection implements Closeable {
       // connectMessage.password);
       Properties prop = new Properties();
       prop.put("user", connectMessage.username);
-      prop.put("password", connectMessage.password);
+      prop.put("password", AESUtils.isDecryptByConf(connectMessage.password));
       prop.put("remarksReporting", "true");
       return DriverManager.getConnection(url, prop);
     } catch (Exception e) {

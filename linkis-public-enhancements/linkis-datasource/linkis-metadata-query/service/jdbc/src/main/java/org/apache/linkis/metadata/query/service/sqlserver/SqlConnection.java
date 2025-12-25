@@ -18,6 +18,7 @@
 package org.apache.linkis.metadata.query.service.sqlserver;
 
 import org.apache.linkis.common.conf.CommonVars;
+import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
 import java.io.Closeable;
@@ -110,12 +111,17 @@ public class SqlConnection implements Closeable {
   public List<MetaColumnInfo> getColumns(String database, String table)
       throws SQLException, ClassNotFoundException {
     List<MetaColumnInfo> columns = new ArrayList<>();
+    //        String columnSql = "SELECT a.name FieldName, b.name [Type], a.isnullable,
+    // ISNULL(g.[value], '') AS FieldRemark FROM SysColumns a LEFT JOIN systypes b on a.xtype =
+    // b.xusertype INNER JOIN sysobjects d ON a.id = d.id AND d.xtype = 'U' AND d.name IN
+    // ('"+table+"') LEFT JOIN syscomments e ON a.cdefault = e.id LEFT JOIN
+    // sys.extended_properties g ON a.id = g.major_id AND a.colid = g.minor_id";
     String columnSql = "SELECT * FROM " + database + ".dbo." + table + " WHERE 1 = 2";
     PreparedStatement ps = null;
     ResultSet rs = null;
     ResultSetMetaData meta;
     try {
-      List<String> primaryKeys = getPrimaryKeys(table);
+      List<String> primaryKeys = getPrimaryKeys(getDBConnection(connectMessage, database), table);
       ps = conn.prepareStatement(columnSql);
       rs = ps.executeQuery();
       meta = rs.getMetaData();
@@ -139,15 +145,16 @@ public class SqlConnection implements Closeable {
   /**
    * Get primary keys
    *
+   * @param connection connection
    * @param table table name
    * @return
    * @throws SQLException
    */
-  private List<String> getPrimaryKeys(String table) throws SQLException {
+  private List<String> getPrimaryKeys(Connection connection, String table) throws SQLException {
     ResultSet rs = null;
     List<String> primaryKeys = new ArrayList<>();
     try {
-      DatabaseMetaData dbMeta = conn.getMetaData();
+      DatabaseMetaData dbMeta = connection.getMetaData();
       rs = dbMeta.getPrimaryKeys(null, null, table);
       while (rs.next()) {
         primaryKeys.add(rs.getString("column_name"));
@@ -155,7 +162,7 @@ public class SqlConnection implements Closeable {
       return primaryKeys;
     } finally {
       if (null != rs) {
-        closeResource(null, null, rs);
+        closeResource(connection, null, rs);
       }
     }
   }
@@ -204,10 +211,13 @@ public class SqlConnection implements Closeable {
     String url =
         String.format(
             SQL_CONNECT_URL.getValue(), connectMessage.host, connectMessage.port, database);
+    //        String url = String.format(SQL_CONNECT_URL.getValue(), connectMessage.host,
+    // database);
     if (!connectMessage.extraParams.isEmpty()) {
       url += "?" + extraParamString;
     }
-    return DriverManager.getConnection(url, connectMessage.username, connectMessage.password);
+    return DriverManager.getConnection(
+        url, connectMessage.username, AESUtils.isDecryptByConf(connectMessage.password));
   }
 
   /** Connect message */
