@@ -17,14 +17,10 @@
 
 package org.apache.linkis.entrance.interceptor.impl
 
+import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.CodeAndRunTypeUtils.LANGUAGE_TYPE_AI_SQL
 import org.apache.linkis.common.utils.Logging
-import org.apache.linkis.entrance.conf.EntranceConfiguration.{
-  AI_SQL_CREATORS,
-  AI_SQL_KEY,
-  TASK_RETRY_CODE_TYPE,
-  TASK_RETRY_SWITCH
-}
+import org.apache.linkis.entrance.conf.EntranceConfiguration.{AI_SQL_CREATORS, AI_SQL_KEY, TASK_RETRY_CODE_TYPE, TASK_RETRY_SWITCH}
 import org.apache.linkis.entrance.interceptor.EntranceInterceptor
 import org.apache.linkis.governance.common.entity.job.JobRequest
 import org.apache.linkis.manager.label.entity.Label
@@ -56,10 +52,16 @@ class TaskRetryInterceptor extends EntranceInterceptor with Logging {
       if (LANGUAGE_TYPE_AI_SQL.equals(codeType)) {
         // AI SQL任务需同时满足功能启用和创建者权限
         if (aiSqlEnable && supportAISQLCreator.contains(creator.toLowerCase())) {
+          logAppender.append(
+            LogUtils.generateWarn(s"The AI SQL task will initiate a failed retry \n")
+          )
           startMap.put(TASK_RETRY_SWITCH.key, TASK_RETRY_SWITCH.getValue.asInstanceOf[AnyRef])
         }
       } else if (TASK_RETRY_CODE_TYPE.contains(codeType)) {
         // 普通任务只需满足类型支持
+        logAppender.append(
+          LogUtils.generateWarn(s"The StarRocks task will initiate a failed retry \n")
+        )
         startMap.put(TASK_RETRY_SWITCH.key, TASK_RETRY_SWITCH.getValue.asInstanceOf[AnyRef])
       }
 
