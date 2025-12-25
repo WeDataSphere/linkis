@@ -430,7 +430,7 @@ object EntranceConfiguration {
     CommonVars[String]("linkis.doctor.sensitive.sql.check.engine.type", "hive,spark").getValue
 
   // 任务诊断配置
-  val TASK_DIAGNOSIS_ENABLE = CommonVars[Boolean]("linkis.task.diagnosis.enable", true).getValue
+  val TASK_DIAGNOSIS_ENABLE = CommonVars[Boolean]("linkis.task.diagnosis.enable", false).getValue
 
   val TASK_DIAGNOSIS_ENGINE_TYPE =
     CommonVars[String]("linkis.task.diagnosis.engine.type", "spark").getValue
