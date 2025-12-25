@@ -245,59 +245,72 @@ object EntranceUtils extends Logging {
     try {
       if (isSpark3) {
         logger.info(s"Task :${jobRequest.getId} using dynamic conf ")
-        properties.put(
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
-        )
-      }
-    } catch { case e: Exception =>
-      logger.error(
-        s"Task :${jobRequest.getId} using default dynamic conf, message {} ",
-        e.getMessage
-      )
-      val sparkDynamicAllocationEnabled = EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_ENABLED
-      if (sparkDynamicAllocationEnabled && isSpark3) {
-        properties.put(
-          EntranceConfiguration.SPARK_EXECUTOR_CORES.key,
-          EntranceConfiguration.SPARK_EXECUTOR_CORES.getValue
-        )
-        properties.put(
-          EntranceConfiguration.SPARK_EXECUTOR_MEMORY.key,
-          EntranceConfiguration.SPARK_EXECUTOR_MEMORY.getValue
-        )
-        properties.put(
-          EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS.key,
-          EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS.getValue
-        )
-        properties.put(
-          EntranceConfiguration.SPARK_EXECUTOR_INSTANCES.key,
-          EntranceConfiguration.SPARK_EXECUTOR_INSTANCES.getValue
-        )
-        properties.put(
-          EntranceConfiguration.SPARK_EXECUTOR_MEMORY_OVERHEAD.key,
-          EntranceConfiguration.SPARK_EXECUTOR_MEMORY_OVERHEAD.getValue
-        )
-        properties.put(
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
-        )
-        Utils.tryAndWarn {
-          val extraConfs: String =
-            EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS
-          if (StringUtils.isNotBlank(extraConfs)) {
-            val confs: Array[String] = extraConfs.split(",")
-            for (conf <- confs) {
-              val confKey: String = conf.split("=")(0)
-              val confValue: String = conf.split("=")(1)
-              properties.put(confKey, confValue)
-            }
-          }
+        if (EntranceConfiguration.SPARK_DYNAMIC_CONF_USER_ENABLED) {
+          // If dynamic allocation is disabled, only set python version
+          properties.put(
+            EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
+            EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
+          )
+        } else {
+          setSparkDynamicAllocationDefaultConfs(properties, logAppender)
         }
-        logInfo(s"use spark3 default conf. \n", logAppender)
       }
+    } catch {
+      case e: Exception =>
+        logger.error(
+          s"Task :${jobRequest.getId} using default dynamic conf, message {} ",
+          e.getMessage
+        )
+        setSparkDynamicAllocationDefaultConfs(properties, logAppender)
     } finally {
       TaskUtils.addStartupMap(params, properties)
     }
+  }
+
+  /**
+   * Set spark dynamic allocation default confs
+   */
+  private def setSparkDynamicAllocationDefaultConfs(
+                                                     properties: util.HashMap[String, AnyRef],
+                                                     logAppender: lang.StringBuilder
+                                                   ): Unit = {
+    properties.put(
+      EntranceConfiguration.SPARK_EXECUTOR_CORES.key,
+      EntranceConfiguration.SPARK_EXECUTOR_CORES.getValue
+    )
+    properties.put(
+      EntranceConfiguration.SPARK_EXECUTOR_MEMORY.key,
+      EntranceConfiguration.SPARK_EXECUTOR_MEMORY.getValue
+    )
+    properties.put(
+      EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS.key,
+      EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_MAX_EXECUTORS.getValue
+    )
+    properties.put(
+      EntranceConfiguration.SPARK_EXECUTOR_INSTANCES.key,
+      EntranceConfiguration.SPARK_EXECUTOR_INSTANCES.getValue
+    )
+    properties.put(
+      EntranceConfiguration.SPARK_EXECUTOR_MEMORY_OVERHEAD.key,
+      EntranceConfiguration.SPARK_EXECUTOR_MEMORY_OVERHEAD.getValue
+    )
+    properties.put(
+      EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
+      EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
+    )
+    Utils.tryAndWarn {
+      val extraConfs: String =
+        EntranceConfiguration.SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS
+      if (StringUtils.isNotBlank(extraConfs)) {
+        val confs: Array[String] = extraConfs.split(",")
+        for (conf <- confs) {
+          val confKey: String = conf.split("=")(0)
+          val confValue: String = conf.split("=")(1)
+          properties.put(confKey, confValue)
+        }
+      }
+    }
+    logInfo(s"use spark3 default conf. \n", logAppender)
   }
 
   /**
