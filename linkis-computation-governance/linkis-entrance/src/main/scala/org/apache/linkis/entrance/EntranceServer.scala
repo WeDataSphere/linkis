@@ -368,7 +368,12 @@ abstract class EntranceServer extends Logging {
                         logger.info(s"Successfully updated diagnosis for job ${job.getId()}")
                       }
                       job.getLogListener.foreach(
-                        _.onLogUpdate(job, LogUtils.generateInfo(s"Finished diagnosing task,This decision took ${response.duration} seconds"))
+                        _.onLogUpdate(
+                          job,
+                          LogUtils.generateInfo(
+                            s"Finished diagnosing task,This decision took ${response.duration} seconds"
+                          )
+                        )
                       )
                     case _ =>
                       logger.warn(s"Job $jobId is not an EntranceJob, skip diagnosis")

@@ -292,7 +292,7 @@ object EntranceConfiguration {
   val SUPPORTED_RETRY_ERROR_CODES =
     CommonVars(
       "linkis.entrance.supported.retry.error.codes",
-      "01002,01003,13005,13006,13012,50006,50021,50024,50025,50027,50028"
+      "01002,01003,13005,13006,13012"
     ).getValue
 
   val SUPPORTED_RETRY_ERROR_DESC =
