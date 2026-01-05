@@ -17,7 +17,6 @@
 
 package org.apache.linkis.common.utils;
 
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;

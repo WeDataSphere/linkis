@@ -18,11 +18,12 @@
 package org.apache.linkis.common.utils;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.Test;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.junit.jupiter.api.Test;
 
 class ShaUtilsTest {
   @Test
@@ -51,7 +52,8 @@ class ShaUtilsTest {
     parms.put("nonce", nonce);
     if (StringUtils.isNotBlank(token)) {
       String signature =
-              SHAUtils.Encrypt(SHAUtils.Encrypt(parms.get("app_id") + nonce + timestampStr, null) + token, null);
+          SHAUtils.Encrypt(
+              SHAUtils.Encrypt(parms.get("app_id") + nonce + timestampStr, null) + token, null);
       parms.put("signature", signature);
     }
   }
