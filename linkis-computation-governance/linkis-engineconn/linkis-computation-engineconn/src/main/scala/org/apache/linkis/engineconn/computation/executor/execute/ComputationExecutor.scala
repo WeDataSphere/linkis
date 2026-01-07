@@ -373,7 +373,7 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
             engineConnTask,
             ResponseTaskError(engineConnTask.getTaskId, message)
           )
-          logger.error(message, throwable)
+          logger.warn(s"The task begins executing retries,jobId:${engineConnTask.getTaskId},message:${message}", throwable)
           ComputationEngineUtils.sendToEntrance(
             engineConnTask,
             new ResponseTaskStatusWithExecuteCodeIndex(
