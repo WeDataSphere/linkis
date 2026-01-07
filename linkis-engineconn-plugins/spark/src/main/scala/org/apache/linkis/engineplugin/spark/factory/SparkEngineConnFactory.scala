@@ -205,11 +205,7 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
     // 如果不是3.4.4版本则关闭动态分配功能（这是最晚的配置设置点）
 
     val sparkVersion = Utils.tryQuietly(EngineUtils.sparkSubmitVersion())
-    if (
-        sparkVersion != null && !LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue.equals(
-          sparkVersion
-        )
-    ) {
+    if (!LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue.equals(sparkVersion)) {
       logger.info(
         s"Spark version is $sparkVersion, not 3.4.4, disabling spark.dynamicAllocation.enabled"
       )
