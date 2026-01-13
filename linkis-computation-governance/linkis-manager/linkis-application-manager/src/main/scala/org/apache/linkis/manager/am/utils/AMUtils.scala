@@ -414,7 +414,7 @@ object AMUtils extends Logging {
     import scala.concurrent.Future
     import scala.util.{Failure, Success}
 
-    // 优化：使用复用的线程池，线程数设置为10
+    // 优化：使用复用的线程池，线程数设置为5
     Future {
       updateMetrics(taskId, resourceTicketId, emInstance, ecmInstance, engineLogPath, isReuse)
     }(updateMetricsExecutor).onComplete {
