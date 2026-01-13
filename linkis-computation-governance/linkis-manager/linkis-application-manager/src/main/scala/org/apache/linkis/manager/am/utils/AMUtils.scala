@@ -50,7 +50,7 @@ import com.google.gson.JsonObject
 
 object AMUtils extends Logging {
 
-  // 优化：线程池复用，线程数设置为10
+  // 优化：线程池复用，线程数设置为5
   private implicit val updateMetricsExecutor: ExecutionContextExecutorService =
     Utils.newCachedExecutionContext(5, "UpdateMetrics-Thread-")
 
