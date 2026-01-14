@@ -66,7 +66,7 @@ class SecurityFilter extends Filter {
       }
       // Security certification support, solving verb tampering(安全认证支持，解决动词篡改)
       request.getMethod.toUpperCase(Locale.getDefault) match {
-        case "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "TRACE" | "CONNECT" | "OPTIONS" =>
+        case "GET" | "POST" | "PUT" | "DELETE" | "HEAD" | "CONNECT" | "OPTIONS" =>
         case _ =>
           filterResponse(validateFailed("Do not use HTTP verbs to tamper with!(不可使用HTTP动词篡改！)"))
           return false
