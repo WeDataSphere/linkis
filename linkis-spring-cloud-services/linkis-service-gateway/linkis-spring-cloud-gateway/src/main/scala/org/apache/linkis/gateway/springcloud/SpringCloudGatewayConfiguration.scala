@@ -23,6 +23,7 @@ import org.apache.linkis.gateway.parser.{DefaultGatewayParser, GatewayParser}
 import org.apache.linkis.gateway.route.{DefaultGatewayRouter, GatewayRouter}
 import org.apache.linkis.gateway.springcloud.http.{
   GatewayAuthorizationFilter,
+  HttpMethodSecurityFilter,
   LinkisGatewayHttpHeadersFilter,
   LinkisLoadBalancerClientConfiguration
 }
@@ -63,6 +64,9 @@ class SpringCloudGatewayConfiguration {
 
   @Autowired
   private var gatewayProperties: GatewayProperties = _
+
+  @Bean
+  def httpMethodSecurityFilter: GlobalFilter = new HttpMethodSecurityFilter
 
   @Bean
   def authorizationFilter: GlobalFilter = new GatewayAuthorizationFilter(
