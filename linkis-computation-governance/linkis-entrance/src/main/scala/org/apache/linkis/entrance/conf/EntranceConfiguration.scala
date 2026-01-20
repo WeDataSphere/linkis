@@ -450,6 +450,6 @@ object EntranceConfiguration {
   val TASK_DIAGNOSIS_TIMEOUT = CommonVars[String]("linkis.task.diagnosis.timeout", "5m").getValue
 
   val TASK_DIAGNOSIS_TIMEOUT_SCAN =
-    CommonVars("linkis.task.diagnosis.timeout.scan", "1m").getValue
+    CommonVars("linkis.task.diagnosis.timeout.scan", "2m").getValue
 
 }
