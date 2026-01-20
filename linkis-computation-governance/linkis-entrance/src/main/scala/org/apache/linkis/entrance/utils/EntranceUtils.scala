@@ -249,8 +249,8 @@ object EntranceUtils extends Logging {
       LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
     )
     try {
-      if (isSpark3) {
-        if (sparkDynamicAllocationEnabled) {
+      if (isSpark3 && sparkDynamicAllocationEnabled) {
+        if (EntranceConfiguration.SPARK_DYNAMIC_CONF_USE_USER) {
           logger.info(s"Task :${jobRequest.getId} using user dynamic conf ")
           // If dynamic allocation is disabled, only set python version
           properties.put(
