@@ -249,16 +249,18 @@ object EntranceUtils extends Logging {
       LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
     )
     try {
-      if (isSpark3 && !sparkDynamicAllocationEnabled) {
-        logger.info(s"Task :${jobRequest.getId} using user dynamic conf ")
-        // If dynamic allocation is disabled, only set python version
-        properties.put(
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
-          EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
-        )
-      } else {
-        logger.info(s"Task :${jobRequest.getId} using default dynamic conf ")
-        setSparkDynamicAllocationDefaultConfs(properties, logAppender)
+      if (isSpark3) {
+        if (!sparkDynamicAllocationEnabled) {
+          logger.info(s"Task :${jobRequest.getId} using user dynamic conf ")
+          // If dynamic allocation is disabled, only set python version
+          properties.put(
+            EntranceConfiguration.SPARK3_PYTHON_VERSION.key,
+            EntranceConfiguration.SPARK3_PYTHON_VERSION.getValue
+          )
+        } else {
+          logger.info(s"Task :${jobRequest.getId} using default dynamic conf ")
+          setSparkDynamicAllocationDefaultConfs(properties, logAppender)
+        }
       }
     } catch {
       case e: Exception =>
