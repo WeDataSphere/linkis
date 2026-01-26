@@ -1,15 +1,5 @@
 # 需求开发Prompts合并文档
 
-## 目录
-
-1. [openlog-level-filter - 支持更细粒度获取任务日志](#1-openlog-level-filter---支持更细粒度获取任务日志)
-2. [resultset-view-optimize - 结果集查看优化](#2-resultset-view-optimize---结果集查看优化)
-3. [simplify-dealspark-dynamic-conf - 简化dealsparkDynamicConf方法](#3-simplify-dealspark-dynamic-conf---简化dealsparkdynamicconf方法)
-4. [spark-task-diagnosis - Spark任务诊断结果持久化](#4-spark-task-diagnosis---spark任务诊断结果持久化)
-5. [system-user-login-block - 系统用户登录拦截](#5-system-user-login-block---系统用户登录拦截)
-
----
-
 ## 1. openlog-level-filter - 支持更细粒度获取任务日志
 
 ### 1.1 需求澄清 Prompt
