@@ -350,8 +350,7 @@ public class YarnResourceRequester implements ExternalResourceRequester {
               + YarnAppState.RUNNING.getState()
               + ","
               + YarnAppState.ACCEPTED.getState()
-              + "&deSelects="
-              + RMConfiguration.YARN_APPS_FILTER_DESELECT.getValue();
+              + RMConfiguration.YARN_APPS_FILTER_PARMS.getValue();
       resp =
           getResponseByUrl("apps" + queryParams, rmWebAddress, provider).path("apps").path("app");
     } else {
