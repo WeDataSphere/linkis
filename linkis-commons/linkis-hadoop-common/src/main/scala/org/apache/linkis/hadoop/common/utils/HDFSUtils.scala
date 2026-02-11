@@ -23,6 +23,7 @@ import org.apache.linkis.hadoop.common.conf.HadoopConf
 import org.apache.linkis.hadoop.common.conf.HadoopConf._
 import org.apache.linkis.hadoop.common.entity.HDFSFileSystemContainer
 
+import com.google.common.cache.{CacheBuilder, LoadingCache, RemovalCause, RemovalListener, RemovalNotification}
 import org.apache.commons.io.IOUtils
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.conf.Configuration
@@ -30,7 +31,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.security.UserGroupInformation
 
 import java.io.File
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Files, Paths}
 import java.nio.file.attribute.PosixFilePermissions
 import java.security.PrivilegedExceptionAction
 import java.util.Base64
@@ -44,9 +45,41 @@ object HDFSUtils extends Logging {
   private val fileSystemCache: java.util.Map[String, HDFSFileSystemContainer] =
     new ConcurrentHashMap[String, HDFSFileSystemContainer]()
 
-  // Keytab file cache to avoid creating temp files repeatedly (reduces Full GC)
-  private val keytabFileCache: java.util.Map[String, Path] =
-    new ConcurrentHashMap[String, Path]()
+  // 缓存keytab文件路径，避免重复创建临时文件导致KeyTab对象内存泄漏
+  private val keytabTempFileCache: LoadingCache[String, String] = {
+    val removalListener = new RemovalListener[String, String] {
+      override def onRemoval(notification: RemovalNotification[String, String]): Unit = {
+        val key = notification.getKey
+        val path = notification.getValue
+        val cause = notification.getCause
+        
+        logger.info(s"Keytab cache entry removed: $key, cause: $cause")
+        
+        // 当缓存项被移除时，清理对应的临时文件
+        if (path != null) {
+          val file = new File(path)
+          if (file.exists()) {
+            if (file.delete()) {
+              logger.info(s"Removed keytab temp file: $path")
+            } else {
+              logger.warn(s"Failed to remove keytab temp file: $path")
+            }
+          }
+        }
+      }
+    }
+
+    CacheBuilder.newBuilder()
+      .maximumSize(1000) // 最大缓存项数量
+      .expireAfterAccess(24, TimeUnit.HOURS) // 24小时未访问过期
+      .removalListener(removalListener)
+      .build(new com.google.common.cache.CacheLoader[String, String] {
+        override def load(key: String): String = {
+          // 这里不应该被调用，因为我们总是在put之前检查缓存
+          throw new UnsupportedOperationException("Cache loader not supported")
+        }
+      })
+  }
 
   private val LOCKER_SUFFIX = "_HDFS"
   private val DEFAULT_CACHE_LABEL = "default"
@@ -90,15 +123,26 @@ object HDFSUtils extends Logging {
                 }
               }
             }
-
-          // Clean expired keytab cached files
-          cleanExpiredKeytabFiles()
         }
       },
       3 * 60 * 1000,
       60 * 1000,
       TimeUnit.MILLISECONDS
     )
+  }
+
+  /**
+   * 创建 keytab 缓存的 key，考虑 label 参数
+   */
+  private def createKeytabCacheKey(userName: String, label: String): String = {
+    if (label == null) userName else s"$userName#$label"
+  }
+
+  /**
+   * 获取 keytab 临时文件目录
+   */
+  private def getKeytabTempDir(): java.nio.file.Path = {
+    Paths.get(HadoopConf.KEYTAB_TEMP_DIR.getValue)
   }
 
   def getConfiguration(user: String): Configuration = getConfiguration(user, hadoopConfDir)
@@ -387,137 +431,68 @@ object HDFSUtils extends Logging {
     }
   }
 
-  /**
-   * Create cache key for keytab file cache
-   * @param userName the user name
-   * @param label the cluster label
-   * @return cache key in format "userName_label"
-   */
-  private def createKeytabCacheKey(userName: String, label: String): String = {
-    val cacheLabel = if (label == null) DEFAULT_CACHE_LABEL else label
-    userName + JOINT + cacheLabel
-  }
-
-  /**
-   * Get or create cached keytab file path
-   * This method caches the decrypted keytab temporary file to avoid repeatedly creating temp files,
-   * which reduces Full GC frequency and improves performance.
-   *
-   * @param userName the user name
-   * @param label the cluster label
-   * @return the path to the cached keytab file
-   */
-  private def createOrGetCachedKeytabFile(userName: String, label: String): Path = {
-    val cacheKey = createKeytabCacheKey(userName, label)
-
-    // Check if cached file exists
-    var cachedPath = keytabFileCache.get(cacheKey)
-    if (cachedPath != null && Files.exists(cachedPath)) {
-      logger.debug(s"Keytab cache hit for user: $userName, label: $label, path: $cachedPath")
-      return cachedPath
-    }
-
-    // Cache miss, create new temp file
-    logger.debug(
-      s"Keytab cache miss for user: $userName, label: $label, key: $cacheKey, creating new file..."
-    )
-
-    try {
-      synchronized {
-        // Double-check locking to avoid duplicate creation
-        cachedPath = keytabFileCache.get(cacheKey)
-        if (cachedPath != null && Files.exists(cachedPath)) {
-          return cachedPath
-        }
-
-        // Read encrypted keytab file
-        val sourcePath = Paths.get(getLinkisKeytabPath(label), userName + KEYTAB_SUFFIX)
-        val encryptedBytes = Files.readAllBytes(sourcePath)
-
-        // Decrypt content
-        val decryptedBytes = AESUtils.decrypt(encryptedBytes, AESUtils.PASSWORD)
-
-        // Create temp file
-        val tempFile = Files.createTempFile(userName, KEYTAB_SUFFIX)
-        Files.setPosixFilePermissions(tempFile, PosixFilePermissions.fromString("rw-------"))
-        Files.write(tempFile, decryptedBytes)
-
-        // Cache the file path
-        keytabFileCache.put(cacheKey, tempFile)
-
-        logger.info(
-          s"Keytab file cached: $tempFile for user: $userName, label: $label, cache size: ${keytabFileCache.size()}"
-        )
-        tempFile
-      }
-    } catch {
-      case e: Exception =>
-        logger.error(
-          s"Failed to create cached keytab file for user: $userName, label: $label",
-          e
-        )
-        throw e
-    }
-  }
-
-  /**
-   * Clean expired keytab cached files
-   * This method is called by the scheduled cleanup task to remove cache entries
-   * that haven't been accessed for a while.
-   */
-  private def cleanExpiredKeytabFiles(): Unit = {
-    if (keytabFileCache.isEmpty) return
-
-    val now = System.currentTimeMillis()
-    val idleTime = HadoopConf.HDFS_ENABLE_CACHE_IDLE_TIME
-    var cleanedCount = 0
-
-    keytabFileCache
-      .keySet()
-      .asScala
-      .foreach { cacheKey =>
-        val locker = cacheKey + "_KEYTAB"
-        locker.intern() synchronized {
-          try {
-            val keytabPath = keytabFileCache.get(cacheKey)
-            if (keytabPath != null && Files.exists(keytabPath)) {
-              val lastModified = Files.getLastModifiedTime(keytabPath).toMillis
-              if (now - lastModified > idleTime) {
-                // Delete temp file
-                Files.deleteIfExists(keytabPath)
-                keytabFileCache.remove(cacheKey)
-                cleanedCount += 1
-                logger.info(
-                  s"Cleaned expired keytab file: $keytabPath (key: $cacheKey, age: ${now - lastModified}ms)"
-                )
-              }
-            } else if (keytabPath != null && !Files.exists(keytabPath)) {
-              // File doesn't exist, remove from cache
-              keytabFileCache.remove(cacheKey)
-              logger.debug(s"Cleaned non-existent keytab cache entry: $cacheKey")
-            }
-          } catch {
-            case e: Exception =>
-              logger.warn(s"Failed to clean keytab cache for key: $cacheKey", e)
-          }
-        }
-      }
-
-    if (cleanedCount > 0) {
-      logger.info(
-        s"Cleaned $cleanedCount expired keytab cached files, current cache size: ${keytabFileCache.size()}"
-      )
-    }
-  }
-
   private def getLinkisUserKeytabFile(userName: String, label: String): String = {
     val path = if (LINKIS_KEYTAB_SWITCH) {
-      // Use cached keytab file to avoid repeatedly creating temp files
-      createOrGetCachedKeytabFile(userName, label).toString
+      val cacheKey = createKeytabCacheKey(userName, label)
+      val keytabTempDir = getKeytabTempDir()
+
+      synchronized {
+        // 确保keytab临时目录存在
+        if (!Files.exists(keytabTempDir)) {
+          Files.createDirectories(keytabTempDir)
+          Files.setPosixFilePermissions(keytabTempDir, PosixFilePermissions.fromString("rwxr-xr-x"))
+        }
+
+        val cachedPath = keytabTempFileCache.getIfPresent(cacheKey)
+        if (cachedPath != null) {
+          val tempFile = new File(cachedPath)
+          if (tempFile.exists()) {
+            logger.info(s"Found cached keytab file: $cachedPath")
+            cachedPath
+          } else {
+            logger.info(s"Cached keytab file not exists, removing from cache: $cachedPath")
+            // 文件不存在，从缓存中移除
+            keytabTempFileCache.invalidate(cacheKey)
+            // 创建新的临时文件
+            createNewKeytabFile(userName, label, keytabTempDir, cacheKey)
+          }
+        } else {
+          logger.info(s"Creating new keytab file for cacheKey: $cacheKey")
+          // 创建新的临时文件
+          createNewKeytabFile(userName, label, keytabTempDir, cacheKey)
+        }
+      }
     } else {
       new File(getKeytabPath(label), userName + KEYTAB_SUFFIX).getPath
     }
     path
+  }
+
+  private def createNewKeytabFile(
+      userName: String,
+      label: String,
+      keytabTempDir: java.nio.file.Path,
+      cacheKey: String
+  ): String = {
+    try {
+      // 读取文件
+      val sourcePath = Paths.get(getLinkisKeytabPath(label), userName + KEYTAB_SUFFIX)
+      val byte = Files.readAllBytes(sourcePath)
+      // 解密内容
+      val encryptedContent = AESUtils.decrypt(byte, AESUtils.PASSWORD)
+      val tempFile = Files.createTempFile(keytabTempDir, null, KEYTAB_SUFFIX)
+      Files.setPosixFilePermissions(tempFile, PosixFilePermissions.fromString("rw-------"))
+      Files.write(tempFile, encryptedContent)
+      val keyTablePath = tempFile.toString
+      // 将固定文件路径加入缓存
+      keytabTempFileCache.put(cacheKey, keyTablePath)
+      logger.info(s"Created and cached fixed keytab file: $keyTablePath, cacheKey: $cacheKey")
+      keyTablePath
+    } catch {
+      case e: Exception =>
+        logger.error(s"Failed to create keytab file for user: $userName", e)
+        throw e
+    }
   }
 
 }
