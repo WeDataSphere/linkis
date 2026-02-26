@@ -199,8 +199,13 @@ object LoadData {
     val out = fs.create(new Path(hdfsPath), true)
     IOUtils.copyBytes(in, out, 4096)
     out.hsync()
-    IOUtils.closeStream(in)
-    IOUtils.closeStream(out)
+    try {
+      IOUtils.copyBytes(in, out, 4096)
+      out.hsync()
+    } finally {
+      org.apache.commons.io.IOUtils.closeQuietly(in)
+      org.apache.commons.io.IOUtils.closeQuietly(out)
+    }
     hdfsPath
   }
 

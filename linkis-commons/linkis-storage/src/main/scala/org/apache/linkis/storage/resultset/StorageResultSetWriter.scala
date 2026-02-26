@@ -24,11 +24,10 @@ import org.apache.linkis.storage.FSFactory
 import org.apache.linkis.storage.conf.LinkisStorageConf
 import org.apache.linkis.storage.domain.Dolphin
 import org.apache.linkis.storage.fs.FileSystem
-import org.apache.linkis.storage.fs.impl.HDFSFileSystem
 import org.apache.linkis.storage.utils.{FileSystemUtils, StorageUtils}
 
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.hdfs.client.HdfsDataOutputStream
+import org.apache.hadoop.fs.FSDataOutputStream
 
 import java.io.{IOException, OutputStream}
 
@@ -213,7 +212,7 @@ class StorageResultSetWriter[K <: MetaData, V <: Record](
       }
       Utils.tryAndWarnMsg[Unit] {
         outputStream match {
-          case hdfs: HdfsDataOutputStream =>
+          case hdfs: FSDataOutputStream =>
             hdfs.hflush()
           case _ =>
             outputStream.flush()

@@ -28,7 +28,7 @@
 
   <properties>
     <hive.version>2.3.3</hive.version>
-    <jackson.version>1.9.2</jackson.version>
+    <jackson.version>2.12.7</jackson.version>
   </properties>
 
   <dependencies>

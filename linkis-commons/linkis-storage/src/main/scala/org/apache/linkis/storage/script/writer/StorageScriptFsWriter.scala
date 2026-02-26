@@ -24,7 +24,7 @@ import org.apache.linkis.storage.script.{Compaction, ScriptFsWriter, ScriptMetaD
 import org.apache.linkis.storage.utils.{StorageConfiguration, StorageUtils}
 
 import org.apache.commons.io.IOUtils
-import org.apache.hadoop.hdfs.client.HdfsDataOutputStream
+import org.apache.hadoop.fs.FSDataOutputStream
 
 import java.io.{ByteArrayInputStream, InputStream, IOException, OutputStream}
 import java.util
@@ -84,7 +84,7 @@ class StorageScriptFsWriter(
   override def flush(): Unit = if (outputStream != null) {
     Utils.tryAndWarnMsg[Unit] {
       outputStream match {
-        case hdfs: HdfsDataOutputStream =>
+        case hdfs: FSDataOutputStream =>
           hdfs.hflush()
         case _ =>
           outputStream.flush()
