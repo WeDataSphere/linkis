@@ -26,7 +26,7 @@ import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.utils.FileSystemUtils
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.hadoop.hdfs.client.HdfsDataOutputStream
+import org.apache.hadoop.fs.FSDataOutputStream
 
 import java.io.{Closeable, Flushable, OutputStream}
 import java.util
@@ -53,7 +53,7 @@ abstract class LogWriter(charset: String) extends Closeable with Flushable with 
 
   def flush(): Unit = Utils.tryAndWarnMsg[Unit] {
     outputStream match {
-      case hdfs: HdfsDataOutputStream =>
+      case hdfs: FSDataOutputStream =>
         // todo check
         hdfs.hflush()
       case _ =>

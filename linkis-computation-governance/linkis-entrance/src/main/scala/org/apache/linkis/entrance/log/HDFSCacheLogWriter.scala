@@ -27,7 +27,7 @@ import org.apache.linkis.storage.fs.FileSystem
 import org.apache.linkis.storage.utils.FileSystemUtils
 
 import org.apache.commons.lang3.StringUtils
-import org.apache.hadoop.hdfs.client.HdfsDataOutputStream
+import org.apache.hadoop.fs.FSDataOutputStream
 import org.apache.hadoop.io.IOUtils
 
 import java.io.{IOException, OutputStream}
@@ -83,7 +83,7 @@ class HDFSCacheLogWriter(logPath: String, charset: String, sharedCache: Cache, u
     if (null != outputStream) OUT_LOCKER.synchronized {
       if (null != outputStream) {
         outputStream match {
-          case hdfs: HdfsDataOutputStream =>
+          case hdfs: FSDataOutputStream =>
             hdfs.hflush()
           case _ =>
         }
