@@ -21,16 +21,11 @@ import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.log.LogUtils
 import org.apache.linkis.common.utils.{ByteTimeUtils, CodeAndRunTypeUtils, Logging, Utils}
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
+import org.apache.linkis.engineconn.common.creation.EngineCreationContext
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
-import org.apache.linkis.engineconn.computation.executor.execute.{
-  ComputationExecutor,
-  EngineExecutionContext
-}
-import org.apache.linkis.engineconn.computation.executor.utlis.{
-  ComputationEngineConstant,
-  ProgressUtils
-}
+import org.apache.linkis.engineconn.computation.executor.execute.{ComputationExecutor, EngineExecutionContext}
+import org.apache.linkis.engineconn.computation.executor.utlis.{ComputationEngineConstant, ProgressUtils}
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.exception.ExecutorHookFatalException
 import org.apache.linkis.engineconn.executor.entity.{ResourceFetchExecutor, YarnExecutor}
@@ -39,25 +34,20 @@ import org.apache.linkis.engineplugin.spark.config.SparkConfiguration
 import org.apache.linkis.engineplugin.spark.cs.CSSparkHelper
 import org.apache.linkis.engineplugin.spark.errorcode.SparkErrorCodeSummary
 import org.apache.linkis.engineplugin.spark.exception.RuleCheckFailedException
-import org.apache.linkis.engineplugin.spark.extension.{
-  SparkPostExecutionHook,
-  SparkPreExecutionHook
-}
+import org.apache.linkis.engineplugin.spark.extension.{SparkPostExecutionHook, SparkPreExecutionHook}
 import org.apache.linkis.engineplugin.spark.utils.JobProgressUtil
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.exception.LinkisJobRetryException
-import org.apache.linkis.governance.common.exception.engineconn.{
-  EngineConnExecutorErrorCode,
-  EngineConnExecutorErrorException
-}
+import org.apache.linkis.governance.common.exception.engineconn.{EngineConnExecutorErrorCode, EngineConnExecutorErrorException}
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.protocol.resource.ResourceWithStatus
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
+import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.entity.Label
-import org.apache.linkis.manager.label.entity.engine.CodeLanguageLabel
-import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
+import org.apache.linkis.manager.label.entity.engine.{CodeLanguageLabel, EngineType}
+import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.scheduler.executer.ExecuteResponse
 import org.apache.linkis.server.toJavaMap
@@ -122,11 +112,10 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     }
     val kind: Kind = getKind
     var preCode = code
-
+    val engineContext = EngineConnObject.getEngineCreationContext
     val isFirstParagraph = (engineExecutorContext.getCurrentParagraph == 1)
     if (isFirstParagraph == true) {
       var yarnUrl = ""
-      val engineContext = EngineConnObject.getEngineCreationContext
       if (null != engineContext) {
         engineContext
           .getLabels()
@@ -203,8 +192,8 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     logger.info("Set jobGroup to " + jobGroup)
     sc.setJobGroup(jobGroup, _code, true)
 
-    // Set spark driver params to driver side
-    Utils.tryAndWarn(setSparkDriverParams(sc))
+    // Set spark executor params to executor side
+    Utils.tryAndWarn(setSparkExecutorParams(sc, engineContext))
 
     // print job configuration, only the first paragraph or retry
     val errorIndex: Integer = Integer.valueOf(
@@ -287,39 +276,36 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
   }
 
   /**
-   * Set spark params to driver side via setLocalProperty
-   * Note: Only supported in Spark 3.4.4 and above
+   * Set spark params to executor side via setLocalProperty Note: Only supported in Spark 3.4+ engine
    *
    * @param sc
    *   SparkContext
    */
-  private def setSparkDriverParams(sc: SparkContext): Unit = {
-    if (!SparkConfiguration.SPARK_DRIVER_PARAMS_ENABLED.getValue) {
-      logger.info("Spark driver params setting is disabled")
+  private def setSparkExecutorParams(sc: SparkContext, engineContext: EngineCreationContext): Unit = {
+    if (!SparkConfiguration.SPARK_EXECUTOR_PARAMS_ENABLED.getValue) {
+      logger.info("Spark executor params setting is disabled")
       return
     }
 
-    val sparkVersion = sc.version
-    val versionPattern: Regex = """(\d+)\.(\d+)\.(\d+)""".r
-
-    val isSupportedVersion = versionPattern.findFirstMatchIn(sparkVersion) match {
-      case Some(m) =>
-        val major = m.group(1).toInt
-        val minor = m.group(2).toInt
-        val patch = m.group(3).toInt
-        major > 3 || (major == 3 && minor == 4 && patch >= 4)
-      case None =>
-        false
+    if (null == engineContext) {
+      logger.info("Spark executor params setting is disabled")
+      return
     }
+    // Check if this is Spark3 engine using LabelUtil
+    val isSpark3 = LabelUtil.isTargetEngine(
+      engineContext.getLabels(),
+      EngineType.SPARK.toString,
+      LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+    )
 
-    if (!isSupportedVersion) {
+    if (!isSpark3) {
       logger.warn(
-        s"Spark driver params setting is only supported in Spark 3.4.4+, current version: $sparkVersion"
+        s"Spark executor params setting is only supported in Spark3 engine"
       )
       return
     }
 
-    val excludeParams = SparkConfiguration.SPARK_DRIVER_PARAMS_EXCLUDE.getValue
+    val excludeParams = SparkConfiguration.SPARK_EXECUTOR_PARAMS_EXCLUDE.getValue
       .split(",")
       .map(_.trim)
       .filter(_.nonEmpty)
@@ -346,7 +332,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     }
 
     logger.info(
-      s"Spark driver params setting completed - total: $totalParams, " +
+      s"Spark executor params setting completed - total: $totalParams, " +
         s"skipped: $skippedParams, success: $successCount, failed: $failCount"
     )
   }
