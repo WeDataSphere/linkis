@@ -70,6 +70,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
+import scala.util.matching.Regex
 
 abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     extends ComputationExecutor
@@ -202,6 +203,9 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     logger.info("Set jobGroup to " + jobGroup)
     sc.setJobGroup(jobGroup, _code, true)
 
+    // Set spark driver params to driver side
+    Utils.tryAndWarn(setSparkDriverParams(sc))
+
     // print job configuration, only the first paragraph or retry
     val errorIndex: Integer = Integer.valueOf(
       engineExecutionContext.getProperties
@@ -280,6 +284,71 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     } else {
       executeHook.getClass.getName
     }
+  }
+
+  /**
+   * Set spark params to driver side via setLocalProperty
+   * Note: Only supported in Spark 3.4.4 and above
+   *
+   * @param sc
+   *   SparkContext
+   */
+  private def setSparkDriverParams(sc: SparkContext): Unit = {
+    if (!SparkConfiguration.SPARK_DRIVER_PARAMS_ENABLED.getValue) {
+      logger.info("Spark driver params setting is disabled")
+      return
+    }
+
+    val sparkVersion = sc.version
+    val versionPattern: Regex = """(\d+)\.(\d+)\.(\d+)""".r
+
+    val isSupportedVersion = versionPattern.findFirstMatchIn(sparkVersion) match {
+      case Some(m) =>
+        val major = m.group(1).toInt
+        val minor = m.group(2).toInt
+        val patch = m.group(3).toInt
+        major > 3 || (major == 3 && minor == 4 && patch >= 4)
+      case None =>
+        false
+    }
+
+    if (!isSupportedVersion) {
+      logger.warn(
+        s"Spark driver params setting is only supported in Spark 3.4.4+, current version: $sparkVersion"
+      )
+      return
+    }
+
+    val excludeParams = SparkConfiguration.SPARK_DRIVER_PARAMS_EXCLUDE.getValue
+      .split(",")
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .toSet
+
+    var totalParams = 0
+    var skippedParams = 0
+    var successCount = 0
+    var failCount = 0
+
+    sc.getConf.getAll.foreach { case (key, value) =>
+      totalParams += 1
+      if (excludeParams.contains(key)) {
+        skippedParams += 1
+      } else {
+        Utils.tryCatch {
+          sc.setLocalProperty(key, value)
+          successCount += 1
+        } { case e: Exception =>
+          logger.warn(s"Failed to set spark param: $key, error: ${e.getMessage}", e)
+          failCount += 1
+        }
+      }
+    }
+
+    logger.info(
+      s"Spark driver params setting completed - total: $totalParams, " +
+        s"skipped: $skippedParams, success: $successCount, failed: $failCount"
+    )
   }
 
   override def executeCompletely(
