@@ -24,8 +24,14 @@ import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConst
 import org.apache.linkis.engineconn.common.creation.EngineCreationContext
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
 import org.apache.linkis.engineconn.computation.executor.entity.EngineConnTask
-import org.apache.linkis.engineconn.computation.executor.execute.{ComputationExecutor, EngineExecutionContext}
-import org.apache.linkis.engineconn.computation.executor.utlis.{ComputationEngineConstant, ProgressUtils}
+import org.apache.linkis.engineconn.computation.executor.execute.{
+  ComputationExecutor,
+  EngineExecutionContext
+}
+import org.apache.linkis.engineconn.computation.executor.utlis.{
+  ComputationEngineConstant,
+  ProgressUtils
+}
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.core.exception.ExecutorHookFatalException
 import org.apache.linkis.engineconn.executor.entity.{ResourceFetchExecutor, YarnExecutor}
@@ -34,17 +40,23 @@ import org.apache.linkis.engineplugin.spark.config.SparkConfiguration
 import org.apache.linkis.engineplugin.spark.cs.CSSparkHelper
 import org.apache.linkis.engineplugin.spark.errorcode.SparkErrorCodeSummary
 import org.apache.linkis.engineplugin.spark.exception.RuleCheckFailedException
-import org.apache.linkis.engineplugin.spark.extension.{SparkPostExecutionHook, SparkPreExecutionHook}
+import org.apache.linkis.engineplugin.spark.extension.{
+  SparkPostExecutionHook,
+  SparkPreExecutionHook
+}
 import org.apache.linkis.engineplugin.spark.utils.JobProgressUtil
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.exception.LinkisJobRetryException
-import org.apache.linkis.governance.common.exception.engineconn.{EngineConnExecutorErrorCode, EngineConnExecutorErrorException}
+import org.apache.linkis.governance.common.exception.engineconn.{
+  EngineConnExecutorErrorCode,
+  EngineConnExecutorErrorException
+}
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.resource._
 import org.apache.linkis.manager.common.protocol.resource.ResourceWithStatus
-import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.conf.LabelCommonConfig
+import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{CodeLanguageLabel, EngineType}
 import org.apache.linkis.manager.label.utils.LabelUtil
@@ -276,12 +288,16 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
   }
 
   /**
-   * Set spark params to executor side via setLocalProperty Note: Only supported in Spark 3.4+ engine
+   * Set spark params to executor side via setLocalProperty Note: Only supported in Spark 3.4+
+   * engine
    *
    * @param sc
    *   SparkContext
    */
-  private def setSparkExecutorParams(sc: SparkContext, engineContext: EngineCreationContext): Unit = {
+  private def setSparkExecutorParams(
+      sc: SparkContext,
+      engineContext: EngineCreationContext
+  ): Unit = {
     if (!SparkConfiguration.SPARK_EXECUTOR_PARAMS_ENABLED.getValue) {
       logger.info("Spark executor params setting is disabled")
       return
@@ -299,9 +315,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     )
 
     if (!isSpark3) {
-      logger.warn(
-        s"Spark executor params setting is only supported in Spark3 engine"
-      )
+      logger.warn(s"Spark executor params setting is only supported in Spark3 engine")
       return
     }
 
