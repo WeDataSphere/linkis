@@ -702,10 +702,10 @@ export default {
             runType: item.runType,
             instance: item.instance,
             engineInstance: item.engineInstance,
-            isReuse: item.isReuse === null
-              ? ''
-              : item.isReuse
-                ? this.$t('message.linkis.yes')
+            isReuse: item.isReuse === null 
+              ? '' 
+              : item.isReuse 
+                ? this.$t('message.linkis.yes') 
                 : this.$t('message.linkis.no'),
             requestSpendTime: item.requestSpendTime,
             requestStartTime: item.requestStartTime,
@@ -720,10 +720,10 @@ export default {
               ['Submitted', 'Inited', 'Scheduled', 'Running'].indexOf(item.status) === -1,
           failedReason: getFailedReason(item),
           source: item.sourceTailor,
-          isReuse: item.isReuse === null
-            ? ''
-            : item.isReuse
-              ? this.$t('message.linkis.yes')
+          isReuse: item.isReuse === null 
+            ? '' 
+            : item.isReuse 
+              ? this.$t('message.linkis.yes') 
               : this.$t('message.linkis.no'),
         })
       })
