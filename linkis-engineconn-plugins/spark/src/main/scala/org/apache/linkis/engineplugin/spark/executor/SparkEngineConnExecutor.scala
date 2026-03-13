@@ -304,7 +304,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     }
 
     if (null == engineContext) {
-      logger.info("Spark executor params setting is disabled")
+      logger.info("Skip Spark executor params setting: engineContext is null")
       return
     }
     // Check if this is Spark3 engine using LabelUtil
