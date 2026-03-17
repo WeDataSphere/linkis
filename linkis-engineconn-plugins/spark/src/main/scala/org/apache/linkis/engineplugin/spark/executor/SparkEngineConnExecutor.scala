@@ -315,7 +315,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     )
 
     if (!isSpark3) {
-      logger.warn(s"Spark executor params setting is only supported in Spark3 engine")
+      logger.info(s"Spark executor params setting is only supported in Spark3 engine")
       return
     }
 
@@ -332,7 +332,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     logger.info(
       s"Spark executor params setting begin"
     )
-    sc.getConf.getAll.foreach { case (key, value) =>
+    this.asInstanceOf[SparkSqlExecutor].getSparkEngineSession.sparkSession.sessionState.conf.getAllConfs.foreach { case (key, value) =>
       totalParams += 1
       if (excludeParams.contains(key)) {
         logger.info(
