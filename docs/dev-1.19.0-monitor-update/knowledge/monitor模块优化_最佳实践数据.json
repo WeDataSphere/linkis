@@ -310,7 +310,7 @@
       "credibilityLevel": "high"
     }
   },
-  "knowledgeBasePath": "docs/dev-1.19.0-keytab-gc-fix/knowledge/monitor模块优化_最佳实践分析.md",
+  "knowledgeBasePath": "docs/dev-1.19.0-monitor-update/knowledge/monitor模块优化_最佳实践分析.md",
   "implementationPlan": {
     "quickFix": [
       {

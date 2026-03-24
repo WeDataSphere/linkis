@@ -19,14 +19,14 @@ Apache Linkis的Monitor模块（linkis-et-monitor），负责系统监控、事�
 
 | 需求ID | 标题 | 类型 | 状态 | 日期 | 分支 |
 |--------|-----|------|:----:|------|------|
-| MON-OPT-001 | Monitor模块优化（诊断日志清理 + 诊断功能拆分 + 连接池扩容） | OPTIMIZE | 待评审 | 2026-03-23 | dev-1.19.0-keytab-gc-fix |
+| MON-OPT-001 | Monitor模块优化（诊断日志清理 + 诊断功能拆分 + 连接池扩容） | OPTIMIZE | 待评审 | 2026-03-23 | dev-1.19.0-monitor-update |
 
 #### MON-OPT-001: Monitor模块优化（诊断日志清理 + 诊断功能拆分 + 连接池扩容）
 
 **类型**：OPTIMIZE（综合优化）
 **状态**：待评审
 **日期**：2026-03-23
-**分支**：dev-1.19.0-keytab-gc-fix
+**分支**：dev-1.19.0-monitor-update
 
 **需求描述**：
 Monitor模块（linkis-et-monitor）在运行过程中遇到以下问题：
@@ -100,5 +100,5 @@ Monitor模块（linkis-et-monitor）在运行过程中遇到以下问题：
 
 **同步信息**：
 - 同步时间：2026-03-23
-- 来源文档：docs/dev-1.19.0-keytab-gc-fix/requirements/monitor优化_需求.md
+- 来源文档：docs/dev-1.19.0-monitor-update/requirements/monitor优化_需求.md
 - 同步状态：已完成

@@ -134,7 +134,7 @@ docs/project-knowledge/
 3. **设计输出时**: 用 `/skill module-design-manager` 创建设计文档
 4. **需记住事项**: 直接使用 `remember X as Y`，我会自动更新记忆
 
-当前分支是 `dev-1.19.0-keytab-gc-fix`，与上一个需求 keytab GC 修复相关。需要我为这个分支的工作内容建立上下文吗？...
+当前分支是 `dev-1.19.0-monitor-update`，与上一个需求 keytab GC 修复相关。需要我为这个分支的工作内容建立上下文吗？...
 
 
 ## 交互记录 (2026-03-20T08:04:36.553Z)

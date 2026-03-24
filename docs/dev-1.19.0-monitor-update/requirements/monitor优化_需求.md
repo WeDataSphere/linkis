@@ -308,7 +308,7 @@ Monitor模块优化（诊断日志清理 + 诊断功能拆分 + 连接池扩容�
 
 ### 6.3 分支策略
 
-- 开发分支：dev-1.19.0-keytab-gc-fix
+- 开发分支：dev-1.19.0-monitor-update
 - 目标合并分支：dev-1.19.0
 - Commit格式：`[type](<scope>): <subject>`
 

@@ -2,7 +2,7 @@
 
 > 生成时间: 2026-03-20
 > 数据来源: 代码库分析 + Linkis项目实践
-> 项目: Apache Linkis (dev-1.19.0-keytab-gc-fix 分支)
+> 项目: Apache Linkis (dev-1.19.0-monitor-update 分支)
 > 分析可信度: 4.5/5.0
 
 ---
@@ -528,8 +528,8 @@ Week 3+: 诊断插件架构
 ## 十、知识文件生成
 
 本报告已生成以下文件：
-1. **数据分析报告**: `docs/dev-1.19.0-keytab-gc-fix/knowledge/Monitor诊断日志管理与线程池优化_最佳实践分析.md`
-2. **结构化数据**: `docs/dev-1.19.0-keytab-gc-fix/knowledge/Monitor诊断日志管理与线程池优化_最佳实践数据.json`
+1. **数据分析报告**: `docs/dev-1.19.0-monitor-update/knowledge/Monitor诊断日志管理与线程池优化_最佳实践分析.md`
+2. **结构化数据**: `docs/dev-1.19.0-monitor-update/knowledge/Monitor诊断日志管理与线程池优化_最佳实践数据.json`
 
 ---
 

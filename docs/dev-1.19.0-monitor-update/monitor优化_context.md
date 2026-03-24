@@ -3,7 +3,7 @@
 ## 需求基本信息
 
 **需求名称**：Monitor模块优化（诊断日志清理 + 诊断功能拆分 + 连接池扩容）
-**任务目录**：docs/dev-1.19.0-keytab-gc-fix/
+**任务目录**：docs/dev-1.19.0-monitor-update/
 **需求类型**：OPTIMIZE（综合优化）
 **执行模式**：分步模式（Step-by-Step Mode）
 **创建时间**：2026-03-23
@@ -31,7 +31,7 @@ Monitor模块在运行过程中遇到以下问题：
 **技术栈**：Java 1.8, Spring Boot 2.7.12, SLF4J
 **项目类型**：现有项目（棕地）
 **相关模块**：linkis-et-monitor
-**分支**：dev-1.19.0-keytab-gc-fix
+**分支**：dev-1.19.0-monitor-update
 
 ## 已完成工作
 
@@ -42,8 +42,8 @@ Monitor模块在运行过程中遇到以下问题：
 - [x] 阶段1: 需求分析
   - 完成时间：2026-03-23
   - 产物：
-    - docs/dev-1.19.0-keytab-gc-fix/requirements/monitor优化_需求.md
-    - docs/dev-1.19.0-keytab-gc-fix/features/monitor优化.feature
+    - docs/dev-1.19.0-monitor-update/requirements/monitor优化_需求.md
+    - docs/dev-1.19.0-monitor-update/features/monitor优化.feature
 
 - [x] 阶段1.1: 需求文档质量检视
   - 完成时间：2026-03-23
@@ -56,8 +56,8 @@ Monitor模块在运行过程中遇到以下问题：
 
 - [ ] 阶段2: 设计方案生成
   - 待执行Agent：des-optimize
-  - 输入文件：docs/dev-1.19.0-keytab-gc-fix/requirements/monitor优化_需求.md
-  - 输出文件：docs/dev-1.19.0-keytab-gc-fix/design/monitor优化_设计.md
+  - 输入文件：docs/dev-1.19.0-monitor-update/requirements/monitor优化_需求.md
+  - 输出文件：docs/dev-1.19.0-monitor-update/design/monitor优化_设计.md
 
 - [ ] 阶段2.1: 设计文档质量检视
 
@@ -83,7 +83,7 @@ Monitor模块在运行过程中遇到以下问题：
 
 | 文件类型 | 路径 | 状态 |
 |---------|------|:----:|
-| 需求文档 | docs/dev-1.19.0-keytab-gc-fix/requirements/monitor优化_需求.md | ✅ 已生成 |
+| 需求文档 | docs/dev-1.19.0-monitor-update/requirements/monitor优化_需求.md | ✅ 已生成 |
 
 ### 输出文件
 
@@ -106,7 +106,7 @@ Monitor模块在运行过程中遇到以下问题：
 ```
 Task(
   subagent_type: "des-optimize",
-  prompt: "请基于需求文档生成设计方案，输入文件：docs/dev-1.19.0-keytab-gc-fix/requirements/monitor优化_需求.md"
+  prompt: "请基于需求文档生成设计方案，输入文件：docs/dev-1.19.0-monitor-update/requirements/monitor优化_需求.md"
 )
 ```
 
