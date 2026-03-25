@@ -51,8 +51,8 @@ import org.slf4j.Logger;
  *     └── {job_id}_detail.json       # 诊断明细JSON
  * </pre>
  *
- * <p>清理规则： - 清理 task/ 目录下所有纯数字命名的子目录及其内容（{job_id}/） - 清理 task/json/ 目录下
- * {job_id}_detail.json 文件 - 按文件/目录修改时间判断是否过期 - 每次执行最多清理指定数量（避免性能影响）
+ * <p>清理规则： - 清理 task/ 目录下所有纯数字命名的子目录及其内容（{job_id}/） - 清理 task/json/ 目录下 {job_id}_detail.json 文件 -
+ * 按文件/目录修改时间判断是否过期 - 每次执行最多清理指定数量（避免性能影响）
  */
 @Component
 @PropertySource(value = "classpath:linkis-et-monitor.properties", encoding = "UTF-8")
@@ -137,8 +137,7 @@ public class DiagnosisLogClear {
             try {
               // 检查是否达到最大删除数量限制
               if (maxDeletePerRun > 0 && deletedCount[0] >= maxDeletePerRun) {
-                logger.warn(
-                    "Reached max delete limit: {}, stopping cleanup", maxDeletePerRun);
+                logger.warn("Reached max delete limit: {}, stopping cleanup", maxDeletePerRun);
                 return;
               }
 
@@ -147,10 +146,12 @@ public class DiagnosisLogClear {
                 String dirName = child.getFileName().toString();
                 if (isJobIdDirectory(dirName)) {
                   // 处理job_id目录：整体删除
-                  deleteExpiredJobIdDirectory(child, cutoffTime, deletedCount, freedSpace, maxDeletePerRun);
+                  deleteExpiredJobIdDirectory(
+                      child, cutoffTime, deletedCount, freedSpace, maxDeletePerRun);
                 } else if (JSON_SUBDIR.equals(dirName)) {
                   // 处理json目录：清理 Detail JSON 文件
-                  deleteExpiredJsonFiles(child, cutoffTime, deletedCount, freedSpace, maxDeletePerRun);
+                  deleteExpiredJsonFiles(
+                      child, cutoffTime, deletedCount, freedSpace, maxDeletePerRun);
                 }
                 // 其他目录跳过
               }
@@ -184,11 +185,7 @@ public class DiagnosisLogClear {
    * @throws IOException 文件操作异常
    */
   private void deleteExpiredJobIdDirectory(
-      Path dirPath,
-      Instant cutoffTime,
-      int[] deletedCount,
-      long[] freedSpace,
-      int maxDeletePerRun)
+      Path dirPath, Instant cutoffTime, int[] deletedCount, long[] freedSpace, int maxDeletePerRun)
       throws IOException {
     // 检查是否达到最大删除数量限制
     if (maxDeletePerRun > 0 && deletedCount[0] >= maxDeletePerRun) {
@@ -273,8 +270,7 @@ public class DiagnosisLogClear {
                 String fileName = file.getFileName().toString();
                 // 检查是否是detail JSON文件：{job_id}_detail.json
                 if (isDetailJsonFile(fileName)) {
-                  BasicFileAttributes attrs =
-                      Files.readAttributes(file, BasicFileAttributes.class);
+                  BasicFileAttributes attrs = Files.readAttributes(file, BasicFileAttributes.class);
                   if (attrs.lastModifiedTime().toInstant().isBefore(cutoffTime)) {
                     long fileSize = Files.size(file);
                     Files.delete(file);
