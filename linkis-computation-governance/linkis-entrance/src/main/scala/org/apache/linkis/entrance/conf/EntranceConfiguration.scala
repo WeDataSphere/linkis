@@ -452,4 +452,11 @@ object EntranceConfiguration {
   val TASK_DIAGNOSIS_TIMEOUT_SCAN =
     CommonVars("linkis.task.diagnosis.timeout.scan", "2m").getValue
 
+  /**
+   * Whether to enable Hive table LOCATION path control Default value: false (disabled) Description:
+   * When enabled, CREATE TABLE statements with LOCATION clause will be blocked
+   */
+  val HIVE_LOCATION_CONTROL_ENABLE: CommonVars[Boolean] =
+    CommonVars("wds.linkis.hive.location.control.enable", false)
+
 }
