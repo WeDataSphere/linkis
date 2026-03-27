@@ -464,26 +464,30 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
    * 检测是否为需要调整错误索引的JDBC SET语句场景
    */
   protected def adjustErrorIndexForSetScenarios(engineConnTask: EngineConnTask): Boolean = {
-    val executionCode = engineConnTask.getCode
-    if (StringUtils.isEmpty(executionCode)) {
-      return false
-    }
+    var result = false
+    Utils.tryAndWarn {
+      val executionCode = engineConnTask.getCode
+      if (StringUtils.isEmpty(executionCode)) {
+        return result
+      }
 
-    val engineTypeLabel = engineConnTask.getLables.collectFirst { case label: EngineTypeLabel =>
-      label
-    }
+      val engineTypeLabel = engineConnTask.getLables.collectFirst { case label: EngineTypeLabel =>
+        label
+      }
 
-    engineTypeLabel.exists { label =>
-      val engineType = label.getEngineType
-      if (engineType == EngineType.JDBC.toString) {
-        val upperCode = executionCode.toUpperCase().trim
-        val jdbcSetPrefixes =
-          ComputationExecutorConf.JDBC_SET_STATEMENT_PREFIXES.getValue.split(",")
-        jdbcSetPrefixes.exists(upperCode.startsWith)
-      } else {
-        false
+      result = engineTypeLabel.exists { label =>
+        val engineType = label.getEngineType
+        if (engineType == EngineType.JDBC.toString) {
+          val upperCode = executionCode.toUpperCase().trim
+          val jdbcSetPrefixes =
+            ComputationExecutorConf.JDBC_SET_STATEMENT_PREFIXES.getValue.split(",")
+          jdbcSetPrefixes.exists(upperCode.startsWith)
+        } else {
+          false
+        }
       }
     }
+    result
   }
 
   protected def createEngineExecutionContext(
