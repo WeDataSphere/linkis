@@ -461,19 +461,29 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
   def getProgressInfo(taskID: String): Array[JobProgressInfo]
 
   /**
-   * 调整错误索引：直接匹配三种SET语句场景 因为SET语句会被解析器视为第一条SQL
+   * 检测是否为需要调整错误索引的JDBC SET语句场景
    */
   protected def adjustErrorIndexForSetScenarios(engineConnTask: EngineConnTask): Boolean = {
     val executionCode = engineConnTask.getCode
-    val engineTypeLabel = engineConnTask.getLables.find(_.isInstanceOf[EngineTypeLabel]).get
-    val engineType = engineTypeLabel.asInstanceOf[EngineTypeLabel].getEngineType
-    var result = false
-    if (executionCode != null && engineType.equals(EngineType.JDBC.toString)) {
-      val upperCode = executionCode.toUpperCase().trim
-      val jdbcSetPrefixes = ComputationExecutorConf.JDBC_SET_STATEMENT_PREFIXES.getValue.split(",")
-      result = jdbcSetPrefixes.exists(upperCode.startsWith)
+    if (StringUtils.isEmpty(executionCode)) {
+      return false
     }
-    result
+
+    val engineTypeLabel = engineConnTask.getLables.collectFirst { case label: EngineTypeLabel =>
+      label
+    }
+
+    engineTypeLabel.exists { label =>
+      val engineType = label.getEngineType
+      if (engineType == EngineType.JDBC.toString) {
+        val upperCode = executionCode.toUpperCase().trim
+        val jdbcSetPrefixes =
+          ComputationExecutorConf.JDBC_SET_STATEMENT_PREFIXES.getValue.split(",")
+        jdbcSetPrefixes.exists(upperCode.startsWith)
+      } else {
+        false
+      }
+    }
   }
 
   protected def createEngineExecutionContext(
