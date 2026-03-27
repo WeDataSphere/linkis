@@ -477,7 +477,7 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
 
       result = engineTypeLabel.exists { label =>
         val engineType = label.getEngineType
-        if (engineType == EngineType.JDBC.toString) {
+        if (engineType.equals(EngineType.JDBC.toString)) {
           val upperCode = executionCode.toUpperCase().trim
           val jdbcSetPrefixes =
             ComputationExecutorConf.JDBC_SET_STATEMENT_PREFIXES.getValue.split(",")
