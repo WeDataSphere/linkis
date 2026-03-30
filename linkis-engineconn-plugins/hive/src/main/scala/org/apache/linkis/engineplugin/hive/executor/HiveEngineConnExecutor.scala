@@ -166,11 +166,30 @@ class HiveEngineConnExecutor(
 
     if (StringUtils.isNotBlank(jobId)) {
       val jobTags = JobUtils.getJobSourceTagsFromObjectMap(engineExecutorContext.getProperties)
+
+      // Get username from engineExecutorContext
+      val execUser = if (engineExecutorContext.getProperties != null) {
+        engineExecutorContext.getProperties.get("execUser") match {
+          case user: String => user
+          case _ => null
+        }
+      } else null
+
+      // Build tags with username information
       val tags = if (StringUtils.isAsciiPrintable(jobTags)) {
-        s"LINKIS_$jobId,$jobTags"
+        if (StringUtils.isNotBlank(execUser)) {
+          s"LINKIS_$jobId,$jobTags,USER_$execUser"
+        } else {
+          s"LINKIS_$jobId,$jobTags"
+        }
       } else {
-        s"LINKIS_$jobId"
+        if (StringUtils.isNotBlank(execUser)) {
+          s"LINKIS_$jobId,USER_$execUser"
+        } else {
+          s"LINKIS_$jobId"
+        }
       }
+
       LOG.info(s"set mapreduce.job.tags=$tags")
       hiveConf.set("mapreduce.job.tags", tags)
     }

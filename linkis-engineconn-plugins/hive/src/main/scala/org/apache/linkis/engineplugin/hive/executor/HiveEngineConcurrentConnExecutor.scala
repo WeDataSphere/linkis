@@ -143,8 +143,23 @@ class HiveEngineConcurrentConnExecutor(
     LOG.info(s"hive client begins to run hql code:\n ${realCode.trim}")
     val jobId = JobUtils.getJobIdFromMap(engineExecutorContext.getProperties)
     if (StringUtils.isNotBlank(jobId)) {
-      LOG.info(s"set mapreduce.job.tags=LINKIS_$jobId")
-      hiveConf.set("mapreduce.job.tags", s"LINKIS_$jobId")
+      // Get username from engineExecutorContext
+      val execUser = if (engineExecutorContext.getProperties != null) {
+        engineExecutorContext.getProperties.get("execUser") match {
+          case user: String => user
+          case _ => null
+        }
+      } else null
+
+      // Build tags with username information
+      val tags = if (StringUtils.isNotBlank(execUser)) {
+        s"LINKIS_$jobId,USER_$execUser"
+      } else {
+        s"LINKIS_$jobId"
+      }
+
+      LOG.info(s"set mapreduce.job.tags=$tags")
+      hiveConf.set("mapreduce.job.tags", tags)
     }
     if (realCode.trim.length > 500) {
       engineExecutorContext.appendStdout(s"$getId >> ${realCode.trim.substring(0, 500)} ...")
