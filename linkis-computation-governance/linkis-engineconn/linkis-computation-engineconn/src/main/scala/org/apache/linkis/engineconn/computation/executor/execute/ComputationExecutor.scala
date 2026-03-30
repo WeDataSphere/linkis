@@ -269,33 +269,47 @@ abstract class ComputationExecutor(val outputPrintLimit: Int = 1000)
         )
         engineExecutionContext.getProperties
           .put(Configuration.EXECUTE_ERROR_CODE_INDEX.key, errorIndex.toString)
-        // jdbc执行任务重试，如果sql有被set进sql，会导致sql的index错位，这里会将日志打印的index进行减一，保证用户看的index是正常的，然后重试的errorIndex需要加一，保证重试的位置是正确的
-        var newIndex = index
-        var newErrorIndex = errorIndex
-        if (adjustErrorIndexForSetScenarios(engineConnTask)) {
-          newIndex = index - 1
-          newErrorIndex = errorIndex + 1
-        }
-        // 重试的时候如果执行过则跳过执行
-        if (retryEnable && errorIndex > 0 && index < newErrorIndex) {
-          val code = codes(index).trim.toUpperCase()
-          val shouldSkip = !isContextStatement(code)
+        val props: util.Map[String, String] = engineCreationContext.getOptions
+        val taskRetry: String =
+          props.getOrDefault("linkis.task.retry.switch", "false").toString
+        if (java.lang.Boolean.parseBoolean(taskRetry)) {
+          // jdbc执行任务重试，如果sql有被set进sql，会导致sql的index错位，这里会将日志打印的index进行减一，保证用户看的index是正常的，然后重试的errorIndex需要加一，保证重试的位置是正确的
+          var newIndex = index
+          var newErrorIndex = errorIndex
+          if (adjustErrorIndexForSetScenarios(engineConnTask)) {
+            newIndex = index - 1
+            newErrorIndex = errorIndex + 1
+          }
+          // 重试的时候如果执行过则跳过执行
+          if (retryEnable && errorIndex > 0 && index < newErrorIndex) {
+            val code = codes(index).trim.toUpperCase()
+            val shouldSkip = !isContextStatement(code)
 
-          if (shouldSkip) {
+            if (shouldSkip) {
+              engineExecutionContext.appendStdout(
+                LogUtils.generateInfo(
+                  s"task retry with errorIndex: ${errorIndex}, current sql index: ${newIndex} will skip."
+                )
+              )
+              executeFlag = false
+            } else {
+              if (newIndex >= 0) {
+                engineExecutionContext.appendStdout(
+                  LogUtils.generateInfo(
+                    s"task retry with errorIndex: ${errorIndex}, current sql index: ${newIndex} is a context statement, will execute."
+                  )
+                )
+              }
+            }
+          }
+        } else {
+          if (retryEnable && errorIndex > 0 && index < errorIndex) {
             engineExecutionContext.appendStdout(
               LogUtils.generateInfo(
-                s"task retry with errorIndex: ${errorIndex}, current sql index: ${newIndex} will skip."
+                s"aisql retry with errorIndex: ${errorIndex}, current sql index: ${index} will skip."
               )
             )
             executeFlag = false
-          } else {
-            if (newIndex >= 0) {
-              engineExecutionContext.appendStdout(
-                LogUtils.generateInfo(
-                  s"task retry with errorIndex: ${errorIndex}, current sql index: ${newIndex} is a context statement, will execute."
-                )
-              )
-            }
           }
         }
         if (executeFlag) {
