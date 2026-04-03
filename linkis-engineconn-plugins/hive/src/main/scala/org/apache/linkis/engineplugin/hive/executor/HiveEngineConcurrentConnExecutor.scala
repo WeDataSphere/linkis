@@ -27,6 +27,7 @@ import org.apache.linkis.engineconn.computation.executor.execute.{
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.executor.entity.{ConcurrentExecutor, ResourceFetchExecutor}
 import org.apache.linkis.engineplugin.hive.conf.{Counters, HiveEngineConfiguration}
+import org.apache.linkis.engineplugin.hive.conf.HiveEngineConfiguration.HIVE_TAG_USER_ENABLE
 import org.apache.linkis.engineplugin.hive.creation.HiveEngineConnFactory
 import org.apache.linkis.engineplugin.hive.cs.CSHiveHelper
 import org.apache.linkis.engineplugin.hive.errorcode.HiveErrorCodeSummary.COMPILE_HIVE_QUERY_ERROR
@@ -144,16 +145,18 @@ class HiveEngineConcurrentConnExecutor(
     val jobId = JobUtils.getJobIdFromMap(engineExecutorContext.getProperties)
     if (StringUtils.isNotBlank(jobId)) {
       // Get username from engineExecutorContext
-      val execUser = if (engineExecutorContext.getProperties != null) {
-        engineExecutorContext.getProperties.get("execUser") match {
-          case user: String => user
-          case _ => null
+      val submitUser = if (engineExecutorContext.getProperties != null) {
+        Utils.tryAndWarn {
+          engineExecutorContext.getProperties.get("submitUser") match {
+            case user: String => user
+            case _ => null
+          }
         }
       } else null
 
       // Build tags with username information
-      val tags = if (StringUtils.isNotBlank(execUser)) {
-        s"LINKIS_$jobId,USER_$execUser"
+      val tags = if (HIVE_TAG_USER_ENABLE && StringUtils.isNotBlank(submitUser)) {
+        s"LINKIS_$jobId" + s"_$submitUser"
       } else {
         s"LINKIS_$jobId"
       }
