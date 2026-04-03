@@ -175,17 +175,12 @@ public class JobHistoryMonitor {
       logger.warn("CommonJobRunTimeRule Scan Error msg: " + e.getMessage());
     }
     // 新增失败任务分析扫描
-    if (MonitorConfig.JOB_HISTORY_DIAGNOSIS_ENABLED.getValue()) {
-      try {
-        JobHistoryAnalyzeRule jobHistoryAnalyzeRule =
-            new JobHistoryAnalyzeRule(new JobHistoryAnalyzeAlertSender());
-        scanner.addScanRule(jobHistoryAnalyzeRule);
-        logger.info("JobHistory diagnosis is enabled, scan rule added");
-      } catch (Exception e) {
-        logger.warn("JobHistoryAnalyzeRule Scan Error msg: " + e.getMessage());
-      }
-    } else {
-      logger.info("JobHistory diagnosis is disabled by config, skip diagnosis scan");
+    try {
+      JobHistoryAnalyzeRule jobHistoryAnalyzeRule =
+          new JobHistoryAnalyzeRule(new JobHistoryAnalyzeAlertSender());
+      scanner.addScanRule(jobHistoryAnalyzeRule);
+    } catch (Exception e) {
+      logger.warn("JobHistoryAnalyzeRule Scan Error msg: " + e.getMessage());
     }
     // 执行任务扫描
     JobMonitorUtils.run(scanner, fetchers, true);

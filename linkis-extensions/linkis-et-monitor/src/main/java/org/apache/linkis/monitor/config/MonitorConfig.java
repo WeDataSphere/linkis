@@ -77,15 +77,9 @@ public class MonitorConfig {
   public static final CommonVars<Boolean> DIAGNOSIS_LOG_ENABLED =
       CommonVars.apply("linkis.monitor.diagnosis.log.enabled", true);
   public static final CommonVars<Integer> DIAGNOSIS_LOG_RETENTION_DAYS =
-      CommonVars.apply("linkis.monitor.diagnosis.log.retention.days", 7);
+      CommonVars.apply("linkis.monitor.diagnosis.log.retention.days", 90);
   public static final CommonVars<String> DIAGNOSIS_LOG_PATH =
-      CommonVars.apply("linkis.monitor.diagnosis.log.path", "${linkis.log.dir}/task");
-  public static final CommonVars<String> DIAGNOSIS_LOG_CLEAR_CRON =
-      CommonVars.apply("linkis.monitor.diagnosis.log.clear.cron", "0 0 2 * * ?");
+      CommonVars.apply("linkis.monitor.diagnosis.log.path", "/data/logs/bdpe-ujes/task");
   public static final CommonVars<Integer> DIAGNOSIS_LOG_MAX_DELETE_PER_RUN =
       CommonVars.apply("linkis.monitor.diagnosis.log.max.delete.per.run", 10000);
-
-  // Job history diagnosis configuration
-  public static final CommonVars<Boolean> JOB_HISTORY_DIAGNOSIS_ENABLED =
-      CommonVars.apply("linkis.monitor.jobHistory.diagnosis.enabled", true);
 }
