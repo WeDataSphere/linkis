@@ -459,4 +459,12 @@ object EntranceConfiguration {
   val HIVE_LOCATION_CONTROL_ENABLE: CommonVars[Boolean] =
     CommonVars("wds.linkis.hive.location.control.enable", false)
 
+  /**
+   * Creator whitelist for LOCATION control (comma-separated) Description: Applications (creators)
+   * in this whitelist are allowed to use LOCATION clause Default: empty (none allowed) Example:
+   * "IDE,SCRIPTS" allows IDE and SCRIPTS to use LOCATION
+   */
+  val HIVE_LOCATION_CONTROL_WHITELIST_CREATORS: CommonVars[String] =
+    CommonVars("wds.linkis.hive.location.control.whitelist.creators", "")
+
 }

@@ -110,44 +110,64 @@ object SQLExplain extends Explain {
   private val LOG: Logger = LoggerFactory.getLogger(getClass)
 
   override def authPass(code: String, error: StringBuilder): Boolean = {
-    Utils.tryCatch {
-      // Fast path: if location control is disabled, pass through immediately
-      if (!HIVE_LOCATION_CONTROL_ENABLE.getHotValue) {
-        return true
-      }
+    true
+  }
 
-      // Handle null or empty code
-      if (code == null || code.trim.isEmpty) {
-        return true
-      }
-
-      // Check if the SQL contains CREATE TABLE with LOCATION clause
-      val cleanedCode = SQLCommentHelper.dealComment(code)
-
-      // Simple regex to match: CREATE TABLE ... LOCATION '...'
-      // Case-insensitive, supports EXTERNAL TABLE, handles quotes (single, double, backtick)
-      // Uses DOTALL to match across newlines
-      val locationPattern =
-        "(?is)create\\s+(?:external\\s+)?table\\s+\\S+.*?location\\s+['\"`].*?['\"`]".r
-
-      if (locationPattern.findFirstIn(cleanedCode).isDefined) {
-        error
-          .append("CREATE TABLE with LOCATION clause is not allowed. ")
-          .append("Please remove the LOCATION clause and retry. ")
-          .append(s"SQL: ${if (code.length > 100) code.take(100) + "..." else code}")
-        return false
-      }
-
-      true
-    } { case e: Exception =>
-      logger.warn(
-        s"Failed to check LOCATION in SQL: ${if (code != null && code.length > 50) code.take(50) + "..."
-        else code}",
-        e
-      )
-      // Fail-open strategy: return true on exception to ensure availability
-      true
+  /**
+   * Check if SQL contains CREATE TABLE with LOCATION clause or SET LOCATION clause This method does
+   * NOT check the enable switch, it only checks the SQL code content. The caller is responsible for
+   * checking the switch and other conditions (engine type, whitelist, etc.)
+   *
+   * @param code
+   *   SQL code to check
+   * @param error
+   *   error message builder (will be populated if LOCATION is found)
+   * @return
+   *   true if pass (no LOCATION), false if LOCATION is found
+   */
+  def checkLocation(code: String, error: StringBuilder): Boolean = {
+    if (!HIVE_LOCATION_CONTROL_ENABLE.getHotValue) {
+      return true
     }
+    // Handle null or empty code
+    if (code == null || code.trim.isEmpty) {
+      return true
+    }
+
+    // Remove comments before checking
+    val cleanedCode = SQLCommentHelper.dealComment(code)
+
+    // Regex patterns (aligned with existing validation rules)
+    val CREATE_TABLE_PATTERN =
+      Pattern.compile("create[\\s]*(temporary)?(external)?[\\s]*table", Pattern.CASE_INSENSITIVE)
+    val LOCATION_PATTERN =
+      Pattern.compile("[\\s]*location[\\s]*['\"][^'\"]*['\"]", Pattern.CASE_INSENSITIVE)
+    val SET_LOCATION_PATTERN = Pattern.compile("set[\\t\\s]+location", Pattern.CASE_INSENSITIVE)
+
+    // Check SET LOCATION first
+    if (SET_LOCATION_PATTERN.matcher(cleanedCode).find()) {
+      error
+        .append("SET LOCATION is not allowed. ")
+        .append("Please remove the SET LOCATION clause and retry. ")
+        .append(s"SQL: ${if (code.length > 100) code.take(100) + "..." else code}")
+      return false
+    }
+
+    // Check CREATE TABLE ... LOCATION (cross-line match)
+    // Remove line breaks to support multi-line CREATE TABLE statements
+    val singleLineCode = cleanedCode.replaceAll("\\s+", " ")
+    if (
+        CREATE_TABLE_PATTERN.matcher(singleLineCode).find() &&
+        LOCATION_PATTERN.matcher(singleLineCode).find()
+    ) {
+      error
+        .append("CREATE TABLE with LOCATION clause is not allowed. ")
+        .append("Please remove the LOCATION clause and retry. ")
+        .append(s"SQL: ${if (code.length > 100) code.take(100) + "..." else code}")
+      return false
+    }
+
+    true
   }
 
   /**
