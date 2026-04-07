@@ -79,7 +79,7 @@ public class MonitorConfig {
   public static final CommonVars<Integer> DIAGNOSIS_LOG_RETENTION_DAYS =
       CommonVars.apply("linkis.monitor.diagnosis.log.retention.days", 90);
   public static final CommonVars<String> DIAGNOSIS_LOG_PATH =
-      CommonVars.apply("linkis.monitor.diagnosis.log.path", "/data/logs/bdpe-ujes/task");
+      CommonVars.apply("linkis.monitor.diagnosis.log.path", "");
   public static final CommonVars<Integer> DIAGNOSIS_LOG_MAX_DELETE_PER_RUN =
       CommonVars.apply("linkis.monitor.diagnosis.log.max.delete.per.run", 10000);
 }
