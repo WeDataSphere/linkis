@@ -18,6 +18,7 @@
 package org.apache.linkis.monitor.scheduled;
 
 import org.apache.linkis.monitor.config.MonitorConfig;
+import org.apache.linkis.monitor.until.ThreadUtils;
 import org.apache.linkis.monitor.utils.log.LogUtils;
 
 import org.springframework.context.annotation.PropertySource;
@@ -29,6 +30,8 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 
@@ -94,6 +97,16 @@ public class DiagnosisLogClear {
 
     try {
       clearExpiredDiagnosisLogs(diagnosisLogPath, retentionDays, maxDeletePerRun);
+      logger.info("Start to clear_history_task_diagnosis shell");
+      List<String> cmdlist = new ArrayList<>();
+      cmdlist.add("sh");
+      cmdlist.add(MonitorConfig.shellPath + "clear_history_task_diagnosis.sh");
+      cmdlist.add(String.valueOf(MonitorConfig.DIAGNOSIS_LOG_RETENTION_DAYS.getValue()));
+      logger.info("clear_history_task_diagnosis  shell command {}", cmdlist);
+      String exec = ThreadUtils.run(cmdlist, "clear_history_task_diagnosis.sh");
+      logger.info("shell log  {}", exec);
+      logger.info("End to clear_history_task_diagnosis shell ");
+
     } catch (Exception e) {
       logger.error("Error occurred while clearing diagnosis logs: {}", e.getMessage(), e);
     }
