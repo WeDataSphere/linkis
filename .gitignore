@@ -41,6 +41,7 @@ tools
 
 nul
 /docs/project-knowledge/sessions/*
+/docs/project-knowledge/sessions/
 
 #claude
 .claude

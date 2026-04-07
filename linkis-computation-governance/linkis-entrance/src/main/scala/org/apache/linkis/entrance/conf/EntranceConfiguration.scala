@@ -452,4 +452,28 @@ object EntranceConfiguration {
   val TASK_DIAGNOSIS_TIMEOUT_SCAN =
     CommonVars("linkis.task.diagnosis.timeout.scan", "2m").getValue
 
+  /**
+   * Whether to enable Hive table LOCATION path control Default value: false (disabled) Description:
+   * When enabled, CREATE TABLE statements with LOCATION clause will be blocked
+   */
+  val HIVE_LOCATION_CONTROL_ENABLE: CommonVars[Boolean] =
+    CommonVars("wds.linkis.hive.location.control.enable", false)
+
+  /**
+   * Creator whitelist for LOCATION control (comma-separated) Description: Applications (creators)
+   * in this whitelist are allowed to use LOCATION clause Default: empty (none allowed) Example:
+   * "IDE,SCRIPTS" allows IDE and SCRIPTS to use LOCATION
+   */
+  val HIVE_LOCATION_CONTROL_WHITELIST_CREATORS: CommonVars[String] =
+    CommonVars("wds.linkis.hive.location.control.whitelist.creators", "")
+   * Entrance Group缓存清理功能总开关
+   *
+   * 控制以下功能是否启用：
+   *   1. Entrance offline时发送Group缓存清理广播 2. 接收并处理Group缓存清理广播 3. 手动清理Group缓存API
+   *
+   * 默认关闭，需要手动启用以验证功能稳定性
+   */
+  val ENTRANCE_GROUP_CACHE_CLEAR_ENABLED =
+    CommonVars[Boolean]("linkis.entrance.group.cache.clear.enabled", true).getValue
+
 }
