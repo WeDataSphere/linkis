@@ -88,7 +88,9 @@ public class TemplateRestfulApi {
     // check special admin token
     if (StringUtils.isNotBlank(token)) {
       if (!Configuration.isAdminToken(token)) {
-        logger.warn("Token:{} has no permission to updateKeyMapping.", TokenSensitiveUtils.maskToken(token));
+        logger.warn(
+            "Token:{} has no permission to updateKeyMapping.",
+            TokenSensitiveUtils.maskToken(token));
         return Message.error("Token:" + token + " has no permission to updateKeyMapping.");
       }
     } else if (!Configuration.isAdmin(username)) {
@@ -165,7 +167,9 @@ public class TemplateRestfulApi {
     // check special admin token
     if (StringUtils.isNotBlank(token)) {
       if (!Configuration.isAdminToken(token)) {
-        logger.warn("Token:{} has no permission to queryKeyInfoList.", TokenSensitiveUtils.maskToken(token));
+        logger.warn(
+            "Token:{} has no permission to queryKeyInfoList.",
+            TokenSensitiveUtils.maskToken(token));
         return Message.error("Token has no permission to queryKeyInfoList.");
       }
     } else if (!Configuration.isAdmin(username)) {
