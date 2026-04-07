@@ -144,6 +144,23 @@ public class EntranceLabelRestfulApi {
     InsLabelRemoveRequest insLabelRemoveRequest = new InsLabelRemoveRequest();
     insLabelRemoveRequest.setServiceInstance(Sender.getThisServiceInstance());
     InstanceLabelClient.getInstance().removeLabelsFromInstance(insLabelRemoveRequest);
+    // 只有当功能开关启用时才发送缓存清理广播
+    if (EntranceConfiguration.ENTRANCE_GROUP_CACHE_CLEAR_ENABLED()) {
+      try {
+        // 构造广播消息
+        EntranceGroupCacheClearBroadcast broadcast =
+                new EntranceGroupCacheClearBroadcast(
+                        Sender.getThisInstance(), System.currentTimeMillis());
+        // 获取entrance服务的Sender并发送广播
+        Sender.getSender(Sender.getThisServiceInstance()).send(broadcast);
+        logger.info("Successfully sent cache clear broadcast for entrance offline");
+      } catch (Exception e) {
+        // 广播失败不影响offline流程，只记录日志
+        logger.error("Failed to send cache clear broadcast, entrance offline continues", e);
+      }
+    } else {
+      logger.info("Group cache clear broadcast is disabled, skip sending broadcast");
+    }
     synchronized (offlineFlag) { // NOSONAR
       offlineFlag = false;
     }
