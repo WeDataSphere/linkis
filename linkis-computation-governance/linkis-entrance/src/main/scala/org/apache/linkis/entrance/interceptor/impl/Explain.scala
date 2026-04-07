@@ -94,10 +94,6 @@ object SQLExplain extends Explain {
   val DROP_TABLE_SQL = "\\s*drop\\s+table\\s+\\w+\\s*"
   val CREATE_DATABASE_SQL = "\\s*create\\s+database\\s+\\w+\\s*"
 
-  // Hive LOCATION control configuration
-  val HIVE_LOCATION_CONTROL_ENABLE: CommonVars[Boolean] =
-    CommonVars("wds.linkis.hive.location.control.enable", false)
-
   private val IDE_ALLOW_NO_LIMIT_REGEX =
     "--set\\s*ide.engine.no.limit.allow\\s*=\\s*true".r.unanchored
 
@@ -126,7 +122,7 @@ object SQLExplain extends Explain {
    *   true if pass (no LOCATION), false if LOCATION is found
    */
   def checkLocation(code: String, error: StringBuilder): Boolean = {
-    if (!HIVE_LOCATION_CONTROL_ENABLE.getHotValue) {
+    if (!EntranceConfiguration.HIVE_LOCATION_CONTROL_ENABLE.getHotValue) {
       return true
     }
     // Handle null or empty code
