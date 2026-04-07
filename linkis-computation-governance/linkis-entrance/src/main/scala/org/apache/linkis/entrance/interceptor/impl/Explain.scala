@@ -145,7 +145,6 @@ object SQLExplain extends Explain {
       error
         .append("SET LOCATION is not allowed. ")
         .append("Please remove the SET LOCATION clause and retry. ")
-        .append(s"SQL: ${if (code.length > 100) code.take(100) + "..." else code}")
       return false
     }
 
@@ -159,7 +158,6 @@ object SQLExplain extends Explain {
       error
         .append("CREATE TABLE with LOCATION clause is not allowed. ")
         .append("Please remove the LOCATION clause and retry. ")
-        .append(s"SQL: ${if (code.length > 100) code.take(100) + "..." else code}")
       return false
     }
 
