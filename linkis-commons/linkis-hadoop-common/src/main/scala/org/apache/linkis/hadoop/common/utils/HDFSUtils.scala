@@ -433,34 +433,37 @@ object HDFSUtils extends Logging {
 
   private def getLinkisUserKeytabFile(userName: String, label: String): String = {
     val path = if (LINKIS_KEYTAB_SWITCH) {
-      val cacheKey = createKeytabCacheKey(userName, label)
-      val keytabTempDir = getKeytabTempDir()
+      try {
+        val cacheKey = createKeytabCacheKey(userName, label)
+        val keytabTempDir = getKeytabTempDir()
+        synchronized {
+          // 确保keytab临时目录存在
+          if (!Files.exists(keytabTempDir)) {
+            Files.createDirectories(keytabTempDir)
+            Files.setPosixFilePermissions(keytabTempDir, PosixFilePermissions.fromString("rwxr-xr-x"))
+          }
 
-      synchronized {
-        // 确保keytab临时目录存在
-        if (!Files.exists(keytabTempDir)) {
-          Files.createDirectories(keytabTempDir)
-          Files.setPosixFilePermissions(keytabTempDir, PosixFilePermissions.fromString("rwxr-xr-x"))
-        }
-
-        val cachedPath = keytabTempFileCache.getIfPresent(cacheKey)
-        if (cachedPath != null) {
-          val tempFile = new File(cachedPath)
-          if (tempFile.exists()) {
-            logger.info(s"Found cached keytab file: $cachedPath")
-            cachedPath
+          val cachedPath = keytabTempFileCache.getIfPresent(cacheKey)
+          if (cachedPath != null) {
+            val tempFile = new File(cachedPath)
+            if (tempFile.exists()) {
+              logger.info(s"Found cached keytab file: $cachedPath")
+              cachedPath
+            } else {
+              logger.info(s"Cached keytab file not exists, removing from cache: $cachedPath")
+              // 文件不存在，从缓存中移除
+              keytabTempFileCache.invalidate(cacheKey)
+              // 创建新的临时文件
+              createNewKeytabFile(userName, label, keytabTempDir, cacheKey)
+            }
           } else {
-            logger.info(s"Cached keytab file not exists, removing from cache: $cachedPath")
-            // 文件不存在，从缓存中移除
-            keytabTempFileCache.invalidate(cacheKey)
+            logger.info(s"Creating new keytab file for cacheKey: $cacheKey")
             // 创建新的临时文件
             createNewKeytabFile(userName, label, keytabTempDir, cacheKey)
           }
-        } else {
-          logger.info(s"Creating new keytab file for cacheKey: $cacheKey")
-          // 创建新的临时文件
-          createNewKeytabFile(userName, label, keytabTempDir, cacheKey)
         }
+      } catch {
+        case _: Throwable => new File(getKeytabPath(label), userName + KEYTAB_SUFFIX).getPath
       }
     } else {
       new File(getKeytabPath(label), userName + KEYTAB_SUFFIX).getPath
