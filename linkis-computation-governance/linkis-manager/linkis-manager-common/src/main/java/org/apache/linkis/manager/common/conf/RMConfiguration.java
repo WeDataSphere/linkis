@@ -97,19 +97,19 @@ public class RMConfiguration {
           "wds.linkis.rm.yarn.apps.filter.parms",
           "&deSelects=resourceRequests,timeouts,appNodeLabelExpression,amNodeLabelExpression,resourceInfo");
 
-  /** 是否启用第二队列功能 默认值：true 说明：true 启用智能队列选择，false 禁用功能 */
+  /** Whether to enable secondary queue feature Default: true Description: true enables smart queue selection, false disables the feature */
   public static final CommonVars<Boolean> SECONDARY_QUEUE_ENABLED =
       CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.enable", false);
 
-  /** 第二队列资源使用率阈值 默认值：0.9（90%） 说明：当备用队列使用率 <= 此值时，使用备用队列 当备用队列使用率 > 此值时，使用主队列 */
+  /** Secondary queue resource usage threshold Default: 0.9 (90%) Description: Use secondary queue when usage <= this value, use primary queue when usage > this value */
   public static final CommonVars<Double> SECONDARY_QUEUE_THRESHOLD =
       CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.threshold", 0.9);
 
-  /** 支持的引擎类型列表（逗号分隔） 默认值：spark 说明：只有在此列表中的引擎才会执行智能队列选择 不区分大小写 */
+  /** Supported engine type list (comma-separated) Default: spark Description: Only engines in this list will execute smart queue selection Case-insensitive */
   public static final CommonVars<String> SECONDARY_QUEUE_ENGINES =
       CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.engines", "spark");
 
-  /** 支持的 Creator 列表（逗号分隔） 默认值：IDE,NOTEBOOK,CLIENT 说明：只有在此列表中的 Creator 才会执行智能队列选择 不区分大小写 */
+  /** Supported Creator list (comma-separated) Default: IDE Description: Only Creators in this list will execute smart queue selection Case-insensitive */
   public static final CommonVars<String> SECONDARY_QUEUE_CREATORS =
       CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.creators", "IDE");
 }

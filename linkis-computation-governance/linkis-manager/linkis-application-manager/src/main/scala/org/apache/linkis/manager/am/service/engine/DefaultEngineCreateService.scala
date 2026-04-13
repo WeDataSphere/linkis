@@ -307,7 +307,7 @@ class DefaultEngineCreateService
         val emInstance = engineNode.getServiceInstance.getInstance
         val ecmInstance = engineNode.getEMNode.getServiceInstance.getInstance
         if ((null != emInstance) && (null != ecmInstance)) {
-          // 8. Update job history metrics after successful engine creation - 异步执行
+          // 8. Update job history metrics after successful engine creation - executed asynchronously
           AMUtils.updateMetricsAsync(
             taskId,
             resourceTicketId,
@@ -420,8 +420,9 @@ class DefaultEngineCreateService
   }
 
   /**
-   * Smart queue selection: executed before creating YarnResource to ensure correct queue configuration
-   * Decides whether to use primary queue or secondary queue by checking secondary queue resource usage
+   * Smart queue selection: executed before creating YarnResource to ensure correct queue
+   * configuration Decides whether to use primary queue or secondary queue by checking secondary
+   * queue resource usage
    *
    * @param properties
    *   Task parameters
@@ -433,11 +434,12 @@ class DefaultEngineCreateService
       labelList: util.List[Label[_]]
   ): Unit = {
     try {
-      // 1. 获取队列配置
-      val primaryQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
-      val secondaryQueue = properties.getOrDefault("wds.linkis.rm.secondary.yarnqueue", "")
+      // 1. Get queue configuration
+      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "")
+      val secondaryQueue =
+        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
 
-      // 2. 获取系统配置
+      // 2. Get system configuration
       val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
       val threshold = RMConfiguration.SECONDARY_QUEUE_THRESHOLD.getValue
       val supportedEngines = RMConfiguration.SECONDARY_QUEUE_ENGINES.getValue
@@ -451,15 +453,19 @@ class DefaultEngineCreateService
         .map(_.toUpperCase())
         .toSet
 
-      logger.info(s"Smart queue config - primary queue: $primaryQueue, secondary queue: $secondaryQueue")
+      logger.info(
+        s"Smart queue config - primary queue: $primaryQueue, secondary queue: $secondaryQueue"
+      )
 
       // 3. Check if secondary queue feature is enabled
       if (!enabled || StringUtils.isBlank(secondaryQueue) || StringUtils.isBlank(primaryQueue)) {
-        logger.info("Smart queue selection is not enabled or secondary queue is empty, using primary queue")
+        logger.info(
+          "Smart queue selection is not enabled or secondary queue is empty, using primary queue"
+        )
         return
       }
 
-      // 4. 获取引擎类型和 Creator
+      // 4. Get engine type and Creator
       var engineType: String = null
       var creator: String = null
 
@@ -479,7 +485,7 @@ class DefaultEngineCreateService
           logger.error("Failed to parse labels for queue selection", e)
       }
 
-      // 5. 检查引擎类型和 Creator 是否在支持列表中
+      // 5. Check if engine type and Creator are in supported list
       val engineMatched = engineType == null || supportedEngines.contains(engineType.toLowerCase())
       val creatorMatched = creator == null || supportedCreators.contains(creator.toUpperCase())
 
@@ -505,7 +511,7 @@ class DefaultEngineCreateService
           val usedResource = queueInfo.getUsedResource.asInstanceOf[YarnResource]
           val maxResource = queueInfo.getMaxResource.asInstanceOf[YarnResource]
 
-          // 7. 三维度独立判断
+          // 7. Three-dimensional independent judgment
           val useSecondaryQueue = if (maxResource != null && maxResource.getQueueMemory > 0) {
             val memoryUsage =
               usedResource.getQueueMemory.toDouble / maxResource.getQueueMemory.toDouble
@@ -526,7 +532,7 @@ class DefaultEngineCreateService
 
             if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
               logger.info(
-                s"Secondary queue resource usage exceeds threshold - memory over threshold: $memoryOverThreshold, cpu over threshold: $cpuOverThreshold, instance over threshold: $instanceOverThreshold, using primary queue"
+                s"Secondary queue resource usage- memory: $memoryOverThreshold, cpu: $cpuOverThreshold, instance: $instanceOverThreshold, using primary queue"
               )
               false
             } else {
@@ -538,15 +544,19 @@ class DefaultEngineCreateService
             false
           }
 
-          // 8. 判断使用哪个队列并更新 wds.linkis.rm.yarnqueue
+          // 8. Determine which queue to use and update wds.linkis.rm.yarnqueue
           val selectedQueue = if (useSecondaryQueue) secondaryQueue else primaryQueue
           val oldQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
           properties.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, selectedQueue)
 
-          logger.info(s"Smart queue selection completed - original queue: $oldQueue, selected queue: $selectedQueue")
+          logger.info(
+            s"Smart queue selection completed - original queue: $oldQueue, selected queue: $selectedQueue"
+          )
 
         } else {
-          logger.warn(s"Unable to get secondary queue $secondaryQueue information, using primary queue: $primaryQueue")
+          logger.warn(
+            s"Unable to get secondary queue $secondaryQueue information, using primary queue: $primaryQueue"
+          )
         }
 
       } catch {
@@ -556,7 +566,10 @@ class DefaultEngineCreateService
 
     } catch {
       case e: Exception =>
-        logger.error("Exception occurred during smart queue selection, using original queue configuration", e)
+        logger.error(
+          "Exception occurred during smart queue selection, using original queue configuration",
+          e
+        )
     }
   }
 
