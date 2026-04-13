@@ -40,6 +40,27 @@ case class DateType(value: CustomDateType) extends VariableType {
 
 }
 
+/**
+ * WeekType: A date type that operates in weeks instead of days The arithmetic operations (+/-) are
+ * performed in units of weeks (1 week = 7 days) Example: run_week_begin - 1 means subtract 1 week
+ * (7 days), not 1 day
+ */
+case class WeekType(value: CustomDateType) extends VariableType {
+  override def getValue: String = value.toString
+
+  def calculator(signal: String, bValue: String): String = {
+    // Convert weeks to days for the underlying date calculation
+    val days = bValue.toInt * 7
+    signal match {
+      case "+" => value + days
+      case "-" => value - days
+      case _ =>
+        throw new LinkisCommonErrorException(20046, s"WeekType is not supported to use:$signal")
+    }
+  }
+
+}
+
 case class MonthType(value: CustomMonthType) extends VariableType {
   override def getValue: String = value.toString
 
