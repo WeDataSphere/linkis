@@ -20,7 +20,7 @@ package org.apache.linkis.common.utils
 import org.apache.linkis.common.conf.{CommonVars, Configuration}
 import org.apache.linkis.common.exception.LinkisCommonErrorException
 import org.apache.linkis.common.variable
-import org.apache.linkis.common.variable.{WeekType, _}
+import org.apache.linkis.common.variable._
 import org.apache.linkis.common.variable.DateTypeUtils.{
   getCurHour,
   getMonthDay,
@@ -255,11 +255,11 @@ object VariableUtils extends Logging {
         val weekEnd = getWeekEnd(std = false, run_date.getDate)
         val weekEndStd = getWeekEnd(std = true, run_date.getDate)
 
-        // Use WeekType for week-based arithmetic (unit = weeks, not days)
-        nameAndType("run_week_begin") = WeekType(new CustomDateType(weekBegin, false))
-        nameAndType("run_week_begin_std") = WeekType(new CustomDateType(weekBeginStd, true))
-        nameAndType("run_week_end") = WeekType(new CustomDateType(weekEnd, false))
-        nameAndType("run_week_end_std") = WeekType(new CustomDateType(weekEndStd, true))
+        nameAndType("run_week_begin") = variable.DateType(new CustomDateType(weekBegin, false))
+        nameAndType("run_week_begin_std") =
+          variable.DateType(new CustomDateType(weekBeginStd, true))
+        nameAndType("run_week_end") = variable.DateType(new CustomDateType(weekEnd, false))
+        nameAndType("run_week_end_std") = variable.DateType(new CustomDateType(weekEndStd, true))
         logger.info("Week variables initialized successfully")
       }
     } else {
