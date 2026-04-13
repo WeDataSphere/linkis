@@ -183,4 +183,91 @@ class DateTypeUtilsTest {
     assertEquals("20260412", DateTypeUtils.getWeekEnd(std = false, sunday))
   }
 
+  // ========== WeekType Arithmetic Tests ==========
+
+  @Test def testWeekType_Subtract_1_Week(): Unit = {
+    // TC020: WeekType - 1 means subtract 1 week (7 days), not 1 day
+    val dateFormat = DateTypeUtils.dateFormatLocal.get()
+    val date = dateFormat.parse("20260409") // 2026-04-09 is Thursday
+    val weekType = WeekType(
+      new CustomDateType("20260406", false)
+    ) // run_week_begin = 20260406 (Monday)
+
+    val result = weekType.calculator("-", "1") // Subtract 1 week
+    val resultDate = dateFormat.parse(result)
+    val expected = dateFormat.parse("20260330") // Previous Monday = 2026-03-30
+
+    assertEquals(expected, resultDate)
+  }
+
+  @Test def testWeekType_Subtract_7_Weeks(): Unit = {
+    // TC021: WeekType - 7 means subtract 7 weeks (49 days)
+    val dateFormat = DateTypeUtils.dateFormatLocal.get()
+    val date = dateFormat.parse("20260409") // 2026-04-09 is Thursday
+    val weekType = WeekType(
+      new CustomDateType("20260406", false)
+    ) // run_week_begin = 20260406 (Monday)
+
+    val result = weekType.calculator("-", "7") // Subtract 7 weeks
+    val resultDate = dateFormat.parse(result)
+    val expected = dateFormat.parse("20251124") // 7 weeks before Monday = 2025-11-24
+
+    assertEquals(expected, resultDate)
+  }
+
+  @Test def testWeekType_Add_1_Week(): Unit = {
+    // TC022: WeekType + 1 means add 1 week (7 days)
+    val dateFormat = DateTypeUtils.dateFormatLocal.get()
+    val date = dateFormat.parse("20260409") // 2026-04-09 is Thursday
+    val weekType = WeekType(
+      new CustomDateType("20260406", false)
+    ) // run_week_begin = 20260406 (Monday)
+
+    val result = weekType.calculator("+", "1") // Add 1 week
+    val resultDate = dateFormat.parse(result)
+    val expected = dateFormat.parse("20260413") // Next Monday = 2026-04-13
+
+    assertEquals(expected, resultDate)
+  }
+
+  @Test def testWeekType_Add_2_Weeks(): Unit = {
+    // TC023: WeekType + 2 means add 2 weeks (14 days)
+    val dateFormat = DateTypeUtils.dateFormatLocal.get()
+    val date = dateFormat.parse("20260409") // 2026-04-09 is Thursday
+    val weekType = WeekType(
+      new CustomDateType("20260406", false)
+    ) // run_week_begin = 20260406 (Monday)
+
+    val result = weekType.calculator("+", "2") // Add 2 weeks
+    val resultDate = dateFormat.parse(result)
+    val expected = dateFormat.parse("20260420") // 2 weeks after Monday = 2026-04-20
+
+    assertEquals(expected, resultDate)
+  }
+
+  @Test def testWeekType_vs_DateType(): Unit = {
+    // TC024: Verify WeekType (-1) != DateType (-1)
+    val dateFormat = DateTypeUtils.dateFormatLocal.get()
+    val baseDate = "20260406" // Monday
+
+    val weekType = WeekType(new CustomDateType(baseDate, false))
+    val dateType = DateType(new CustomDateType(baseDate, false))
+
+    // WeekType - 1 = Previous Monday (7 days before)
+    val weekResult = weekType.calculator("-", "1")
+
+    // DateType - 1 = Previous day (1 day before)
+    val dateResult = dateType.calculator("-", "1")
+
+    val weekResultDate = dateFormat.parse(weekResult)
+    val dateResultDate = dateFormat.parse(dateResult)
+    val expectedWeek = dateFormat.parse("20260330") // Previous Monday
+    val expectedDate = dateFormat.parse("20260405") // Previous day (Sunday)
+
+    assertEquals(expectedWeek, weekResultDate)
+    assertEquals(expectedDate, dateResultDate)
+    // Verify they are different
+    assertNotEquals(weekResult, dateResult)
+  }
+
 }
