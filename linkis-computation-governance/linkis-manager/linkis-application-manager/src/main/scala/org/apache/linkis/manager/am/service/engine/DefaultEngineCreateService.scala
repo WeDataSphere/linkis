@@ -199,7 +199,7 @@ class DefaultEngineCreateService
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
-    // 3. Smart queue selection (executed before creating YarnResource)
+    // 3. 智能队列选择（在创建 YarnResource 之前执行）
     performSmartQueueSelection(engineCreateRequest.getProperties, labelList)
 
     // 4. generate Resource
@@ -420,13 +420,12 @@ class DefaultEngineCreateService
   }
 
   /**
-   * Smart queue selection: executed before creating YarnResource to ensure correct queue configuration
-   * Decides whether to use primary queue or secondary queue by checking secondary queue resource usage
+   * 智能队列选择：在创建 YarnResource 之前执行，确保队列配置正确 通过查询备用队列资源使用率，决定使用主队列还是备用队列
    *
    * @param properties
-   *   Task parameters
+   *   任务参数
    * @param labelList
-   *   Label list
+   *   标签列表
    */
   private def performSmartQueueSelection(
       properties: util.Map[String, String],
@@ -451,11 +450,11 @@ class DefaultEngineCreateService
         .map(_.toUpperCase())
         .toSet
 
-      logger.info(s"Smart queue config - primary queue: $primaryQueue, secondary queue: $secondaryQueue")
+      logger.info(s"智能队列配置 - 主队列: $primaryQueue, 备用队列: $secondaryQueue")
 
-      // 3. Check if secondary queue feature is enabled
+      // 3. 检查是否启用第二队列功能
       if (!enabled || StringUtils.isBlank(secondaryQueue) || StringUtils.isBlank(primaryQueue)) {
-        logger.info("Smart queue selection is not enabled or secondary queue is empty, using primary queue")
+        logger.info("智能队列选择未启用或备用队列为空，使用主队列")
         return
       }
 
@@ -485,12 +484,12 @@ class DefaultEngineCreateService
 
       if (!engineMatched || !creatorMatched) {
         logger.info(
-          s"Engine type or Creator not in supported list - engineType: $engineType (matched: $engineMatched), creator: $creator (matched: $creatorMatched)"
+          s"引擎类型或 Creator 不在支持列表中 - engineType: $engineType (matched: $engineMatched), creator: $creator (matched: $creatorMatched)"
         )
         return
       }
 
-      // 6. Query secondary queue resource usage
+      // 6. 查询备用队列资源使用率
       try {
         val labelContainer = labelResourceService.enrichLabels(labelList)
 
@@ -519,22 +518,22 @@ class DefaultEngineCreateService
             } else {
               0.0
             }
-            // Do not use secondary queue if any dimension exceeds threshold
+            // 只要有一个维度超过阈值，就不使用备用队列
             val memoryOverThreshold = memoryUsage > threshold
             val cpuOverThreshold = cpuUsage > threshold
             val instanceOverThreshold = instanceUsage > threshold
 
             if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
               logger.info(
-                s"Secondary queue resource usage exceeds threshold - memory over threshold: $memoryOverThreshold, cpu over threshold: $cpuOverThreshold, instance over threshold: $instanceOverThreshold, using primary queue"
+                s"备用队列资源使用率过高 - 内存超阈值: $memoryOverThreshold, CPU超阈值: $cpuOverThreshold, 实例超阈值: $instanceOverThreshold, 使用主队列"
               )
               false
             } else {
-              logger.info("Secondary queue has sufficient resources, using secondary queue")
+              logger.info("备用队列资源充足，使用备用队列")
               true
             }
           } else {
-            logger.warn("Secondary queue max resource is empty, using primary queue")
+            logger.warn("备用队列最大资源为空，使用主队列")
             false
           }
 
@@ -543,20 +542,20 @@ class DefaultEngineCreateService
           val oldQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
           properties.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, selectedQueue)
 
-          logger.info(s"Smart queue selection completed - original queue: $oldQueue, selected queue: $selectedQueue")
+          logger.info(s"智能队列选择完成 - 原始队列: $oldQueue, 选择后队列: $selectedQueue")
 
         } else {
-          logger.warn(s"Unable to get secondary queue $secondaryQueue information, using primary queue: $primaryQueue")
+          logger.warn(s"无法获取备用队列 $secondaryQueue 的信息，使用主队列: $primaryQueue")
         }
 
       } catch {
         case e: Exception =>
-          logger.error(s"Exception in smart queue selection, using primary queue: $primaryQueue", e)
+          logger.error(s"智能队列选择异常，使用主队列: $primaryQueue", e)
       }
 
     } catch {
       case e: Exception =>
-        logger.error("Exception occurred during smart queue selection, using original queue configuration", e)
+        logger.error("智能队列选择出现异常，使用原始队列配置", e)
     }
   }
 
