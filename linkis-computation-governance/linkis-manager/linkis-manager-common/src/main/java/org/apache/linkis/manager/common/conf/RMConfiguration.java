@@ -99,7 +99,7 @@ public class RMConfiguration {
 
   /** 是否启用第二队列功能 默认值：true 说明：true 启用智能队列选择，false 禁用功能 */
   public static final CommonVars<Boolean> SECONDARY_QUEUE_ENABLED =
-      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.enable", true);
+      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.enable", false);
 
   /** 第二队列资源使用率阈值 默认值：0.9（90%） 说明：当备用队列使用率 <= 此值时，使用备用队列 当备用队列使用率 > 此值时，使用主队列 */
   public static final CommonVars<Double> SECONDARY_QUEUE_THRESHOLD =
