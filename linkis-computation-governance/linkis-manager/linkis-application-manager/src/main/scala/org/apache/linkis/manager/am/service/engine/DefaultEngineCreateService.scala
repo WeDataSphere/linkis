@@ -33,10 +33,12 @@ import org.apache.linkis.manager.am.label.{EngineReuseLabelChooser, LabelChecker
 import org.apache.linkis.manager.am.selector.{ECAvailableRule, NodeSelector}
 import org.apache.linkis.manager.am.utils.AMUtils
 import org.apache.linkis.manager.am.vo.CanCreateECRes
+import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.constant.AMConstant
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{EMNode, EngineNode}
-import org.apache.linkis.manager.common.entity.resource.NodeResource
+import org.apache.linkis.manager.common.entity.resource.{NodeResource, ResourceType}
+import org.apache.linkis.manager.common.entity.resource.YarnResource
 import org.apache.linkis.manager.common.protocol.engine.{EngineCreateRequest, EngineStopRequest}
 import org.apache.linkis.manager.common.utils.ManagerUtils
 import org.apache.linkis.manager.engineplugin.common.launch.entity.{
@@ -48,12 +50,15 @@ import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContex
 import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
 import org.apache.linkis.manager.label.entity.engine.{EngineType, EngineTypeLabel}
+import org.apache.linkis.manager.label.entity.engine.UserCreatorLabel
 import org.apache.linkis.manager.label.entity.node.AliasServiceInstanceLabel
 import org.apache.linkis.manager.label.service.{NodeLabelService, UserLabelService}
 import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
 import org.apache.linkis.manager.persistence.NodeMetricManagerPersistence
 import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource}
-import org.apache.linkis.manager.rm.service.ResourceManager
+import org.apache.linkis.manager.rm.external.service.ExternalResourceService
+import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
+import org.apache.linkis.manager.rm.service.{LabelResourceService, ResourceManager}
 import org.apache.linkis.manager.service.common.label.LabelFilter
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.rpc.Sender
@@ -94,6 +99,12 @@ class DefaultEngineCreateService
 
   @Autowired
   private var userLabelService: UserLabelService = _
+
+  @Autowired
+  private var externalResourceService: ExternalResourceService = _
+
+  @Autowired
+  private var labelResourceService: LabelResourceService = _
 
   @Autowired
   private var engineConnConfigurationService: EngineConnConfigurationService = _
@@ -188,11 +199,10 @@ class DefaultEngineCreateService
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
-    // 3. generate Resource
-    if (engineCreateRequest.getProperties == null) {
-      engineCreateRequest.setProperties(new util.HashMap[String, String]())
-    }
+    // 3. Smart queue selection (executed before creating YarnResource)
+    performSmartQueueSelection(engineCreateRequest.getProperties, labelList)
 
+    // 4. generate Resource
     val resource =
       generateResource(
         engineCreateRequest.getProperties,
@@ -200,7 +210,7 @@ class DefaultEngineCreateService
         labelFilter.choseEngineLabel(labelList),
         timeout
       )
-    // 4. request resource
+    // 5. request resource
     val resourceTicketId = resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
@@ -214,7 +224,7 @@ class DefaultEngineCreateService
         throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
     }
 
-    // 5. build engineConn request
+    // 6. build engineConn request
     val engineBuildRequest = EngineConnBuildRequestImpl(
       resourceTicketId,
       labelFilter.choseEngineLabel(labelList),
@@ -226,7 +236,7 @@ class DefaultEngineCreateService
       )
     )
 
-    // 6. Call ECM to send engine start request
+    // 7. Call ECM to send engine start request
     // AM will update the serviceInstance table
     // It is necessary to replace the ticketID and update the Label of EngineConn
     // It is necessary to modify the id in EngineInstanceLabel to Instance information
@@ -236,7 +246,10 @@ class DefaultEngineCreateService
 
     val engineNode = Utils.tryCatch(getEMService().createEngine(engineBuildRequest, emNode)) {
       case t: Throwable =>
-        logger.warn(s"Failed to create ec($resourceTicketId) ask ecm ${emNode.getServiceInstance}", t)
+        logger.warn(
+          s"Failed to create ec($resourceTicketId) ask ecm ${emNode.getServiceInstance}",
+          t
+        )
         val failedEcNode = getEngineNodeManager.getEngineNode(oldServiceInstance)
         if (null == failedEcNode) {
           logger.warn(s" engineConn does not exist in db: $oldServiceInstance ")
@@ -294,7 +307,7 @@ class DefaultEngineCreateService
         val emInstance = engineNode.getServiceInstance.getInstance
         val ecmInstance = engineNode.getEMNode.getServiceInstance.getInstance
         if ((null != emInstance) && (null != ecmInstance)) {
-          // 8. Update job history metrics after successful engine creation - 异步执行
+          // 8. Update job history metrics after successful engine creation - executed asynchronously
           AMUtils.updateMetricsAsync(
             taskId,
             resourceTicketId,
@@ -404,6 +417,160 @@ class DefaultEngineCreateService
 
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(timeout, user, labelList, props)
     engineConnResourceFactoryService.createEngineResource(timeoutEngineResourceRequest)
+  }
+
+  /**
+   * Smart queue selection: executed before creating YarnResource to ensure correct queue
+   * configuration Decides whether to use primary queue or secondary queue by checking secondary
+   * queue resource usage
+   *
+   * @param properties
+   *   Task parameters
+   * @param labelList
+   *   Label list
+   */
+  private def performSmartQueueSelection(
+      properties: util.Map[String, String],
+      labelList: util.List[Label[_]]
+  ): Unit = {
+    try {
+      // 1. Get queue configuration
+      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "")
+      val secondaryQueue =
+        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
+
+      // 2. Get system configuration
+      val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
+      val threshold = RMConfiguration.SECONDARY_QUEUE_THRESHOLD.getValue
+      val supportedEngines = RMConfiguration.SECONDARY_QUEUE_ENGINES.getValue
+        .split(",")
+        .map(_.trim)
+        .map(_.toLowerCase())
+        .toSet
+      val supportedCreators = RMConfiguration.SECONDARY_QUEUE_CREATORS.getValue
+        .split(",")
+        .map(_.trim)
+        .map(_.toUpperCase())
+        .toSet
+
+      logger.info(
+        s"Smart queue config - primary queue: $primaryQueue, secondary queue: $secondaryQueue"
+      )
+
+      // 3. Check if secondary queue feature is enabled
+      if (!enabled || StringUtils.isBlank(secondaryQueue) || StringUtils.isBlank(primaryQueue)) {
+        logger.info(
+          "Smart queue selection is not enabled or secondary queue is empty, using primary queue"
+        )
+        return
+      }
+
+      // 4. Get engine type and Creator
+      var engineType: String = null
+      var creator: String = null
+
+      try {
+        if (labelList != null && !labelList.isEmpty) {
+          engineType = LabelUtil.getEngineType(labelList)
+          val userCreatorLabel = labelList.asScala
+            .find(_.isInstanceOf[UserCreatorLabel])
+            .map(_.asInstanceOf[UserCreatorLabel])
+            .orNull
+          if (userCreatorLabel != null) {
+            creator = userCreatorLabel.getCreator
+          }
+        }
+      } catch {
+        case e: Exception =>
+          logger.error("Failed to parse labels for queue selection", e)
+      }
+
+      // 5. Check if engine type and Creator are in supported list
+      val engineMatched = engineType == null || supportedEngines.contains(engineType.toLowerCase())
+      val creatorMatched = creator == null || supportedCreators.contains(creator.toUpperCase())
+
+      if (!engineMatched || !creatorMatched) {
+        logger.info(
+          s"Engine type or Creator not in supported list - engineType: $engineType (matched: $engineMatched), creator: $creator (matched: $creatorMatched)"
+        )
+        return
+      }
+
+      // 6. Query secondary queue resource usage
+      try {
+        val labelContainer = labelResourceService.enrichLabels(labelList)
+
+        val yarnResourceIdentifier = new YarnResourceIdentifier(secondaryQueue)
+        val queueInfo = externalResourceService.getResource(
+          ResourceType.Yarn,
+          labelContainer,
+          yarnResourceIdentifier
+        )
+
+        if (queueInfo != null) {
+          val usedResource = queueInfo.getUsedResource.asInstanceOf[YarnResource]
+          val maxResource = queueInfo.getMaxResource.asInstanceOf[YarnResource]
+
+          // 7. Three-dimensional independent judgment
+          val useSecondaryQueue = if (maxResource != null && maxResource.getQueueMemory > 0) {
+            val memoryUsage =
+              usedResource.getQueueMemory.toDouble / maxResource.getQueueMemory.toDouble
+            val cpuUsage = if (maxResource.getQueueCores > 0) {
+              usedResource.getQueueCores.toDouble / maxResource.getQueueCores.toDouble
+            } else {
+              0.0
+            }
+            val instanceUsage = if (maxResource.getQueueInstances > 0) {
+              usedResource.getQueueInstances.toDouble / maxResource.getQueueInstances.toDouble
+            } else {
+              0.0
+            }
+            // Do not use secondary queue if any dimension exceeds threshold
+            val memoryOverThreshold = memoryUsage > threshold
+            val cpuOverThreshold = cpuUsage > threshold
+            val instanceOverThreshold = instanceUsage > threshold
+
+            if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
+              logger.info(
+                s"Secondary queue resource usage- memory: $memoryOverThreshold, cpu: $cpuOverThreshold, instance: $instanceOverThreshold, using primary queue"
+              )
+              false
+            } else {
+              logger.info("Secondary queue has sufficient resources, using secondary queue")
+              true
+            }
+          } else {
+            logger.warn("Secondary queue max resource is empty, using primary queue")
+            false
+          }
+
+          // 8. Determine which queue to use and update wds.linkis.rm.yarnqueue
+          val selectedQueue = if (useSecondaryQueue) secondaryQueue else primaryQueue
+          val oldQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
+          properties.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, selectedQueue)
+
+          logger.info(
+            s"Smart queue selection completed - original queue: $oldQueue, selected queue: $selectedQueue"
+          )
+
+        } else {
+          logger.warn(
+            s"Unable to get secondary queue $secondaryQueue information, using primary queue: $primaryQueue"
+          )
+        }
+
+      } catch {
+        case e: Exception =>
+          logger.error(s"Exception in smart queue selection, using primary queue: $primaryQueue", e)
+      }
+
+    } catch {
+      case e: Exception =>
+        logger.error(
+          "Exception occurred during smart queue selection, using original queue configuration",
+          e
+        )
+    }
   }
 
   private def fromEMGetEngineLabels(emLabels: util.List[Label[_]]): util.List[Label[_]] = {
