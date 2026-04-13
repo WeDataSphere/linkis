@@ -54,7 +54,7 @@ object VariableUtils extends Logging {
   val RUN_WEEK_END_STD = "run_week_end_std"
 
   // Week variable feature switch (default: true)
-  val WEEK_VARIABLE_ENABLED = CommonVars[Boolean]("linkis.variable.week.enabled", true)
+  val WEEK_VARIABLE_ENABLED = CommonVars[Boolean]("linkis.variable.week.enabled", false)
 
   private val codeReg =
     "\\$\\{\\s*[A-Za-z][A-Za-z0-9_\\.]*\\s*[\\+\\-\\*/]?\\s*[A-Za-z0-9_\\.]*\\s*\\}".r
