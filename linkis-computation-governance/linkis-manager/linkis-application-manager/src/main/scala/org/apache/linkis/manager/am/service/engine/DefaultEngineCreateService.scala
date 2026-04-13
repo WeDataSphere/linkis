@@ -33,10 +33,12 @@ import org.apache.linkis.manager.am.label.{EngineReuseLabelChooser, LabelChecker
 import org.apache.linkis.manager.am.selector.{ECAvailableRule, NodeSelector}
 import org.apache.linkis.manager.am.utils.AMUtils
 import org.apache.linkis.manager.am.vo.CanCreateECRes
+import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.common.constant.AMConstant
 import org.apache.linkis.manager.common.entity.enumeration.NodeStatus
 import org.apache.linkis.manager.common.entity.node.{EMNode, EngineNode}
-import org.apache.linkis.manager.common.entity.resource.NodeResource
+import org.apache.linkis.manager.common.entity.resource.{NodeResource, ResourceType}
+import org.apache.linkis.manager.common.entity.resource.YarnResource
 import org.apache.linkis.manager.common.protocol.engine.{EngineCreateRequest, EngineStopRequest}
 import org.apache.linkis.manager.common.utils.ManagerUtils
 import org.apache.linkis.manager.engineplugin.common.launch.entity.{
@@ -48,12 +50,15 @@ import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContex
 import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
 import org.apache.linkis.manager.label.entity.engine.{EngineType, EngineTypeLabel}
+import org.apache.linkis.manager.label.entity.engine.UserCreatorLabel
 import org.apache.linkis.manager.label.entity.node.AliasServiceInstanceLabel
 import org.apache.linkis.manager.label.service.{NodeLabelService, UserLabelService}
 import org.apache.linkis.manager.label.utils.{LabelUtil, LabelUtils}
 import org.apache.linkis.manager.persistence.NodeMetricManagerPersistence
 import org.apache.linkis.manager.rm.{AvailableResource, NotEnoughResource}
-import org.apache.linkis.manager.rm.service.ResourceManager
+import org.apache.linkis.manager.rm.external.service.ExternalResourceService
+import org.apache.linkis.manager.rm.external.yarn.YarnResourceIdentifier
+import org.apache.linkis.manager.rm.service.{LabelResourceService, ResourceManager}
 import org.apache.linkis.manager.service.common.label.LabelFilter
 import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.rpc.Sender
@@ -94,6 +99,12 @@ class DefaultEngineCreateService
 
   @Autowired
   private var userLabelService: UserLabelService = _
+
+  @Autowired
+  private var externalResourceService: ExternalResourceService = _
+
+  @Autowired
+  private var labelResourceService: LabelResourceService = _
 
   @Autowired
   private var engineConnConfigurationService: EngineConnConfigurationService = _
@@ -188,11 +199,10 @@ class DefaultEngineCreateService
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
-    // 3. generate Resource
-    if (engineCreateRequest.getProperties == null) {
-      engineCreateRequest.setProperties(new util.HashMap[String, String]())
-    }
+    // 3. 智能队列选择（在创建 YarnResource 之前执行）
+    performSmartQueueSelection(engineCreateRequest.getProperties, labelList)
 
+    // 4. generate Resource
     val resource =
       generateResource(
         engineCreateRequest.getProperties,
@@ -200,7 +210,7 @@ class DefaultEngineCreateService
         labelFilter.choseEngineLabel(labelList),
         timeout
       )
-    // 4. request resource
+    // 5. request resource
     val resourceTicketId = resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
@@ -214,7 +224,7 @@ class DefaultEngineCreateService
         throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
     }
 
-    // 5. build engineConn request
+    // 6. build engineConn request
     val engineBuildRequest = EngineConnBuildRequestImpl(
       resourceTicketId,
       labelFilter.choseEngineLabel(labelList),
@@ -226,7 +236,7 @@ class DefaultEngineCreateService
       )
     )
 
-    // 6. Call ECM to send engine start request
+    // 7. Call ECM to send engine start request
     // AM will update the serviceInstance table
     // It is necessary to replace the ticketID and update the Label of EngineConn
     // It is necessary to modify the id in EngineInstanceLabel to Instance information
@@ -407,6 +417,146 @@ class DefaultEngineCreateService
 
     val timeoutEngineResourceRequest = TimeoutEngineResourceRequest(timeout, user, labelList, props)
     engineConnResourceFactoryService.createEngineResource(timeoutEngineResourceRequest)
+  }
+
+  /**
+   * 智能队列选择：在创建 YarnResource 之前执行，确保队列配置正确 通过查询备用队列资源使用率，决定使用主队列还是备用队列
+   *
+   * @param properties
+   *   任务参数
+   * @param labelList
+   *   标签列表
+   */
+  private def performSmartQueueSelection(
+      properties: util.Map[String, String],
+      labelList: util.List[Label[_]]
+  ): Unit = {
+    try {
+      // 1. 获取队列配置
+      val primaryQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
+      val secondaryQueue = properties.getOrDefault("wds.linkis.rm.secondary.yarnqueue", "")
+
+      // 2. 获取系统配置
+      val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
+      val threshold = RMConfiguration.SECONDARY_QUEUE_THRESHOLD.getValue
+      val supportedEngines = RMConfiguration.SECONDARY_QUEUE_ENGINES.getValue
+        .split(",")
+        .map(_.trim)
+        .map(_.toLowerCase())
+        .toSet
+      val supportedCreators = RMConfiguration.SECONDARY_QUEUE_CREATORS.getValue
+        .split(",")
+        .map(_.trim)
+        .map(_.toUpperCase())
+        .toSet
+
+      logger.info(s"智能队列配置 - 主队列: $primaryQueue, 备用队列: $secondaryQueue")
+
+      // 3. 检查是否启用第二队列功能
+      if (!enabled || StringUtils.isBlank(secondaryQueue) || StringUtils.isBlank(primaryQueue)) {
+        logger.info("智能队列选择未启用或备用队列为空，使用主队列")
+        return
+      }
+
+      // 4. 获取引擎类型和 Creator
+      var engineType: String = null
+      var creator: String = null
+
+      try {
+        if (labelList != null && !labelList.isEmpty) {
+          engineType = LabelUtil.getEngineType(labelList)
+          val userCreatorLabel = labelList.asScala
+            .find(_.isInstanceOf[UserCreatorLabel])
+            .map(_.asInstanceOf[UserCreatorLabel])
+            .orNull
+          if (userCreatorLabel != null) {
+            creator = userCreatorLabel.getCreator
+          }
+        }
+      } catch {
+        case e: Exception =>
+          logger.error("Failed to parse labels for queue selection", e)
+      }
+
+      // 5. 检查引擎类型和 Creator 是否在支持列表中
+      val engineMatched = engineType == null || supportedEngines.contains(engineType.toLowerCase())
+      val creatorMatched = creator == null || supportedCreators.contains(creator.toUpperCase())
+
+      if (!engineMatched || !creatorMatched) {
+        logger.info(
+          s"引擎类型或 Creator 不在支持列表中 - engineType: $engineType (matched: $engineMatched), creator: $creator (matched: $creatorMatched)"
+        )
+        return
+      }
+
+      // 6. 查询备用队列资源使用率
+      try {
+        val labelContainer = labelResourceService.enrichLabels(labelList)
+
+        val yarnResourceIdentifier = new YarnResourceIdentifier(secondaryQueue)
+        val queueInfo = externalResourceService.getResource(
+          ResourceType.Yarn,
+          labelContainer,
+          yarnResourceIdentifier
+        )
+
+        if (queueInfo != null) {
+          val usedResource = queueInfo.getUsedResource.asInstanceOf[YarnResource]
+          val maxResource = queueInfo.getMaxResource.asInstanceOf[YarnResource]
+
+          // 7. 三维度独立判断
+          val useSecondaryQueue = if (maxResource != null && maxResource.getQueueMemory > 0) {
+            val memoryUsage =
+              usedResource.getQueueMemory.toDouble / maxResource.getQueueMemory.toDouble
+            val cpuUsage = if (maxResource.getQueueCores > 0) {
+              usedResource.getQueueCores.toDouble / maxResource.getQueueCores.toDouble
+            } else {
+              0.0
+            }
+            val instanceUsage = if (maxResource.getQueueInstances > 0) {
+              usedResource.getQueueInstances.toDouble / maxResource.getQueueInstances.toDouble
+            } else {
+              0.0
+            }
+            // 只要有一个维度超过阈值，就不使用备用队列
+            val memoryOverThreshold = memoryUsage > threshold
+            val cpuOverThreshold = cpuUsage > threshold
+            val instanceOverThreshold = instanceUsage > threshold
+
+            if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
+              logger.info(
+                s"备用队列资源使用率过高 - 内存超阈值: $memoryOverThreshold, CPU超阈值: $cpuOverThreshold, 实例超阈值: $instanceOverThreshold, 使用主队列"
+              )
+              false
+            } else {
+              logger.info("备用队列资源充足，使用备用队列")
+              true
+            }
+          } else {
+            logger.warn("备用队列最大资源为空，使用主队列")
+            false
+          }
+
+          // 8. 判断使用哪个队列并更新 wds.linkis.rm.yarnqueue
+          val selectedQueue = if (useSecondaryQueue) secondaryQueue else primaryQueue
+          val oldQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
+          properties.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, selectedQueue)
+
+          logger.info(s"智能队列选择完成 - 原始队列: $oldQueue, 选择后队列: $selectedQueue")
+
+        } else {
+          logger.warn(s"无法获取备用队列 $secondaryQueue 的信息，使用主队列: $primaryQueue")
+        }
+
+      } catch {
+        case e: Exception =>
+          logger.error(s"智能队列选择异常，使用主队列: $primaryQueue", e)
+      }
+
+    } catch {
+      case e: Exception =>
+        logger.error("智能队列选择出现异常，使用原始队列配置", e)
+    }
   }
 
   private def fromEMGetEngineLabels(emLabels: util.List[Label[_]]): util.List[Label[_]] = {
