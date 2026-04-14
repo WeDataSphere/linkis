@@ -552,7 +552,7 @@ class DefaultEngineCreateService
           }
 
           // 8. Permission check before using secondary queue
-          val hasPermission = checkQueuePermission(user, secondaryQueue, primaryQueue)
+          val hasPermission = checkQueuePermission(user, secondaryQueue, labelList)
 
           // 9. Determine which queue to use and update wds.linkis.rm.yarnqueue
           val useSecondaryAfterPermissionCheck = useSecondaryQueue && hasPermission
@@ -585,54 +585,68 @@ class DefaultEngineCreateService
   }
 
   /**
-   * Check if user has permission to use the specified queue
+   * Check if user has permission to use the specified queue by querying Yarn API
    *
    * @param user
    *   User name
    * @param queueToCheck
    *   Queue name to check permission for
-   * @param fallbackQueue
-   *   Fallback queue name if permission check fails
-   * @return true if user has permission or permission check is disabled, false otherwise
+   * @param labelList
+   *   Label list for resource query
+   * @return true if user has permission, false otherwise
    */
   private def checkQueuePermission(
       user: String,
       queueToCheck: String,
-      fallbackQueue: String
+      labelList: util.List[Label[_]]
   ): Boolean = {
-    // Check if permission check is enabled
-    val permissionCheckEnabled = RMConfiguration.SECONDARY_QUEUE_PERMISSION_CHECK_ENABLED.getValue
+    try {
+      logger.debug(s"Checking permission for user '$user' to access queue '$queueToCheck'")
 
-    if (!permissionCheckEnabled) {
-      logger.debug("Secondary queue permission check is disabled, allowing queue usage")
-      return true
-    }
+      // Try to get app info from the specified queue using Yarn API
+      // If user has no permission, Yarn will return an error (403/404)
+      val labelContainer = labelResourceService.enrichLabels(labelList)
+      val yarnResourceIdentifier = new YarnResourceIdentifier(queueToCheck)
 
-    // Check if user whitelist is configured
-    val allowedUsersConfig = RMConfiguration.SECONDARY_QUEUE_ALLOWED_USERS.getValue
-    if (StringUtils.isNotBlank(allowedUsersConfig)) {
-      val allowedUsers = allowedUsersConfig.split(",").map(_.trim).toSet
-      if (allowedUsers.nonEmpty) {
-        val userAllowed = allowedUsers.contains(user)
-        if (!userAllowed) {
+      // Call getAppInfo to verify user has access to the queue
+      // This will throw an exception if user has no permission
+      val appInfoList =
+        externalResourceService.getAppInfo(ResourceType.Yarn, labelContainer, yarnResourceIdentifier)
+
+      // If we reach here, user has permission (even if app list is empty)
+      logger.debug(
+        s"User '$user' has permission to access queue '$queueToCheck', app info returned successfully"
+      )
+      true
+
+    } catch {
+      case e: Exception =>
+        val errorMsg = e.getMessage
+        val errorMsgLower = if (errorMsg != null) errorMsg.toLowerCase else ""
+
+        // Check if error is related to permission or queue access
+        val isPermissionError =
+          errorMsgLower.contains("403") || errorMsgLower.contains("forbidden") ||
+          errorMsgLower.contains("permission") || errorMsgLower.contains("access denied") ||
+          errorMsgLower.contains("unauthorized") || errorMsgLower.contains("404") ||
+          (errorMsgLower.contains("queue") && errorMsgLower.contains("not exist"))
+
+        if (isPermissionError) {
           logger.warn(
-            s"User '$user' is not in the allowed users list for secondary queue '$queueToCheck', using primary queue: $fallbackQueue. " +
-              s"Allowed users: ${allowedUsers.mkString(", ")}"
+            s"User '$user' does not have permission to access queue '$queueToCheck': ${errorMsg}"
           )
-          return false
+          false
+        } else {
+          // For other errors (network, timeout, etc.), assume permission is OK
+          // to avoid blocking legitimate users due to transient issues
+          logger.warn(
+            s"Failed to check permission for user '$user' on queue '$queueToCheck' due to: ${errorMsg}, " +
+              s"assuming permission is OK to avoid blocking. Error type: ${e.getClass.getSimpleName}",
+            e
+          )
+          true
         }
-        logger.info(
-          s"User '$user' is in the allowed users list for secondary queue '$queueToCheck'"
-        )
-        return true
-      }
     }
-
-    // If permission check is enabled but no whitelist configured, allow by default
-    logger.debug(
-      s"Secondary queue permission check is enabled but no whitelist configured, allowing user '$user' to use queue '$queueToCheck'"
-    )
-    true
   }
 
   private def fromEMGetEngineLabels(emLabels: util.List[Label[_]]): util.List[Label[_]] = {
