@@ -112,4 +112,12 @@ public class RMConfiguration {
   /** Supported Creator list (comma-separated) Default: IDE Description: Only Creators in this list will execute smart queue selection Case-insensitive */
   public static final CommonVars<String> SECONDARY_QUEUE_CREATORS =
       CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.creators", "IDE");
+
+  /** Whether to enable permission check for secondary queue Default: false Description: If enabled, will check if user has permission to submit to secondary queue before using it */
+  public static final CommonVars<Boolean> SECONDARY_QUEUE_PERMISSION_CHECK_ENABLED =
+      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.permission.check.enable", false);
+
+  /** White list of users allowed to use secondary queue (comma-separated) Default: empty (all users allowed) Description: Only users in this list are allowed to use secondary queue, empty means all users allowed */
+  public static final CommonVars<String> SECONDARY_QUEUE_ALLOWED_USERS =
+      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.allowed.users", "");
 }
