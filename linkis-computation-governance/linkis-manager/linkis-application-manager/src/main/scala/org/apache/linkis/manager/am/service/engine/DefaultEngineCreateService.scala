@@ -408,7 +408,7 @@ class DefaultEngineCreateService
     }
 
     // Smart queue selection (executed before creating YarnResource)
-    performSmartQueueSelection(props, user, labelList)
+    performSmartQueueSelection(props, labelList)
 
     val crossQueue = props.get(AMConfiguration.CROSS_QUEUE)
     if (StringUtils.isNotBlank(crossQueue)) {
@@ -430,21 +430,18 @@ class DefaultEngineCreateService
    *
    * @param properties
    *   Task parameters
-   * @param user
-   *   User name
    * @param labelList
    *   Label list
    */
   private def performSmartQueueSelection(
       properties: util.Map[String, String],
-      user: String,
       labelList: util.List[Label[_]]
   ): Unit = {
     try {
       // 1. Get queue configuration
-      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "").trim
+      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "")
       val secondaryQueue =
-        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "").trim
+        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
 
       // 2. Get system configuration
       val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
@@ -551,12 +548,8 @@ class DefaultEngineCreateService
             false
           }
 
-          // 8. Permission check before using secondary queue
-          val hasPermission = checkQueuePermission(user, secondaryQueue, primaryQueue)
-
-          // 9. Determine which queue to use and update wds.linkis.rm.yarnqueue
-          val useSecondaryAfterPermissionCheck = useSecondaryQueue && hasPermission
-          val selectedQueue = if (useSecondaryAfterPermissionCheck) secondaryQueue else primaryQueue
+          // 8. Determine which queue to use and update wds.linkis.rm.yarnqueue
+          val selectedQueue = if (useSecondaryQueue) secondaryQueue else primaryQueue
           val oldQueue = properties.get(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY)
           properties.put(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, selectedQueue)
 
@@ -582,57 +575,6 @@ class DefaultEngineCreateService
           e
         )
     }
-  }
-
-  /**
-   * Check if user has permission to use the specified queue
-   *
-   * @param user
-   *   User name
-   * @param queueToCheck
-   *   Queue name to check permission for
-   * @param fallbackQueue
-   *   Fallback queue name if permission check fails
-   * @return true if user has permission or permission check is disabled, false otherwise
-   */
-  private def checkQueuePermission(
-      user: String,
-      queueToCheck: String,
-      fallbackQueue: String
-  ): Boolean = {
-    // Check if permission check is enabled
-    val permissionCheckEnabled = RMConfiguration.SECONDARY_QUEUE_PERMISSION_CHECK_ENABLED.getValue
-
-    if (!permissionCheckEnabled) {
-      logger.debug("Secondary queue permission check is disabled, allowing queue usage")
-      return true
-    }
-
-    // Check if user whitelist is configured
-    val allowedUsersConfig = RMConfiguration.SECONDARY_QUEUE_ALLOWED_USERS.getValue
-    if (StringUtils.isNotBlank(allowedUsersConfig)) {
-      val allowedUsers = allowedUsersConfig.split(",").map(_.trim).toSet
-      if (allowedUsers.nonEmpty) {
-        val userAllowed = allowedUsers.contains(user)
-        if (!userAllowed) {
-          logger.warn(
-            s"User '$user' is not in the allowed users list for secondary queue '$queueToCheck', using primary queue: $fallbackQueue. " +
-              s"Allowed users: ${allowedUsers.mkString(", ")}"
-          )
-          return false
-        }
-        logger.info(
-          s"User '$user' is in the allowed users list for secondary queue '$queueToCheck'"
-        )
-        return true
-      }
-    }
-
-    // If permission check is enabled but no whitelist configured, allow by default
-    logger.debug(
-      s"Secondary queue permission check is enabled but no whitelist configured, allowing user '$user' to use queue '$queueToCheck'"
-    )
-    true
   }
 
   private def fromEMGetEngineLabels(emLabels: util.List[Label[_]]): util.List[Label[_]] = {
