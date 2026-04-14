@@ -199,10 +199,11 @@ class DefaultEngineCreateService
 
     // 2 select suite ecm
     val emNode = selectECM(engineCreateRequest, labelList)
-    // 3. Smart queue selection (executed before creating YarnResource)
-    performSmartQueueSelection(engineCreateRequest.getProperties, labelList)
+    // 3. generate Resource
+    if (engineCreateRequest.getProperties == null) {
+      engineCreateRequest.setProperties(new util.HashMap[String, String]())
+    }
 
-    // 4. generate Resource
     val resource =
       generateResource(
         engineCreateRequest.getProperties,
@@ -210,7 +211,7 @@ class DefaultEngineCreateService
         labelFilter.choseEngineLabel(labelList),
         timeout
       )
-    // 5. request resource
+    // 4. request resource
     val resourceTicketId = resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
@@ -224,7 +225,7 @@ class DefaultEngineCreateService
         throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
     }
 
-    // 6. build engineConn request
+    // 5. build engineConn request
     val engineBuildRequest = EngineConnBuildRequestImpl(
       resourceTicketId,
       labelFilter.choseEngineLabel(labelList),
@@ -236,7 +237,7 @@ class DefaultEngineCreateService
       )
     )
 
-    // 7. Call ECM to send engine start request
+    // 6. Call ECM to send engine start request
     // AM will update the serviceInstance table
     // It is necessary to replace the ticketID and update the Label of EngineConn
     // It is necessary to modify the id in EngineInstanceLabel to Instance information
@@ -406,6 +407,9 @@ class DefaultEngineCreateService
       })
     }
 
+    // Smart queue selection (executed before creating YarnResource)
+    performSmartQueueSelection(props, labelList)
+
     val crossQueue = props.get(AMConfiguration.CROSS_QUEUE)
     if (StringUtils.isNotBlank(crossQueue)) {
       val queueName = props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "default")
@@ -435,9 +439,9 @@ class DefaultEngineCreateService
   ): Unit = {
     try {
       // 1. Get queue configuration
-      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "")
+      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "").trim
       val secondaryQueue =
-        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
+        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "").trim
 
       // 2. Get system configuration
       val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
