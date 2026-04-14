@@ -439,9 +439,9 @@ class DefaultEngineCreateService
   ): Unit = {
     try {
       // 1. Get queue configuration
-      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "")
+      val primaryQueue = properties.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "").trim
       val secondaryQueue =
-        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
+        properties.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "").trim
 
       // 2. Get system configuration
       val enabled = RMConfiguration.SECONDARY_QUEUE_ENABLED.getValue
