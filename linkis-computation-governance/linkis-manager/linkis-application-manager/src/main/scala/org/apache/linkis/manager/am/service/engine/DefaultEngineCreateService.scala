@@ -204,6 +204,7 @@ class DefaultEngineCreateService
       engineCreateRequest.setProperties(new util.HashMap[String, String]())
     }
 
+    // 4. generate Resource
     val resource =
       generateResource(
         engineCreateRequest.getProperties,
@@ -212,7 +213,7 @@ class DefaultEngineCreateService
         timeout,
         isCreateEngine = true
       )
-    // 4. request resource
+    // 5. request resource
     val resourceTicketId = resourceManager.requestResource(
       LabelUtils.distinctLabel(labelList, emNode.getLabels),
       resource,
@@ -226,7 +227,7 @@ class DefaultEngineCreateService
         throw new LinkisRetryException(AMConstant.EM_ERROR_CODE, s"not enough resource: : $reason")
     }
 
-    // 5. build engineConn request
+    // 6. build engineConn request
     val engineBuildRequest = EngineConnBuildRequestImpl(
       resourceTicketId,
       labelFilter.choseEngineLabel(labelList),
@@ -238,7 +239,7 @@ class DefaultEngineCreateService
       )
     )
 
-    // 6. Call ECM to send engine start request
+    // 7. Call ECM to send engine start request
     // AM will update the serviceInstance table
     // It is necessary to replace the ticketID and update the Label of EngineConn
     // It is necessary to modify the id in EngineInstanceLabel to Instance information
@@ -578,6 +579,7 @@ class DefaultEngineCreateService
             )
         }
       }
+
     } catch {
       case e: Exception =>
         logger.error(
