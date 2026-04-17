@@ -420,7 +420,6 @@ object EntranceConfiguration {
   var SPARK_DYNAMIC_ALLOCATION_ENABLED =
     CommonVars.apply("spark.dynamic.allocation.enabled", false).getValue
 
-
   var SPARK_DYNAMIC_ALLOCATION_ADDITIONAL_CONFS =
     CommonVars.apply("spark.dynamic.allocation.additional.confs", "").getValue
 
