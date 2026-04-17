@@ -138,7 +138,8 @@ public class EntranceSpringConfiguration {
       new SQLLimitEntranceInterceptor(),
       new CommentInterceptor(),
       new UserCreatorIPCheckInterceptor(),
-      new TaskRetryInterceptor()
+      new TaskRetryInterceptor(),
+      new QueueSelectionInterceptor()
     };
   }
 

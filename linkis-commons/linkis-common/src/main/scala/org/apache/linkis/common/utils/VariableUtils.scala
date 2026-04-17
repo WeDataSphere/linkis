@@ -25,8 +25,6 @@ import org.apache.linkis.common.variable.DateTypeUtils.{
   getCurHour,
   getMonthDay,
   getToday,
-  getWeekBegin,
-  getWeekEnd,
   getYesterday
 }
 
@@ -250,16 +248,11 @@ object VariableUtils extends Logging {
     // Initialize week variables (with feature switch and exception handling)
     if (WEEK_VARIABLE_ENABLED.getValue) {
       Utils.tryAndWarn {
-        val weekBegin = getWeekBegin(std = false, run_date.getDate)
-        val weekBeginStd = getWeekBegin(std = true, run_date.getDate)
-        val weekEnd = getWeekEnd(std = false, run_date.getDate)
-        val weekEndStd = getWeekEnd(std = true, run_date.getDate)
-
-        // Use WeekType for week-based arithmetic (unit = weeks, not days)
-        nameAndType("run_week_begin") = WeekType(new CustomDateType(weekBegin, false))
-        nameAndType("run_week_begin_std") = WeekType(new CustomDateType(weekBeginStd, true))
-        nameAndType("run_week_end") = WeekType(new CustomDateType(weekEnd, false))
-        nameAndType("run_week_end_std") = WeekType(new CustomDateType(weekEndStd, true))
+        // Use CustomWeekType following the same pattern as CustomMonthType
+        nameAndType("run_week_begin") = WeekType(new CustomWeekType(run_date_str, false, false))
+        nameAndType("run_week_begin_std") = WeekType(new CustomWeekType(run_date_str, true, false))
+        nameAndType("run_week_end") = WeekType(new CustomWeekType(run_date_str, false, true))
+        nameAndType("run_week_end_std") = WeekType(new CustomWeekType(run_date_str, true, true))
         logger.info("Week variables initialized successfully")
       }
     } else {

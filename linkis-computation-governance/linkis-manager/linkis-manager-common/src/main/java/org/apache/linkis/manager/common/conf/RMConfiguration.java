@@ -96,20 +96,4 @@ public class RMConfiguration {
       CommonVars.apply(
           "wds.linkis.rm.yarn.apps.filter.parms",
           "&deSelects=resourceRequests,timeouts,appNodeLabelExpression,amNodeLabelExpression,resourceInfo");
-
-  /** Whether to enable secondary queue feature Default: true Description: true enables smart queue selection, false disables the feature */
-  public static final CommonVars<Boolean> SECONDARY_QUEUE_ENABLED =
-      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.enable", false);
-
-  /** Secondary queue resource usage threshold Default: 0.9 (90%) Description: Use secondary queue when usage <= this value, use primary queue when usage > this value */
-  public static final CommonVars<Double> SECONDARY_QUEUE_THRESHOLD =
-      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.threshold", 0.9);
-
-  /** Supported engine type list (comma-separated) Default: spark Description: Only engines in this list will execute smart queue selection Case-insensitive */
-  public static final CommonVars<String> SECONDARY_QUEUE_ENGINES =
-      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.engines", "spark");
-
-  /** Supported Creator list (comma-separated) Default: IDE Description: Only Creators in this list will execute smart queue selection Case-insensitive */
-  public static final CommonVars<String> SECONDARY_QUEUE_CREATORS =
-      CommonVars.apply("wds.linkis.rm.secondary.yarnqueue.creators", "IDE");
 }
