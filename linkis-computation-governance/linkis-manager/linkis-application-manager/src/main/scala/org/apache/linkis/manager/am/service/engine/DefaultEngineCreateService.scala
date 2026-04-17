@@ -24,6 +24,10 @@ import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
 import org.apache.linkis.engineplugin.server.service.EngineConnResourceFactoryService
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.governance.common.conf.GovernanceCommonConf.ENGINE_CONN_MANAGER_SPRING_NAME
+import org.apache.linkis.governance.common.protocol.conf.{
+  SecondaryYarnRequest,
+  SecondaryYarnResponse
+}
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.manager.am.conf.{AMConfiguration, EngineConnConfigurationService}
 import org.apache.linkis.manager.am.exception.AMErrorException
@@ -38,7 +42,10 @@ import org.apache.linkis.manager.common.entity.resource.{NodeResource, ResourceT
 import org.apache.linkis.manager.common.entity.resource.YarnResource
 import org.apache.linkis.manager.common.protocol.engine.{EngineCreateRequest, EngineStopRequest}
 import org.apache.linkis.manager.common.utils.ManagerUtils
-import org.apache.linkis.manager.engineplugin.common.launch.entity.{EngineConnBuildRequestImpl, EngineConnCreationDescImpl}
+import org.apache.linkis.manager.engineplugin.common.launch.entity.{
+  EngineConnBuildRequestImpl,
+  EngineConnCreationDescImpl
+}
 import org.apache.linkis.manager.engineplugin.common.resource.TimeoutEngineResourceRequest
 import org.apache.linkis.manager.label.builder.factory.LabelBuilderFactoryContext
 import org.apache.linkis.manager.label.entity.{EngineNodeLabel, Label}
@@ -56,13 +63,15 @@ import org.apache.linkis.protocol.constants.TaskConstant
 import org.apache.linkis.rpc.Sender
 import org.apache.linkis.rpc.message.annotation.Receiver
 import org.apache.linkis.server.BDPJettyServerHelper
+
 import org.apache.commons.lang3.StringUtils
-import org.apache.linkis.governance.common.protocol.conf.{SecondaryYarnRequest, SecondaryYarnResponse}
+
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 import java.util
-import java.util.concurrent.{TimeUnit, TimeoutException}
+import java.util.concurrent.{TimeoutException, TimeUnit}
+
 import scala.collection.JavaConverters._
 import scala.concurrent.duration.Duration
 
@@ -419,34 +428,48 @@ class DefaultEngineCreateService
    *   Request containing labels and params
    * @param sender
    *   RPC sender
-   * @return Response with selected queue
+   * @return
+   *   Response with selected queue
    */
   @Receiver
-  def performSmartQueueSelection(
+  override def performSmartQueueSelection(
       secondaryYarnRequest: SecondaryYarnRequest,
       sender: Sender
   ): SecondaryYarnResponse = {
+    val taskId = secondaryYarnRequest.taskId
+    logger.info(s"[$taskId]Received queue judgment request")
     var secondaryYarnResponse = SecondaryYarnResponse("", "", "")
     Utils.tryAndWarn {
       if (Configuration.SECONDARY_QUEUE_ENABLED.getValue) {
         val labelList = secondaryYarnRequest.labels
         val props = secondaryYarnRequest.params
         val configProp = engineConnConfigurationService.getConsoleConfiguration(labelList)
-
+        if (null != configProp && configProp.asScala.nonEmpty) {
+          configProp.asScala.foreach(keyValue => {
+            if (!props.containsKey(keyValue._1)) {
+              props.put(keyValue._1, keyValue._2)
+            }
+          })
+        }
         // 1. Get queue configuration with priority: user params > console config > default
-        val primaryQueue = props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "").toString.trim
-        val secondaryQueue = props.getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "").toString.trim
+        val primaryQueue =
+          props.getOrDefault(AMConfiguration.YARN_QUEUE_NAME_CONFIG_KEY, "").toString.trim
+        val secondaryQueue =
+          props
+            .getOrDefault(AMConfiguration.SECONDARY_YARN_QUEUE_NAME_CONFIG_KEY, "")
+            .toString
+            .trim
         // 2. Get system configuration
         val threshold = Configuration.SECONDARY_QUEUE_THRESHOLD.getValue
 
         logger.info(
-          s"Smart queue config - primary: $primaryQueue, secondary: $secondaryQueue, threshold: ${threshold * 100}%"
+          s"[$taskId]Smart queue config - primary: $primaryQueue, secondary: $secondaryQueue, threshold: ${threshold * 100}%"
         )
 
         // 3. Check if secondary queue feature is enabled
         if (StringUtils.isBlank(secondaryQueue) || StringUtils.isBlank(primaryQueue)) {
           logger.info(
-            "Smart queue selection is disabled - primary or secondary queue is empty, using primary queue"
+            s"[$taskId]Smart queue selection is disabled - primary or secondary queue is empty, using primary queue"
           )
           secondaryYarnResponse
         } else {
@@ -465,59 +488,63 @@ class DefaultEngineCreateService
             val maxResource = queueInfo.getMaxResource.asInstanceOf[YarnResource]
 
             // 5. Three-dimensional independent judgment with null safety
-            val useSecondaryQueue = if (maxResource != null && maxResource.getQueueMemory > 0 && usedResource != null) {
-              val memoryUsage =
-                usedResource.getQueueMemory.toDouble / maxResource.getQueueMemory.toDouble
-              val cpuUsage = if (maxResource.getQueueCores > 0) {
-                usedResource.getQueueCores.toDouble / maxResource.getQueueCores.toDouble
-              } else {
-                0.0
-              }
-              val instanceUsage = if (maxResource.getQueueInstances > 0) {
-                usedResource.getQueueInstances.toDouble / maxResource.getQueueInstances.toDouble
-              } else {
-                0.0
-              }
+            val useSecondaryQueue =
+              if (maxResource != null && maxResource.getQueueMemory > 0 && usedResource != null) {
+                val memoryUsage =
+                  usedResource.getQueueMemory.toDouble / maxResource.getQueueMemory.toDouble
+                val cpuUsage = if (maxResource.getQueueCores > 0) {
+                  usedResource.getQueueCores.toDouble / maxResource.getQueueCores.toDouble
+                } else {
+                  0.0
+                }
+                val instanceUsage = if (maxResource.getQueueInstances > 0) {
+                  usedResource.getQueueInstances.toDouble / maxResource.getQueueInstances.toDouble
+                } else {
+                  0.0
+                }
 
-              // Log detailed resource usage
-              logger.info(
-                s"Secondary queue resource usage - memory: ${formatPercent(memoryUsage)} (threshold: ${formatPercent(threshold)}), " +
-                  s"cpu: ${formatPercent(cpuUsage)} (threshold: ${formatPercent(threshold)}), " +
-                  s"instance: ${formatPercent(instanceUsage)} (threshold: ${formatPercent(threshold)})"
-              )
-
-              // Do not use secondary queue if any dimension exceeds threshold
-              val memoryOverThreshold = memoryUsage > threshold
-              val cpuOverThreshold = cpuUsage > threshold
-              val instanceOverThreshold = instanceUsage > threshold
-
-              if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
+                // Log detailed resource usage
                 logger.info(
-                  s"Secondary queue exceeds threshold - memory over: $memoryOverThreshold, cpu over: $cpuOverThreshold, instance over: $instanceOverThreshold, using primary queue"
+                  s"[$taskId]Secondary queue :${secondaryQueue} resource usage - memory: ${formatPercent(memoryUsage)} (threshold: ${formatPercent(threshold)}), " +
+                    s"cpu: ${formatPercent(cpuUsage)} (threshold: ${formatPercent(threshold)}), " +
+                    s"instance: ${formatPercent(instanceUsage)} (threshold: ${formatPercent(threshold)})"
+                )
+
+                // Do not use secondary queue if any dimension exceeds threshold
+                val memoryOverThreshold = memoryUsage > threshold
+                val cpuOverThreshold = cpuUsage > threshold
+                val instanceOverThreshold = instanceUsage > threshold
+
+                if (memoryOverThreshold || cpuOverThreshold || instanceOverThreshold) {
+                  logger.info(
+                    s"[$taskId]Secondary queue exceeds threshold - memory over: $memoryOverThreshold, cpu over: $cpuOverThreshold, instance over: $instanceOverThreshold, using primary queue"
+                  )
+                  false
+                } else {
+                  logger.info(
+                    s"[$taskId]Secondary queue has sufficient resources, using secondary queue"
+                  )
+                  true
+                }
+              } else {
+                logger.warn(
+                  s"[$taskId]Secondary queue resource info is incomplete (maxResource or usedResource is null), using primary queue"
                 )
                 false
-              } else {
-                logger.info("Secondary queue has sufficient resources, using secondary queue")
-                true
               }
-            } else {
-              logger.warn(
-                "Secondary queue resource info is incomplete (maxResource or usedResource is null), using primary queue"
-              )
-              false
-            }
-
             // 6. Determine which queue to use and update response
             val selectedQueue = if (useSecondaryQueue) secondaryQueue else primaryQueue
             logger.info(
-              s"Smart queue selection completed - primary: $primaryQueue, secondary: $secondaryQueue, selected: $selectedQueue"
+              s"[$taskId]Smart queue selection completed - primary: $primaryQueue, secondary: $secondaryQueue, selected: $selectedQueue"
             )
-            secondaryYarnResponse = SecondaryYarnResponse(selectedQueue, primaryQueue, secondaryQueue)
+            secondaryYarnResponse =
+              SecondaryYarnResponse(selectedQueue, primaryQueue, secondaryQueue)
           } else {
             logger.warn(
-              s"Unable to get secondary queue $secondaryQueue information from Yarn, using primary queue: $primaryQueue"
+              s"[$taskId]Unable to get secondary queue $secondaryQueue information from Yarn, using primary queue: $primaryQueue"
             )
-            secondaryYarnResponse = SecondaryYarnResponse(primaryQueue, primaryQueue, secondaryQueue)
+            secondaryYarnResponse =
+              SecondaryYarnResponse(primaryQueue, primaryQueue, secondaryQueue)
           }
         }
       }
@@ -530,7 +557,8 @@ class DefaultEngineCreateService
    *
    * @param value
    *   decimal value (e.g., 0.85)
-   * @return formatted percentage string (e.g., "85.00%")
+   * @return
+   *   formatted percentage string (e.g., "85.00%")
    */
   private def formatPercent(value: Double): String = {
     f"${value * 100}%.2f%%"
@@ -633,4 +661,5 @@ class DefaultEngineCreateService
     }
     engineNode
   }
+
 }

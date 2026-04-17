@@ -24,8 +24,10 @@ import java.util
 
 trait SecondaryYarnConf extends RequestProtocol
 
+case class SecondaryYarnRequest(
+    taskId: String,
+    params: util.Map[String, AnyRef],
+    labels: java.util.List[Label[_]]
+) extends SecondaryYarnConf
 
-case class SecondaryYarnRequest(params: util.Map[String, AnyRef], labels: java.util.List[Label[_]]) extends SecondaryYarnConf
-
-
-case class SecondaryYarnResponse(selectQueue: String, primaryQueue: String, secondaryQueue: String) extends SecondaryYarnConf
+case class SecondaryYarnResponse(selectQueue: String, primaryQueue: String, secondaryQueue: String)
