@@ -123,6 +123,7 @@ trait ProcessEngineConnLaunch extends EngineConnLaunch with Logging {
         environment.put(PREFER_IP_ADDRESS.toString, Configuration.PREFER_IP_ADDRESS.toString)
       case ENGINECONN_ENVKEYS =>
         environment.put(ENGINECONN_ENVKEYS.toString, GovernanceCommonConf.ENGINECONN_ENVKEYS)
+      case LINKIS_HOME => putIfExists(LINKIS_HOME)
       case ENGINE_TYPE =>
         // 设置引擎类型环境变量，格式: engineType-version (如: hive-2.3.3)
         if (engineTypeLabel != null) {
