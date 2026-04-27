@@ -18,15 +18,13 @@
 package org.apache.linkis.engineplugin.hive.executor
 
 import org.apache.linkis.common.exception.ErrorException
-import org.apache.linkis.common.utils.{ByteTimeUtils, Logging, Utils}
+import org.apache.linkis.common.utils.{ByteTimeUtils, CodeUtils, Logging, Utils}
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
-import org.apache.linkis.engineconn.computation.executor.execute.{
-  ConcurrentComputationExecutor,
-  EngineExecutionContext
-}
+import org.apache.linkis.engineconn.computation.executor.execute.{ConcurrentComputationExecutor, EngineExecutionContext}
 import org.apache.linkis.engineconn.core.EngineConnObject
 import org.apache.linkis.engineconn.executor.entity.{ConcurrentExecutor, ResourceFetchExecutor}
 import org.apache.linkis.engineplugin.hive.conf.{Counters, HiveEngineConfiguration}
+import org.apache.linkis.engineplugin.hive.conf.HiveEngineConfiguration.HIVE_TAG_USER_ENABLE
 import org.apache.linkis.engineplugin.hive.creation.HiveEngineConnFactory
 import org.apache.linkis.engineplugin.hive.cs.CSHiveHelper
 import org.apache.linkis.engineplugin.hive.errorcode.HiveErrorCodeSummary.COMPILE_HIVE_QUERY_ERROR
@@ -35,35 +33,21 @@ import org.apache.linkis.engineplugin.hive.exception.HiveQueryFailedException
 import org.apache.linkis.governance.common.paser.SQLCodeParser
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.hadoop.common.conf.HadoopConf
-import org.apache.linkis.manager.common.entity.resource.{
-  CommonNodeResource,
-  LoadInstanceResource,
-  NodeResource
-}
+import org.apache.linkis.manager.common.entity.resource.{CommonNodeResource, LoadInstanceResource, NodeResource}
 import org.apache.linkis.manager.common.protocol.resource.ResourceWithStatus
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.protocol.engine.JobProgressInfo
-import org.apache.linkis.scheduler.executer.{
-  CompletedExecuteResponse,
-  ErrorExecuteResponse,
-  ExecuteResponse,
-  SuccessExecuteResponse
-}
+import org.apache.linkis.scheduler.executer.{CompletedExecuteResponse, ErrorExecuteResponse, ExecuteResponse, SuccessExecuteResponse}
 import org.apache.linkis.storage.domain.{Column, DataType}
 import org.apache.linkis.storage.resultset.ResultSetFactory
 import org.apache.linkis.storage.resultset.table.{TableMetaData, TableRecord}
-
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.hive.conf.HiveConf
 import org.apache.hadoop.hive.metastore.api.{FieldSchema, Schema}
 import org.apache.hadoop.hive.ql.exec.Utilities
 import org.apache.hadoop.hive.ql.exec.mr.HadoopJobExecHelper
-import org.apache.hadoop.hive.ql.processors.{
-  CommandProcessor,
-  CommandProcessorFactory,
-  CommandProcessorResponse
-}
+import org.apache.hadoop.hive.ql.processors.{CommandProcessor, CommandProcessorFactory, CommandProcessorResponse}
 import org.apache.hadoop.hive.ql.session.SessionState
 import org.apache.hadoop.mapred.{JobStatus, RunningJob}
 import org.apache.hadoop.security.UserGroupInformation
@@ -71,19 +55,12 @@ import org.apache.hadoop.security.UserGroupInformation
 import java.io.ByteArrayOutputStream
 import java.security.PrivilegedExceptionAction
 import java.util
-import java.util.concurrent.{
-  Callable,
-  ConcurrentHashMap,
-  LinkedBlockingQueue,
-  ThreadPoolExecutor,
-  TimeUnit
-}
-
+import java.util.concurrent.{Callable, ConcurrentHashMap, LinkedBlockingQueue, ThreadPoolExecutor, TimeUnit}
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-
 import com.google.common.util.concurrent.ThreadFactoryBuilder
+import org.apache.linkis.manager.label.entity.engine.EngineType
 import org.slf4j.LoggerFactory
 
 class HiveEngineConcurrentConnExecutor(
@@ -143,8 +120,25 @@ class HiveEngineConcurrentConnExecutor(
     LOG.info(s"hive client begins to run hql code:\n ${realCode.trim}")
     val jobId = JobUtils.getJobIdFromMap(engineExecutorContext.getProperties)
     if (StringUtils.isNotBlank(jobId)) {
-      LOG.info(s"set mapreduce.job.tags=LINKIS_$jobId")
-      hiveConf.set("mapreduce.job.tags", s"LINKIS_$jobId")
+      // Get username from engineExecutorContext
+      val submitUser = if (engineExecutorContext.getProperties != null) {
+        Utils.tryAndWarn {
+          engineExecutorContext.getProperties.get("submitUser") match {
+            case user: String => user
+            case _ => null
+          }
+        }
+      } else null
+
+      // Build tags with username information
+      val tags = if (HIVE_TAG_USER_ENABLE && StringUtils.isNotBlank(submitUser)) {
+        s"LINKIS_$jobId" + s"_$submitUser"
+      } else {
+        s"LINKIS_$jobId"
+      }
+
+      LOG.info(s"set mapreduce.job.tags=$tags")
+      hiveConf.set("mapreduce.job.tags", tags)
     }
     if (realCode.trim.length > 500) {
       engineExecutorContext.appendStdout(s"$getId >> ${realCode.trim.substring(0, 500)} ...")
@@ -223,7 +217,7 @@ class HiveEngineConcurrentConnExecutor(
                 s"driver compile realCode : \n ${realCode} \n finished, status : ${compileRet}"
               )
               if (0 != compileRet) {
-                logger.warn(s"compile realCode : \n ${realCode} \n error status : ${compileRet}")
+                logger.warn(s"compile realCode : \n ${CodeUtils.maskCode(realCode, EngineType.HIVE.toString())} \n error status : ${compileRet}")
                 throw HiveQueryFailedException(
                   COMPILE_HIVE_QUERY_ERROR.getErrorCode,
                   COMPILE_HIVE_QUERY_ERROR.getErrorDesc
