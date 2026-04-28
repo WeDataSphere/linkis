@@ -92,19 +92,9 @@ class UnixProcessEngineCommandBuilder extends ShellProcessEngineCommandBuilder {
   )
 
   override def link(fromPath: String, toPath: String): Unit = {
-    // 只对 lib 目录执行物料替换脚本（检查路径是否以 /lib 结尾）
+    // 只对 lib 目录执行物料替换脚本
     if (ECPCoreConf.MATERIAL_REPLACE_SCRIPT_PATH.nonEmpty && fromPath.endsWith("/lib")) {
-      // 加载 linkis-env.sh 并检查 LINKIS_HADOOP_NODE
-      newLine(Array("if [ -f \"${LINKIS_HOME}/conf/linkis-env.sh\" ]; then"))
-      newLine(Array("  source \"${LINKIS_HOME}/conf/linkis-env.sh\""))
-      newLine(Array("fi"))
-      newLine(
-        Array(
-          "if [ \"${LINKIS_HADOOP_NODE}\" = \"true\" ] && [ -x \"",
-          ECPCoreConf.MATERIAL_REPLACE_SCRIPT_PATH,
-          "\" ]; then"
-        )
-      )
+      newLine(Array("if [ -x \"", ECPCoreConf.MATERIAL_REPLACE_SCRIPT_PATH, "\" ]; then"))
       newLine(
         Array(
           "  \"",
