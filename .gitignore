@@ -37,8 +37,10 @@ nohup.out
 
 #claude
 .claude
+tools
 
 nul
+/docs/project-knowledge/*
 
 #claude
 .claude
