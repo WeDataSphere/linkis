@@ -105,16 +105,16 @@
     <revision>2.0.0</revision>
     <jedis.version>2.9.2</jedis.version>
     <spark.version>2.4.3</spark.version>
-    <hadoop.version>3.3.5</hadoop.version>
+    <hadoop.version>2.7.2</hadoop.version>
     <hbase.version>1.2.1</hbase.version>
     <jruby.verison>9.3.4.0</jruby.verison>
     <jcodings.version>1.0.56</jcodings.version>
     <joni.version>2.1.42</joni.version>
     <hadoop-hdfs-client.artifact>hadoop-hdfs</hadoop-hdfs-client.artifact>
-    <hadoop-hdfs-client-shade.version>3.3.5</hadoop-hdfs-client-shade.version>
+    <hadoop-hdfs-client-shade.version>2.7.2</hadoop-hdfs-client-shade.version>
     <zookeeper.version>3.8.4</zookeeper.version>
     <!-- hadoop 2.7 use curator 2.7.1, hadoop3.3 use curator 4.2.0-->
-    <curator.version>4.2.0</curator.version>
+    <curator.version>2.7.1</curator.version>
     <guava.version>33.2.1-jre</guava.version>
     <netty.version>4.2.7.Final</netty.version>
     <okio.version>3.4.0</okio.version>
@@ -1586,6 +1586,8 @@
       <properties>
         <hadoop.version>2.7.2</hadoop.version>
         <curator.version>2.7.1</curator.version>
+        <hadoop-hdfs-client.artifact>hadoop-hdfs</hadoop-hdfs-client.artifact>
+        <hadoop-hdfs-client-shade.version>2.7.2</hadoop-hdfs-client-shade.version>
       </properties>
     </profile>
     <profile>
