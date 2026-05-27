@@ -20,6 +20,7 @@ package org.apache.linkis.manager.engineplugin.jdbc;
 import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.common.utils.SecurityUtils;
 import org.apache.linkis.hadoop.common.utils.KerberosUtils;
+import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration$;
 import org.apache.linkis.manager.engineplugin.jdbc.constant.JDBCEngineConnConstant;
 import org.apache.linkis.manager.engineplugin.jdbc.exception.JDBCParamsIllegalException;
 import org.apache.linkis.manager.engineplugin.jdbc.utils.JdbcParamUtils;
