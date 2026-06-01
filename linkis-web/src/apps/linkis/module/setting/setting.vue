@@ -325,7 +325,7 @@ export default {
 
     getAppVariable(type = '') {
       this.activeMenu = type;
-      
+
       let parameter = type.split("-"); // cut directory name(切割目录name)
       // If there is only a first-level directory, it will directly return ['creator'], if it is a second-level directory, ['creator', 'engineType', 'version'](如果只有一级目录则直接返回['creator'],如果为二级目录则['creator', 'engineType', 'version'])
       api
@@ -397,6 +397,15 @@ export default {
       setTimeout(() => {
         cb(true);
       }, 200);
+    },
+    /**
+     * 获取当前引擎类型
+     */
+    getCurrentEngineType() {
+      if (this.subCategory[this.currentTabName]) {
+        return this.subCategory[this.currentTabName].categoryName;
+      }
+      return null;
     },
     preCheckConfig() {
       try {
@@ -515,7 +524,7 @@ export default {
         let menuListItem = this.menuList[index];
         let type = ''
         // Determine whether there is a sub-item, and if it exists, splicing(判断是否存在子项，如果存在就进行拼接)
-        if (menuListItem.childCategory && menuListItem.childCategory.length) { 
+        if (menuListItem.childCategory && menuListItem.childCategory.length) {
           // this.currentCardIndex[index] = 0;
           if (condition === 'new') {
             this.currentCardIndex[index] = menuListItem.childCategory.length - 1;
@@ -630,15 +639,15 @@ export default {
             )
             .then(async () => {
               // await this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
-              
+
               this.clickTabChange(lastName)
               this.$Message.success(`删除${name}应用成功`);
             });
         } catch (err) {
           this.$Message.error(`删除${name}应用失败`);
         }
-        
-        
+
+
       } else {
         await api
           .fetch(
@@ -648,7 +657,7 @@ export default {
           )
           .then(async () => {
             // await this.getMenuList(); //Call getMenuList to re-render the newly added menuList data(调用getMenuList 重新渲染新增的menuList数据)
-            
+
             this.clickTabChange(lastName)
             this.$Message.success(`删除${name}应用成功`);
           });
