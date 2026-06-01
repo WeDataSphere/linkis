@@ -1,0 +1,597 @@
+{
+  "root": {
+    "data": {
+      "text": "Linkis"
+    },
+    "children": [
+      {
+        "data": {
+          "text": "路径"
+        },
+        "children": [
+          {
+            "data": {
+              "text": "需求：000001"
+            },
+            "children": [
+              {
+                "data": {
+                  "text": "配置参数删除功能测试"
+                },
+                "children": [
+                  {
+                    "data": {
+                      "text": "分类：界面案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】管理员查看配置参数时显示删除按钮"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户已登录 Linkis 系统；用户拥有管理员权限（isLogAdmin 为 true）；用户进入配置管理（Setting）页面；当前显示至少一个配置参数列表"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、以管理员身份登录系统\n2、进入配置管理（Setting）页面\n3、切换到任一应用/引擎配置标签页（如 \"LINKISCLI\"）\n4、观察配置参数列表中每个配置项的右侧"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：每个配置项右侧显示删除按钮（红色垃圾桶图标）；删除按钮仅在管理员权限下可见；删除按钮位于配置项行的最右侧；删除按钮与配置值输入框对齐"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】普通用户查看配置参数时不显示删除按钮"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户已登录 Linkis 系统；用户是普通用户（非管理员，isLogAdmin 为 false）；用户进入配置管理（Setting）页面"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、以普通用户身份登录系统\n2、进入配置管理（Setting）页面\n3、观察配置参数列表中每个配置项的右侧"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：配置项右侧不显示删除按钮；列表布局整洁，无删除按钮占位符"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除按钮交互效果"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置项右侧显示删除按钮"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、将鼠标悬停在删除按钮上\n2、观察删除按钮的视觉变化\n3、点击删除按钮\n4、观察删除按钮的按下效果"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：鼠标悬停时：删除按钮图标放大 1.2 倍，图标颜色变为 #f5222d；点击时：删除按钮有按下效果（缩小至 0.95 倍）"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除按钮在不同配置类型中的显示"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置列表包含多种类型的配置项（下拉选择、文本框、文本域）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、观察下拉选择（OFT类型）配置项的删除按钮位置\n2、观察文本输入框配置项的删除按钮位置\n3、观察文本域（如 spark.conf）配置项的删除按钮位置"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：所有类型的配置项，删除按钮均位于右侧；删除按钮与对应的输入框右对齐；删除按钮在不同输入框类型下样式一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】管理员成功删除配置参数"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项 \"spark.executor.memory\"；用户已进入配置管理页面"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项 \"spark.executor.memory\" 的删除按钮\n2、系统弹出确认对话框\n3、验证对话框标题为 \"确认删除配置参数\"\n4、验证对话框内容包含 \"删除配置参数 spark.executor.memory 将会影响所有用户使用此配置，且不可恢复\"\n5、用户点击 \"确定\" 按钮\n6、观察列表变化和提示信息"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：该配置项从列表中移除；系统显示成功提示 \"删除配置参数成功\"；后端 API /configuration/keyvalue 被正确调用；请求参数包含 configKey=\"spark.executor.memory\", creator=\"LINKISCLI\", engineType=\"spark\", version=\"*\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】管理员取消删除配置参数"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项 \"spark.executor.memory\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项 \"spark.executor.memory\" 的删除按钮\n2、系统弹出确认对话框\n3、用户点击 \"取消\" 按钮\n4、观察列表状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：该配置项保留在列表中；对话框关闭；列表状态无变化；不调用后端 API"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】在全局设置中删除配置参数"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；用户切换到 \"全局设置\" 标签页；全局设置中存在配置项 \"bdp.dwc.yarnqueue.memory.max\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击全局设置中配置项 \"bdp.dwc.yarnqueue.memory.max\" 的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、验证后端 API 调用参数"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：后端 API 调用时 engineType 参数为 \"*\" 或 null；creator 参数为 \"全局设置\" 或 \"GlobalSettings\"；version 参数为 \"*\"；配置项成功删除"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】在引擎配置中删除配置参数"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；用户选择应用 \"LINKISCLI\"；用户选择引擎 \"hive-2.3.3\"；引擎配置中存在配置项 \"hive.executor.instances\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项 \"hive.executor.instances\" 的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、验证后端 API 调用参数"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：后端 API 调用时 creator 参数为 \"LINKISCLI\"；engineType 参数为 \"hive\"；version 参数为 \"*\"；配置项成功删除"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除配置参数后保存其他配置"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；用户删除了配置项 \"spark.executor.memory\"；用户修改了配置项 \"spark.driver.memory\" 的值为 \"1024m\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击 \"保存\" 按钮\n2、观察保存结果"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：系统保存修改后的配置；已删除的配置项不会被保存；系统提示 \"保存成功\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除按钮与高级设置功能兼容"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表包含普通配置和高级配置；高级设置默认处于隐藏状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击 \"显示高级设置\" 按钮\n2、观察高级配置项的删除按钮显示\n3、用户点击 \"隐藏高级设置\" 按钮\n4、观察删除按钮的隐藏状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：高级配置显示时，高级配置项右侧同样显示删除按钮；高级配置隐藏时，删除按钮同步隐藏；展开/收起功能正常，不受删除按钮影响"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】批量删除配置参数（不支持）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有多个配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户查看配置参数列表\n2、检查是否存在批量删除功能（如复选框、批量删除按钮）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：界面上不提供批量删除功能；用户需要逐个点击删除按钮进行删除；不存在\"全选\"或\"批量操作\"相关UI元素"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：安全用例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】非管理员用户尝试通过前端UI删除"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是普通用户（非管理员，isLogAdmin 为 false）；用户已进入配置管理页面"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、观察配置参数列表\n2、检查是否存在删除按钮\n3、尝试通过浏览器开发者工具强制显示删除按钮并点击"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：配置项右侧不显示删除按钮；即使强制显示删除按钮并点击，也会触发前端权限校验；前端权限校验失败时，显示错误提示 \"无权限操作，仅管理员可删除配置参数\"；不调用后端 API"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】非管理员用户尝试直接调用删除 API"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是普通用户；用户通过 Postman 或 curl 工具准备直接调用 API"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户发送 DELETE 请求到 \"/configuration/keyvalue\"\n2、请求参数为 {\"configKey\": \"spark.executor.memory\", \"creator\": \"LINKISCLI\", \"engineType\": \"*\", \"version\": \"*\"}"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：现有接口无权限校验，所有登录用户均可调用；后端返回成功（status=0）或业务错误（status=1）；响应状态码为 200；不返回 401 或 403 权限错误"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】删除配置参数时后端返回错误"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项 \"wds.linkis.rm.yarnqueue.memory.max\"；该配置参数为系统核心参数不允许删除"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项 \"wds.linkis.rm.yarnqueue.memory.max\" 的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、观察系统响应"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：后端返回错误信息 \"该参数不允许删除\" 或类似提示；配置项保留在列表中；系统显示错误提示 \"删除配置参数失败：该参数不允许删除\"；错误提示以 Message 形式展示，样式符合 iView 规范"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除配置参数时网络异常"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项 \"spark.executor.memory\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项 \"spark.executor.memory\" 的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、模拟网络请求失败或超时（可通过断网或代理工具实现）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：配置项保留在列表中；系统显示错误提示 \"删除配置参数失败：网络异常，请稍后重试\"；错误提示以 Message 形式展示"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除配置参数时后端返回 Key 为空错误"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、后端接口接收到空的 configKey 参数"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：后端返回错误信息 \"key cannot be empty\"；配置项保留在列表中；系统显示错误提示 \"删除配置参数失败：key cannot be empty\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除配置参数时后端返回参数组合错误"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、后端接口接收到错误的参数组合（如 engineType 为 \"*\" 但 version 不是 \"*\"）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：后端返回错误信息 \"When engineType is any engine, the version must also be any version\"；配置项保留在列表中；系统显示错误提示"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：性能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】删除操作响应时间"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户点击配置项的删除按钮\n2、在确认对话框中点击 \"确定\" 按钮\n3、记录从点击\"确定\"到显示成功提示的时间"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：删除操作响应时间 < 1s；删除后列表刷新无卡顿"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】删除后列表渲染性能"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有至少 50 个配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户删除列表中的一个配置项\n2、观察列表刷新和渲染过程"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：列表刷新无卡顿；使用 Vue 的响应式系统局部更新，避免整个列表重新渲染；UI 更新流畅，无明显延迟"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】与现有编辑功能兼容"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有多个配置项"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户修改配置项 A 的值\n2、用户删除配置项 B\n3、用户点击 \"保存\" 按钮"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：配置项 A 的修改被保存；配置项 B 被删除；保存成功提示显示正常；列表状态正确"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】与配置验证逻辑兼容"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：用户是管理员；配置参数列表中有带验证规则的配置项（如数值范围、URL格式）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、用户修改配置项的值，使其不满足验证规则\n2、用户删除另一个配置项\n3、观察验证状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：删除操作不触发配置验证；删除成功后，其他配置项的验证状态保持不变；保存时，不满足验证规则的配置项仍然显示验证错误"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
