@@ -216,7 +216,7 @@ export default {
         {
           title: this.$t('message.linkis.ipListManagement.action'),
           key: 'action',
-          width: 100,
+          width: 150,
           align: 'center',
           render: (h, params) => {
             return h('div', [
@@ -233,7 +233,18 @@ export default {
                     this.edit(params.row)
                   }
                 }
-              }, this.$t('message.linkis.ipListManagement.edit'))
+              }, this.$t('message.linkis.ipListManagement.edit')),
+              h('Button', {
+                props: {
+                  type: 'error',
+                  size: 'small'
+                },
+                on: {
+                  click: () => {
+                    this.deleteConfig(params.row)
+                  }
+                }
+              }, this.$t('message.linkis.ipListManagement.delete'))
             ]);
           }
         }
@@ -323,6 +334,8 @@ export default {
           item.creator = userArr[1];
           item.engineType = engineArr[0];
           item.version = engineArr[1];
+          // 保留原始ID字段用于删除操作
+          item.configKeyId = item.id || item.valueId;
           return item;
         });
         this.page.totalPage = res.totalPage;
@@ -421,6 +434,35 @@ export default {
       this.versionOption = [{label: version, value: version}];
       this.showCreateModal = true;
       this.mode = 'edit';
+    },
+    async deleteConfig(data) {
+      const { user, creator, engineType, version, key, configKeyId } = data;
+
+      this.$Modal.confirm({
+        title: this.$t('message.linkis.userConfig.deleteConfirm'),
+        content: this.$t('message.linkis.userConfig.deleteConfirmContent', {
+          user: user,
+          creator: creator,
+          engineType: engineType,
+          version: version,
+          key: key
+        }),
+        onOk: async () => {
+          try {
+            if (!configKeyId) {
+              this.$Message.error(this.$t('message.linkis.userConfig.deleteNoId'));
+              return;
+            }
+
+            await api.fetch(`/configuration/baseKeyValue?id=${configKeyId}`, {}, 'delete');
+            this.$Message.success(this.$t('message.linkis.userConfig.deleteSuccess'));
+            await this.getTableData();
+          } catch (error) {
+            console.error('删除用户配置失败:', error);
+            this.$Message.error(this.$t('message.linkis.userConfig.deleteFailed'));
+          }
+        }
+      });
     },
     ipListValidator(rule, val, cb) {
       if (!val) {
