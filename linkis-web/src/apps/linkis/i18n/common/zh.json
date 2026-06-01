@@ -765,7 +765,12 @@
           "versionInputPro": "请输入引擎版本",
           "isForceVerify": "是否强校验",
           "yes": "是",
-          "no": "否"
+          "no": "否",
+          "deleteConfirm": "删除确认",
+          "deleteConfirmContent": "确定要删除用户配置吗？\n用户：{user}\n应用：{creator}\n引擎类型：{engineType}\n版本：{version}\n配置项：{key}",
+          "deleteSuccess": "删除成功",
+          "deleteFailed": "删除失败",
+          "deleteNoId": "配置ID不存在，无法删除"
         }
     }
   }
