@@ -225,13 +225,19 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
         // with unit if set configuration with unit
         // if not set sc get will get the value of spark.yarn.executor.memoryOverhead such as 512(without unit)
         val memoryOverhead = sc.getConf.get("spark.executor.memoryOverhead", "1G")
-        val pythonVersion = SparkConfiguration.SPARK_PYTHON_VERSION.getValue(
-          EngineConnObject.getEngineCreationContext.getOptions
-        )
+        val engineCreationOptions = EngineConnObject.getEngineCreationContext.getOptions
+        val pythonVersion = if (engineCreationOptions != null) {
+          SparkConfiguration.SPARK_PYTHON_VERSION.getValue(engineCreationOptions)
+        } else {
+          SparkConfiguration.SPARK_PYTHON_VERSION.getValue
+        }
         var engineType = ""
         val labels = engineExecutorContext.getLabels
         if (labels.length > 0) {
-          engineType = LabelUtil.getEngineTypeLabel(labels.toList.asJava).getStringValue
+          val engineTypeLabel = LabelUtil.getEngineTypeLabel(labels.toList.asJava)
+          if (engineTypeLabel != null) {
+            engineType = engineTypeLabel.getStringValue
+          }
         }
         val sb = new StringBuilder
         sb.append(s"spark.executor.instances=$executorNum\n")
@@ -330,13 +336,22 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
     var successCount = 0
     var failCount = 0
     logger.info(s"Spark executor params setting begin")
-    this
-      .asInstanceOf[SparkSqlExecutor]
-      .getSparkEngineSession
-      .sparkSession
-      .sessionState
-      .conf
-      .getAllConfs
+    val sparkSession = this match {
+      case executor: SparkSqlExecutor =>
+        executor.getSparkEngineSession
+      case executor: SparkScalaExecutor =>
+        executor.getSparkEngineSession
+      case executor: SparkPythonExecutor =>
+        executor.getSparkEngineSession
+      case executor: SparkDataCalcExecutor =>
+        executor.getSparkEngineSession
+      case _ =>
+        logger.warn(
+          s"Unsupported executor type: ${this.getClass.getName}, skip spark executor params setting"
+        )
+        return
+    }
+    sparkSession.sparkSession.sessionState.conf.getAllConfs
       .foreach { case (key, value) =>
         totalParams += 1
         if (excludeParams.contains(key)) {
