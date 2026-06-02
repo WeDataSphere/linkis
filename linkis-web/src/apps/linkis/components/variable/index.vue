@@ -71,14 +71,6 @@
           <span
             v-if="unValid && unValid.key === item.key"
             class="we-warning-bar">{{ unValid.msg }}</span>
-          <Icon
-            v-show="isLogAdmin"
-            type="ios-trash"
-            color="#ed4014"
-            size="18"
-            class="delete-config-icon"
-            @click="handleDeleteConfig(item)"
-          />
         </div>
       </template>
     </div>
@@ -97,8 +89,6 @@
   </div>
 </template>
 <script>
-import storage from '@/common/helper/storage';
-
 export default {
   name: 'variable',
   props: {
@@ -111,7 +101,6 @@ export default {
       isHide: false,
       controlLabel: this.$t('message.linkis.fold'),
       unValid: null,
-      isLogAdmin: storage.get('isLogAdmin', 'session'),
     };
   },
   watch: {
@@ -133,25 +122,6 @@ export default {
     },
     handleDelete(item) {
       this.$emit('remove-item', item, this.variable, () => {
-      });
-    },
-    handleDeleteConfig(item) {
-      // 双重校验：前端再次确认权限（防御性编程）
-      if (!this.isLogAdmin) {
-        this.$Message.error('无权限操作，仅管理员可删除配置参数');
-        return;
-      }
-
-      // 弹出确认对话框
-      this.$Modal.confirm({
-        title: '确认删除配置参数',
-        content: `删除配置参数 ${item.name}(${item.key}) 将会影响用户使用此配置，且不可恢复。是否确认删除？`,
-        okText: '确认删除',
-        cancelText: '取消',
-        onOk: () => {
-          // 触发删除事件，传递配置项数据
-          this.$emit('delete-config-item', item);
-        }
       });
     },
     setUnValidMsg({ key, msg }) {
