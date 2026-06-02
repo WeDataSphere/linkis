@@ -88,7 +88,6 @@
           :variable="item"
           @add-item="handleAdd"
           @remove-item="handleDelete"
-          @delete-config-item="handleDeleteConfigItem"
           :un-valid-msg="unValidMsg"
           :is-advanced-show="isAdvancedShow"
         />
@@ -398,75 +397,6 @@ export default {
       setTimeout(() => {
         cb(true);
       }, 200);
-    },
-    /**
-     * 处理配置项删除
-     * @param {Object} configItem - 要删除的配置项
-     */
-    async handleDeleteConfigItem(configItem) {
-      try {
-        // 双重校验：前端再次确认权限（防御性编程）
-        if (!this.isLogAdmin) {
-          this.$Message.error('无权限操作，仅管理员可删除配置参数');
-          return;
-        }
-
-        // 显示加载提示
-        this.$Message.loading({
-          content: '正在删除配置参数...',
-          duration: 0
-        });
-
-        // 调用后端API - 删除配置Value（不是Key）
-        await api.fetch('/configuration/keyvalue', {
-          configKey: configItem.key,
-          creator: this.currentTabName,
-          engineType: this.getCurrentEngineType() || '*',
-          version: '*'
-        }, 'delete');
-
-        // 关闭加载提示
-        this.$Message.destroy();
-
-        // 从本地数据中移除该配置项
-        this.removeConfigFromTree(configItem.key);
-
-        // 显示成功提示
-        this.$Message.success('删除配置参数成功');
-      } catch (error) {
-        // 关闭加载提示
-        this.$Message.destroy();
-
-        // 显示错误提示
-        const errorMessage = error.response?.data?.message || error.message || '删除配置参数失败';
-        this.$Message.error(`删除配置参数失败：${errorMessage}`);
-      }
-    },
-    /**
-     * 删除配置Value API调用
-     */
-    deleteConfigValueAPI(params) {
-      return api.fetch('/configuration/keyvalue', params, 'delete');
-    },
-    /**
-     * 从本地树结构中移除配置项
-     */
-    removeConfigFromTree(configKey) {
-      this.fullTree.forEach(tree => {
-        const index = tree.settings.findIndex(setting => setting.key === configKey);
-        if (index !== -1) {
-          tree.settings.splice(index, 1);
-        }
-      });
-    },
-    /**
-     * 获取当前引擎类型
-     */
-    getCurrentEngineType() {
-      if (this.subCategory[this.currentTabName]) {
-        return this.subCategory[this.currentTabName].categoryName;
-      }
-      return null;
     },
     preCheckConfig() {
       try {
