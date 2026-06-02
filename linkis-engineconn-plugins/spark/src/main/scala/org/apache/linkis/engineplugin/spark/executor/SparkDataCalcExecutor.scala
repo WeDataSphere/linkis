@@ -99,4 +99,6 @@ class SparkDataCalcExecutor(sparkEngineSession: SparkEngineSession, id: Long)
   override protected def getExecutorIdPreFix: String = "SparkDataCalcExecutor_"
 
   override protected def getKind: Kind = SparkDataCalc()
+
+  def getSparkEngineSession: SparkEngineSession = sparkEngineSession
 }
