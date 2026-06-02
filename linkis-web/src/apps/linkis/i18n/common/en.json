@@ -796,12 +796,7 @@
         "versionInputPro": "Please Input Engine Version",
         "isForceVerify": "Whether to perform strong verification",
         "yes": "yes",
-        "no": "no",
-        "deleteConfirm": "Delete Confirmation",
-        "deleteConfirmContent": "Are you sure you want to delete this user configuration?\nUser: {user}\nApplication: {creator}\nEngine Type: {engineType}\nVersion: {version}\nConfiguration: {key}",
-        "deleteSuccess": "Delete successfully",
-        "deleteFailed": "Delete failed",
-        "deleteNoId": "Configuration ID does not exist, cannot delete"
+        "no": "no"
       }
     }
   }
