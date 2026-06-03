@@ -44,6 +44,11 @@ public class SqlConnection implements Closeable {
   private static final CommonVars<String> SQL_CONNECT_URL =
       CommonVars.apply("wds.linkis.server.mdm.service.db2.url", "jdbc:db2://%s:%s/%s");
 
+  private static final CommonVars<String> SQL_SCHEMA_QUERY =
+      CommonVars.apply(
+          "wds.linkis.server.mdm.service.db2.schema.query.sql",
+          "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('NULLID', 'SQLJ') WITH UR");
+
   private Connection conn;
 
   private ConnectMessage connectMessage;
@@ -67,14 +72,15 @@ public class SqlConnection implements Closeable {
   }
 
   public List<String> getAllDatabases() throws SQLException {
-    // Query schema list from system catalog view
+    // Query schema list from system catalog view with system schema filtering
     List<String> schemaNames = new ArrayList<>();
     Statement stmt = null;
     ResultSet rs = null;
     try {
       stmt = conn.createStatement();
-      // Query all schemas from SYSCAT.SCHEMATA (DB2 system catalog)
-      rs = stmt.executeQuery("SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WITH UR");
+      // Use configurable SQL to query schemas from SYSCAT.SCHEMATA
+      // Default query filters out system schemas (SYS%, NULLID, SQLJ)
+      rs = stmt.executeQuery(SQL_SCHEMA_QUERY.getValue());
       while (rs.next()) {
         schemaNames.add(rs.getString(1));
       }
