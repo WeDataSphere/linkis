@@ -144,7 +144,6 @@
     <druid.version>1.2.4</druid.version>
     <javassist.version>3.27.0-GA</javassist.version>
     <commons-collections.version>3.2.2</commons-collections.version>
-    <commons-lang.version>2.6</commons-lang.version>
     <commons-lang3.version>3.18.0</commons-lang3.version>
     <commons-logging.version>1.2</commons-logging.version>
     <commons-text.version>1.10.0</commons-text.version>

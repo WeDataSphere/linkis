@@ -19,7 +19,13 @@ package org.apache.linkis.engineplugin.spark.executor
 
 import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.log.LogUtils
-import org.apache.linkis.common.utils.{ByteTimeUtils, CodeAndRunTypeUtils, Logging, Utils}
+import org.apache.linkis.common.utils.{
+  ByteTimeUtils,
+  CodeAndRunTypeUtils,
+  CodeUtils,
+  Logging,
+  Utils
+}
 import org.apache.linkis.engineconn.common.conf.{EngineConnConf, EngineConnConstant}
 import org.apache.linkis.engineconn.common.creation.EngineCreationContext
 import org.apache.linkis.engineconn.computation.executor.conf.ComputationExecutorConf
@@ -59,6 +65,7 @@ import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{CodeLanguageLabel, EngineType}
+import org.apache.linkis.manager.label.entity.engine.EngineType
 import org.apache.linkis.manager.label.utils.LabelUtil
 import org.apache.linkis.protocol.engine.JobProgressInfo
 import org.apache.linkis.scheduler.executer.ExecuteResponse
@@ -380,7 +387,7 @@ abstract class SparkEngineConnExecutor(val sc: SparkContext, id: Long)
       completedLine: String
   ): ExecuteResponse = {
     val newcode = completedLine + code
-    logger.info("newcode is " + newcode)
+    logger.info("newcode is " + CodeUtils.maskCode(newcode, EngineType.SPARK.toString()))
     executeLine(engineExecutorContext, newcode)
   }
 
