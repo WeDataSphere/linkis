@@ -334,8 +334,8 @@ export default {
           item.creator = userArr[1];
           item.engineType = engineArr[0];
           item.version = engineArr[1];
-          // 保留原始ID字段用于删除操作
-          item.configKeyId = item.id || item.valueId;
+          // 保留原始ID字段用于删除操作，优先使用configValueId（配置值表的ID）
+          item.configKeyId = item.configValueId || item.configKeyId;
           return item;
         });
         this.page.totalPage = res.totalPage;
