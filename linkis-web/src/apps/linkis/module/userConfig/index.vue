@@ -436,7 +436,7 @@ export default {
       this.mode = 'edit';
     },
     async deleteConfig(data) {
-      const { user, creator, engineType, version, key, configKeyId } = data;
+      const { user, creator, engineType, version, key } = data;
 
       this.$Modal.confirm({
         title: this.$t('message.linkis.userConfig.deleteConfirm'),
@@ -449,12 +449,14 @@ export default {
         }),
         onOk: async () => {
           try {
-            if (!configKeyId) {
-              this.$Message.error(this.$t('message.linkis.userConfig.deleteNoId'));
-              return;
-            }
-
-            await api.fetch(`/configuration/baseKeyValue?id=${configKeyId}`, {}, 'delete');
+            // 使用 /keyvalue DELETE接口，传递配置的完整信息
+            await api.fetch('/configuration/keyvalue', {
+              user: user,
+              creator: creator,
+              engineType: engineType,
+              version: version,
+              configKey: key
+            }, 'delete');
             this.$Message.success(this.$t('message.linkis.userConfig.deleteSuccess'));
             await this.getTableData();
           } catch (error) {
