@@ -458,6 +458,7 @@ export default {
             this.$Message.success(this.$t('message.linkis.userConfig.deleteSuccess'));
             await this.getTableData();
           } catch (error) {
+            // eslint-disable-next-line no-console
             console.error('删除用户配置失败:', error);
             this.$Message.error(this.$t('message.linkis.userConfig.deleteFailed'));
           }
