@@ -138,7 +138,8 @@
 </template>
 <script>
 import storage from "@/common/helper/storage";
-import api from '@/common/service/api'
+import api from '@/common/service/api';
+import axios from 'axios';
 export default {
   name: 'userConfig',
   data() {
@@ -449,14 +450,21 @@ export default {
         }),
         onOk: async () => {
           try {
-            // 使用 /keyvalue DELETE接口，传递配置的完整信息
-            await api.fetch('/configuration/keyvalue', {
-              user: user,
-              creator: creator,
-              engineType: engineType,
-              version: version,
-              configKey: key
-            }, 'delete');
+            // 使用 /keyvalue DELETE接口删除配置
+            // 后端使用@RequestBody要求数据在请求体中，所以直接使用axios发送DELETE请求
+            await axios.delete('/api/rest_j/v1/configuration/keyvalue', {
+              data: {
+                engineType: engineType,
+                version: version,
+                creator: creator,
+                configKey: key
+              },
+              withCredentials: true,
+              headers: {
+                'Content-Type': 'application/json;charset=UTF-8',
+                'Content-language': localStorage.getItem('locale') || 'zh-CN'
+              }
+            });
             this.$Message.success(this.$t('message.linkis.userConfig.deleteSuccess'));
             await this.getTableData();
           } catch (error) {
