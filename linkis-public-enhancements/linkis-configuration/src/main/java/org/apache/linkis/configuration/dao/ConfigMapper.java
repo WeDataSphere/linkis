@@ -88,4 +88,11 @@ public interface ConfigMapper {
   void insertKeyByBase(ConfigKey configKey);
 
   void updateConfigKey(ConfigKey configKey);
+
+  /**
+   * 按ID删除配置值
+   *
+   * @param id 配置值ID
+   */
+  void deleteConfigValueById(@Param("id") Long id);
 }
