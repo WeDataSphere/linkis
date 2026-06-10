@@ -208,4 +208,24 @@ public class ConfigKeyServiceImpl implements ConfigKeyService {
   public void updateConfigKey(ConfigKey configKey) {
     configMapper.updateConfigKey(configKey);
   }
+
+  @Override
+  public ConfigValue deleteConfigValueById(Long configKeyId) throws ConfigurationException {
+    if (configKeyId == null || configKeyId <= 0) {
+      throw new ConfigurationException("Config value id cannot be null or negative");
+    }
+
+    // 先查询配置值是否存在
+    ConfigValue configValue = configMapper.getConfigValueById(configKeyId);
+    if (configValue == null) {
+      logger.warn("Config value not found with id: {}", configKeyId);
+      return null;
+    }
+
+    // 删除配置值
+    configMapper.deleteConfigValueById(configKeyId);
+
+    logger.info("Successfully deleted config value with id: {}", configKeyId);
+    return configValue;
+  }
 }
