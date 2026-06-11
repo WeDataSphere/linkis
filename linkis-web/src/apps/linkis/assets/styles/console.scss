@@ -26,6 +26,14 @@ body {
     font-family: "Helvetica Neue",Helvetica,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","微软雅黑",Arial,sans-serif, "JinbiaoSong", "JinbiaoSongExt";
 }
 .console-page{
+    position: $relative;
+    width: $percent-all;
+    height: $percent-all;
+    display: flex;
+    flex-direction: column;
+    background: $background-color-base;
+    padding: 20px;
+    overflow: hidden;
     .ivu-input {
         font-family: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "JinbiaoSong", "JinbiaoSongExt";
     }
@@ -43,14 +51,6 @@ body {
         overflow-wrap: break-word;
         white-space: normal;
     }
-    position: $relative;
-    width: $percent-all;
-    height: $percent-all;
-    display: flex;
-    flex-direction: column;
-    background: $background-color-base;
-    padding: 20px;
-    overflow: hidden;
     .console-page-content-head {
         display: flex;
         justify-content: space-between;

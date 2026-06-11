@@ -10,7 +10,11 @@
         "precommit": "lint-staged",
         "preinstall": "wnpm install --package-lock-only --ignore-scripts && npx npm-force-resolutions",
         "buildSubModule": "cd src/apps/PythonModule && npm run build:prod && cd ../../..",
-        "installAll": "wnpm install && cd src/apps/PythonModule && wnpm install --legacy-peer-deps && cd ../../.."
+        "installAll": "wnpm install && cd src/apps/PythonModule && wnpm install --legacy-peer-deps && cd ../../..",
+        "test:e2e": "playwright test",
+        "test:e2e:headed": "playwright test --headed",
+        "test:e2e:debug": "playwright test --debug",
+        "test:e2e:report": "playwright test --reporter=html && playwright show-report"
     },
     "husky": {
         "hooks": {
@@ -55,9 +59,10 @@
     },
     "devDependencies": {
         "@intlify/vue-i18n-loader": "1.0.0",
+        "@playwright/test": "^1.60.0",
         "@vue/cli-plugin-babel": "5.0.1",
         "@vue/cli-plugin-eslint": "5.0.8",
-        "@vue/cli-service": "5.0.8",
+        "@vue/cli-service": "^5.0.8",
         "@vue/eslint-config-standard": "4.0.0",
         "archiver": "3.1.1",
         "autoprefixer": "10.4.14",
