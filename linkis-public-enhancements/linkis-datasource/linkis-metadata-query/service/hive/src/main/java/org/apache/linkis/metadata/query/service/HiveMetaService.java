@@ -31,6 +31,7 @@ import org.apache.linkis.metadata.query.common.service.MetadataConnection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
@@ -223,6 +224,34 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
   public Map<String, String> queryTableProps(
       HiveConnection connection, String database, String table) {
     try {
+      // When table is empty, fall back to query the database properties(当表名为空时，回退查询数据库参数及常用元数据)
+      if (StringUtils.isBlank(table)) {
+        Database database0 = connection.getClient().getDatabase(database);
+        Map<String, String> properties = new HashMap<>();
+        if (Objects.nonNull(database0)) {
+          // Custom database properties set via DBPROPERTIES(库的自定义参数)
+          if (Objects.nonNull(database0.getParameters())) {
+            properties.putAll(database0.getParameters());
+          }
+          // Append the database common metadata(补充数据库的常用元数据)
+          Optional.ofNullable(database0.getLocationUri())
+              .filter(StringUtils::isNotBlank)
+              .ifPresent(location -> properties.put("location", location));
+          Optional.ofNullable(database0.getOwnerName())
+              .filter(StringUtils::isNotBlank)
+              .ifPresent(owner -> properties.put("owner", owner));
+          Optional.ofNullable(database0.getOwnerType())
+              .map(Enum::name)
+              .ifPresent(ownerType -> properties.put("ownerType", ownerType));
+          Optional.ofNullable(database0.getName())
+              .filter(StringUtils::isNotBlank)
+              .ifPresent(name -> properties.put("name", name));
+          Optional.ofNullable(database0.getDescription())
+              .filter(StringUtils::isNotBlank)
+              .ifPresent(desc -> properties.put("description", desc));
+        }
+        return properties;
+      }
       Table rawTable = connection.getClient().getTable(database, table);
       return new HashMap<>((Map) rawTable.getMetadata());
     } catch (Exception e) {
