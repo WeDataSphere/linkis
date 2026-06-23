@@ -59,6 +59,12 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
   private static final String PARTITION_KV_SEPARATOR = "=";
   private static final String PARTITION_CV_SEPARATOR = "/";
 
+  /**
+   * Placeholder table name used to request database properties when the client does not allow an
+   * empty table name(部分终端不允许传空表名，用该占位表名代表查询库参数)
+   */
+  private static final String DB_DEFAULT_PLACEHOLDER_TABLE = "__DB_DEFAULT__";
+
   public HiveMetaService() {
     client = BmlClientFactory.createBmlClient();
   }
@@ -224,8 +230,9 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
   public Map<String, String> queryTableProps(
       HiveConnection connection, String database, String table) {
     try {
-      // When table is empty, fall back to query the database properties(当表名为空时，回退查询数据库参数及常用元数据)
-      if (StringUtils.isBlank(table)) {
+      // When the table is the placeholder, fall back to query the database properties
+      // only if the placeholder table does not really exist(当表名为占位符时，仅在该占位表真实不存在时才回退查询数据库参数及常用元数据)
+      if (isDbDefaultPlaceholder(table) && !placeholderTableExists(connection, database, table)) {
         Database database0 = connection.getClient().getDatabase(database);
         Map<String, String> properties = new HashMap<>();
         if (Objects.nonNull(database0)) {
@@ -256,6 +263,43 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
       return new HashMap<>((Map) rawTable.getMetadata());
     } catch (Exception e) {
       throw new RuntimeException("Fail to get Hive table properties(获取表参数信息失败)", e);
+    }
+  }
+
+  /**
+   * Whether the given table name is the database-level placeholder, which is used to request
+   * database properties instead of table ones when some clients do not allow an empty table name
+   * (判断给定表名是否为库级占位符；部分终端不允许传空表名，故用占位表名代表查询库参数)
+   *
+   * @param table table name
+   * @return true if it is the placeholder
+   */
+  private boolean isDbDefaultPlaceholder(String table) {
+    return DB_DEFAULT_PLACEHOLDER_TABLE.equals(table);
+  }
+
+  /**
+   * Check whether the placeholder table really exists, so that we never silently fall back to the
+   * database query when a real table with the same name exists(校验占位表是否真实存在，避免真实存在同名表时被误当作占位符而漏查表参数)
+   *
+   * @param connection hive connection
+   * @param database database name
+   * @param table placeholder table name
+   * @return true if a real table with the placeholder name exists
+   */
+  private boolean placeholderTableExists(HiveConnection connection, String database, String table) {
+    try {
+      // throwException=false -> returns null when the table is missing, no exception thrown
+      Table rawTable = connection.getClient().getTable(database, table, false);
+      return Objects.nonNull(rawTable);
+    } catch (Exception e) {
+      // If the existence cannot be determined, treat it as existing to be safe(无法判定时按存在处理，走表查询更安全)
+      LOG.warn(
+          "Fail to check placeholder table existence:["
+              + table
+              + "], treat as existing(判定占位表是否存在失败，按存在处理)",
+          e);
+      return true;
     }
   }
 
