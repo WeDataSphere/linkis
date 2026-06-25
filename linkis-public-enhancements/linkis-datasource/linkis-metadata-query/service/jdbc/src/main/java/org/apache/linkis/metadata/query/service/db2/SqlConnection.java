@@ -113,16 +113,17 @@ public class SqlConnection implements Closeable {
   public List<MetaColumnInfo> getColumns(String schemaname, String table)
       throws SQLException, ClassNotFoundException {
     List<MetaColumnInfo> columns = new ArrayList<>();
-    //        String columnSql = "SELECT * FROM syscat.columns WHERE TABSCHEMA = '" + schemaname
-    // + "' AND TABNAME = '" + table + "'";
-    String columnSql = "SELECT * FROM " + schemaname + "." + table + " WHERE 1 = 2";
+    // Quote the table identifier with double quotes so that the original case is preserved.
+    // For tables created with a quoted lowercase name, e.g. DB2INST1."db2hive04", the unquoted
+    // identifier would be folded to uppercase by DB2 and fail to match.
+    // (对表标识符加双引号以保留原始大小写；带引号建的小写表名如 DB2INST1."db2hive04"，
+    //  不加引号会被 DB2 折叠为大写导致找不到表)
+    String columnSql = "SELECT * FROM " + schemaname + ".\"" + table + "\" WHERE 1 = 2";
     PreparedStatement ps = null;
     ResultSet rs = null;
     ResultSetMetaData meta = null;
     try {
-      //            List<String> primaryKeys = getPrimaryKeys(getDBConnection(connectMessage,
-      // schemaname),  table);
-      List<String> primaryKeys = getPrimaryKeys(conn, table);
+      List<String> primaryKeys = getPrimaryKeys(schemaname, table);
       ps = conn.prepareStatement(columnSql);
       rs = ps.executeQuery();
       meta = rs.getMetaData();
@@ -144,30 +145,36 @@ public class SqlConnection implements Closeable {
   }
 
   /**
-   * Get primary keys
+   * Get primary key column names by querying SYSCAT.KEYCOLUSE directly.
    *
-   * @param connection connection
+   * <p>The JDBC {@link DatabaseMetaData#getPrimaryKeys} is backed by the {@code
+   * SYSIBM.SQLPRIMARYKEYS} procedure, which is unreliable for quoted lowercase table names because
+   * the table name may be folded to uppercase before matching. Querying {@code SYSCAT.KEYCOLUSE}
+   * with the exact case stored in the catalog avoids this issue. (JDBC getPrimaryKeys 底层走
+   * SYSIBM.SQLPRIMARYKEYS，对带引号的小写表名不可靠； 直接查 SYSCAT.KEYCOLUSE，按库中存储的真实大小写匹配主键列)
+   *
+   * @param schemaname schema name
    * @param table table name
-   * @return
+   * @return primary key column names
    * @throws SQLException
    */
-  private List<String> getPrimaryKeys(Connection connection, String table) throws SQLException {
-    ResultSet rs = null;
+  private List<String> getPrimaryKeys(String schemaname, String table) throws SQLException {
     List<String> primaryKeys = new ArrayList<>();
+    PreparedStatement ps = null;
+    ResultSet rs = null;
     try {
-      DatabaseMetaData dbMeta = connection.getMetaData();
-      rs = dbMeta.getPrimaryKeys(null, null, table);
+      ps =
+          conn.prepareStatement(
+              "SELECT COLNAME FROM SYSCAT.KEYCOLUSE WHERE TABSCHEMA = ? AND TABNAME = ? ORDER BY COLSEQ");
+      ps.setString(1, schemaname);
+      ps.setString(2, table);
+      rs = ps.executeQuery();
       while (rs.next()) {
-        primaryKeys.add(rs.getString("column_name"));
+        primaryKeys.add(rs.getString("COLNAME"));
       }
       return primaryKeys;
     } finally {
-      if (null != rs) {
-        rs.close();
-      }
-      //            if(null != rs){
-      //                closeResource(connection, null, rs);
-      //            }
+      closeResource(null, ps, rs);
     }
   }
 
