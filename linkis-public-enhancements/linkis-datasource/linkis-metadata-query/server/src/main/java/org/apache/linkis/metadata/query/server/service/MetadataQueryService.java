@@ -115,6 +115,22 @@ public interface MetadataQueryService {
       throws ErrorException;
 
   /**
+   * Check if the table exists by data source id
+   *
+   * @param dataSourceId data source id
+   * @param database database
+   * @param table table
+   * @param system system
+   * @param userName userName
+   * @return true if the table exists
+   * @throws ErrorException
+   */
+  @Deprecated
+  boolean existsTableByDsId(
+      String dataSourceId, String database, String table, String system, String userName)
+      throws ErrorException;
+
+  /**
    * Get connection information
    *
    * @param dataSourceName data source name
@@ -225,6 +241,21 @@ public interface MetadataQueryService {
       throws ErrorException;
 
   /**
+   * Check if the table exists by data source name
+   *
+   * @param dataSourceName data source name
+   * @param database database
+   * @param table table
+   * @param system system
+   * @param userName userName
+   * @return true if the table exists
+   * @throws ErrorException
+   */
+  boolean existsTableByDsName(
+      String dataSourceName, String database, String table, String system, String userName)
+      throws ErrorException;
+
+  /**
    * @param dataSourceName
    * @param database
    * @param table
@@ -235,6 +266,27 @@ public interface MetadataQueryService {
    * @throws ErrorException
    */
   List<MetaColumnInfo> getColumnsByDsNameAndEnvId(
+      String dataSourceName,
+      String database,
+      String table,
+      String system,
+      String userName,
+      String envId)
+      throws ErrorException;
+
+  /**
+   * Check if the table exists by data source name and env id
+   *
+   * @param dataSourceName data source name
+   * @param database database
+   * @param table table
+   * @param system system
+   * @param userName userName
+   * @param envId env id
+   * @return true if the table exists
+   * @throws ErrorException
+   */
+  boolean existsTableByDsNameAndEnvId(
       String dataSourceName,
       String database,
       String table,

@@ -80,6 +80,13 @@ public abstract class AbstractDbMetaService<C extends Closeable> extends Abstrac
   }
 
   @Override
+  public boolean existsTable(
+      String operator, Map<String, Object> params, String database, String table) {
+    return this.getConnAndRun(
+        operator, params, conn -> this.queryExistsTable(conn, database, table));
+  }
+
+  @Override
   public Map<String, String> getPartitionProps(
       String operator,
       Map<String, Object> params,
@@ -155,6 +162,18 @@ public abstract class AbstractDbMetaService<C extends Closeable> extends Abstrac
    * @return
    */
   public List<MetaColumnInfo> queryColumns(C connection, String database, String table) {
+    throw new WarnException(-1, "This method is no supported");
+  }
+
+  /**
+   * Check if the table exists by connection, database and table
+   *
+   * @param connection metadata connection
+   * @param database database
+   * @param table table
+   * @return true if the table exists
+   */
+  public boolean queryExistsTable(C connection, String database, String table) {
     throw new WarnException(-1, "This method is no supported");
   }
 

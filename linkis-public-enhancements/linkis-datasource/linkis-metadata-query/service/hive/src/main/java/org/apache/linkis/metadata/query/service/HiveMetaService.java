@@ -35,6 +35,7 @@ import org.apache.hadoop.hive.metastore.api.Database;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.ql.metadata.InvalidTableException;
 import org.apache.hadoop.hive.ql.metadata.Partition;
 import org.apache.hadoop.hive.ql.metadata.Table;
 
@@ -224,6 +225,30 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
               columns.add(metaColumnInfo);
             });
     return columns;
+  }
+
+  @Override
+  public boolean queryExistsTable(HiveConnection connection, String database, String table) {
+    try {
+      // Throw InvalidTableException when the table does not exist(表不存在时抛 InvalidTableException)
+      connection.getClient().getTable(database, table);
+      return true;
+    } catch (InvalidTableException e) {
+      // Table not found(表不存在), log message only without stack trace
+      LOG.warn(
+          "Hive table not exists:["
+              + database
+              + "."
+              + table
+              + "], message:["
+              + e.getMessage()
+              + "](Hive表不存在)");
+      return false;
+    } catch (Exception e) {
+      // Other exceptions are rethrown(其他异常直接抛出)
+      throw new RuntimeException(
+          "Fail to check Hive table existence(判断Hive表是否存在失败):[" + database + "." + table + "]", e);
+    }
   }
 
   @Override

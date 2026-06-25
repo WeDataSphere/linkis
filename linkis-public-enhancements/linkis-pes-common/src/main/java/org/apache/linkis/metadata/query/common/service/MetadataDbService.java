@@ -87,6 +87,17 @@ public interface MetadataDbService extends BaseMetadataService {
       String operator, Map<String, Object> params, String database, String table);
 
   /**
+   * Check if the table exists in the database specified
+   *
+   * @param operator operator
+   * @param params params
+   * @param database database name
+   * @param table table name
+   * @return true if the table exists, false otherwise
+   */
+  boolean existsTable(String operator, Map<String, Object> params, String database, String table);
+
+  /**
    * Get sql connect url
    *
    * @param params connect params
