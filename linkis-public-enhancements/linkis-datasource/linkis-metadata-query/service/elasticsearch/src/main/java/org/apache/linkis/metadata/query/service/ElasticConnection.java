@@ -45,7 +45,11 @@ public class ElasticConnection implements Closeable {
 
   private static final String DEFAULT_MAPPING_NAME = "mappings";
   private static final String DEFAULT_INDEX_NAME = "index";
-  private static final String FIELD_PROPS = "properties";
+  /**
+   * Nested properties key in ElasticSearch mappings, used to descend into nested objects
+   * (ElasticSearch mappings 中嵌套对象的 properties 键，用于递归展开嵌套字段)
+   */
+  public static final String FIELD_PROPS = "properties";
 
   private RestClient restClient;
 

@@ -15,20 +15,18 @@
  * limitations under the License.
  */
 
-package org.apache.linkis.metadata.query.service.db2;
+package org.apache.linkis.metadata.query.service.oscar;
 
 import org.apache.linkis.common.conf.CommonVars;
 import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 
-import org.apache.logging.log4j.util.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.Closeable;
 import java.io.IOException;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -39,15 +37,10 @@ public class SqlConnection implements Closeable {
   private static final Logger LOG = LoggerFactory.getLogger(SqlConnection.class);
 
   private static final CommonVars<String> SQL_DRIVER_CLASS =
-      CommonVars.apply("wds.linkis.server.mdm.service.db2.driver", "com.ibm.db2.jcc.DB2Driver");
+      CommonVars.apply("wds.linkis.server.mdm.service.oscar.driver", "com.oscar.Driver");
 
   private static final CommonVars<String> SQL_CONNECT_URL =
-      CommonVars.apply("wds.linkis.server.mdm.service.db2.url", "jdbc:db2://%s:%s/%s");
-
-  private static final CommonVars<String> SQL_SCHEMA_QUERY =
-      CommonVars.apply(
-          "wds.linkis.server.mdm.service.db2.schema.query.sql",
-          "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('NULLID', 'SQLJ') WITH UR");
+      CommonVars.apply("wds.linkis.server.mdm.service.oscar.url", "jdbc:oscar://%s:%s/%s");
 
   private Connection conn;
 
@@ -61,26 +54,19 @@ public class SqlConnection implements Closeable {
       String database,
       Map<String, Object> extraParams)
       throws ClassNotFoundException, SQLException {
-    if (Strings.isBlank(database)) {
-      database = "SAMPLE";
-    }
     connectMessage = new ConnectMessage(host, port, username, password, extraParams);
     conn = getDBConnection(connectMessage, database);
-    // Try to create statement
     Statement statement = conn.createStatement();
     statement.close();
   }
 
   public List<String> getAllDatabases() throws SQLException {
-    // Query schema list from system catalog view with system schema filtering
     List<String> schemaNames = new ArrayList<>();
     Statement stmt = null;
     ResultSet rs = null;
     try {
       stmt = conn.createStatement();
-      // Use configurable SQL to query schemas from SYSCAT.SCHEMATA
-      // Default query filters out system schemas (SYS%, NULLID, SQLJ)
-      rs = stmt.executeQuery(SQL_SCHEMA_QUERY.getValue());
+      rs = stmt.executeQuery("SELECT USERNAME FROM ALL_USERS ORDER BY USERNAME");
       while (rs.next()) {
         schemaNames.add(rs.getString(1));
       }
@@ -90,7 +76,7 @@ public class SqlConnection implements Closeable {
     return schemaNames;
   }
 
-  public List<String> getAllTables(String tabschema) throws SQLException {
+  public List<String> getAllTables(String schema) throws SQLException {
     List<String> tableNames = new ArrayList<>();
     Statement stmt = null;
     ResultSet rs = null;
@@ -98,32 +84,28 @@ public class SqlConnection implements Closeable {
       stmt = conn.createStatement();
       rs =
           stmt.executeQuery(
-              "select tabname as table_name from syscat.tables where tabschema = '"
-                  + tabschema
-                  + "' and type = 'T'  order by tabschema, tabname");
+              "SELECT TABLE_NAME FROM ALL_TABLES WHERE OWNER = '"
+                  + schema
+                  + "' ORDER BY TABLE_NAME");
       while (rs.next()) {
         tableNames.add(rs.getString(1));
       }
-      return tableNames;
     } finally {
       closeResource(null, stmt, rs);
     }
+    return tableNames;
   }
 
-  public List<MetaColumnInfo> getColumns(String schemaname, String table)
+  public List<MetaColumnInfo> getColumns(String schema, String table)
       throws SQLException, ClassNotFoundException {
     List<MetaColumnInfo> columns = new ArrayList<>();
-    // Quote the table identifier with double quotes so that the original case is preserved.
-    // For tables created with a quoted lowercase name, e.g. DB2INST1."db2hive04", the unquoted
-    // identifier would be folded to uppercase by DB2 and fail to match.
-    // (对表标识符加双引号以保留原始大小写；带引号建的小写表名如 DB2INST1."db2hive04"，
-    //  不加引号会被 DB2 折叠为大写导致找不到表)
-    String columnSql = "SELECT * FROM " + schemaname + ".\"" + table + "\" WHERE 1 = 2";
+    String columnSql = "SELECT * FROM \"" + schema + "\".\"" + table + "\" WHERE 1 = 2";
     PreparedStatement ps = null;
     ResultSet rs = null;
     ResultSetMetaData meta = null;
     try {
-      List<String> primaryKeys = getPrimaryKeys(schemaname, table);
+      List<String> primaryKeys = getPrimaryKeys(schema, table);
+      Map<String, String> columnCommentMap = getColumnComment(schema, table);
       ps = conn.prepareStatement(columnSql);
       rs = ps.executeQuery();
       meta = rs.getMetaData();
@@ -131,10 +113,17 @@ public class SqlConnection implements Closeable {
       for (int i = 1; i < columnCount + 1; i++) {
         MetaColumnInfo info = new MetaColumnInfo();
         info.setIndex(i);
+        info.setLength(meta.getColumnDisplaySize(i));
         info.setName(meta.getColumnName(i));
         info.setType(meta.getColumnTypeName(i));
         if (primaryKeys.contains(meta.getColumnName(i))) {
           info.setPrimaryKey(true);
+        }
+        String colComment = columnCommentMap.get(meta.getColumnName(i));
+        if (StringUtils.isNotBlank(colComment)) {
+          info.setColComment(colComment);
+        } else {
+          info.setColComment(StringUtils.EMPTY);
         }
         columns.add(info);
       }
@@ -144,47 +133,28 @@ public class SqlConnection implements Closeable {
     return columns;
   }
 
-  /**
-   * Get primary key column names by querying SYSCAT.KEYCOLUSE directly.
-   *
-   * <p>The JDBC {@link DatabaseMetaData#getPrimaryKeys} is backed by the {@code
-   * SYSIBM.SQLPRIMARYKEYS} procedure, which is unreliable for quoted lowercase table names because
-   * the table name may be folded to uppercase before matching. Querying {@code SYSCAT.KEYCOLUSE}
-   * with the exact case stored in the catalog avoids this issue. (JDBC getPrimaryKeys 底层走
-   * SYSIBM.SQLPRIMARYKEYS，对带引号的小写表名不可靠； 直接查 SYSCAT.KEYCOLUSE，按库中存储的真实大小写匹配主键列)
-   *
-   * @param schemaname schema name
-   * @param table table name
-   * @return primary key column names
-   * @throws SQLException
-   */
-  private List<String> getPrimaryKeys(String schemaname, String table) throws SQLException {
-    List<String> primaryKeys = new ArrayList<>();
-    PreparedStatement ps = null;
+  private List<String> getPrimaryKeys(String schema, String table) throws SQLException {
     ResultSet rs = null;
-    try {
-      ps =
-          conn.prepareStatement(
-              "SELECT COLNAME FROM SYSCAT.KEYCOLUSE WHERE TABSCHEMA = ? AND TABNAME = ? ORDER BY COLSEQ");
-      ps.setString(1, schemaname);
-      ps.setString(2, table);
-      rs = ps.executeQuery();
-      while (rs.next()) {
-        primaryKeys.add(rs.getString("COLNAME"));
-      }
-      return primaryKeys;
-    } finally {
-      closeResource(null, ps, rs);
+    List<String> primaryKeys = new ArrayList<>();
+    DatabaseMetaData dbMeta = conn.getMetaData();
+    rs = dbMeta.getPrimaryKeys(null, schema, table);
+    while (rs.next()) {
+      primaryKeys.add(rs.getString("COLUMN_NAME"));
     }
+    return primaryKeys;
   }
 
-  /**
-   * close database resource
-   *
-   * @param connection connection
-   * @param statement statement
-   * @param resultSet result set
-   */
+  private Map<String, String> getColumnComment(String schema, String table) throws SQLException {
+    ResultSet rs = null;
+    Map<String, String> columnComment = new HashMap<>();
+    DatabaseMetaData dbMeta = conn.getMetaData();
+    rs = dbMeta.getColumns(null, schema, table, "%");
+    while (rs.next()) {
+      columnComment.put(rs.getString("COLUMN_NAME"), rs.getString("REMARKS"));
+    }
+    return columnComment;
+  }
+
   private void closeResource(Connection connection, Statement statement, ResultSet resultSet) {
     try {
       if (null != resultSet && !resultSet.isClosed()) {
@@ -206,12 +176,6 @@ public class SqlConnection implements Closeable {
     closeResource(conn, null, null);
   }
 
-  /**
-   * @param connectMessage
-   * @param database
-   * @return
-   * @throws ClassNotFoundException
-   */
   private Connection getDBConnection(ConnectMessage connectMessage, String database)
       throws ClassNotFoundException, SQLException {
     String extraParamString =
@@ -225,20 +189,22 @@ public class SqlConnection implements Closeable {
     if (!connectMessage.extraParams.isEmpty()) {
       url += "?" + extraParamString;
     }
-    return DriverManager.getConnection(
-        url, connectMessage.username, AESUtils.isDecryptByConf(connectMessage.password));
+    try {
+      Properties prop = new Properties();
+      prop.put("user", connectMessage.username);
+      prop.put("password", AESUtils.isDecryptByConf(connectMessage.password));
+      return DriverManager.getConnection(url, prop);
+    } catch (Exception e) {
+      LOG.error("Fail to create Oscar connection", e);
+      throw e;
+    }
   }
 
-  /** Connect message */
   private static class ConnectMessage {
     private String host;
-
     private Integer port;
-
     private String username;
-
     private String password;
-
     private Map<String, Object> extraParams;
 
     public ConnectMessage(
