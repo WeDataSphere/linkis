@@ -193,6 +193,26 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
   }
 
   @Override
+  @Deprecated
+  public boolean existsTableByDsId(
+      String dataSourceId, String database, String table, String system, String userName)
+      throws ErrorException {
+    DsInfoResponse dsInfoResponse = reqToGetDataSourceInfo(dataSourceId, system, userName);
+    if (StringUtils.isNotBlank(dsInfoResponse.getDsType())) {
+      Boolean exists =
+          invokeMetaMethod(
+              dsInfoResponse.getDsType(),
+              "existsTable",
+              new Object[] {
+                dsInfoResponse.getCreator(), dsInfoResponse.getParams(), database, table
+              },
+              Boolean.class);
+      return Objects.nonNull(exists) && exists;
+    }
+    return false;
+  }
+
+  @Override
   public List<String> getDatabasesByDsName(String dataSourceName, String system, String userName)
       throws ErrorException {
     DsInfoResponse dsInfoResponse = queryDataSourceInfoByName(dataSourceName, system, userName);
@@ -342,6 +362,25 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
   }
 
   @Override
+  public boolean existsTableByDsName(
+      String dataSourceName, String database, String table, String system, String userName)
+      throws ErrorException {
+    DsInfoResponse dsInfoResponse = queryDataSourceInfoByName(dataSourceName, system, userName);
+    if (StringUtils.isNotBlank(dsInfoResponse.getDsType())) {
+      Boolean exists =
+          invokeMetaMethod(
+              dsInfoResponse.getDsType(),
+              "existsTable",
+              new Object[] {
+                dsInfoResponse.getCreator(), dsInfoResponse.getParams(), database, table
+              },
+              Boolean.class);
+      return Objects.nonNull(exists) && exists;
+    }
+    return false;
+  }
+
+  @Override
   public List<MetaColumnInfo> getColumnsByDsNameAndEnvId(
       String dataSourceName,
       String database,
@@ -360,6 +399,31 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
           List.class);
     }
     return new ArrayList<>();
+  }
+
+  @Override
+  public boolean existsTableByDsNameAndEnvId(
+      String dataSourceName,
+      String database,
+      String table,
+      String system,
+      String userName,
+      String envId)
+      throws ErrorException {
+    DsInfoResponse dsInfoResponse =
+        queryDataSourceInfoByNameAndEnvId(dataSourceName, system, userName, envId);
+    if (StringUtils.isNotBlank(dsInfoResponse.getDsType())) {
+      Boolean exists =
+          invokeMetaMethod(
+              dsInfoResponse.getDsType(),
+              "existsTable",
+              new Object[] {
+                dsInfoResponse.getCreator(), dsInfoResponse.getParams(), database, table
+              },
+              Boolean.class);
+      return Objects.nonNull(exists) && exists;
+    }
+    return false;
   }
 
   /**

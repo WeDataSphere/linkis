@@ -310,6 +310,53 @@ public class MetadataCoreRestful {
     }
   }
 
+  @RequestMapping(
+      value = "/exists/{dataSourceId}/db/{database}/table/{table}",
+      method = RequestMethod.GET)
+  public Message existsTable(
+      @PathVariable("dataSourceId") String dataSourceId,
+      @PathVariable("database") String database,
+      @PathVariable("table") String table,
+      @RequestParam("system") String system,
+      HttpServletRequest request) {
+    try {
+      if (StringUtils.isBlank(system)) {
+        return Message.error("'system' is missing[缺少系统名]");
+      }
+      if (!MetadataUtils.nameRegexPattern.matcher(system).matches()) {
+        return Message.error("'system' is invalid[系统名错误]");
+      }
+      if (!MetadataUtils.nameRegexPattern.matcher(database).matches()) {
+        return Message.error("'database' is invalid[数据库名错误]");
+      }
+      if (!MetadataUtils.nameRegexPattern.matcher(table).matches()) {
+        return Message.error("'table' is invalid[表名错误]");
+      }
+      if (!MetadataUtils.nameRegexPattern.matcher(dataSourceId).matches()) {
+        return Message.error("'dataSourceId' is invalid[数据源错误]");
+      }
+
+      String userName =
+          ModuleUserUtils.getOperationUser(request, "existsTable, dataSourceId:" + dataSourceId);
+      boolean exists =
+          metadataAppService.existsTableByDsId(dataSourceId, database, table, system, userName);
+      return Message.ok().data("exists", exists);
+    } catch (Exception e) {
+      return errorToResponseMessage(
+          "Fail to check table existence[判断表是否存在失败], id:["
+              + dataSourceId
+              + "]"
+              + ", system:["
+              + system
+              + "], database:["
+              + database
+              + "], table:["
+              + table
+              + "]",
+          e);
+    }
+  }
+
   private Message errorToResponseMessage(String uiMessage, Exception e) {
     if (e instanceof MetaMethodInvokeException) {
       MetaMethodInvokeException invokeException = (MetaMethodInvokeException) e;
