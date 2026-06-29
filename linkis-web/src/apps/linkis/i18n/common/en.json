@@ -133,7 +133,7 @@
       "resourceManagement": {
         "resourceUsage": "Resource usage",
         "applicationList": "Applications"
-    },
+      },
       "time": {
         "second": "Second",
         "minute": "Minute",
@@ -538,7 +538,7 @@
         "percentageThresholdError": "Please enter an integer between 0 and 1",
         "view": "View",
         "errorJson": "Please enter a JSON that is formatted correctly and not empty",
-        "deleteSuccess": "Delete Successfully",
+        "deleteSuccess": "Delete successfully",
         "createRules": "Create",
         "editRules": "Edit",
         "viewRules": "View Rules",
@@ -585,16 +585,22 @@
         "confirmModifyBtn": "Confirm Modify",
         "confirmDeleteBtn": "Confirm Delete",
         "confirmEnableBtn": "Confirm Enable",
-        "confirmDisableBtn": "Confirm Disable"
+        "confirmDisableBtn": "Confirm Disable",
+        "confirmDelete": "Confirm Delete",
+        "isConfirmDelete": "Confirm to delete configuration {name}?",
+        "deleteWarning": "This operation cannot be undone, please proceed with caution.",
+        "deleteFailed": "Delete failed: {error}",
+        "unknownError": "Unknown error",
+        "configInfo": "Configuration Info"
       },
       "codeQuery": {
         "executionCode": "Execution Code",
         "dateRange": "Date Range",
         "engineType": "Engine Type",
         "placeholder": {
-            "executionCode": "Please enter the execution code, which does not support special characters such as ', `, and can use % and _ as wildcards: % represents any character, and _ represents a single character.",
-            "dateRange": "Please select date range",
-            "status": "Please select status"
+          "executionCode": "Please enter the execution code, which does not support special characters such as ', `, and can use % and _ as wildcards: % represents any character, and _ represents a single character.",
+          "dateRange": "Please select date range",
+          "status": "Please select status"
         },
         "inputCode": "Please Input Execution Code",
         "id": "ID",
@@ -619,7 +625,7 @@
         "search": "Search",
         "action": "Action",
         "categoryMaxLength": "The length cannot exceed 100",
-        "modal":{
+        "modal": {
           "confirm": "Confirm",
           "cancel": "Cancel",
           "modalTitle": "Info",
@@ -664,11 +670,11 @@
           "elapseDay": "Elapse Day",
           "permanentlyValid": "Permanently Valid",
           "businessOwner": "Owner",
-          "createTime":"Create Time",
+          "createTime": "Create Time",
           "updateTime": "Update Time",
           "updateBy": "Update By",
           "searchPlaceholder": "TokenName/Users/Hosts",
-          "info":"Elapse Day: -1 means permanent",
+          "info": "Elapse Day: -1 means permanent",
           "legalUsersInfo": "* Allow all users; Multi-user use, separated, for example :user1,user2",
           "legalUsersValidate": {
             "empty": "Please enter the Users"
