@@ -19,12 +19,10 @@ package org.apache.linkis.datasourcemanager.core.restful.exception;
 
 import org.apache.linkis.server.Message;
 
-import javax.validation.ConstraintViolationException;
-import javax.validation.ValidationException;
-import javax.ws.rs.ext.Provider;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
 
 /** Map bean validation exception to response */
-@Provider
 public class BeanValidationExceptionMapper {
   public Message toResponse(ValidationException exception) {
     StringBuilder stringBuilder = new StringBuilder();
