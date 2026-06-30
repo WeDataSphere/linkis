@@ -47,7 +47,7 @@ object EnvConfiguration {
   lazy val ENGINE_CONN_DEFAULT_JAVA_OPTS = CommonVars[String](
     "wds.linkis.engineConn.javaOpts.default",
     s"-XX:+UseG1GC ${metaspaceSize} " +
-      s"-Xloggc:%s -XX:+PrintGCDetails -XX:+PrintGCTimeStamps -XX:+PrintGCDateStamps -Dwds.linkis.server.conf=linkis-engineconn.properties -Dwds.linkis.gateway.url=${Configuration.getGateWayURL()}"
+      s"-Xlog:gc*:file=%s:time,uptime,level,tags:filecount=10,filesize=1024 -Dwds.linkis.server.conf=linkis-engineconn.properties -Dwds.linkis.gateway.url=${Configuration.getGateWayURL()}"
   )
 
   val ENGINE_CONN_MEMORY = CommonVars(

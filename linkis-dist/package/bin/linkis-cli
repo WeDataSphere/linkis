@@ -42,16 +42,22 @@ done
 #===============================================
 locate_java_home() {
   flag=""
+  # linkis-env.sh takes precedence (consistent with server startup scripts).
+  # Linkis 2.0.0 control plane and linkis-cli classes are compiled for JDK 21.
+  if [[ -n "$WORK_DIR" && -f "$WORK_DIR/conf/linkis-env.sh" ]]; then
+    source "$WORK_DIR/conf/linkis-env.sh"
+  fi
   if [[ -e "$JAVA_HOME" && -e $JAVA_HOME/bin/java ]]; then
     flag="true"
   else
-    local JAVA8_HOME_CANDIDATES='\
-      /usr/java/jdk1.8* \
-      /nemo/jdk1.8*'
+    local JAVA21_HOME_CANDIDATES='\
+      /usr/java/jdk-21* \
+      /usr/lib/jvm/java-21* \
+      /opt/jdk-21*'
 
-    JAVA_HOME_CANDIDATES="$JAVA8_HOME_CANDIDATES"
+    JAVA_HOME_CANDIDATES="$JAVA21_HOME_CANDIDATES"
 
-    # attempt to find java 8
+    # attempt to find java 21
 
     for candidate_regex in $JAVA_HOME_CANDIDATES ; do
         for candidate in `ls -rd $candidate_regex 2>/dev/null`; do
@@ -65,7 +71,7 @@ locate_java_home() {
   fi
 
   if [ -z "$flag" ]; then
-    echo -e "${RED}No JDK 8 found. linkis-client requires Java 1.8${NC}" 1>&2
+    echo -e "${RED}No JDK 21 found. linkis-client (Linkis 2.0.0) requires JDK 21+${NC}" 1>&2
     exit 1
   fi
 
@@ -102,7 +108,7 @@ function call_linkis_client() {
         LINKIS_CLIENT_CONF_FILE=${LINKIS_CLIENT_CONF_FILE:-"linkis-cli.properties"}
 
         LINKIS_CLIENT_HEAP_OPTS="-server -Xms32m -Xmx2048m -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${LINKIS_CLIENT_LOG_DIR} -XX:ErrorFile=${LINKIS_CLIENT_LOG_DIR}/ps_err_pid%p.log"
-        LINKIS_CLIENT_GC_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=80 -XX:+DisableExplicitGC"
+        LINKIS_CLIENT_GC_OPTS="-XX:+UseG1GC -XX:+DisableExplicitGC"
         LINKIS_CLIENT_LOG_OPTS="-Dlog.path=${LINKIS_CLIENT_LOG_DIR} -Dlog.file=linkis-client.${USER}.log.`date '+%Y%m%d%H%M%S%N'`"
         #DEBUG_OPTS="-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005"
         LINKIS_CLIENT_OPTS=${LINKIS_CLIENT_OPTS:-" ${DEBUG_OPTS} "}
