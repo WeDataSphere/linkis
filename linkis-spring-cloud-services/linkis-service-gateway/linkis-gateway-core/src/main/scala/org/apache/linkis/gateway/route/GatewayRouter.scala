@@ -123,9 +123,10 @@ abstract class AbstractGatewayRouter extends GatewayRouter with Logging {
     })
     if (null == serviceInstancesInRegistry) {
       new util.ArrayList[ServiceInstance]()
-    } else {
-      serviceInstancesInRegistry.toList
-    }.asJava
+    } else
+      {
+        serviceInstancesInRegistry.toList
+      }.asJava
   }
 
 }

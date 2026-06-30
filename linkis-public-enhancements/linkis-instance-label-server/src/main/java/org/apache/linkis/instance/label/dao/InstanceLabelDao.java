@@ -66,6 +66,7 @@ public interface InstanceLabelDao {
    * @param labelId
    */
   int updateForLock(Integer labelId);
+
   /**
    * Search labels by key and string value
    *

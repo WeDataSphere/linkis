@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class CloneableLabel implements Cloneable {
   private static final Logger LOG = LoggerFactory.getLogger(CloneableLabel.class);
+
   /**
    * Do clone
    *

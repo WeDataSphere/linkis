@@ -71,6 +71,6 @@ class LinkisJobMetrics(taskId: String) extends AbstractJobMetrics {
 
   override def getMetricString: String =
     s"The metrics of job($taskId), costs ${ByteTimeUtils.msDurationToString(clientFinishedTime - clientSubmitTime)} to execute, costs ${ByteTimeUtils
-      .msDurationToString(clientFetchResultSetTime)} to fetch all resultSets."
+        .msDurationToString(clientFetchResultSetTime)} to fetch all resultSets."
 
 }

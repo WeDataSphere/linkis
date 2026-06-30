@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class ResultUtils {
 
   public static final Logger LOGGER = LoggerFactory.getLogger(ResultUtils.class);
+
   /**
    * 删除指定字段的内容
    *

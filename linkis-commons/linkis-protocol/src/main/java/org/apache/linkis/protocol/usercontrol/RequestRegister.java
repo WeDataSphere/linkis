@@ -22,7 +22,8 @@ public class RequestRegister implements UserControlRegtisterProtocol {
   // json string
   private String params;
 
-  public RequestRegister() {};
+  public RequestRegister() {}
+  ;
 
   public String getParams() {
     return params;

@@ -240,6 +240,7 @@ public class LabelUtils {
       }
       return null;
     }
+
     /**
      * Convert object using serialization and deserialization
      *

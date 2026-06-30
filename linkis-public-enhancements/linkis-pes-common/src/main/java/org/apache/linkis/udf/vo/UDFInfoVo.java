@@ -40,6 +40,7 @@ public class UDFInfoVo {
   private String bmlResourceId;
   private String bmlResourceVersion;
   private String description;
+
   //    private String directory;  //分类，个人函数一级目录
 
   public Long getId() {

@@ -49,6 +49,7 @@ public interface DataSourceDao {
    * @return data source entity
    */
   DataSource selectOneDetailByName(@Param("dataSourceName") String dataSourceName);
+
   /**
    * View normal
    *
@@ -64,6 +65,7 @@ public interface DataSourceDao {
    * @return data source entity
    */
   DataSource selectOneByName(@Param("dataSourceName") String dataSourceName);
+
   /**
    * Delete One
    *

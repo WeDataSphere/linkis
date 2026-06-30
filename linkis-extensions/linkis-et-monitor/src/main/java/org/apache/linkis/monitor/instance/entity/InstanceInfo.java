@@ -32,6 +32,7 @@ public class InstanceInfo {
   private Date updateTime;
 
   private Date createTime;
+
   /** Labels related */
   private List<InsPersistenceLabel> labels = new ArrayList<>();
 

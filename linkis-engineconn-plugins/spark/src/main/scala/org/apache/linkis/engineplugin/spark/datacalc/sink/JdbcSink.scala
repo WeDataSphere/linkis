@@ -17,16 +17,18 @@
 
 package org.apache.linkis.engineplugin.spark.datacalc.sink
 
-import org.apache.linkis.common.utils.ClassUtils.getFieldVal
 import org.apache.linkis.common.utils.{CodeUtils, Logging}
+import org.apache.linkis.common.utils.ClassUtils.getFieldVal
 import org.apache.linkis.engineplugin.spark.datacalc.api.DataCalcSink
-import org.apache.commons.lang3.StringUtils
 import org.apache.linkis.manager.label.entity.engine.EngineType
+
+import org.apache.commons.lang3.StringUtils
 import org.apache.spark.SPARK_VERSION
 import org.apache.spark.sql.{Dataset, Row, SparkSession}
 import org.apache.spark.sql.execution.datasources.jdbc.JDBCOptions
 
 import java.sql.{Connection, DriverManager}
+
 import scala.collection.JavaConverters._
 
 class JdbcSink extends DataCalcSink[JdbcSinkConfig] with Logging {
@@ -63,7 +65,9 @@ class JdbcSink extends DataCalcSink[JdbcSinkConfig] with Logging {
             DriverManager.getConnection(config.getUrl, config.getUser, config.getPassword)
           try {
             config.getPreQueries.asScala.foreach(query => {
-              logger.info(s"Execute pre query: ${CodeUtils.maskCode(query, EngineType.SPARK.toString())}")
+              logger.info(
+                s"Execute pre query: ${CodeUtils.maskCode(query, EngineType.SPARK.toString())}"
+              )
               execute(conn, jdbcOptions, query)
             })
           } catch {

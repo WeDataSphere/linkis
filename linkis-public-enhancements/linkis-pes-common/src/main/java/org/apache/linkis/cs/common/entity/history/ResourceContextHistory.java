@@ -29,10 +29,12 @@ public interface ResourceContextHistory extends ContextHistory {
   @Override
   default ContextType getContextType() {
     return ContextType.RESOURCE;
-  };
+  }
+  ;
 
   @Override
   default void setContextType(ContextType contextType) {
     // nothing to do
-  };
+  }
+  ;
 }

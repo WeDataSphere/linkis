@@ -115,6 +115,7 @@ public interface ResourceManagerPersistence {
    */
   void nodeResourceUpdate(ServiceInstance serviceInstance, PersistenceResource persistenceResource)
       throws PersistenceErrorException;
+
   // resource_id 可能有多条 更新em的时候要注意  过滤出没有 ticketid 的那条，它是em，更新它就行了，更新em用这个方法
   /**
    * 根据ticketId 获取资源

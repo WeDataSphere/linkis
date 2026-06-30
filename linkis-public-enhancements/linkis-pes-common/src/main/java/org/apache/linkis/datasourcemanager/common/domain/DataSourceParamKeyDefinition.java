@@ -71,6 +71,7 @@ public class DataSourceParamKeyDefinition {
     /** Env SCOPE */
     ENV,
   }
+
   /** Definition id */
   private Long id;
 
@@ -88,10 +89,13 @@ public class DataSourceParamKeyDefinition {
 
   /** Value type */
   private ValueType valueType;
+
   /** Scope */
   private Scope scope;
+
   /** If the definition is required */
   private boolean require;
+
   /** Value regex */
   private String valueRegex;
 

@@ -120,7 +120,9 @@ public abstract class SecurityUtils {
     checkParams(extraParams);
   }
 
-  /** @param url */
+  /**
+   * @param url
+   */
   public static void checkJdbcConnUrl(String url) {
 
     // check switch

@@ -48,8 +48,10 @@ public enum LinkisConfigurationErrorCodeSummary implements LinkisErrorCode {
 
   /** 错误码 */
   private final int errorCode;
+
   /** 错误描述 */
   private final String errorDesc;
+
   /** 错误可能出现的原因 */
   LinkisConfigurationErrorCodeSummary(int errorCode, String errorDesc) {
     ErrorCodeUtils.validateErrorCode(errorCode, 10000, 24999);

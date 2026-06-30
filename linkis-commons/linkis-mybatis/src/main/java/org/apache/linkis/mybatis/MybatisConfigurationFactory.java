@@ -119,6 +119,7 @@ public class MybatisConfigurationFactory {
   public PlatformTransactionManager annotationDrivenTransactionManager() {
     return new DataSourceTransactionManager(dataSource);
   }
+
   //    Log the log to be executed (if you don't want to intercept it, comment out this method)
   //    将要执行的sql进行日志打印(不想拦截，就把这方法注释掉)
   //    @Bean

@@ -49,6 +49,7 @@ public class BmlEngineConnPluginResourceLoader implements EngineConnPluginsResou
       LoggerFactory.getLogger(BmlEngineConnPluginResourceLoader.class);
 
   private static final String LOAD_LOCK_FILE = ".lock-dir";
+
   /** BML client user */
   private String clientUser;
 

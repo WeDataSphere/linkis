@@ -23,7 +23,9 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
-/** @TableName linkis_mg_gateway_auth_token */
+/**
+ * @TableName linkis_mg_gateway_auth_token
+ */
 public interface GatewayAuthTokenMapper extends BaseMapper<GatewayAuthTokenEntity> {
 
   List<GatewayAuthTokenEntity> getListByPage(String searchName);

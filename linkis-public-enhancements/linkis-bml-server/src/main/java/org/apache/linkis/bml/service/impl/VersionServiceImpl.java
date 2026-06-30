@@ -53,6 +53,7 @@ import org.slf4j.LoggerFactory;
 public class VersionServiceImpl implements VersionService {
 
   private static final Logger logger = LoggerFactory.getLogger(VersionServiceImpl.class);
+
   /** When the version is updated, OVER_WRITE is always false */
   private static final boolean OVER_WRITE = false;
 
@@ -191,6 +192,7 @@ public class VersionServiceImpl implements VersionService {
   public List<Version> getVersions(String resourceId) {
     return versionDao.getVersions(resourceId);
   }
+
   //    @Override
   //    public List<Version> getVersions(String resourceId, List<String> versions) {
   //        return versionDao.getVersions(resourceId, versions);

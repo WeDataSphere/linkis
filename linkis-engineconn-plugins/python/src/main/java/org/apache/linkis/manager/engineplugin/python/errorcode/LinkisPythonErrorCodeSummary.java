@@ -23,8 +23,10 @@ public enum LinkisPythonErrorCodeSummary implements LinkisErrorCode {
   PYTHON_EXECUTE_ERROR(60002, ""),
   PYSPARK_PROCESSS_STOPPED(60003, "python process has stopped, query failed!(Python 进程已停止，查询失败！)"),
   INVALID_PYTHON_SESSION(400201, "Invalid python session.(无效的 python 会话.)");
+
   /** 错误码 */
   private final int errorCode;
+
   /** 错误描述 */
   private final String errorDesc;
 

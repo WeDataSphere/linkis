@@ -24,8 +24,10 @@ public enum LinkisIoFileErrorCodeSummary implements LinkisErrorCode {
   FS_CAN_NOT_PROXY_TO(52002, "FS Can not proxy to:{}(FS 不能代理到：{})"),
   NOT_EXISTS_METHOD(53003, "not exists method {} in fs {}(方法不存在)"),
   PARAMETER_CALLS(53003, "Unsupported parameter calls(不支持的参数调用)");
+
   /** 错误码 */
   private final int errorCode;
+
   /** 错误描述 */
   private final String errorDesc;
 

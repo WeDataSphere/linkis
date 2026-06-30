@@ -114,6 +114,7 @@ public class MetadataUtils {
       Thread.currentThread().setContextClassLoader(storeClassLoader);
     }
   }
+
   /**
    * Search meta service class from classloader
    *

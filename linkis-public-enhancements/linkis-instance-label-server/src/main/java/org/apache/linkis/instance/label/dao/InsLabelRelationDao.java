@@ -62,6 +62,7 @@ public interface InsLabelRelationDao {
   List<InstanceInfo> searchUnRelateInstances(InstanceInfo instanceInfo);
 
   List<InstanceInfo> searchLabelRelatedInstances(InstanceInfo instanceInfo);
+
   /**
    * Search labels
    *
@@ -89,6 +90,7 @@ public interface InsLabelRelationDao {
       @Param("instance") String instance, @Param("labelIds") List<Integer> labelIds);
 
   void dropRelationsByInstance(String instance);
+
   /**
    * Insert relationship
    *

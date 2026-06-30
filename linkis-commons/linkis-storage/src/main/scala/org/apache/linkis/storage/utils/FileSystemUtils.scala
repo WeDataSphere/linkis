@@ -113,7 +113,7 @@ object FileSystemUtils extends Logging {
    * @param fileSystem
    * @param dest
    * @param user
-   * @throws
+   *   \@throws
    * @return
    */
   @throws[IOException]
@@ -145,7 +145,7 @@ object FileSystemUtils extends Logging {
    * @param fileSystem
    * @param dest
    * @param user
-   * @throws
+   *   \@throws
    * @return
    */
   @throws[IOException]

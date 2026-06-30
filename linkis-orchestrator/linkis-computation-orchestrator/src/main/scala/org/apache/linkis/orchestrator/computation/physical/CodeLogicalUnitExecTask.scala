@@ -213,7 +213,7 @@ class CodeLogicalUnitExecTask(parents: Array[ExecTask], children: Array[ExecTask
 
   override def verboseString: String =
     s"CodeLogicalUnitExecTask(codes=${codeLogicalUnit.codes.toArray
-      .mkString(";")}, labels=${getLabels.asScala.map(_.getStringValue).mkString("&")})"
+        .mkString(";")}, labels=${getLabels.asScala.map(_.getStringValue).mkString("&")})"
 
   override def initialize(physicalContext: PhysicalContext): Unit = {
     this.physicalContext = physicalContext

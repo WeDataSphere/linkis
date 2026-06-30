@@ -37,67 +37,114 @@ public class RangerBaseModelObject implements java.io.Serializable {
     setIsEnabled(other.getIsEnabled());
   }
 
-  /** @return the id */
+  /**
+   * @return the id
+   */
   public Long getId() {
     return id;
   }
-  /** @param id the id to set */
+
+  /**
+   * @param id the id to set
+   */
   public void setId(Long id) {
     this.id = id;
   }
-  /** @return the guid */
+
+  /**
+   * @return the guid
+   */
   public String getGuid() {
     return guid;
   }
-  /** @param guid the guid to set */
+
+  /**
+   * @param guid the guid to set
+   */
   public void setGuid(String guid) {
     this.guid = guid;
   }
-  /** @return the isEnabled */
+
+  /**
+   * @return the isEnabled
+   */
   public Boolean getIsEnabled() {
     return isEnabled;
   }
-  /** @param isEnabled the isEnabled to set */
+
+  /**
+   * @param isEnabled the isEnabled to set
+   */
   public void setIsEnabled(Boolean isEnabled) {
     this.isEnabled = isEnabled == null ? Boolean.TRUE : isEnabled;
   }
-  /** @return the createdBy */
+
+  /**
+   * @return the createdBy
+   */
   public String getCreatedBy() {
     return createdBy;
   }
-  /** @param createdBy the createdBy to set */
+
+  /**
+   * @param createdBy the createdBy to set
+   */
   public void setCreatedBy(String createdBy) {
     this.createdBy = createdBy;
   }
-  /** @return the updatedBy */
+
+  /**
+   * @return the updatedBy
+   */
   public String getUpdatedBy() {
     return updatedBy;
   }
-  /** @param updatedBy the updatedBy to set */
+
+  /**
+   * @param updatedBy the updatedBy to set
+   */
   public void setUpdatedBy(String updatedBy) {
     this.updatedBy = updatedBy;
   }
-  /** @return the createTime */
+
+  /**
+   * @return the createTime
+   */
   public String getCreateTime() {
     return createTime;
   }
-  /** @param createTime the createTime to set */
+
+  /**
+   * @param createTime the createTime to set
+   */
   public void setCreateTime(String createTime) {
     this.createTime = createTime;
   }
-  /** @return the updateTime */
+
+  /**
+   * @return the updateTime
+   */
   public String getUpdateTime() {
     return updateTime;
   }
-  /** @param updateTime the updateTime to set */
+
+  /**
+   * @param updateTime the updateTime to set
+   */
   public void setUpdateTime(String updateTime) {
     this.updateTime = updateTime;
   }
-  /** @return the version */
+
+  /**
+   * @return the version
+   */
   public Long getVersion() {
     return version;
   }
-  /** @param version the version to set */
+
+  /**
+   * @param version the version to set
+   */
   public void setVersion(Long version) {
     this.version = version;
   }

@@ -134,6 +134,7 @@ public abstract class AbstractGenericLabelBuilder implements ExtensibleLabelBuil
     Map<Class<?>, Type[]> classTypeVariableMap = new HashMap<>();
     return recurseToFindActualLabelValueType(labelType, classTypeVariableMap);
   }
+
   /**
    * Recurse to find label's value type
    *

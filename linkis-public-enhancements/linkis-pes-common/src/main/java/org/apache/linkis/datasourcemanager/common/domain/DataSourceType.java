@@ -28,16 +28,22 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class DataSourceType {
 
   private String id;
+
   /** Name */
   private String name;
+
   /** Description */
   private String description;
+
   /** The display name of the type */
   private String option;
+
   /** classifier */
   private String classifier;
+
   /** Icon url */
   private String icon;
+
   /**
    * Tells the user the number of levels for the datasource eg: for mysql/hive/presto datasource:
    * (datasource) --> database --> tables --> column 3 for kafka datasource: (datasource) --> topic

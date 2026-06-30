@@ -30,6 +30,7 @@ import java.security.MessageDigest;
 
 public class CryptoUtils {
   private CryptoUtils() {}
+
   /**
    * The serialized object is a string character
    *

@@ -34,7 +34,8 @@ public class CSDB implements DB {
 
   public static DB build() {
     return null;
-  };
+  }
+  ;
 
   @Override
   @KeywordMethod

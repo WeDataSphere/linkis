@@ -323,10 +323,7 @@ public class DefaultLabelManagerPersistence implements LabelManagerPersistence {
         PersistenceUtils.setValue(persistenceLabel);
         arrays.add(new Tunple(persistenceLabel, serviceInstance));
       }
-      return arrays.stream()
-          .collect(Collectors.groupingBy(Tunple::getKey))
-          .entrySet()
-          .stream()
+      return arrays.stream().collect(Collectors.groupingBy(Tunple::getKey)).entrySet().stream()
           .collect(
               Collectors.toMap(
                   Map.Entry::getKey,

@@ -187,7 +187,8 @@ public class DefaultInsLabelService implements InsLabelAccessService {
   @Override
   public List<ServiceInstance> searchLabelRelatedInstances(ServiceInstance serviceInstance) {
     if (null != serviceInstance) {
-      return insLabelRelationDao.searchLabelRelatedInstances(new InstanceInfo(serviceInstance))
+      return insLabelRelationDao
+          .searchLabelRelatedInstances(new InstanceInfo(serviceInstance))
           .stream()
           .map(instanceInfo -> (ServiceInstance) instanceInfo)
           .collect(Collectors.toList());

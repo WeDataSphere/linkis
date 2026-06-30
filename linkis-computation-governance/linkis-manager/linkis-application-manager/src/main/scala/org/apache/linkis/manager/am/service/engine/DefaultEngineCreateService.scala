@@ -346,12 +346,12 @@ class DefaultEngineCreateService
       ensureECAvailable(engineNode, resourceTicketId, leftWaitTime)
       logger.info(
         s"Task: $taskId finished to create Engine for request: $engineCreateRequest and get engineNode $engineNode. time taken ${System
-          .currentTimeMillis() - startTime}ms"
+            .currentTimeMillis() - startTime}ms"
       )
     } else {
       logger.info(
         s"Task: $taskId finished to create Engine for request: $engineCreateRequest and get engineNode $engineNode.And did not judge the availability,time taken ${System
-          .currentTimeMillis() - startTime}ms"
+            .currentTimeMillis() - startTime}ms"
       )
     }
     engineNode

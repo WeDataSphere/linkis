@@ -35,7 +35,8 @@ public class UDFInfo {
   private Boolean isLoad;
   private String description;
 
-  public UDFInfo() {};
+  public UDFInfo() {}
+  ;
 
   public UDFInfo(
       Long id,

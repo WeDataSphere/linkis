@@ -46,6 +46,7 @@ public interface InsLabelAccessService {
    */
   void refreshLabelsToInstance(List<? extends Label<?>> labels, ServiceInstance serviceInstance)
       throws InstanceErrorException;
+
   /**
    * Remove all relationship between label and instance
    *
@@ -84,6 +85,7 @@ public interface InsLabelAccessService {
    * @return
    */
   List<ServiceInstance> searchLabelRelatedInstances(ServiceInstance serviceInstance);
+
   /**
    * Remove labels
    *

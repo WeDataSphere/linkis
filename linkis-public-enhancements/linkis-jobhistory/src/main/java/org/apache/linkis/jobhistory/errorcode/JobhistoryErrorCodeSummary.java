@@ -26,6 +26,7 @@ public enum JobhistoryErrorCodeSummary implements LinkisErrorCode {
 
   /** (errorCode)错误码 */
   private final int errorCode;
+
   /** (errorDesc)错误描述 */
   private final String errorDesc;
 

@@ -21,6 +21,7 @@ import org.apache.linkis.cs.common.entity.source.ContextValue;
 
 public class AContextValue implements ContextValue {
   private String keywords = "value keywords;";
+
   /** 序列化后的value */
   private Object value = "value";
 

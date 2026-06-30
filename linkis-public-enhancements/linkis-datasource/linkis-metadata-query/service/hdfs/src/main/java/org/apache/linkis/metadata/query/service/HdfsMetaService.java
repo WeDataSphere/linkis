@@ -41,6 +41,7 @@ public class HdfsMetaService extends AbstractFsMetaService<HdfsConnection> {
   private static final Logger LOG = LoggerFactory.getLogger(HdfsMetaService.class);
 
   private static final String PARAM_FILTER_RULE = "filter";
+
   /** Filter rules */
   private static final CommonVars<String> DEFAULT_FILTER_RULES =
       CommonVars.apply(

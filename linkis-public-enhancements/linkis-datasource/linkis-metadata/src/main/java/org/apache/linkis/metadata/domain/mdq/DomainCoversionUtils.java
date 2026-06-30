@@ -135,8 +135,7 @@ public class DomainCoversionUtils {
 
   public static List<MdqTableFieldsInfoVO> normalColumnListToMdqTableFieldsInfoVOList(
       List<Map<String, Object>> columns) {
-    return columns
-        .parallelStream()
+    return columns.parallelStream()
         .map(DomainCoversionUtils::normalColumnToMdqTableFieldsInfoVO)
         .collect(Collectors.toList());
   }
@@ -154,8 +153,7 @@ public class DomainCoversionUtils {
 
   public static List<MdqTableFieldsInfoVO> partitionColumnListToMdqTableFieldsInfoVOList(
       List<Map<String, Object>> partitionKeys) {
-    return partitionKeys
-        .parallelStream()
+    return partitionKeys.parallelStream()
         .map(DomainCoversionUtils::partitionColumnToMdqTableFieldsInfoVO)
         .collect(Collectors.toList());
   }

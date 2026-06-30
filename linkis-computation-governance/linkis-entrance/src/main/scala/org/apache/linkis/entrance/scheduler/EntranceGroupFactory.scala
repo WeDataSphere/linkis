@@ -104,7 +104,7 @@ class EntranceGroupFactory extends GroupFactory with Logging {
         if (specifiedUsernameRegexPattern.matcher(userCreatorLabel.getUser).find()) {
           logger.info(
             s"Set maxCapacity of user ${userCreatorLabel.getUser} to specifiedMaxCapacity : ${GROUP_SPECIFIED_USER_MAX_CAPACITY
-              .getValue(keyAndValue)}"
+                .getValue(keyAndValue)}"
           )
           GROUP_SPECIFIED_USER_MAX_CAPACITY.getValue(keyAndValue)
         } else {

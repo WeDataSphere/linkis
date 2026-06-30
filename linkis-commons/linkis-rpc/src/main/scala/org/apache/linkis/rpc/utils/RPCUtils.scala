@@ -57,7 +57,7 @@ object RPCUtils {
         //        case client: ClientException =>
         case client: RetryableStatusCodeException =>
           StringUtils.isNotBlank(client.getMessage) &&
-            client.getMessage.contains("Load balancer does not have available server for client")
+          client.getMessage.contains("Load balancer does not have available server for client")
         case _ => false
       }
     case _ => false

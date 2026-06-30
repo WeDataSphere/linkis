@@ -91,17 +91,23 @@ public class JobBase {
     isHCatJob = options.getHCatTableName() != null;
   }
 
-  /** @return the mapper class to use for the job. */
+  /**
+   * @return the mapper class to use for the job.
+   */
   protected Class<? extends Mapper> getMapperClass() throws ClassNotFoundException {
     return this.mapperClass;
   }
 
-  /** @return the inputformat class to use for the job. */
+  /**
+   * @return the inputformat class to use for the job.
+   */
   protected Class<? extends InputFormat> getInputFormatClass() throws ClassNotFoundException {
     return this.inputFormatClass;
   }
 
-  /** @return the outputformat class to use for the job. */
+  /**
+   * @return the outputformat class to use for the job.
+   */
   protected Class<? extends OutputFormat> getOutputFormatClass() throws ClassNotFoundException {
     return this.outputFormatClass;
   }
@@ -335,7 +341,9 @@ public class JobBase {
     Sqoop.job.set(job);
   }
 
-  /** @return the main MapReduce job that is being run, or null if no job has started. */
+  /**
+   * @return the main MapReduce job that is being run, or null if no job has started.
+   */
   public Job getJob() {
     return mrJob;
   }

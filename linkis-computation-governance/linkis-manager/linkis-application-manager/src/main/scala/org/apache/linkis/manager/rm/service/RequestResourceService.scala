@@ -262,7 +262,7 @@ abstract class RequestResourceService(labelResourceService: LabelResourceService
         )
       }
       logger.debug(s"Passed check: resource[${requestResource}] want to use em ${emInstanceLabel
-        .getInstance()}  available resource[${labelAvailableResource}]")
+          .getInstance()}  available resource[${labelAvailableResource}]")
       true
     } else {
       logger.warn(s"No resource available found for em ${emInstanceLabel.getInstance()} ")

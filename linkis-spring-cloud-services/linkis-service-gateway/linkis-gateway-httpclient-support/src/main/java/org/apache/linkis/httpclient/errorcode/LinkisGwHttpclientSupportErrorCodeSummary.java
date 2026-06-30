@@ -27,8 +27,10 @@ public enum LinkisGwHttpclientSupportErrorCodeSummary implements LinkisErrorCode
       10901,
       "cannot use token authentication, since no user is found to proxy(无法使用令牌 token 身份验证，因为找不到代理用户)"),
   CLIENTCONFIG_MUST(10901, "ClientConfig must specify the DWS version(ClientConfig必须指定DWS版本)");
+
   /** 错误码 */
   private final int errorCode;
+
   /** 错误描述 */
   private final String errorDesc;
 

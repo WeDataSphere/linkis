@@ -219,7 +219,9 @@ public class LinkisSqoopClient {
      * @throws ErrorException error exception
      */
     T operate()
-        throws ErrorException, NoSuchMethodException, InvocationTargetException,
+        throws ErrorException,
+            NoSuchMethodException,
+            InvocationTargetException,
             IllegalAccessException;
   }
 }

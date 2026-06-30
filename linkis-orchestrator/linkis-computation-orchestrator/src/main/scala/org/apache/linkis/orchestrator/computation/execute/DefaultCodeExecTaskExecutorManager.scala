@@ -84,7 +84,7 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
       } match {
         case Some(e) =>
           logger.info(s"Finished to askExecutor for execId ${execTask
-            .getIDInfo()}, wait ${System.currentTimeMillis() - startTime}")
+              .getIDInfo()}, wait ${System.currentTimeMillis() - startTime}")
           executor = Option(e)
         case _ =>
           if (System.currentTimeMillis - startTime < wait.toMillis) {
@@ -115,7 +115,7 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
     if (null != executeOnceLabel && null != loadBalanceLabel) {
       throw new OrchestratorLabelConflictException(
         s"ExecuteOnceLabel : ${markReq.getLabels.get(LabelKeyConstant.EXECUTE_ONCE_KEY)} should not come with LoadBalanceLabel : ${markReq.getLabels
-          .get(LabelKeyConstant.LOAD_BALANCE_KEY)}"
+            .get(LabelKeyConstant.LOAD_BALANCE_KEY)}"
       )
     }
 
@@ -124,13 +124,13 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
     markReq.setCreateService(markReq.getCreateService + s"mark_id: ${mark.getMarkId()}")
     // getEngineConn Executor
     logger.info(s"create Executor for execId ${execTask.getIDInfo()} mark id is ${mark
-      .getMarkId()}, user ${mark.getMarkReq.getUser}")
+        .getMarkId()}, user ${mark.getMarkReq.getUser}")
     execTask.getPhysicalContext.pushLog(
       TaskLogEvent(
         execTask,
         LogUtils.generateInfo(
           "Background is starting a new engine for you(您的任务正在请求引擎中，请耐心等待)" + s", execId ${execTask
-            .getIDInfo()} mark id is ${mark.getMarkId()}"
+              .getIDInfo()} mark id is ${mark.getMarkId()}"
         )
       )
     )
@@ -143,7 +143,7 @@ class DefaultCodeExecTaskExecutorManager extends CodeExecTaskExecutorManager wit
       execTaskToExecutor.put(execTask.getId, codeExecTaskExecutor)
     }
     logger.info(s"Finished to create Executor for execId ${execTask.getIDInfo()} mark id is ${mark
-      .getMarkId()}, user ${mark.getMarkReq.getUser}")
+        .getMarkId()}, user ${mark.getMarkReq.getUser}")
     codeExecTaskExecutor
   }
 

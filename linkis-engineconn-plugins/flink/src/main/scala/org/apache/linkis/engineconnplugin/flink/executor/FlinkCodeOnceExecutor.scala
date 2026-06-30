@@ -66,7 +66,7 @@ class FlinkCodeOnceExecutor(
           throw new FlinkInitFailedException(SQL_CODE_EMPTY.getErrorDesc)
         }
         logger.info(s"Ready to submit flink application, sql is: ${CodeUtils
-          .maskCode(codes, EngineType.FLINK.toString() + "-SQL")}.")
+            .maskCode(codes, EngineType.FLINK.toString() + "-SQL")}.")
         val variableMap =
           if (onceExecutorExecutionContext.getOnceExecutorContent.getVariableMap != null) {
             onceExecutorExecutionContext.getOnceExecutorContent.getVariableMap

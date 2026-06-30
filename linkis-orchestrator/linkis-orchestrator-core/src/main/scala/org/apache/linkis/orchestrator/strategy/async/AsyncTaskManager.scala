@@ -127,7 +127,7 @@ class AsyncTaskManager
           val engineType: String = LabelUtil.getEngineTypeLabel(labels).getEngineType
           val errLog = LogUtils.generateERROR(
             s"Your job : ${execTask.getIDInfo()} was failed because the ${engineType} engine quitted unexpectedly(任务${execTask
-              .getIDInfo()}失败，" +
+                .getIDInfo()}失败，" +
               s"原因是引擎意外退出,可能是复杂任务导致引擎退出，如OOM)."
           )
           val logEvent = TaskLogEvent(execTask, errLog)

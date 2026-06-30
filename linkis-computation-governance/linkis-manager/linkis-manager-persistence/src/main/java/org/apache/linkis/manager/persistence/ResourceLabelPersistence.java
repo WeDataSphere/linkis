@@ -67,6 +67,8 @@ public interface ResourceLabelPersistence {
    */
   void removeResourceByLabel(PersistenceLabel label) throws PersistenceErrorException;
 
-  /** @param labels */
+  /**
+   * @param labels
+   */
   void removeResourceByLabels(List<PersistenceLabel> labels);
 }

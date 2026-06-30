@@ -147,7 +147,7 @@ class DefaultIOClient extends IOClient with Logging {
       case o =>
         val msg =
           s"IO_FILE job : ${jobReq.getId} failed to execute code : ${methodEntity}, return a unknown response : ${BDPJettyServerHelper.gson
-            .toJson(o)}"
+              .toJson(o)}"
         logger.warn(msg)
         throw new StorageErrorException(IOFileClientConf.IO_EXECUTE_UNKNOWN_REASON_CODE, msg)
     }

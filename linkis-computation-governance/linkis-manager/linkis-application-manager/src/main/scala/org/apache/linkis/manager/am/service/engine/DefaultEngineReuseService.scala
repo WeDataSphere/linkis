@@ -121,7 +121,7 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
    *      labels 3. Select the EC with the lowest load available 4. Lock the corresponding EC
    * @param engineReuseRequest
    * @param sender
-   * @throws
+   *   \@throws
    * @return
    */
   @Receiver
@@ -369,7 +369,7 @@ class DefaultEngineReuseService extends AbstractEngineService with EngineReuseSe
     }
     logger.info(
       s"Finished to reuse Engine for request: $engineReuseRequest get EngineNode $engine, time taken ${System
-        .currentTimeMillis() - startTime}"
+          .currentTimeMillis() - startTime}"
     )
     val engineServiceLabelList =
       instances.asScala.filter(kv => kv._1.getServiceInstance.equals(engine.getServiceInstance))

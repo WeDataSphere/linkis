@@ -28,7 +28,7 @@ trait PersistenceEngine extends Closeable with Flushable {
   /**
    * 持久化JobRequest
    * @param jobReq
-   * @throws
+   *   \@throws
    */
   @throws[ErrorException]
   def persist(jobReq: JobRequest): Unit

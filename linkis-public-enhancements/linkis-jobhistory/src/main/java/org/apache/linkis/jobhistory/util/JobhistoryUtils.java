@@ -48,7 +48,8 @@ public class JobhistoryUtils {
       "JobID,Source,Execution Code,Status,Time Elapsed,Key Information,IsRuse,Application Start Time,Application End Time,Application Takes Time,App /Run Type/Engine,User,Created at";
   private static Sender sender =
       Sender.getSender(
-          Configuration.CLOUD_CONSOLE_CONFIGURATION_SPRING_APPLICATION_NAME().getValue());;
+          Configuration.CLOUD_CONSOLE_CONFIGURATION_SPRING_APPLICATION_NAME().getValue());
+  ;
 
   public static final String shellPath = Configuration.getLinkisHome() + "/admin/";
   public static final String analyzeFilePath = "tools/linkis-analyze.sh";
@@ -150,6 +151,7 @@ public class JobhistoryUtils {
     }
     return departmentId;
   }
+
   // 创建单元格的方法
   private static void createCell(Row row, int columnIndex, Object value) {
     Cell cell = row.createCell(columnIndex);

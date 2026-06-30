@@ -30,6 +30,7 @@ public class LinkisClientRuntimeException extends RuntimeException {
 
   /** 异常描述 */
   private String msg;
+
   /** 扩展异常描述（包括msg） */
   private String extMsg;
 

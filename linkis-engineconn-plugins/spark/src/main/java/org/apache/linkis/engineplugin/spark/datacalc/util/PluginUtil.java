@@ -81,27 +81,35 @@ public class PluginUtil {
 
   public static <T extends SourceConfig> DataCalcSource<T> createSource(
       String name, JsonElement config)
-      throws InstantiationException, IllegalAccessException, InvocationTargetException,
+      throws InstantiationException,
+          IllegalAccessException,
+          InvocationTargetException,
           NoSuchMethodException {
     return createPlugin(SOURCE_PLUGINS, name, config);
   }
 
   public static <T extends TransformConfig> DataCalcTransform<T> createTransform(
       String name, JsonElement config)
-      throws InstantiationException, IllegalAccessException, InvocationTargetException,
+      throws InstantiationException,
+          IllegalAccessException,
+          InvocationTargetException,
           NoSuchMethodException {
     return createPlugin(TRANSFORM_PLUGINS, name, config);
   }
 
   public static <T extends SinkConfig> DataCalcSink<T> createSink(String name, JsonElement config)
-      throws InstantiationException, IllegalAccessException, InvocationTargetException,
+      throws InstantiationException,
+          IllegalAccessException,
+          InvocationTargetException,
           NoSuchMethodException {
     return createPlugin(SINK_PLUGINS, name, config);
   }
 
   static <T extends DataCalcPlugin> T createPlugin(
       Map<String, Class<?>> pluginMap, String name, JsonElement config)
-      throws InstantiationException, IllegalAccessException, NoSuchMethodException,
+      throws InstantiationException,
+          IllegalAccessException,
+          NoSuchMethodException,
           InvocationTargetException {
     Class<?> type = pluginMap.get(name);
     ParameterizedType genericSuperclass = (ParameterizedType) type.getGenericInterfaces()[0];

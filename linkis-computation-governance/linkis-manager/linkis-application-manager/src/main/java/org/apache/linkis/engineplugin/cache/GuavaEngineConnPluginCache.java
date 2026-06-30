@@ -43,6 +43,7 @@ public class GuavaEngineConnPluginCache implements RefreshableEngineConnPluginCa
   private Cache<String, EngineConnPluginInstance> pluginCache;
 
   private PluginCacheRefresher refresher;
+
   /** Refresh container */
   private RefreshPluginCacheContainer refreshContainer;
 

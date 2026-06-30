@@ -48,7 +48,9 @@ import org.slf4j.LoggerFactory;
 @Plugin(name = "Send", category = "Core", elementType = "appender", printObject = true)
 public class SendAppender extends AbstractAppender {
 
-  /** @fields serialVersionUID */
+  /**
+   * @fields serialVersionUID
+   */
   private static final long serialVersionUID = -830237775522429777L;
 
   private static EngineConnSyncListenerBus engineConnSyncListenerBus =

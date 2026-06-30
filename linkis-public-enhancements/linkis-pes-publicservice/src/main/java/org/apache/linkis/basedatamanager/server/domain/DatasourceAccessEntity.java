@@ -26,7 +26,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** @TableName linkis_ps_datasource_access */
+/**
+ * @TableName linkis_ps_datasource_access
+ */
 @TableName(value = "linkis_ps_datasource_access")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class DatasourceAccessEntity implements Serializable {

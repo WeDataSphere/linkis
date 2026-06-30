@@ -156,7 +156,10 @@ public class PluginFactory<ENVIRONMENT extends RuntimeEnv> {
 
   Optional<String> getPluginMappingValue(Config pluginMapping, PluginType type, String pluginName) {
 
-    return pluginMapping.getConfig(this.engineType.getEngine()).getConfig(type.getType()).entrySet()
+    return pluginMapping
+        .getConfig(this.engineType.getEngine())
+        .getConfig(type.getType())
+        .entrySet()
         .stream()
         .filter(entry -> entry.getKey().equalsIgnoreCase(pluginName))
         .map(entry -> entry.getValue().unwrapped().toString())

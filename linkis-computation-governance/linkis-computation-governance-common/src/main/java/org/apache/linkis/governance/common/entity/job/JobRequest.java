@@ -46,6 +46,7 @@ public class JobRequest {
   private Date createdTime;
   private Date updatedTime;
   private String instances;
+
   /** result location */
   private String resultLocation;
 

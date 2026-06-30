@@ -26,6 +26,7 @@ public class PersistenceNode {
   private String owner;
 
   private String mark;
+
   /** identifier if mark equals "process", then identifier equals pid */
   private String identifier;
 

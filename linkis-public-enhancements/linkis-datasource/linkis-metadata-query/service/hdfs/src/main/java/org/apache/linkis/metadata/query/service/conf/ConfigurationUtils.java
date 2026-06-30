@@ -39,6 +39,7 @@ public class ConfigurationUtils {
 
   private static final CommonVars<String> CONFIG_VIEWFS_LINK_NFLY =
       CommonVars.apply("wds.linkis.server.mdm.hadoop.conf.link.nfly", "linkNfly");
+
   /** Placeholder */
   private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("<[^>]*?>");
 

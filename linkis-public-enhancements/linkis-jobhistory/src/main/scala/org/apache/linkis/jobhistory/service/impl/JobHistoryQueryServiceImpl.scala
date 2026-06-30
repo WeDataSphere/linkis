@@ -695,7 +695,7 @@ class JobHistoryQueryServiceImpl extends JobHistoryQueryService with Logging {
 
               logger.info(s"""Merged metrics for job ${jobReq.getId}:
                  |added ${requestMetrics.size()} new entries to ${oldMetricsMap
-                .size()} existing entries""".stripMargin)
+                  .size()} existing entries""".stripMargin)
             }
           }
         }

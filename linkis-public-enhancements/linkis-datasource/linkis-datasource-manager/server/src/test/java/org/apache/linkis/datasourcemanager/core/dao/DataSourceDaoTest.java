@@ -44,6 +44,7 @@ class DataSourceDaoTest extends BaseDaoTest {
   private static final Logger logger = LoggerFactory.getLogger(DataSourceDaoTest.class);
 
   @Autowired DataSourceDao dataSourceDao;
+
   /**
    * User-created test data, if it is an auto-increment id, it should not be assigned CURD should be
    * based on the data created by this method insert

@@ -33,6 +33,7 @@ public class MetaPartitionInfo implements Serializable {
   private List<String> partKeys = new ArrayList<>();
 
   private String name;
+
   /** Partition tree */
   private PartitionNode root;
 
@@ -41,6 +42,7 @@ public class MetaPartitionInfo implements Serializable {
   public static class PartitionNode {
     /** Node name */
     private String name;
+
     /** Key: partition value Value: child partition node */
     private Map<String, PartitionNode> partitions = new HashMap<>();
 

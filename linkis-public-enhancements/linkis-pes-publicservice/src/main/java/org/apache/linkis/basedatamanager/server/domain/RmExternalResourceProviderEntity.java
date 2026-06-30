@@ -24,7 +24,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** @TableName linkis_mg_gateway_auth_token */
+/**
+ * @TableName linkis_mg_gateway_auth_token
+ */
 @TableName("linkis_cg_rm_external_resource_provider")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RmExternalResourceProviderEntity implements Serializable {

@@ -24,6 +24,7 @@ public class DownloadModel {
   private Date startTime;
   private Date endTime;
   private String clientIp;
+
   /** state 表示下载是否成功 0 表示成功 1 表示失败 */
   private Integer state;
 

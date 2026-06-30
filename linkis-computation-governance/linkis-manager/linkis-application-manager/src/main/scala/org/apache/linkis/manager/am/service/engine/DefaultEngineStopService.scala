@@ -106,7 +106,7 @@ class DefaultEngineStopService extends AbstractEngineService with EngineStopServ
 
     logger.info(
       s"try to kill engine with engineInstance: ${engineStopRequest.getServiceInstance},user:${engineStopRequest.getUser},engineType:${LabelUtil
-        .getEngineType(labels)}"
+          .getEngineType(labels)}"
     )
     // 1. request em to kill ec
     logger.info(s"Start to kill engine invoke enginePointer ${node.getServiceInstance}")

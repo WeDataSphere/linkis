@@ -31,6 +31,7 @@ public class InstanceInfo extends ServiceInstance {
   private Date updateTime;
 
   private Date createTime;
+
   /** Labels related */
   private List<InsPersistenceLabel> labels = new ArrayList<>();
 

@@ -139,6 +139,7 @@ public class HiveConnection implements Closeable {
       throw e;
     }
   }
+
   /**
    * Get Hive client(Hive object)
    *

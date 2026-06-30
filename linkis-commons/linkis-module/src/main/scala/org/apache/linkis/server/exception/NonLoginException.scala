@@ -16,6 +16,7 @@
  */
 
 package org.apache.linkis.server.exception
+
 import org.apache.linkis.errorcode.LinkisModuleErrorCodeSummary._
 
 class NonLoginException(message: String)

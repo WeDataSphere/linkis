@@ -36,6 +36,7 @@ public interface VersionService {
   List<ResourceVersion> getResourcesVersions(Map paramMap);
 
   List<ResourceVersion> getAllResourcesViaSystem(String system, String user);
+
   // 分页查询VResourcesViaSystem
   public List<ResourceVersion> selectResourcesViaSystemByPage(
       int currentPage, int pageSize, String system, String user);

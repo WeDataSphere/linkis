@@ -94,9 +94,9 @@ class PruneTaskRetryTransform extends ReheaterTransform with Logging {
                       LogUtils.generateWarn(
                         s"Retry task construction failed, start to restore task node, task node: ${task.getIDInfo}, " +
                           s"age: ${task match {
-                            case retryExecTask: RetryExecTask => retryExecTask.getAge()
-                            case _ => 0
-                          }}, reason: ${e.getMessage}"
+                              case retryExecTask: RetryExecTask => retryExecTask.getAge()
+                              case _ => 0
+                            }}, reason: ${e.getMessage}"
                       )
                     )
                     logger.error(s"Failed to retry task ${task.getIDInfo()}", e)

@@ -35,6 +35,7 @@ public class FlinkSqlStarter implements Starter {
   private static final String CLASS_NAME = SeatunnelSql.class.getName();
 
   private final FlinkCommandArgs flinkCommandArgs;
+
   /** SeaTunnel flink sql job jar. */
   private final String appJar;
 

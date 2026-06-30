@@ -65,6 +65,7 @@ public interface MetadataQueryService {
   Map<String, String> getTablePropsByDsId(
       String dataSourceId, String database, String table, String system, String userName)
       throws ErrorException;
+
   /**
    * @param dataSourceId data source i
    * @param database database
@@ -178,6 +179,7 @@ public interface MetadataQueryService {
   Map<String, String> getTablePropsByDsName(
       String dataSourceName, String database, String table, String system, String userName)
       throws ErrorException;
+
   /**
    * @param dataSourceName data source name
    * @param database database

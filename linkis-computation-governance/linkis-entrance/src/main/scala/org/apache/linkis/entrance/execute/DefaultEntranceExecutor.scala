@@ -148,7 +148,7 @@ class DefaultEntranceExecutor(id: Long)
             entranceExecuteRequest.getJob,
             LogUtils.generateInfo(
               s"Congratulations! Your job : ${entranceExecuteRequest.getJob.getId} executed with status succeed and ${entranceExecuteRequest.getJob
-                .addAndGetResultSize(0)} results."
+                  .addAndGetResultSize(0)} results."
             )
           )
         )

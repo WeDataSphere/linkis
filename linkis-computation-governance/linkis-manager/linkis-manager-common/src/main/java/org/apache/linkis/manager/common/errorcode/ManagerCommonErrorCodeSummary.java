@@ -56,8 +56,10 @@ public enum ManagerCommonErrorCodeSummary implements LinkisErrorCode {
   ONLY_ADMIN_READ(120010, "Only admin can read all user's resource.(只有管理员可以读取所有用户的资源.)"),
   ONLY_ADMIN_RESET(120011, "Only admin can reset user's resource.(只有管理员可以重置用户的资源.)"),
   RESOURCE_LATER_ERROR(120012, "This label not support resurce operation: ");
+
   /** (errorCode)错误码 */
   private final int errorCode;
+
   /** (errorDesc)错误描述 */
   private final String errorDesc;
 

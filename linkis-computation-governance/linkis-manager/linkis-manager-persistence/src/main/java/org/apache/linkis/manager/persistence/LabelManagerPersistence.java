@@ -30,6 +30,7 @@ public interface LabelManagerPersistence {
 
   List<PersistenceLabelRel> getLabelByPattern(
       String labelValuePattern, String labelKey, Integer page, Integer size);
+
   // 插入标签
   void addLabel(PersistenceLabel persistenceLabel);
 

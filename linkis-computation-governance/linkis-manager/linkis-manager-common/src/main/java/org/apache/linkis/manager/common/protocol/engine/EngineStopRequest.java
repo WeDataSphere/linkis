@@ -26,8 +26,10 @@ public class EngineStopRequest implements EngineRequest, RequestMethod {
   private String logDirSuffix;
   private String engineType;
   private String user;
+
   /** identifierType, Reserved for ec containerized startup scenarios */
   private String identifierType;
+
   /** identifier */
   private String identifier;
 

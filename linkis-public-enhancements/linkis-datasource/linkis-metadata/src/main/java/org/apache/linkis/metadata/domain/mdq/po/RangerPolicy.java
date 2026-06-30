@@ -108,73 +108,101 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     setPolicyLabels(policyLables);
   }
 
-  /** @return the type */
+  /**
+   * @return the type
+   */
   public String getService() {
     return service;
   }
 
-  /** @param service the type to set */
+  /**
+   * @param service the type to set
+   */
   public void setService(String service) {
     this.service = service;
   }
 
-  /** @return the name */
+  /**
+   * @return the name
+   */
   public String getName() {
     return name;
   }
 
-  /** @param name the name to set */
+  /**
+   * @param name the name to set
+   */
   public void setName(String name) {
     this.name = name;
   }
 
-  /** @return the policyType */
+  /**
+   * @return the policyType
+   */
   public Integer getPolicyType() {
     return policyType;
   }
 
-  /** @param policyType the policyType to set */
+  /**
+   * @param policyType the policyType to set
+   */
   public void setPolicyType(Integer policyType) {
     this.policyType = policyType;
   }
 
-  /** @return the policyPriority */
+  /**
+   * @return the policyPriority
+   */
   public Integer getPolicyPriority() {
     return policyPriority;
   }
 
-  /** @param policyPriority the policyPriority to set */
+  /**
+   * @param policyPriority the policyPriority to set
+   */
   public void setPolicyPriority(Integer policyPriority) {
     this.policyPriority =
         policyPriority == null ? RangerPolicy.POLICY_PRIORITY_NORMAL : policyPriority;
   }
 
-  /** @return the description */
+  /**
+   * @return the description
+   */
   public String getDescription() {
     return description;
   }
 
-  /** @param description the description to set */
+  /**
+   * @param description the description to set
+   */
   public void setDescription(String description) {
     this.description = description;
   }
 
-  /** @return the resourceSignature */
+  /**
+   * @return the resourceSignature
+   */
   public String getResourceSignature() {
     return resourceSignature;
   }
 
-  /** @param resourceSignature the resourceSignature to set */
+  /**
+   * @param resourceSignature the resourceSignature to set
+   */
   public void setResourceSignature(String resourceSignature) {
     this.resourceSignature = resourceSignature;
   }
 
-  /** @return the isAuditEnabled */
+  /**
+   * @return the isAuditEnabled
+   */
   public Boolean getIsAuditEnabled() {
     return isAuditEnabled;
   }
 
-  /** @param isAuditEnabled the isEnabled to set */
+  /**
+   * @param isAuditEnabled the isEnabled to set
+   */
   public void setIsAuditEnabled(Boolean isAuditEnabled) {
     this.isAuditEnabled = isAuditEnabled == null ? Boolean.TRUE : isAuditEnabled;
   }
@@ -207,12 +235,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     }
   }
 
-  /** @return the resources */
+  /**
+   * @return the resources
+   */
   public Map<String, RangerPolicyResource> getResources() {
     return resources;
   }
 
-  /** @param resources the resources to set */
+  /**
+   * @param resources the resources to set
+   */
   public void setResources(Map<String, RangerPolicyResource> resources) {
     if (this.resources == null) {
       this.resources = new HashMap<>();
@@ -231,12 +263,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     }
   }
 
-  /** @return the policyItems */
+  /**
+   * @return the policyItems
+   */
   public List<RangerPolicyItem> getPolicyItems() {
     return policyItems;
   }
 
-  /** @param policyItems the policyItems to set */
+  /**
+   * @param policyItems the policyItems to set
+   */
   public void setPolicyItems(List<RangerPolicyItem> policyItems) {
     if (this.policyItems == null) {
       this.policyItems = new ArrayList<>();
@@ -253,12 +289,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     }
   }
 
-  /** @return the denyPolicyItems */
+  /**
+   * @return the denyPolicyItems
+   */
   public List<RangerPolicyItem> getDenyPolicyItems() {
     return denyPolicyItems;
   }
 
-  /** @param denyPolicyItems the denyPolicyItems to set */
+  /**
+   * @param denyPolicyItems the denyPolicyItems to set
+   */
   public void setDenyPolicyItems(List<RangerPolicyItem> denyPolicyItems) {
     if (this.denyPolicyItems == null) {
       this.denyPolicyItems = new ArrayList<>();
@@ -275,12 +315,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     }
   }
 
-  /** @return the allowExceptions */
+  /**
+   * @return the allowExceptions
+   */
   public List<RangerPolicyItem> getAllowExceptions() {
     return allowExceptions;
   }
 
-  /** @param allowExceptions the allowExceptions to set */
+  /**
+   * @param allowExceptions the allowExceptions to set
+   */
   public void setAllowExceptions(List<RangerPolicyItem> allowExceptions) {
     if (this.allowExceptions == null) {
       this.allowExceptions = new ArrayList<>();
@@ -297,12 +341,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
     }
   }
 
-  /** @return the denyExceptions */
+  /**
+   * @return the denyExceptions
+   */
   public List<RangerPolicyItem> getDenyExceptions() {
     return denyExceptions;
   }
 
-  /** @param denyExceptions the denyExceptions to set */
+  /**
+   * @param denyExceptions the denyExceptions to set
+   */
   public void setDenyExceptions(List<RangerPolicyItem> denyExceptions) {
     if (this.denyExceptions == null) {
       this.denyExceptions = new ArrayList<>();
@@ -408,12 +456,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setIsRecursive(isRecursive);
     }
 
-    /** @return the values */
+    /**
+     * @return the values
+     */
     public List<String> getValues() {
       return values;
     }
 
-    /** @param values the values to set */
+    /**
+     * @param values the values to set
+     */
     public void setValues(List<String> values) {
       if (this.values == null) {
         this.values = new ArrayList<>();
@@ -430,7 +482,9 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       }
     }
 
-    /** @param value the value to set */
+    /**
+     * @param value the value to set
+     */
     public void setValue(String value) {
       if (this.values == null) {
         this.values = new ArrayList<>();
@@ -441,22 +495,30 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       this.values.add(value);
     }
 
-    /** @return the isExcludes */
+    /**
+     * @return the isExcludes
+     */
     public Boolean getIsExcludes() {
       return isExcludes;
     }
 
-    /** @param isExcludes the isExcludes to set */
+    /**
+     * @param isExcludes the isExcludes to set
+     */
     public void setIsExcludes(Boolean isExcludes) {
       this.isExcludes = isExcludes == null ? Boolean.FALSE : isExcludes;
     }
 
-    /** @return the isRecursive */
+    /**
+     * @return the isRecursive
+     */
     public Boolean getIsRecursive() {
       return isRecursive;
     }
 
-    /** @param isRecursive the isRecursive to set */
+    /**
+     * @param isRecursive the isRecursive to set
+     */
     public void setIsRecursive(Boolean isRecursive) {
       this.isRecursive = isRecursive == null ? Boolean.FALSE : isRecursive;
     }
@@ -488,11 +550,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setDelegateAdmin(delegateAdmin);
     }
 
-    /** @return the accesses */
+    /**
+     * @return the accesses
+     */
     public List<RangerPolicyItemAccess> getAccesses() {
       return accesses;
     }
-    /** @param accesses the accesses to set */
+
+    /**
+     * @param accesses the accesses to set
+     */
     public void setAccesses(List<RangerPolicyItemAccess> accesses) {
       if (this.accesses == null) {
         this.accesses = new ArrayList<>();
@@ -508,11 +575,17 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
         this.accesses.addAll(accesses);
       }
     }
-    /** @return the users */
+
+    /**
+     * @return the users
+     */
     public List<String> getUsers() {
       return users;
     }
-    /** @param users the users to set */
+
+    /**
+     * @param users the users to set
+     */
     public void setUsers(List<String> users) {
       if (this.users == null) {
         this.users = new ArrayList<>();
@@ -528,11 +601,17 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
         this.users.addAll(users);
       }
     }
-    /** @return the groups */
+
+    /**
+     * @return the groups
+     */
     public List<String> getGroups() {
       return groups;
     }
-    /** @param groups the groups to set */
+
+    /**
+     * @param groups the groups to set
+     */
     public void setGroups(List<String> groups) {
       if (this.groups == null) {
         this.groups = new ArrayList<>();
@@ -548,11 +627,17 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
         this.groups.addAll(groups);
       }
     }
-    /** @return the conditions */
+
+    /**
+     * @return the conditions
+     */
     public List<RangerPolicyItemCondition> getConditions() {
       return conditions;
     }
-    /** @param conditions the conditions to set */
+
+    /**
+     * @param conditions the conditions to set
+     */
     public void setConditions(List<RangerPolicyItemCondition> conditions) {
       if (this.conditions == null) {
         this.conditions = new ArrayList<>();
@@ -569,12 +654,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       }
     }
 
-    /** @return the delegateAdmin */
+    /**
+     * @return the delegateAdmin
+     */
     public Boolean getDelegateAdmin() {
       return delegateAdmin;
     }
 
-    /** @param delegateAdmin the delegateAdmin to set */
+    /**
+     * @param delegateAdmin the delegateAdmin to set
+     */
     public void setDelegateAdmin(Boolean delegateAdmin) {
       this.delegateAdmin = delegateAdmin == null ? Boolean.FALSE : delegateAdmin;
     }
@@ -602,12 +691,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setDataMaskInfo(dataMaskDetail);
     }
 
-    /** @return the dataMaskInfo */
+    /**
+     * @return the dataMaskInfo
+     */
     public RangerPolicyItemDataMaskInfo getDataMaskInfo() {
       return dataMaskInfo;
     }
 
-    /** @param dataMaskInfo the dataMaskInfo to set */
+    /**
+     * @param dataMaskInfo the dataMaskInfo to set
+     */
     public void setDataMaskInfo(RangerPolicyItemDataMaskInfo dataMaskInfo) {
       this.dataMaskInfo = dataMaskInfo == null ? new RangerPolicyItemDataMaskInfo() : dataMaskInfo;
     }
@@ -635,12 +728,16 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setRowFilterInfo(rowFilterInfo);
     }
 
-    /** @return the rowFilterInfo */
+    /**
+     * @return the rowFilterInfo
+     */
     public RangerPolicyItemRowFilterInfo getRowFilterInfo() {
       return rowFilterInfo;
     }
 
-    /** @param rowFilterInfo the rowFilterInfo to set */
+    /**
+     * @param rowFilterInfo the rowFilterInfo to set
+     */
     public void setRowFilterInfo(RangerPolicyItemRowFilterInfo rowFilterInfo) {
       this.rowFilterInfo =
           rowFilterInfo == null ? new RangerPolicyItemRowFilterInfo() : rowFilterInfo;
@@ -666,22 +763,30 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setIsAllowed(isAllowed);
     }
 
-    /** @return the type */
+    /**
+     * @return the type
+     */
     public String getType() {
       return type;
     }
 
-    /** @param type the type to set */
+    /**
+     * @param type the type to set
+     */
     public void setType(String type) {
       this.type = type;
     }
 
-    /** @return the isAllowed */
+    /**
+     * @return the isAllowed
+     */
     public Boolean getIsAllowed() {
       return isAllowed;
     }
 
-    /** @param isAllowed the isAllowed to set */
+    /**
+     * @param isAllowed the isAllowed to set
+     */
     public void setIsAllowed(Boolean isAllowed) {
       this.isAllowed = isAllowed == null ? Boolean.TRUE : isAllowed;
     }
@@ -702,22 +807,30 @@ public class RangerPolicy extends RangerBaseModelObject implements java.io.Seria
       setValues(values);
     }
 
-    /** @return the type */
+    /**
+     * @return the type
+     */
     public String getType() {
       return type;
     }
 
-    /** @param type the type to set */
+    /**
+     * @param type the type to set
+     */
     public void setType(String type) {
       this.type = type;
     }
 
-    /** @return the value */
+    /**
+     * @return the value
+     */
     public List<String> getValues() {
       return values;
     }
 
-    /** @param values the value to set */
+    /**
+     * @param values the value to set
+     */
     public void setValues(List<String> values) {
       if (this.values == null) {
         this.values = new ArrayList<>();

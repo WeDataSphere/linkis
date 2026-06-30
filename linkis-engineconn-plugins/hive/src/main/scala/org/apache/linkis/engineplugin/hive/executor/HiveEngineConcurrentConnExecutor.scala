@@ -137,7 +137,7 @@ class HiveEngineConcurrentConnExecutor(
       code: String
   ): ExecuteResponse = {
     LOG.info(s"HiveEngineConcurrentConnExecutor Ready to executeLine: ${CodeUtils
-      .maskCode(code, EngineType.HIVE.toString())}")
+        .maskCode(code, EngineType.HIVE.toString())}")
     val taskId: String = engineExecutorContext.getJobId.get
     CSHiveHelper.setContextIDInfoToHiveConf(engineExecutorContext, hiveConf)
 
@@ -246,11 +246,13 @@ class HiveEngineConcurrentConnExecutor(
             var compileRet = -1
             Utils.tryCatch {
               compileRet = driver.compile(realCode)
-              logger.info(s"driver compile realCode : \n ${CodeUtils
-                .maskCode(realCode, EngineType.HIVE.toString())} \n finished, status : ${compileRet}")
+              logger.info(
+                s"driver compile realCode : \n ${CodeUtils
+                    .maskCode(realCode, EngineType.HIVE.toString())} \n finished, status : ${compileRet}"
+              )
               if (0 != compileRet) {
                 logger.warn(s"compile realCode : \n ${CodeUtils
-                  .maskCode(realCode, EngineType.HIVE.toString())} \n error status : ${compileRet}")
+                    .maskCode(realCode, EngineType.HIVE.toString())} \n error status : ${compileRet}")
                 throw HiveQueryFailedException(
                   COMPILE_HIVE_QUERY_ERROR.getErrorCode,
                   COMPILE_HIVE_QUERY_ERROR.getErrorDesc

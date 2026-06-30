@@ -126,12 +126,16 @@ public class Sqoop extends Configured implements Tool {
     this.tool = tool;
   }
 
-  /** @return the SqoopOptions used in this Sqoop instance. */
+  /**
+   * @return the SqoopOptions used in this Sqoop instance.
+   */
   public SqoopOptions getOptions() {
     return this.options;
   }
 
-  /** @return the SqoopTool used in this Sqoop instance. */
+  /**
+   * @return the SqoopTool used in this Sqoop instance.
+   */
   public SqoopTool getTool() {
     return this.tool;
   }

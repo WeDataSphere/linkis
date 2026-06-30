@@ -243,7 +243,7 @@ class FIFOUserConsumer(
   def isIdle: Boolean = {
     logger.info(s"${getGroup.getGroupName} queue isEmpty:${queue.isEmpty},size ${queue.size}")
     logger.info(s"${getGroup.getGroupName} running jobs is not empty:${this.runningJobs
-      .exists(job => job != null && !job.isCompleted)}")
+        .exists(job => job != null && !job.isCompleted)}")
     this.queue.peek.isEmpty && !this.runningJobs.exists(job => job != null && !job.isCompleted)
   }
 

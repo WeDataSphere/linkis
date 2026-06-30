@@ -38,6 +38,7 @@ public interface Label<T> extends Serializable, RequestProtocol {
    */
   @KeyMethod
   String getLabelKey();
+
   /**
    * Label value
    *

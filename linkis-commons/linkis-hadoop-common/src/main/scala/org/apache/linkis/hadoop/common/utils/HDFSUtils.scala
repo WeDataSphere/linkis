@@ -192,7 +192,7 @@ object HDFSUtils extends Logging {
       val duration = System.currentTimeMillis() - startTime
       logger.info(
         s"Hadoop configuration loaded successfully - user: $user, configDir: $hadoopConfDir, duration: ${ByteTimeUtils
-          .msDurationToString(duration)}"
+            .msDurationToString(duration)}"
       )
       conf
     } catch {
@@ -200,7 +200,7 @@ object HDFSUtils extends Logging {
         val duration = System.currentTimeMillis() - startTime
         logger.error(
           s"Failed to load Hadoop configuration - user: $user, configDir: $hadoopConfDir, duration: ${ByteTimeUtils
-            .msDurationToString(duration)}",
+              .msDurationToString(duration)}",
           e
         )
         throw e
@@ -305,7 +305,7 @@ object HDFSUtils extends Logging {
       val duration = System.currentTimeMillis() - startTime
       logger.info(
         s"Hadoop FileSystem created successfully - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
-          .msDurationToString(duration)}, createCount: $createCount"
+            .msDurationToString(duration)}, createCount: $createCount"
       )
       fs
     } catch {
@@ -313,7 +313,7 @@ object HDFSUtils extends Logging {
         val duration = System.currentTimeMillis() - startTime
         logger.error(
           s"Failed to create Hadoop FileSystem - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
-            .msDurationToString(duration)}, createCount: $createCount",
+              .msDurationToString(duration)}, createCount: $createCount",
           e
         )
         throw e
@@ -369,14 +369,14 @@ object HDFSUtils extends Logging {
         val duration = System.currentTimeMillis() - startTime
         logger.info(
           s"Hadoop FileSystem closed successfully - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
-            .msDurationToString(duration)}"
+              .msDurationToString(duration)}"
         )
       } catch {
         case e: Exception =>
           val duration = System.currentTimeMillis() - startTime
           logger.error(
             s"Failed to close Hadoop FileSystem - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
-              .msDurationToString(duration)}",
+                .msDurationToString(duration)}",
             e
           )
           throw e
@@ -421,7 +421,7 @@ object HDFSUtils extends Logging {
       val duration = System.currentTimeMillis() - startTime
       logger.info(
         s"UserGroupInformation obtained successfully - user: $userName, label: $labelInfo, authMethod: $authMethod, duration: ${ByteTimeUtils
-          .msDurationToString(duration)}"
+            .msDurationToString(duration)}"
       )
       ugi
     } catch {
@@ -429,7 +429,7 @@ object HDFSUtils extends Logging {
         val duration = System.currentTimeMillis() - startTime
         logger.error(
           s"Failed to get UserGroupInformation - user: $userName, label: $labelInfo, authMethod: $authMethod, duration: ${ByteTimeUtils
-            .msDurationToString(duration)}",
+              .msDurationToString(duration)}",
           e
         )
         throw e

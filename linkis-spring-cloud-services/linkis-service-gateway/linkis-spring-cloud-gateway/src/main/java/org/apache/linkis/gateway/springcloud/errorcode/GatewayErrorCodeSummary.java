@@ -25,6 +25,7 @@ public enum GatewayErrorCodeSummary implements LinkisErrorCode {
 
   /** error code(错误码) */
   private final int errorCode;
+
   /** wrong description(错误描述 ) */
   private final String errorDesc;
 

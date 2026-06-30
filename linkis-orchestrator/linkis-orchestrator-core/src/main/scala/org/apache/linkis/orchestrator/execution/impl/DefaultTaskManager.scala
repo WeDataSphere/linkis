@@ -283,8 +283,10 @@ class DefaultTaskManager extends AbstractTaskManager with Logging {
         if (shouldMinusTaskNumber) {
           val oldNumber =
             userRunningNumber.minusNumber(astContext.getExecuteUser, astContext.getLabels)
-          logger.info(s"executionTask(${executionTask.getId}) no task running, user key ${userRunningNumber
-            .getKey(astContext.getLabels, astContext.getExecuteUser)}, minusNumber: ${oldNumber - 1}")
+          logger.info(
+            s"executionTask(${executionTask.getId}) no task running, user key ${userRunningNumber
+                .getKey(astContext.getLabels, astContext.getExecuteUser)}, minusNumber: ${oldNumber - 1}"
+          )
         }
       }
 
@@ -383,7 +385,7 @@ class DefaultTaskManager extends AbstractTaskManager with Logging {
     val task = executionTask.getRootExecTask
     val astContext = task.getTaskDesc.getOrigin.getASTOrchestration.getASTContext
     logger.info(s"executionTask(${executionTask.getId}) finished user key ${userRunningNumber
-      .getKey(astContext.getLabels, astContext.getExecuteUser)}")
+        .getKey(astContext.getLabels, astContext.getExecuteUser)}")
     // from executionTask to remove executionTask
     executionTasks.remove(executionTask)
     // from execTaskToExecutionTask to remove root execTask
@@ -399,7 +401,7 @@ class DefaultTaskManager extends AbstractTaskManager with Logging {
       val oldNumber =
         userRunningNumber.minusNumber(astContext.getExecuteUser, astContext.getLabels)
       logger.info(s"executionTask(${executionTask.getId}) finished user key ${userRunningNumber
-        .getKey(astContext.getLabels, astContext.getExecuteUser)}, minusNumber: ${oldNumber - 1}")
+          .getKey(astContext.getLabels, astContext.getExecuteUser)}, minusNumber: ${oldNumber - 1}")
     }
   }
 

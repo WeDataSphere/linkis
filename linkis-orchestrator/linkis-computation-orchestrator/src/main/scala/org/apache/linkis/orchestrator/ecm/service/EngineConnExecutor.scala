@@ -79,7 +79,7 @@ trait EngineConnExecutor extends Closeable {
   override def equals(other: Any): Boolean = other match {
     case that: EngineConnExecutor =>
       (that canEqual this) &&
-        getServiceInstance == that.getServiceInstance
+      getServiceInstance == that.getServiceInstance
     case _ => false
   }
 

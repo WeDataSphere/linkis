@@ -39,6 +39,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
 
   @SuppressWarnings("all")
   public final Interner<String> lock = Interners.<String>newWeakInterner();
+
   /** key:requestprotocol or custom implicit object class name */
   private final Map<String, List<ServiceMethod>> serviceMethodCache = new ConcurrentHashMap<>();
 

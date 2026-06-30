@@ -37,6 +37,7 @@ public class StdLabelBuilderFactory implements LabelBuilderFactory {
   private static final Logger LOG = LoggerFactory.getLogger(StdLabelBuilderFactory.class);
 
   private final LinkedList<ExtensibleLabelBuilder> labelBuilders = new LinkedList<>();
+
   /** Mark sort operation */
   private boolean isSorted;
 

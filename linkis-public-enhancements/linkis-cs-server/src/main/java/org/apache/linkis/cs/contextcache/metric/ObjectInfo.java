@@ -26,20 +26,28 @@ public class ObjectInfo {
 
   /** Field name */
   public final String name;
+
   /** Field type name */
   public final String type;
+
   /** Field data formatted as string */
   public final String contents;
+
   /** Field offset from the start of parent object */
   public final int offset;
+
   /** Memory occupied by this field */
   public final int length;
+
   /** Offset of the first cell in the array */
   public final int arrayBase;
+
   /** Size of a cell in the array */
   public final int arrayElementSize;
+
   /** Memory occupied by underlying array (shallow), if this is array type */
   public final int arraySize;
+
   /** This object fields */
   public final List<ObjectInfo> children;
 

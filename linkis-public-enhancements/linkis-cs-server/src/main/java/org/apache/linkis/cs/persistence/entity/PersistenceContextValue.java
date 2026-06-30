@@ -24,6 +24,7 @@ import org.apache.linkis.cs.persistence.annotation.Ignore;
 public class PersistenceContextValue implements ContextValue {
 
   private String keywords;
+
   /** 序列化后的value */
   private Object value;
 

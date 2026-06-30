@@ -30,6 +30,7 @@ import java.util.Map;
 public class RequestPersistTask implements Task {
 
   private Long taskID;
+
   /** instance 是指该task所在的统一入口的实例 ip + port */
   private String instance;
 
@@ -50,12 +51,16 @@ public class RequestPersistTask implements Task {
   private Integer errCode;
   private String errDesc;
   private String taskResource;
+
   /** executeApplicationName 参数指的是用户所寻求的服务，比如spark python R等等 */
   private String executeApplicationName;
+
   /** requestApplicationName 是creator的传参名，例如IDE或WTSS等 */
   private String requestApplicationName;
+
   /** source 存放脚本来源，scriptPath是其中一个参数用户采用传入执行脚本的方式，scriptPath就是脚本的存储地址 */
   private java.util.Map<String, String> source;
+
   /**
    * runType需要和executeApplicationName结合使用，如用户选择了Spark做为服务，他还需要指明使用哪种执行方式，比如pySpark RSpark等
    * runType和runType是同一个属性，为了兼容以前的代码

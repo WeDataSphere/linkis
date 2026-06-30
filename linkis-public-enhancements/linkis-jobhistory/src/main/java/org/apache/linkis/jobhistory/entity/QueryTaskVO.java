@@ -27,6 +27,7 @@ public class QueryTaskVO {
   private Long taskID;
   private String instance;
   private String execId;
+
   /** submit User* */
   private String umUser;
 
@@ -49,6 +50,7 @@ public class QueryTaskVO {
   private Long costTime;
   private String strongerExecId;
   private String sourceJson;
+
   /** source字段:用来将sourceJson的value取出来进行拼接返回给前台展示 */
   private String sourceTailor;
 

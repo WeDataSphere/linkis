@@ -113,12 +113,12 @@ object TokenAuthentication extends Logging {
     if (ok) {
       logger.info(
         s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
-          .maskToken(token)}, tokenUser: $tokenUser, host: $host."
+            .maskToken(token)}, tokenUser: $tokenUser, host: $host."
       )
       if (login) {
         logger.info(
           s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
-            .maskToken(token)}, tokenUser: $tokenUser."
+              .maskToken(token)}, tokenUser: $tokenUser."
         )
         GatewaySSOUtils.setLoginUser(gatewayContext, tokenUser)
         val msg =
@@ -138,7 +138,7 @@ object TokenAuthentication extends Logging {
     } else {
       logger.info(
         s"Token authentication fail, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
-          .maskToken(token)}, tokenUser: $tokenUser, host: $host."
+            .maskToken(token)}, tokenUser: $tokenUser, host: $host."
       )
       SecurityFilter.filterResponse(gatewayContext, authMsg)
       false

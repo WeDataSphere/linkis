@@ -34,8 +34,10 @@ public enum LinkisGatewayCoreErrorCodeSummary implements LinkisErrorCode {
       11012,
       "Cannot find an instance in the routing chain of serviceId:{0} , please retry (在 serviceId:{0} 的路由链中找不到实例，请重试)"),
   GET_REQUESTBODY_FAILED(18000, "get requestBody failed!(获取 requestBody 失败！)");
+
   /** (errorCode)错误码 */
   private final int errorCode;
+
   /** (errorDesc)错误描述 */
   private final String errorDesc;
 

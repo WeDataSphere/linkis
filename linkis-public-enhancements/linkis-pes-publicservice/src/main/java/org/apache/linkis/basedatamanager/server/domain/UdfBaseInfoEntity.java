@@ -27,7 +27,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** @TableName linkis_ps_udf_baseinfo */
+/**
+ * @TableName linkis_ps_udf_baseinfo
+ */
 @TableName(value = "linkis_ps_udf_baseinfo")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class UdfBaseInfoEntity implements Serializable {

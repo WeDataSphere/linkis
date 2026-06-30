@@ -78,7 +78,7 @@ trait OnceJobOperator[T] extends Operator[T] with Logging {
       val resultStr = String.valueOf(result.getResult)
       logger.info(
         s"$getUser asked EngineConn($serviceInstance) to execute $getName operation, results is ${if (resultStr.length <= 250) resultStr
-        else resultStr.substring(0, 250) + "..."} ."
+          else resultStr.substring(0, 250) + "..."} ."
       )
     }
     resultToObject(result)

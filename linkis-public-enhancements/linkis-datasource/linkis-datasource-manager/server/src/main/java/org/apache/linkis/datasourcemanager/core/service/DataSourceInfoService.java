@@ -99,6 +99,7 @@ public interface DataSourceInfoService {
    * @return
    */
   DataSource getDataSourceInfoBrief(Long dataSourceId);
+
   /**
    * Remove data source
    *

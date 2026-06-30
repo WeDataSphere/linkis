@@ -44,6 +44,7 @@ public class ContextHACheckerImpl implements ContextHAChecker {
   private static final Logger logger = LoggerFactory.getLogger(ContextHACheckerImpl.class);
 
   @Autowired private InstanceAliasManagerImpl instanceAliasManager;
+
   /**
    * ${第一个instance长度}${第二个instance长度}{instance别名1}{instance别名2}{实际ID}
    *

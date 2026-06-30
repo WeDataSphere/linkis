@@ -25,7 +25,9 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** @TableName linkis_ps_error_code */
+/**
+ * @TableName linkis_ps_error_code
+ */
 @TableName(value = "linkis_ps_error_code")
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ErrorCodeEntity implements Serializable {

@@ -917,7 +917,7 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
     }
     logger.info(
       s"getResourceInfo with serviceInstances size: ${serviceInstances.length} resource size: ${resourceInfo.resourceInfo
-        .size()}, cost: ${(System.currentTimeMillis - startTime) / 1000.0} s"
+          .size()}, cost: ${(System.currentTimeMillis - startTime) / 1000.0} s"
     )
     resourceInfo
   }

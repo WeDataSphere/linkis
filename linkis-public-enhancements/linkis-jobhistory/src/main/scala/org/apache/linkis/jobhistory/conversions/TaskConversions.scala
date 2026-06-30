@@ -168,9 +168,10 @@ object TaskConversions extends Logging {
     jobHistory.setExecutionCode(jobReq.getExecutionCode)
 
     if (logger.isDebugEnabled) {
-      try logger.debug(
-        "after jobRequest2JobHistory:" + JsonUtils.jackson.writeValueAsString(jobHistory)
-      )
+      try
+        logger.debug(
+          "after jobRequest2JobHistory:" + JsonUtils.jackson.writeValueAsString(jobHistory)
+        )
       catch {
         case e: JsonProcessingException =>
           logger.debug("convert jobRequest2JobHistory to string with error:" + e.getMessage)

@@ -28,7 +28,7 @@ class ServiceInstance {
   override def equals(other: Any): Boolean = other match {
     case that: ServiceInstance =>
       applicationName == that.applicationName &&
-        instance == that.instance
+      instance == that.instance
     case _ => false
   }
 

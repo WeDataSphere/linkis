@@ -32,6 +32,7 @@ public class DataSourceParameter {
 
   /** Connection parameters */
   private Map<String, Object> connectParams = new HashMap<>();
+
   /** comment */
   private String comment;
 

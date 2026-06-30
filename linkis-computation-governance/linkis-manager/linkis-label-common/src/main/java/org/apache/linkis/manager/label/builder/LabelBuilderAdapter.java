@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 public class LabelBuilderAdapter extends AbstractGenericLabelBuilder {
 
   private static final Logger LOG = LoggerFactory.getLogger(LabelBuilderAdapter.class);
+
   /** Actual builder */
   private LabelBuilder actualBuilder;
 

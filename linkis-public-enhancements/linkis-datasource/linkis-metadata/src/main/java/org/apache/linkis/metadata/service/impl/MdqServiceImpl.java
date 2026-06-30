@@ -208,8 +208,7 @@ public class MdqServiceImpl implements MdqService {
     List<Map<String, Object>> tables =
         hiveMetaWithPermissionService.getTablesByDbNameAndOptionalUserName(queryParam);
     Optional<Map<String, Object>> tableOptional =
-        tables
-            .parallelStream()
+        tables.parallelStream()
             .filter(f -> queryParam.getTableName().equals(f.get("NAME")))
             .findFirst();
     return tableOptional.isPresent();
@@ -227,8 +226,7 @@ public class MdqServiceImpl implements MdqService {
       partitionKeys = hiveMetaDao.getPartitionKeysSlave(queryParam);
     }
     Optional<Map<String, Object>> tableOptional =
-        tables
-            .parallelStream()
+        tables.parallelStream()
             .filter(f -> queryParam.getTableName().equals(f.get("NAME")))
             .findFirst();
     Map<String, Object> table =

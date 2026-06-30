@@ -40,6 +40,7 @@ public enum LinkisRpcErrorCodeSummary implements LinkisErrorCode {
 
   /** 错误码 */
   private final int errorCode;
+
   /** 错误描述 */
   private final String errorDesc;
 

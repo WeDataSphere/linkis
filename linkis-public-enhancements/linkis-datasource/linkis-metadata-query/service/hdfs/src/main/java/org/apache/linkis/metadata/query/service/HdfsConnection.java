@@ -162,6 +162,7 @@ public class HdfsConnection implements Closeable {
   public FileSystem getFileSystem() {
     return this.fs;
   }
+
   /**
    * Create file system
    *

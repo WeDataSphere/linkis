@@ -38,6 +38,7 @@ class DataSourceEnvDaoTest extends BaseDaoTest {
   private static final Logger logger = LoggerFactory.getLogger(DataSourceEnvDaoTest.class);
 
   @Autowired DataSourceEnvDao dataSourceEnvDao;
+
   /**
    * User-created test data, if it is an auto-increment id, it should not be assigned CURD should be
    * based on the data created by this method insert

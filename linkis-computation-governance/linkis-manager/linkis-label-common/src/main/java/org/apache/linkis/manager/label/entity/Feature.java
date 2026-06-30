@@ -29,6 +29,7 @@ public enum Feature {
   OPTIONAL(0.5f, false),
   /** UNKNOWN */
   UNKNOWN(0.3f, false);
+
   /** Boost value, used in scoring function */
   private float boost;
 

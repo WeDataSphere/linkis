@@ -151,7 +151,9 @@ public class FsPath {
     }
   }
 
-  /** @return if no storage type pointed, hdfs type will returned */
+  /**
+   * @return if no storage type pointed, hdfs type will returned
+   */
   public String getFsType() {
     return getFsType("file");
   }
