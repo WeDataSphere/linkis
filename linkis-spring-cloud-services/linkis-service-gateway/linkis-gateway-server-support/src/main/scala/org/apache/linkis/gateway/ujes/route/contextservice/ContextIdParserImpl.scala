@@ -31,9 +31,9 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.Resource
-
 import java.util
+
+import jakarta.annotation.Resource
 
 /**
  * Description: If id is correct format of ContextHAId, will parse it to get the instance and backup

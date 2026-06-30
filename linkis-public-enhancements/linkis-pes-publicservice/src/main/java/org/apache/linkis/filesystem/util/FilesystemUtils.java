@@ -22,7 +22,7 @@ import org.apache.linkis.storage.fs.FileSystem;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.PreDestroy;
+import jakarta.annotation.PreDestroy;
 
 import java.io.*;
 import java.util.*;

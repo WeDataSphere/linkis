@@ -23,10 +23,9 @@ import org.apache.linkis.gateway.http.GatewayHttpResponse
 import org.springframework.http.{HttpStatus, ResponseCookie}
 import org.springframework.http.server.reactive.{AbstractServerHttpResponse, ServerHttpResponse}
 
-import javax.servlet.http.Cookie
-
 import java.util.function.BiFunction
 
+import jakarta.servlet.http.Cookie
 import org.reactivestreams.Publisher
 import reactor.core.publisher.{Flux, Mono}
 import reactor.netty.http.server.HttpServerResponse

@@ -25,7 +25,7 @@ import org.apache.linkis.server.utils.ModuleUserUtils;
 
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.ApiImplicitParam;

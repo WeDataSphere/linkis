@@ -34,9 +34,9 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import java.util
+
+import jakarta.annotation.PostConstruct
 
 @Component
 class MDQPreExecutionHook extends SparkPreExecutionHook with Logging {

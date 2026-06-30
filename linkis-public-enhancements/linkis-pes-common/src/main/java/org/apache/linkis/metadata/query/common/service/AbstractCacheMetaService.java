@@ -25,7 +25,7 @@ import org.apache.linkis.metadata.query.common.exception.MetaRuntimeException;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -63,6 +63,7 @@ public abstract class AbstractCacheMetaService<C extends Closeable> implements B
     connCacheManager = ConnCacheManager.custom();
     initCache(connCacheManager);
   }
+
   /**
    * If want to use cache component, you should invoke this in constructor method
    *
@@ -238,6 +239,7 @@ public abstract class AbstractCacheMetaService<C extends Closeable> implements B
       this.cacheKey = cacheKey;
       this.connection = connection;
     }
+
     /** Connection */
     MetadataConnection<C> connection;
 

@@ -20,9 +20,6 @@ package org.apache.linkis.entrance.restful;
 import org.apache.linkis.DataWorkCloudApplication;
 import org.apache.linkis.common.ServiceInstance;
 import org.apache.linkis.common.conf.Configuration;
-import org.apache.linkis.entrance.EntranceServer;
-import org.apache.linkis.entrance.conf.EntranceConfiguration;
-import org.apache.linkis.entrance.scheduler.EntranceSchedulerContext;
 import org.apache.linkis.instance.label.client.InstanceLabelClient;
 import org.apache.linkis.manager.label.constant.LabelKeyConstant;
 import org.apache.linkis.manager.label.constant.LabelValueConstant;
@@ -38,14 +35,13 @@ import org.apache.commons.collections.CollectionUtils;
 
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
@@ -61,7 +57,6 @@ public class EntranceLabelRestfulApi {
   private static Boolean offlineFlag = false;
 
   @ApiOperation(value = "update", notes = "update route label", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/update", method = RequestMethod.POST)
   public Message updateRouteLabel(HttpServletRequest req, @RequestBody JsonNode jsonNode) {
     String userName = ModuleUserUtils.getOperationUser(req, "updateRouteLabel");

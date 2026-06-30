@@ -61,9 +61,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -76,7 +76,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -184,7 +183,6 @@ public class FsRestfulApi {
   }
 
   @ApiOperation(value = "createNewDir", notes = "create new dir", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @ApiImplicitParams({
     @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "Path")
   })
@@ -214,7 +212,6 @@ public class FsRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "Path")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/createNewFile", method = RequestMethod.POST)
   public Message createNewFile(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, WorkSpaceException {
@@ -241,7 +238,6 @@ public class FsRestfulApi {
     @ApiImplicitParam(name = "oldDest", required = true, dataType = "String", value = "old dest"),
     @ApiImplicitParam(name = "newDest", required = true, dataType = "String", value = "new dest")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/rename", method = RequestMethod.POST)
   public Message rename(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, WorkSpaceException {
@@ -282,7 +278,6 @@ public class FsRestfulApi {
     @ApiImplicitParam(name = "filePath", required = true, dataType = "String", value = "file path"),
     @ApiImplicitParam(name = "newDest", required = true, dataType = "String", value = "new dest")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/move", method = RequestMethod.POST)
   public Message move(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, WorkSpaceException {
@@ -325,7 +320,6 @@ public class FsRestfulApi {
     @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "path"),
     @ApiImplicitParam(name = "file", required = true, dataType = "List<MultipartFile> ")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/upload", method = RequestMethod.POST)
   public Message upload(
       HttpServletRequest req,
@@ -364,7 +358,6 @@ public class FsRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "path")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/deleteDirOrFile", method = RequestMethod.POST)
   public Message deleteDirOrFile(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, WorkSpaceException {
@@ -393,7 +386,6 @@ public class FsRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "path", required = false, dataType = "String", value = "path")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/getDirFileTrees", method = RequestMethod.GET)
   public Message getDirFileTrees(
       HttpServletRequest req, @RequestParam(value = "path", required = false) String path)
@@ -455,7 +447,6 @@ public class FsRestfulApi {
     @ApiImplicitParam(name = "path", required = true, dataType = "String", value = "path"),
     @ApiImplicitParam(name = "charset", required = true, dataType = "String", value = "charset")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/download", method = RequestMethod.POST)
   public void download(
       HttpServletRequest req, HttpServletResponse response, @RequestBody Map<String, String> json)
@@ -867,7 +858,6 @@ public class FsRestfulApi {
     @ApiImplicitParam(name = "params", required = false, dataType = "Object", value = "params"),
     @ApiImplicitParam(name = "charset", required = false, dataType = "String", value = "charset")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/saveScript", method = RequestMethod.POST)
   public Message saveScript(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws IOException, WorkSpaceException {

@@ -44,8 +44,8 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Validator;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Validator;
 
 import java.io.StringWriter;
 import java.util.ArrayList;

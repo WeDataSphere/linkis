@@ -19,8 +19,8 @@ package org.apache.linkis.engineplugin.spark.datacalc.source;
 
 import org.apache.linkis.engineplugin.spark.datacalc.model.SourceConfig;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 public class FileSourceConfig extends SourceConfig {
 

@@ -32,8 +32,6 @@ import org.apache.linkis.rpc.interceptor.ServiceInstanceUtils
 import org.apache.commons.collections.CollectionUtils
 import org.apache.commons.lang3.StringUtils
 
-import javax.annotation.Resource
-
 import java.text.MessageFormat
 import java.util
 import java.util.concurrent.TimeUnit
@@ -41,6 +39,7 @@ import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 
 import com.google.common.cache.{CacheBuilder, CacheLoader, LoadingCache}
+import jakarta.annotation.Resource
 
 abstract class AbstractLabelGatewayRouter extends AbstractGatewayRouter with Logging {
 

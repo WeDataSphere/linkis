@@ -27,9 +27,9 @@ import org.apache.http.Consts;
 
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -38,7 +38,6 @@ import java.nio.file.attribute.FileOwnerAttributeView;
 import java.nio.file.attribute.UserPrincipal;
 import java.text.MessageFormat;
 
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -85,7 +84,6 @@ public class ECMRestfulApi {
     @ApiImplicitParam(name = "logDirSuffix", required = true, dataType = "String"),
     @ApiImplicitParam(name = "logType", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/downloadEngineLog", method = RequestMethod.GET)
   public Message downloadEngineLog(
       HttpServletRequest req,

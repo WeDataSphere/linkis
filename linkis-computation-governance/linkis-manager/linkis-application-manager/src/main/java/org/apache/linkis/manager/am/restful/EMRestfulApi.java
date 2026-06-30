@@ -69,7 +69,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.text.MessageFormat;
 import java.util.*;
@@ -79,7 +79,6 @@ import java.util.stream.Stream;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -260,7 +259,6 @@ public class EMRestfulApi {
         dataType = "String",
         example = "linkis-cg-engineconn-bdp110:12295")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/modifyEMInfo", method = RequestMethod.PUT)
   @Transactional(rollbackFor = Exception.class)
   public Message modifyEMInfo(HttpServletRequest req, @RequestBody JsonNode jsonNode)
@@ -324,7 +322,6 @@ public class EMRestfulApi {
       value = "executeECMOperationByEC",
       notes = "EC execute ECM operation",
       response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/executeECMOperationByEC", method = RequestMethod.POST)
   public Message executeECMOperationByEC(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -365,7 +362,6 @@ public class EMRestfulApi {
       value = "executeECMOperation",
       notes = "execute ECM operation",
       response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/executeECMOperation", method = RequestMethod.POST)
   public Message executeECMOperation(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -412,7 +408,6 @@ public class EMRestfulApi {
     @ApiImplicitParam(name = "fromLine", dataType = "String", example = "0"),
     @ApiImplicitParam(name = "pageSize", dataType = "String", defaultValue = "1000"),
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/openEngineLog", method = RequestMethod.POST)
   public Message openEngineLog(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -534,7 +529,6 @@ public class EMRestfulApi {
     @ApiImplicitParam(name = "queueName", dataType = "String", example = "queueName"),
     @ApiImplicitParam(name = "tenant", dataType = "String", defaultValue = "tenant"),
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/task-prediction", method = RequestMethod.GET)
   public Message taskprediction(
       HttpServletRequest req,

@@ -29,7 +29,7 @@ import org.apache.linkis.governance.common.entity.ExecutionNodeStatus
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Component
 class ECTaskEntranceMonitorService

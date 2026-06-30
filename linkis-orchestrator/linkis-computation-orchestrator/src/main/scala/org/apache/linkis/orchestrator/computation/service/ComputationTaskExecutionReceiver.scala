@@ -36,7 +36,7 @@ import org.apache.linkis.rpc.utils.RPCUtils
 
 import org.springframework.stereotype.Service
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Service
 class ComputationTaskExecutionReceiver extends TaskExecutionReceiver with Logging {

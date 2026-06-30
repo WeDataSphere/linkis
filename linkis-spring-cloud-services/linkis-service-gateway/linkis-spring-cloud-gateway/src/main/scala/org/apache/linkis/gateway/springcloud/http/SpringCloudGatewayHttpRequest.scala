@@ -24,14 +24,13 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.http.server.reactive.AbstractServerHttpRequest
 
-import javax.servlet.http.{Cookie, HttpServletRequest}
-
 import java.net.{InetSocketAddress, URI}
 import java.util
 
 import scala.collection.JavaConverters._
 
 import com.google.common.net.InetAddresses
+import jakarta.servlet.http.{Cookie, HttpServletRequest}
 
 class SpringCloudGatewayHttpRequest(request: AbstractServerHttpRequest) extends GatewayHttpRequest {
 
@@ -138,7 +137,7 @@ class SpringCloudGatewayHttpRequest(request: AbstractServerHttpRequest) extends 
     }
   }
 
-  override def getMethod: String = request.getMethodValue
+  override def getMethod: String = request.getMethod.name
 
   def setRequestBody(requestBody: String): Unit = {
     this.requestBody = requestBody

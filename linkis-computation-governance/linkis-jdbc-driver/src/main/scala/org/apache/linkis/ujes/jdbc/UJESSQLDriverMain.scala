@@ -38,7 +38,9 @@ class UJESSQLDriverMain extends Driver with Logging {
 
   override def connect(url: String, properties: Properties): Connection = if (acceptsURL(url)) {
     val props = if (properties != null) properties else new Properties
-    props.putAll(parseURL(url))
+    parseURL(url).asScala.foreach { case (key, value) =>
+      props.put(key, value)
+    }
     logger.info(s"input url:$url, properties:$properties")
     val ujesClient = UJESClientFactory.getUJESClient(props)
     new LinkisSQLConnection(ujesClient, props)
@@ -100,7 +102,9 @@ class UJESSQLDriverMain extends Driver with Logging {
 
   override def getPropertyInfo(url: String, info: Properties): Array[DriverPropertyInfo] = {
     val props = if (info != null) info else new Properties
-    props.putAll(parseURL(url))
+    parseURL(url).asScala.foreach { case (key, value) =>
+      props.put(key, value)
+    }
     val hostProp = new DriverPropertyInfo(HOST, props.getProperty(HOST))
     hostProp.required = true
     val portProp = new DriverPropertyInfo(PORT, props.getProperty(PORT))

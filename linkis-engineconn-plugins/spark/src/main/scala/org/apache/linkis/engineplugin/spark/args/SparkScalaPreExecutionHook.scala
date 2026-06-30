@@ -28,9 +28,9 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import scala.collection.JavaConverters.seqAsJavaListConverter
+
+import jakarta.annotation.PostConstruct
 
 @Component
 class SparkScalaPreExecutionHook extends SparkPreExecutionHook with Logging {

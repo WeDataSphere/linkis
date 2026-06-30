@@ -53,7 +53,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 
 import java.util.EnumSet;
 

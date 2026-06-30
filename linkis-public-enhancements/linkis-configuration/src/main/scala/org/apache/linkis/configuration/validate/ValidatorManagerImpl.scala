@@ -21,7 +21,7 @@ import org.apache.linkis.common.utils.Logging
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Component
 class ValidatorManagerImpl extends ValidatorManager with Logging {

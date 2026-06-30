@@ -22,8 +22,8 @@ import org.apache.linkis.datasourcemanager.common.util.json.Json;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -44,6 +44,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 public class DataSourceEnv {
 
   private Long id;
+
   /** Environment name */
   @NotNull private String envName;
 
@@ -55,6 +56,7 @@ public class DataSourceEnv {
   @NotNull private Long dataSourceTypeId;
 
   private DataSourceType dataSourceType;
+
   /** Connection parameters for environment */
   private Map<String, Object> connectParams = new HashMap<>();
 

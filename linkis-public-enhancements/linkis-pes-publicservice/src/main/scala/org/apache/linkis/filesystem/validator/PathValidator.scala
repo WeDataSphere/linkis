@@ -21,6 +21,7 @@ import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.filesystem.conf.WorkSpaceConfiguration._
 import org.apache.linkis.filesystem.exception.WorkSpaceException
 import org.apache.linkis.filesystem.util.WorkspaceUtil
+import org.apache.linkis.governance.common.conf.GovernanceCommonConf
 import org.apache.linkis.server
 import org.apache.linkis.server.{catchIt, Message}
 import org.apache.linkis.server.security.SecurityFilter
@@ -31,11 +32,10 @@ import org.springframework.stereotype.Component
 import org.springframework.util.StringUtils
 import org.springframework.web.context.request.{RequestContextHolder, ServletRequestAttributes}
 
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-
 import java.io.File
 
 import com.fasterxml.jackson.databind.JsonNode
+import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{Around, Aspect, Pointcut}
 import org.aspectj.lang.reflect.MethodSignature
@@ -98,7 +98,15 @@ class PathValidator extends Logging {
     if (path.contains("../")) {
       throw new WorkSpaceException(80026, "Relative path not allowed")
     }
-    if (!(path.contains(userLocalRootPath)) && !(path.contains(userHdfsRootPath))) {
+    val resultSetStorePath: String = GovernanceCommonConf.RESULT_SET_STORE_PATH.getValue
+    val isResultSetPath: Boolean = resultSetStorePath != null &&
+      resultSetStorePath.nonEmpty &&
+      path.contains(resultSetStorePath)
+    if (
+        !isResultSetPath &&
+        !(path.contains(userLocalRootPath)) &&
+        !(path.contains(userHdfsRootPath))
+    ) {
       throw new WorkSpaceException(
         80027,
         "The path needs to be within the user's own workspace path"

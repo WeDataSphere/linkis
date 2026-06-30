@@ -19,7 +19,7 @@ package org.apache.linkis.engineplugin.spark.datacalc.model;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 import java.io.Serializable;
 import java.util.HashMap;

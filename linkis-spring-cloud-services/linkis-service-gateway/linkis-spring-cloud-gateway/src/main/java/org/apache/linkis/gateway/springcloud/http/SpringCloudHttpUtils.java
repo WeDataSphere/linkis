@@ -23,7 +23,7 @@ import org.springframework.http.HttpCookie;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.reactive.socket.WebSocketMessage;
 
-import javax.servlet.http.Cookie;
+import jakarta.servlet.http.Cookie;
 
 import java.util.HashMap;
 import java.util.Map;

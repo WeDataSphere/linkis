@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Component
 class MDQPostExecutionHook extends SparkPostExecutionHook with Logging {
@@ -74,14 +74,14 @@ class MDQPostExecutionHook extends SparkPostExecutionHook with Logging {
           case DDLCompleteResponse(status) =>
             if (!status) {
               logger.warn(s"failed to execute create table :${CodeUtils
-                .maskCode(code, EngineType.SPARK.toString())} (执行建表失败):${CodeUtils
-                .maskCode(code, EngineType.SPARK.toString())}")
+                  .maskCode(code, EngineType.SPARK.toString())} (执行建表失败):${CodeUtils
+                  .maskCode(code, EngineType.SPARK.toString())}")
             }
         }
       case _ =>
         logger.warn(
           s"failed to execute create table:${CodeUtils.maskCode(code, EngineType.SPARK.toString())} (执行建表失败:${CodeUtils
-            .maskCode(code, EngineType.SPARK.toString())})"
+              .maskCode(code, EngineType.SPARK.toString())})"
         )
     }
   }

@@ -32,7 +32,7 @@ import org.apache.linkis.orchestrator.listener.task.{
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Component
 class SimpleASyncListener extends TaskLogListener with TaskProgressListener with Logging {

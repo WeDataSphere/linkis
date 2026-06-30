@@ -32,16 +32,15 @@ import org.apache.linkis.server.utils.ModuleUserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-import javax.validation.groups.Default;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
 
 import java.util.*;
 
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -71,7 +70,6 @@ public class DataSourceAdminRestfulApi {
   }
 
   @ApiOperation(value = "insertJsonEnv", notes = "insert json env", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"dataSourceEnv"})
   @RequestMapping(value = "/env/json", method = RequestMethod.POST)
   public Message insertJsonEnv(@RequestBody DataSourceEnv dataSourceEnv, HttpServletRequest req)
       throws ErrorException {
@@ -106,7 +104,6 @@ public class DataSourceAdminRestfulApi {
       value = "insertJsonEnvBatch",
       notes = "insert batch json env",
       response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"dataSourceEnvList", "system"})
   @RequestMapping(value = "/env/json/batch", method = RequestMethod.POST)
   public Message insertJsonEnvBatch(
       @RequestBody List<DataSourceEnv> dataSourceEnvList,
@@ -152,7 +149,6 @@ public class DataSourceAdminRestfulApi {
       value = "updateJsonEnvBatch",
       notes = "update batch json env",
       response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"dataSourceEnvList", "system"})
   @RequestMapping(value = "/env/json/batch", method = RequestMethod.PUT)
   public Message updateEnvBatch(
       @RequestBody List<DataSourceEnv> dataSourceEnvList,
@@ -272,7 +268,6 @@ public class DataSourceAdminRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "envId", required = true, dataType = "Long", value = "env id")
   })
-  @ApiOperationSupport(includeParameters = {"dataSourceEnv"})
   @RequestMapping(value = "/env/{envId}/json", method = RequestMethod.PUT)
   public Message updateJsonEnv(
       @RequestBody DataSourceEnv dataSourceEnv,

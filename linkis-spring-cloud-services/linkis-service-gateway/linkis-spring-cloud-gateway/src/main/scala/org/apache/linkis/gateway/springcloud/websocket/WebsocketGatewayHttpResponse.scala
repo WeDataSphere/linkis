@@ -19,7 +19,7 @@ package org.apache.linkis.gateway.springcloud.websocket
 
 import org.apache.linkis.gateway.http.GatewayHttpResponse
 
-import javax.servlet.http.Cookie
+import jakarta.servlet.http.Cookie
 
 class WebsocketGatewayHttpResponse extends GatewayHttpResponse {
   private val cachedWebSocketResponseMsg = new StringBuilder

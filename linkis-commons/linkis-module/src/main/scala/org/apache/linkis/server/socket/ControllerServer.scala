@@ -36,10 +36,16 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters._
 
-import org.eclipse.jetty.websocket.servlet._
+import org.eclipse.jetty.ee10.websocket.server.{
+  JettyServerUpgradeRequest,
+  JettyServerUpgradeResponse,
+  JettyWebSocketCreator,
+  JettyWebSocketServlet,
+  JettyWebSocketServletFactory
+}
 
 private[server] class ControllerServer(serverListenerEventBus: ServerListenerEventBus)
-    extends WebSocketServlet
+    extends JettyWebSocketServlet
     with SocketListener
     with Event
     with Logging {
@@ -49,11 +55,11 @@ private[server] class ControllerServer(serverListenerEventBus: ServerListenerEve
 
   private val idGenerator = new AtomicInteger(0)
 
-  override def configure(webSocketServletFactory: WebSocketServletFactory): Unit = {
-    webSocketServletFactory.setCreator(new WebSocketCreator {
+  override def configure(webSocketServletFactory: JettyWebSocketServletFactory): Unit = {
+    webSocketServletFactory.setCreator(new JettyWebSocketCreator {
       override def createWebSocket(
-          servletUpgradeRequest: ServletUpgradeRequest,
-          servletUpgradeResponse: ServletUpgradeResponse
+          servletUpgradeRequest: JettyServerUpgradeRequest,
+          servletUpgradeResponse: JettyServerUpgradeResponse
       ): AnyRef =
         ServerSocket(servletUpgradeRequest.getHttpServletRequest, ControllerServer.this)
     })

@@ -49,8 +49,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -62,7 +62,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -282,7 +281,6 @@ public class BmlRestfulApi {
     @ApiImplicitParam(name = "resourceId", required = true, dataType = "String"),
     @ApiImplicitParam(name = "version", required = true, dataType = "String", value = "version")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "deleteVersion", method = RequestMethod.POST)
   public Message deleteVersion(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws IOException, ErrorException {
@@ -366,7 +364,6 @@ public class BmlRestfulApi {
 
   @ApiOperation(value = "deleteResource", notes = "delete Resource", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "resourceId", required = true, dataType = "String")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "deleteResource", method = RequestMethod.POST)
   public Message deleteResource(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws IOException, ErrorException {
@@ -445,7 +442,6 @@ public class BmlRestfulApi {
       notes = "batch delete resource",
       response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "resourceIds", required = true, dataType = "List")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "deleteResources", method = RequestMethod.POST)
   public Message deleteResources(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws IOException, ErrorException {
@@ -850,7 +846,6 @@ public class BmlRestfulApi {
     @ApiImplicitParam(name = "oldOwner", required = true, dataType = "String", value = "old Owner"),
     @ApiImplicitParam(name = "newOwner", required = true, dataType = "String", value = "new Owner")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "changeOwner", method = RequestMethod.POST)
   public Message changeOwnerByResourceId(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ErrorException {
@@ -873,7 +868,6 @@ public class BmlRestfulApi {
     @ApiImplicitParam(name = "resourceId", required = true, dataType = "String"),
     @ApiImplicitParam(name = "anotherUser", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "copyResourceToAnotherUser", method = RequestMethod.POST)
   public Message copyResourceToAnotherUser(
       HttpServletRequest request, @RequestBody JsonNode jsonNode) {
@@ -912,7 +906,6 @@ public class BmlRestfulApi {
     @ApiImplicitParam(name = "resourceId", required = true, dataType = "String"),
     @ApiImplicitParam(name = "version", required = true, dataType = "String", value = "version")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "rollbackVersion", method = RequestMethod.POST)
   public Message rollbackVersion(HttpServletRequest request, @RequestBody JsonNode jsonNode) {
     String resourceId = jsonNode.get("resourceId").textValue();

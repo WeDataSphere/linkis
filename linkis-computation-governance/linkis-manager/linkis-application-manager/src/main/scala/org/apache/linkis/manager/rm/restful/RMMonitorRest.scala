@@ -69,8 +69,6 @@ import org.apache.commons.lang3.StringUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.web.bind.annotation._
 
-import javax.servlet.http.HttpServletRequest
-
 import java.text.{MessageFormat, SimpleDateFormat}
 import java.util
 import java.util.{Comparator, List, TimeZone}
@@ -84,6 +82,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import com.github.pagehelper.page.PageMethod
 import com.google.common.collect.Lists
 import io.swagger.annotations.{Api, ApiOperation}
+import jakarta.servlet.http.HttpServletRequest
 
 @RestController
 @Api(tags = Array("resource management"))

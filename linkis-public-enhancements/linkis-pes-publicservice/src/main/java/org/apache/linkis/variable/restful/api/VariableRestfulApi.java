@@ -29,14 +29,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -77,7 +76,6 @@ public class VariableRestfulApi {
     @ApiImplicitParam(name = "keyID", required = true, dataType = "String", example = "2"),
     @ApiImplicitParam(name = "valueID", required = true, dataType = "List", example = "2")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "saveGlobalVariable", method = RequestMethod.POST)
   public Message saveGlobalVariable(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, VariableException {

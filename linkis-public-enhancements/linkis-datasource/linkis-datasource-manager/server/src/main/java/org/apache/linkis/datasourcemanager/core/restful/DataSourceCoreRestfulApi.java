@@ -54,18 +54,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-import javax.validation.Validator;
-import javax.validation.groups.Default;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 import com.github.pagehelper.PageInfo;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -164,7 +163,6 @@ public class DataSourceCoreRestfulApi {
   }
 
   @ApiOperation(value = "insertJsonInfo", notes = "insert json info", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"dataSource"})
   @ApiImplicitParams({
     @ApiImplicitParam(
         name = "createSystem",
@@ -202,7 +200,6 @@ public class DataSourceCoreRestfulApi {
   }
 
   @ApiOperation(value = "insertJsonInfo", notes = "insert json info", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"dataSource"})
   @ApiImplicitParams({
     @ApiImplicitParam(
         name = "createSystem",
@@ -320,7 +317,6 @@ public class DataSourceCoreRestfulApi {
     @ApiImplicitParam(name = "modifyUser", dataType = "String"),
     @ApiImplicitParam(name = "versionId", dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"dataSource"})
   @RequestMapping(value = "/info/{dataSourceId}/json", method = RequestMethod.PUT)
   public Message updateDataSourceInJson(
       @RequestBody DataSource dataSource,
@@ -407,7 +403,6 @@ public class DataSourceCoreRestfulApi {
       notes = "insert json parameter",
       response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "dataSourceId", required = true, dataType = "Long")})
-  @ApiOperationSupport(ignoreParameters = {"params"})
   @RequestMapping(value = "/parameter/{dataSourceId}/json", method = RequestMethod.POST)
   public Message insertJsonParameter(
       @PathVariable("dataSourceId") Long dataSourceId,
@@ -1157,6 +1152,7 @@ public class DataSourceCoreRestfulApi {
         },
         "Fail to get published data source[获取已发布数据源信息失败]");
   }
+
   /**
    * Inner method to insert data source
    *

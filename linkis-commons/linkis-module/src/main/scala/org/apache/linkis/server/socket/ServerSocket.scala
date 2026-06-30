@@ -18,20 +18,20 @@
 package org.apache.linkis.server.socket
 
 import org.apache.linkis.common.collection.BlockingLoopArray
-import org.apache.linkis.common.utils.Utils
+import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.server.security.SecurityFilter
-
-import javax.servlet.http.HttpServletRequest
 
 import java.util.concurrent.TimeUnit
 
-import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter}
+import jakarta.servlet.http.HttpServletRequest
+import org.eclipse.jetty.websocket.api.{Callback, Session}
 
 case class ServerSocket(
     request: HttpServletRequest,
     socketListener: SocketListener,
     protocol: String = ""
-) extends WebSocketAdapter {
+) extends Session.Listener.Abstract
+    with Logging {
   private var session: Session = _
   private[socket] var id: Int = _
   val createTime = System.currentTimeMillis
@@ -46,7 +46,7 @@ case class ServerSocket(
       override def run(): Unit = {
         var message = cacheMessages.poll()
         while (message.isDefined) {
-          message.foreach(session.getRemote.sendString)
+          message.foreach(session.sendText(_, Callback.NOOP))
           message = cacheMessages.poll()
         }
       }
@@ -60,12 +60,15 @@ case class ServerSocket(
   override def onWebSocketClose(statusCode: Int, reason: String): Unit =
     socketListener.onClose(this, statusCode, reason)
 
-  override def onWebSocketConnect(sess: Session): Unit = {
+  override def onWebSocketOpen(sess: Session): Unit = {
     session = sess
     socketListener.onOpen(this)
   }
 
   override def onWebSocketText(message: String): Unit = socketListener.onMessage(this, message)
+
+  override def onWebSocketError(cause: Throwable): Unit =
+    logger.warn("ServerSocket websocket error", cause)
 
   def sendMessage(message: String): Unit = {
     cacheMessages.put(message)

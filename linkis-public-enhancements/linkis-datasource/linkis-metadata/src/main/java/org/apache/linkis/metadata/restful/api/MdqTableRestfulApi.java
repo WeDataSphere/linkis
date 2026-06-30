@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.util.*;
@@ -48,7 +48,6 @@ import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -271,7 +270,6 @@ public class MdqTableRestfulApi {
   }
 
   @ApiOperation(value = "persistTable", notes = "persist table", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "persistTable", method = RequestMethod.POST)
   public Message persistTable(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException {
@@ -282,7 +280,6 @@ public class MdqTableRestfulApi {
   }
 
   @ApiOperation(value = "displaySql", notes = "display sql", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "displaysql", method = RequestMethod.POST)
   public Message displaySql(HttpServletRequest request, @RequestBody JsonNode json) {
     String userName = ModuleUserUtils.getOperationUser(request, "displaysql ");

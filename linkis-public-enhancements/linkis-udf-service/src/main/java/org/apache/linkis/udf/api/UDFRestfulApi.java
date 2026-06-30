@@ -49,9 +49,10 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import javax.annotation.Nullable;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import java.io.*;
 import java.text.MessageFormat;
@@ -64,7 +65,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import io.swagger.annotations.Api;
@@ -173,7 +173,6 @@ public class UDFRestfulApi {
         required = true,
         example = "expire, self, share")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "list", method = RequestMethod.POST)
   public Message listUDF(HttpServletRequest req, @RequestBody Map<String, Object> json) {
     Message message = null;
@@ -224,7 +223,6 @@ public class UDFRestfulApi {
     @ApiImplicitParam(name = "directory", dataType = "String", value = "directory"),
     @ApiImplicitParam(name = "isLoad", dataType = "Boolean", value = "is load")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "add", method = RequestMethod.POST)
   public Message addUDF(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -282,7 +280,6 @@ public class UDFRestfulApi {
         value = "directory"),
     @ApiImplicitParam(name = "isLoad", dataType = "Boolean", value = "is load")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "update", method = RequestMethod.POST)
   public Message updateUDF(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -358,7 +355,6 @@ public class UDFRestfulApi {
     @ApiImplicitParam(name = "udfInfos", dataType = "List<UDFInfoVo>", value = "udf infos"),
     @ApiImplicitParam(name = "childrens", dataType = "List<UDFTree>", value = "childrens")
   })
-  @ApiOperationSupport(ignoreParameters = {"udfTree"})
   @RequestMapping(path = "/tree/add", method = RequestMethod.POST)
   public Message addTree(HttpServletRequest req, @RequestBody UDFTree udfTree) {
     String userName = ModuleUserUtils.getOperationUser(req, "add udf tree " + udfTree.getName());
@@ -392,7 +388,6 @@ public class UDFRestfulApi {
     @ApiImplicitParam(name = "udfInfos", dataType = "List<UDFInfoVo>", value = "udf infos"),
     @ApiImplicitParam(name = "childrens", dataType = "List<UDFTree>", value = "childrens")
   })
-  @ApiOperationSupport(ignoreParameters = {"udfTree"})
   @RequestMapping(path = "/tree/update", method = RequestMethod.POST)
   public Message updateTree(HttpServletRequest req, @RequestBody UDFTree udfTree) {
     String userName = ModuleUserUtils.getOperationUser(req, "update udf tree " + udfTree.getName());
@@ -450,7 +445,6 @@ public class UDFRestfulApi {
 
   @ApiOperation(value = "setExpire", notes = "set expire", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "udfId", dataType = "Long", value = "udf id")})
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/setExpire", method = RequestMethod.POST)
   @Transactional(
       propagation = Propagation.REQUIRED,
@@ -493,7 +487,6 @@ public class UDFRestfulApi {
         dataType = "List",
         value = "shared users")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/shareUDF", method = RequestMethod.POST)
   @Transactional(
       propagation = Propagation.REQUIRED,
@@ -547,7 +540,6 @@ public class UDFRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "udfId", example = "51", dataType = "long", value = "udf id")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/getSharedUsers", method = RequestMethod.POST)
   @Transactional(
       propagation = Propagation.REQUIRED,
@@ -593,7 +585,6 @@ public class UDFRestfulApi {
         value = "handover user",
         example = "w_jg02")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/handover", method = RequestMethod.POST)
   public Message handoverUDF(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -648,7 +639,6 @@ public class UDFRestfulApi {
     @ApiImplicitParam(name = "udfId", required = true, dataType = "long", value = "udf id"),
     @ApiImplicitParam(name = "version", required = true, dataType = "String", value = "version")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/publish", method = RequestMethod.POST)
   public Message publishUDF(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -687,7 +677,6 @@ public class UDFRestfulApi {
         value = "version",
         example = "v000002")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/rollback", method = RequestMethod.POST)
   public Message rollbackUDF(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -762,7 +751,6 @@ public class UDFRestfulApi {
         defaultValue = "0,1,2",
         example = "0,1,2")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/managerPages", method = RequestMethod.POST)
   public Message managerPages(HttpServletRequest req, @RequestBody JsonNode jsonNode) {
     Message message = null;
@@ -808,7 +796,6 @@ public class UDFRestfulApi {
         value = "version",
         example = "v000003")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/downloadUdf", method = RequestMethod.POST)
   public Message downloadUdf(HttpServletRequest req, @RequestBody JsonNode json) {
     Message message = null;
@@ -847,7 +834,6 @@ public class UDFRestfulApi {
         value = "version",
         example = "v000003")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/downloadToLocal", method = RequestMethod.POST)
   public void downloadToLocal(
       HttpServletRequest req, HttpServletResponse response, @RequestBody JsonNode json)

@@ -26,7 +26,7 @@ import org.apache.linkis.datasourcemanager.core.restful.exception.BeanValidation
 import org.apache.linkis.datasourcemanager.core.validate.ParameterValidateException;
 import org.apache.linkis.server.Message;
 
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolationException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 public class RestfulApiHelper {
 
   private static final Logger logger = LoggerFactory.getLogger(RestfulApiHelper.class);
+
   /**
    * If is administrator
    *

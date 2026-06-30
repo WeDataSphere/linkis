@@ -43,14 +43,13 @@ import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.cloud.netflix.eureka.EurekaServiceInstance;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -106,7 +105,6 @@ public class InstanceRestful {
     @ApiImplicitParam(name = "labelKey", dataType = "String"),
     @ApiImplicitParam(name = "stringValue", dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/instanceLabel", method = RequestMethod.PUT)
   public Message upDateInstanceLabel(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws Exception {

@@ -34,14 +34,13 @@ import org.apache.linkis.scheduler.queue.SchedulerEventState
 
 import org.apache.commons.lang3.StringUtils
 
-import javax.servlet.http.HttpServletRequest
-
 import java.util
 import java.util.Date
 
 import scala.collection.JavaConverters._
 
 import com.google.common.net.InetAddresses
+import jakarta.servlet.http.HttpServletRequest
 
 object JobHistoryHelper extends Logging {
 

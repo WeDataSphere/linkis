@@ -28,8 +28,6 @@ import org.apache.commons.io.FileUtils
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext
 import org.springframework.web.servlet.DispatcherServlet
 
-import javax.servlet.{DispatcherType, Filter, MultipartConfigElement}
-
 import java.io.File
 import java.lang
 import java.lang.reflect.Type
@@ -40,14 +38,15 @@ import scala.collection.mutable
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.gson._
-import org.eclipse.jetty.server.session.SessionHandler
-import org.eclipse.jetty.servlet.{
+import jakarta.servlet.{DispatcherType, Filter, MultipartConfigElement}
+import org.eclipse.jetty.ee10.servlet.{
   DefaultServlet,
   FilterHolder,
   ServletContextHandler,
-  ServletHolder
+  ServletHolder,
+  SessionHandler
 }
-import org.eclipse.jetty.webapp.WebAppContext
+import org.eclipse.jetty.ee10.webapp.WebAppContext
 
 private[linkis] object BDPJettyServerHelper extends Logging {
 
@@ -135,7 +134,7 @@ private[linkis] object BDPJettyServerHelper extends Logging {
     if (warPath.isDirectory) {
       // Development mode, read from FS
       // webApp.setDescriptor(warPath+"/WEB-INF/web.xml");
-      webApp.setResourceBase(warPath.getPath)
+      webApp.setBaseResourceAsString(warPath.getPath)
       webApp.setParentLoaderPriority(true)
     } else {
       // use packaged WAR

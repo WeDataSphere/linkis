@@ -22,10 +22,10 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 
 import org.springframework.web.context.request.{RequestContextHolder, ServletRequestAttributes}
 
-import javax.servlet.http.HttpServletRequest
-
 import java.util
 import java.util.Locale
+
+import jakarta.servlet.http.HttpServletRequest
 
 class Message(
     private var method: String,

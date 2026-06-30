@@ -28,7 +28,7 @@ import org.apache.linkis.cs.server.scheduler.RestJobBuilder;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 public interface CsRestfulParent {
 

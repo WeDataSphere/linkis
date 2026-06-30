@@ -41,7 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -52,7 +52,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -205,7 +204,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "categoryName", required = true, dataType = "String"),
     @ApiImplicitParam(name = "description", required = true, dataType = "String"),
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/createFirstCategory", method = RequestMethod.POST)
   public Message createFirstCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
@@ -227,7 +225,6 @@ public class ConfigurationRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "categoryId", required = true, dataType = "String", example = "54")
   })
-  @ApiOperationSupport(ignoreParameters = "jsonNode")
   @RequestMapping(path = "/deleteCategory", method = RequestMethod.POST)
   public Message deleteCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
@@ -248,7 +245,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "version", required = true, dataType = "String", example = "1.2.0"),
     @ApiImplicitParam(name = "description", required = true, dataType = "String"),
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/createSecondCategory", method = RequestMethod.POST)
   public Message createSecondCategory(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
@@ -280,7 +276,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "description", required = true, dataType = "String"),
     @ApiImplicitParam(name = "settings", required = true, dataType = "List", value = "settings")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/saveFullTree", method = RequestMethod.POST)
   public Message saveFullTree(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, ConfigurationException {
@@ -437,7 +432,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "description", required = true, dataType = "String"),
     @ApiImplicitParam(name = "categoryId", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/updateCategoryInfo", method = RequestMethod.POST)
   public Message updateCategoryInfo(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ConfigurationException {
@@ -530,7 +524,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "configValue", required = true, dataType = "String"),
     @ApiImplicitParam(name = "configKeyId", required = false, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/keyvalue", method = RequestMethod.POST)
   public Message saveKeyValue(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws ConfigurationException {
@@ -607,7 +600,6 @@ public class ConfigurationRestfulApi {
     @ApiImplicitParam(name = "creator", required = true, dataType = "String", value = "creator"),
     @ApiImplicitParam(name = "configKey", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/keyvalue", method = RequestMethod.DELETE)
   public Message deleteKeyValue(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws ConfigurationException {
@@ -734,7 +726,6 @@ public class ConfigurationRestfulApi {
         dataType = "String",
         value = "1"),
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/baseKeyValue", method = RequestMethod.POST)
   public Message saveBaseKeyValue(HttpServletRequest req, @RequestBody ConfigKey configKey)
       throws ConfigurationException, InstantiationException, IllegalAccessException {

@@ -29,11 +29,11 @@ import org.apache.linkis.server.ticket.UserTicketService
 
 import org.apache.commons.lang3.time.DateFormatUtils
 
-import javax.servlet.http.Cookie
-
 import java.util.concurrent.{ConcurrentHashMap, TimeUnit}
 
 import scala.collection.JavaConverters._
+
+import jakarta.servlet.http.Cookie
 
 object SSOUtils extends Logging {
 
@@ -72,7 +72,7 @@ object SSOUtils extends Logging {
               ) {
                 logger.info(
                   s"remove timeout userTicket $k, since the last access time is ${DateFormatUtils
-                    .format(v, "yyyy-MM-dd HH:mm:ss")}."
+                      .format(v, "yyyy-MM-dd HH:mm:ss")}."
                 )
                 userTicketIdToLastAccessTime.remove(k)
               }

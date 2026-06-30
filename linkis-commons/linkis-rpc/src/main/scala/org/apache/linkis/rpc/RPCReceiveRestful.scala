@@ -39,12 +39,12 @@ import org.springframework.web.bind.annotation.{
   RestController
 }
 
-import javax.annotation.PostConstruct
-
 import java.util.concurrent.TimeUnit
 
 import scala.concurrent.duration.Duration
 import scala.runtime.BoxedUnit
+
+import jakarta.annotation.PostConstruct
 
 @RestController
 private[rpc] class RPCReceiveRestful extends RPCReceiveRemote with Logging {

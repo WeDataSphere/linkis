@@ -45,7 +45,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.event.{ContextClosedEvent, EventListener}
 import org.springframework.stereotype.Service
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 @Service
 class DefaultAccessibleService extends AccessibleService with Logging {

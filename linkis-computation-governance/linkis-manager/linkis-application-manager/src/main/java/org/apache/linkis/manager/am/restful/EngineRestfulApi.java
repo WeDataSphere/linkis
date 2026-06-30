@@ -63,7 +63,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -76,7 +76,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -116,7 +115,6 @@ public class EngineRestfulApi {
   private static final Logger logger = LoggerFactory.getLogger(EngineRestfulApi.class);
 
   @ApiOperation(value = "askEngineConn", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/askEngineConn", method = RequestMethod.POST)
   public Message askEngineConn(
       HttpServletRequest req, @RequestBody EngineAskRequest engineAskRequest)
@@ -293,7 +291,6 @@ public class EngineRestfulApi {
   }
 
   @ApiOperation(value = "createEngineConn", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/createEngineConn", method = RequestMethod.POST)
   public Message createEngineConn(
       HttpServletRequest req, @RequestBody EngineCreateRequest engineCreateRequest)
@@ -336,7 +333,6 @@ public class EngineRestfulApi {
   }
 
   @ApiOperation(value = "getEngineConn", notes = "get engineconn", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/getEngineConn", method = RequestMethod.POST)
   public Message getEngineConn(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -382,7 +378,6 @@ public class EngineRestfulApi {
   }
 
   @ApiOperation(value = "kill egineconn", notes = "kill engineconn", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/killEngineConn", method = RequestMethod.POST)
   public Message killEngineConn(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws Exception {
@@ -409,7 +404,6 @@ public class EngineRestfulApi {
         required = true,
         example = "bdp110:9210")
   })
-  @ApiOperationSupport(ignoreParameters = {"param"})
   @RequestMapping(path = "/rm/killUnlockEngineByEM", method = RequestMethod.POST)
   public Message killUnlockEngine(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -446,7 +440,6 @@ public class EngineRestfulApi {
         dataType = "String",
         example = "linkis-cg-engineconn")
   })
-  @ApiOperationSupport(ignoreParameters = {"param"})
   @RequestMapping(path = "/rm/enginekill", method = RequestMethod.POST)
   public Message killEngine(HttpServletRequest req, @RequestBody Map<String, String>[] param) {
     String userName = ModuleUserUtils.getOperationUser(req, "enginekill");
@@ -463,7 +456,6 @@ public class EngineRestfulApi {
     return Message.ok("Kill engineConn succeed.");
   }
 
-  @ApiOperationSupport(ignoreParameters = {"param"})
   @ApiImplicitParams({
     @ApiImplicitParam(
         name = "instances",
@@ -541,7 +533,6 @@ public class EngineRestfulApi {
     @ApiImplicitParam(name = "nodeStatus", dataType = "String"),
     @ApiImplicitParam(name = "owner", dataType = "String", value = "owner")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/listEMEngines", method = RequestMethod.POST)
   public Message listEMEngines(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws IOException, AMErrorException {
@@ -611,7 +602,6 @@ public class EngineRestfulApi {
     @ApiImplicitParam(name = "stringValue", dataType = "String", example = "linkis-cg:12295"),
     @ApiImplicitParam(name = "nodeHealthy", dataType = "String", example = "UnHealthy")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/modifyEngineInfo", method = RequestMethod.PUT)
   public Message modifyEngineInfo(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException, LabelErrorException {
@@ -669,7 +659,6 @@ public class EngineRestfulApi {
         example =
             "[{\"instance\":\"bdplinkis1001:38701\",\"engineType\":\"spark\",\"applicationName\":\"linkis-cg-engineconn\"}]")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "/batchSetEngineToUnHealthy", method = RequestMethod.POST)
   public Message batchSetEngineToUnHealthy(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {
@@ -748,7 +737,6 @@ public class EngineRestfulApi {
         required = true,
         example = "hive-2.3.3"),
   })
-  @ApiOperationSupport(ignoreParameters = {"param"})
   @RequestMapping(path = "/rm/killEngineByCreatorEngineType", method = RequestMethod.POST)
   public Message killEngineByUpdateConfig(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws AMErrorException {

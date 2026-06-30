@@ -33,9 +33,9 @@ import org.springframework.boot.autoconfigure.http.HttpMessageConverters
 import org.springframework.context.annotation.{Bean, Configuration}
 import org.springframework.http.converter.HttpMessageConverter
 
-import javax.annotation.PostConstruct
-
 import java.util.stream.Collectors
+
+import jakarta.annotation.PostConstruct
 
 @Configuration
 class GatewaySpringConfiguration {

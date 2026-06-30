@@ -40,7 +40,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -55,7 +55,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -83,7 +82,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "getContextValue", method = RequestMethod.POST)
   public Message getContextValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws InterruptedException, CSErrorException, IOException, ClassNotFoundException {
@@ -107,7 +105,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "condition", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "searchContextValue", method = RequestMethod.POST)
   public Message searchContextValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException, ContextSearchFailedException {
@@ -131,7 +128,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "setValueByKey", method = RequestMethod.POST)
   public Message setValueByKey(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException, InterruptedException {
@@ -153,7 +149,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKeyValue", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "setValue", method = RequestMethod.POST)
   public Message setValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws InterruptedException, CSErrorException, IOException, ClassNotFoundException {
@@ -174,7 +169,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "resetValue", method = RequestMethod.POST)
   public Message resetValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException {
@@ -195,7 +189,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "removeValue", method = RequestMethod.POST)
   public Message removeValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException {
@@ -216,7 +209,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextID", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "removeAllValue", method = RequestMethod.POST)
   public Message removeAllValue(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException {
@@ -239,7 +231,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKeyType", required = true, dataType = "String"),
     @ApiImplicitParam(name = "keyPrefix", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "removeAllValueByKeyPrefixAndContextType", method = RequestMethod.POST)
   public Message removeAllValueByKeyPrefixAndContextType(
       HttpServletRequest req, @RequestBody JsonNode jsonNode)
@@ -267,7 +258,6 @@ public class ContextRestfulApi implements CsRestfulParent {
     @ApiImplicitParam(name = "contextKeyType", required = true, dataType = "String"),
     @ApiImplicitParam(name = "contextKey", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "removeAllValueByKeyAndContextType", method = RequestMethod.POST)
   public Message removeValueByKeyAndContextType(
       HttpServletRequest req, @RequestBody JsonNode jsonNode)

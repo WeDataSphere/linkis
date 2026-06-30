@@ -23,7 +23,7 @@ import org.apache.linkis.server.conf.ServerConfiguration
 
 import org.apache.commons.lang3.StringUtils
 
-import javax.servlet.http.{Cookie, HttpServletRequest}
+import jakarta.servlet.http.{Cookie, HttpServletRequest}
 
 object ProxyUserSSOUtils extends Logging {
 

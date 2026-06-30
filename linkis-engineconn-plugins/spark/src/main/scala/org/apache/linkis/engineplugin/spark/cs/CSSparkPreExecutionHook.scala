@@ -28,10 +28,10 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import java.text.MessageFormat
 import java.util
+
+import jakarta.annotation.PostConstruct
 
 @Component
 class CSSparkPreExecutionHook extends SparkPreExecutionHook with Logging {

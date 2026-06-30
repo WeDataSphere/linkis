@@ -19,7 +19,7 @@ package org.apache.linkis.engineplugin.spark.datacalc.sink;
 
 import org.apache.linkis.engineplugin.spark.datacalc.model.SinkConfig;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class StarrocksSinkConfig extends SinkConfig {
 

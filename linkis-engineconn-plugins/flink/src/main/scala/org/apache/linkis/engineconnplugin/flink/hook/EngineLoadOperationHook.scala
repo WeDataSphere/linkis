@@ -31,11 +31,11 @@ import org.apache.linkis.manager.common.protocol.engine.{
 
 import org.springframework.stereotype.Service
 
-import javax.annotation.PostConstruct
-
 import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.mutable
+
+import jakarta.annotation.PostConstruct
 
 @Service
 class EngineLoadOperationHook extends OperationHook with Logging {

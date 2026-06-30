@@ -21,9 +21,9 @@ import org.apache.linkis.server.JMap
 
 import org.springframework.http.server.reactive.AbstractServerHttpRequest
 
-import javax.servlet.http.Cookie
-
 import java.net.{InetSocketAddress, URI}
+
+import jakarta.servlet.http.Cookie
 
 trait GatewayHttpRequest {
 

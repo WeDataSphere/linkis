@@ -27,11 +27,10 @@ import org.springframework.web.bind.annotation.{
   RequestParam
 }
 
-import javax.servlet.http.HttpServletRequest
-
 import java.util
 
 import com.fasterxml.jackson.databind.JsonNode
+import jakarta.servlet.http.HttpServletRequest
 
 trait EntranceRestfulRemote {
 

@@ -40,15 +40,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -87,7 +86,6 @@ public class BmlProjectRestful {
     @ApiImplicitParam(name = "editUsers", required = true, dataType = "String"),
     @ApiImplicitParam(name = "accessUsers", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "createBmlProject", method = RequestMethod.POST)
   public Message createBmlProject(HttpServletRequest request, @RequestBody JsonNode jsonNode) {
 
@@ -425,7 +423,6 @@ public class BmlProjectRestful {
     @ApiImplicitParam(name = "projectName", required = true, dataType = "String"),
     @ApiImplicitParam(name = "resourceId", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "attachResourceAndProject", method = RequestMethod.POST)
   public Message attachResourceAndProject(
       HttpServletRequest request, @RequestBody JsonNode jsonNode) throws ErrorException {
@@ -451,7 +448,6 @@ public class BmlProjectRestful {
     @ApiImplicitParam(name = "editUsers", required = true, dataType = "String"),
     @ApiImplicitParam(name = "accessUsers", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "updateProjectUsers", method = RequestMethod.POST)
   public Message updateProjectUsers(HttpServletRequest request, @RequestBody JsonNode jsonNode)
       throws ErrorException {

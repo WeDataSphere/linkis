@@ -28,7 +28,7 @@ import org.apache.linkis.datasourcemanager.core.service.BmlAppService;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 
 import java.io.InputStream;
 
@@ -42,6 +42,7 @@ import static org.apache.linkis.datasourcemanager.common.errorcode.LinkisDatasou
 @RefreshScope
 public class BmlAppServiceImpl implements BmlAppService {
   private static final Logger LOG = LoggerFactory.getLogger(BmlAppService.class);
+
   /** Bml client */
   private BmlClient client;
 

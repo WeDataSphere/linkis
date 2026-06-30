@@ -51,17 +51,17 @@ import org.springframework.core.env.StandardEnvironment;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import javax.servlet.DispatcherType;
+import jakarta.servlet.DispatcherType;
 
 import java.util.EnumSet;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.ee10.servlet.FilterHolder;
+import org.eclipse.jetty.ee10.webapp.WebAppContext;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -212,9 +212,9 @@ public class DataWorkCloudApplication extends SpringBootServletInitializer {
             new JettyServerCustomizer() {
               @Override
               public void customize(Server server) {
-                Handler[] childHandlersByClass =
-                    server.getChildHandlersByClass(WebAppContext.class);
-                final WebAppContext webApp = (WebAppContext) childHandlersByClass[0];
+                List<WebAppContext> childHandlersByClass =
+                    server.getDescendants(WebAppContext.class);
+                final WebAppContext webApp = childHandlersByClass.get(0);
                 FilterHolder filterHolder = new FilterHolder(CharacterEncodingFilter.class);
                 filterHolder.setInitParameter("encoding", Configuration.BDP_ENCODING().getValue());
                 filterHolder.setInitParameter("forceEncoding", "true");

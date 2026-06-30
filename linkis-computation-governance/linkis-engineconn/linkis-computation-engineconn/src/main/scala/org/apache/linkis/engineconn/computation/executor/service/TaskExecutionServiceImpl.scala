@@ -84,8 +84,6 @@ import org.apache.commons.lang3.exception.ExceptionUtils
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import java.util
 import java.util.Map
 import java.util.concurrent._
@@ -95,6 +93,7 @@ import scala.collection.JavaConverters._
 import scala.concurrent.ExecutionContextExecutorService
 
 import com.google.common.cache.{Cache, CacheBuilder}
+import jakarta.annotation.PostConstruct
 
 @Component
 class TaskExecutionServiceImpl

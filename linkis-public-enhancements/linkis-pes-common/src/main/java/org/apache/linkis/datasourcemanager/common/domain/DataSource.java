@@ -22,9 +22,9 @@ import org.apache.linkis.datasourcemanager.common.util.json.Json;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -64,8 +64,10 @@ public class DataSource {
 
   /** System name from creator */
   @NotNull private String createSystem;
+
   /** Connection parameters */
   private Map<String, Object> connectParams = new HashMap<>();
+
   /** Parameter JSON string */
   @JsonIgnore private String parameter;
 

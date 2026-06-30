@@ -19,7 +19,7 @@ package org.apache.linkis.engineplugin.spark.datacalc.source;
 
 import org.apache.linkis.engineplugin.spark.datacalc.model.SourceConfig;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class ManagedJdbcSourceConfig extends SourceConfig {
 

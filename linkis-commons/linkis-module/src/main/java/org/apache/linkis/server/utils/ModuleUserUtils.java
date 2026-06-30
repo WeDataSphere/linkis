@@ -23,7 +23,7 @@ import org.apache.linkis.server.security.SecurityFilter;
 
 import org.apache.commons.lang3.StringUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import scala.Option;
 

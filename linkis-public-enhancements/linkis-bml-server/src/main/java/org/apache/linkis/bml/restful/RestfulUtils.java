@@ -22,7 +22,7 @@ import org.apache.linkis.bml.common.Constant;
 import org.apache.linkis.bml.service.ResourceService;
 import org.apache.linkis.server.utils.ModuleUserUtils;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;

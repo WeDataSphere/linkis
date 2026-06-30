@@ -17,7 +17,7 @@
 
 package org.apache.linkis.gateway.http
 
-import javax.servlet.http.Cookie
+import jakarta.servlet.http.Cookie
 
 trait GatewayHttpResponse {
 

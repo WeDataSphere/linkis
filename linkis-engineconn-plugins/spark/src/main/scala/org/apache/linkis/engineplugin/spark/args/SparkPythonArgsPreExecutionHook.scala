@@ -27,9 +27,9 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import java.util
+
+import jakarta.annotation.PostConstruct
 
 /**
  * Set sys.argv[] if: 1. it is a pyspark task. 2. user provide with args in runtimeMap. 3. it is at

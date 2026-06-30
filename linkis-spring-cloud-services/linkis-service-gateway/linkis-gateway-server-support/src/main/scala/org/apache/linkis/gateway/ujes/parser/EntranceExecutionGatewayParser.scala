@@ -29,11 +29,11 @@ import org.apache.linkis.manager.label.entity.route.RouteLabel
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.Resource
-
 import java.util
 
 import scala.collection.JavaConverters._
+
+import jakarta.annotation.Resource
 
 @Component
 class EntranceExecutionGatewayParser extends AbstractGatewayParser {

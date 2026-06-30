@@ -32,7 +32,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
@@ -41,7 +41,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -64,7 +63,6 @@ public class ContextIDRestfulApi implements CsRestfulParent {
 
   @ApiOperation(value = "createContextID", notes = "create context Id", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "contextID", dataType = "String")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "createContextID", method = RequestMethod.POST)
   public Message createContextID(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws InterruptedException, ClassNotFoundException, IOException, CSErrorException {
@@ -93,7 +91,6 @@ public class ContextIDRestfulApi implements CsRestfulParent {
 
   @ApiOperation(value = "updateContextID", notes = "update content id", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "contextId", dataType = "String")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "updateContextID", method = RequestMethod.POST)
   public Message updateContextID(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws InterruptedException, CSErrorException, IOException, ClassNotFoundException {
@@ -110,7 +107,6 @@ public class ContextIDRestfulApi implements CsRestfulParent {
 
   @ApiOperation(value = "resetContextID", notes = "reset context Id", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "contextId", dataType = "String")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "resetContextID", method = RequestMethod.POST)
   public Message resetContextID(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException {
@@ -132,7 +128,6 @@ public class ContextIDRestfulApi implements CsRestfulParent {
 
   @ApiOperation(value = "removeContextID", notes = "remove context ID", response = Message.class)
   @ApiImplicitParams({@ApiImplicitParam(name = "contextId", dataType = "String")})
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "removeContextID", method = RequestMethod.POST)
   public Message removeContextID(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException {

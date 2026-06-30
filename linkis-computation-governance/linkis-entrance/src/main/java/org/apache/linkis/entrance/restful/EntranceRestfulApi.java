@@ -52,7 +52,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +64,6 @@ import java.util.Optional;
 import scala.Option;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -93,7 +92,6 @@ public class EntranceRestfulApi implements EntranceRestfulRemote {
    * key-value pair(传入的键值对) Repsonse
    */
   @ApiOperation(value = "execute", notes = "execute the submitted task", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @Override
   @RequestMapping(path = "/execute", method = RequestMethod.POST)
   public Message execute(HttpServletRequest req, @RequestBody Map<String, Object> json) {
@@ -145,7 +143,6 @@ public class EntranceRestfulApi implements EntranceRestfulRemote {
   }
 
   @ApiOperation(value = "submit", notes = "submit execute job", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @Override
   @RequestMapping(path = "/submit", method = RequestMethod.POST)
   public Message submit(HttpServletRequest req, @RequestBody Map<String, Object> json) {
@@ -517,7 +514,6 @@ public class EntranceRestfulApi implements EntranceRestfulRemote {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "strongExecId", required = true, dataType = "String")
   })
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @Override
   @RequestMapping(path = "/{id}/killJobs", method = RequestMethod.POST)
   public Message killJobs(

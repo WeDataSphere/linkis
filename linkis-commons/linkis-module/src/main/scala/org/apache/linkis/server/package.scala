@@ -31,14 +31,13 @@ import org.apache.linkis.server.security.SecurityFilter
 import org.apache.commons.lang3.StringUtils
 import org.apache.commons.lang3.exception.ExceptionUtils
 
-import javax.servlet.http.HttpServletRequest
-
 import java.text.MessageFormat
 import java.util
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 
+import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.Logger
 
 package object server {

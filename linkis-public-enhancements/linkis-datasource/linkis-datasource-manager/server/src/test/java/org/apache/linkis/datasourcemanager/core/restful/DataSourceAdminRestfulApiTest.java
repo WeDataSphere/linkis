@@ -36,8 +36,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Validator;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Validator;
 
 import java.io.StringWriter;
 import java.util.ArrayList;

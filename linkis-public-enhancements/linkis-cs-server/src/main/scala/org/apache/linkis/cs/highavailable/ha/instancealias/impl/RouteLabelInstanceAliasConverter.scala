@@ -34,14 +34,13 @@ import org.apache.commons.lang3.StringUtils
 
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
-
 import java.util
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters.asScalaBufferConverter
 
 import com.google.common.cache.CacheBuilder
+import jakarta.annotation.PostConstruct
 
 @Component
 class RouteLabelInstanceAliasConverter extends InstanceAliasConverter with Logging {

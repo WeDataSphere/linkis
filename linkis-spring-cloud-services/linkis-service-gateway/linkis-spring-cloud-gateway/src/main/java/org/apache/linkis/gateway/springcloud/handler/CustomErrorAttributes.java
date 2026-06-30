@@ -60,7 +60,7 @@ public class CustomErrorAttributes extends DefaultErrorAttributes {
   private HttpStatus determineHttpStatus(
       Throwable error, MergedAnnotation<ResponseStatus> responseStatusAnnotation) {
     if (error instanceof ResponseStatusException) {
-      return ((ResponseStatusException) error).getStatus();
+      return HttpStatus.valueOf(((ResponseStatusException) error).getStatusCode().value());
     }
     return responseStatusAnnotation
         .getValue("code", HttpStatus.class)

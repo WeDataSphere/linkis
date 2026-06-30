@@ -34,7 +34,7 @@ import org.apache.linkis.orchestrator.listener.task.{
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 
-import javax.annotation.PostConstruct
+import jakarta.annotation.PostConstruct
 
 /**
  * 1.TaskLogListener: job.getLogListener.foreach(_.onLogUpdate(job, logEvent.log))
@@ -49,7 +49,7 @@ import javax.annotation.PostConstruct
  *
  * 4. TaskStatusListener getEngineExecuteAsyncReturn.foreach { jobReturn => jobReturn.notifyStatus(
  * ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Succeed) ) } val msg
- * = failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
+ * \= failedResponse.getErrorCode + ", " + failedResponse.getErrorMsg
  * getEngineExecuteAsyncReturn.foreach { jobReturn => jobReturn.notifyError(msg,
  * failedResponse.getCause) jobReturn.notifyStatus(
  * ResponseTaskStatus(entranceExecuteRequest.getJob.getId, ExecutionNodeStatus.Failed) ) }

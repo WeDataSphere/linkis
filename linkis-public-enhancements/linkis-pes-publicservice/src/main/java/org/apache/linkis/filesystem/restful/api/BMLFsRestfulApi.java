@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,7 +44,6 @@ import java.text.MessageFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -165,7 +164,6 @@ public class BMLFsRestfulApi {
     @ApiImplicitParam(name = "projectName", dataType = "String"),
     @ApiImplicitParam(name = "metadata", required = false, dataType = "String", value = "metadata")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
   @RequestMapping(path = "/saveScriptToBML", method = RequestMethod.POST)
   public Message saveScriptToBML(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws IOException {

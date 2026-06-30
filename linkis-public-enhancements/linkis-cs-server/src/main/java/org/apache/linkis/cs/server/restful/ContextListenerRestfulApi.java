@@ -36,13 +36,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 
@@ -56,7 +55,6 @@ public class ContextListenerRestfulApi implements CsRestfulParent {
   @Autowired private ContextListenerService contextListenerService;
 
   @ApiOperation(value = "onBindIDListener", notes = "on bind id listener", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "onBindIDListener", method = RequestMethod.POST)
   public Message onBindIDListener(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws InterruptedException, CSErrorException, IOException, ClassNotFoundException {
@@ -78,7 +76,6 @@ public class ContextListenerRestfulApi implements CsRestfulParent {
       value = "onBindKeyListener",
       notes = "on bind key listener",
       response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "onBindKeyListener", method = RequestMethod.POST)
   public Message onBindKeyListener(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException, IOException, ClassNotFoundException {
@@ -99,7 +96,6 @@ public class ContextListenerRestfulApi implements CsRestfulParent {
   }
 
   @ApiOperation(value = "heartbeat", notes = "heart beat", response = Message.class)
-  @ApiOperationSupport(ignoreParameters = {"jsonNode"})
   @RequestMapping(path = "heartbeat", method = RequestMethod.POST)
   public Message heartbeat(HttpServletRequest req, @RequestBody JsonNode jsonNode)
       throws CSErrorException {
