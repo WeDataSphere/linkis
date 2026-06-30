@@ -116,33 +116,30 @@
     <!-- hadoop 2.7 use curator 2.7.1, hadoop3.3 use curator 4.2.0-->
     <curator.version>2.7.1</curator.version>
     <guava.version>33.2.1-jre</guava.version>
-    <netty.version>4.2.7.Final</netty.version>
+    <netty.version>4.1.114.Final</netty.version>
     <okio.version>3.4.0</okio.version>
     <snappy-java.version>1.1.10.4</snappy-java.version>
     <avro.version>1.11.5</avro.version>
     <aircompressor.version>0.27</aircompressor.version>
-    <reactor-netty-http.version>1.0.39</reactor-netty-http.version>
+    <reactor-netty-http.version>1.1.23</reactor-netty-http.version>
 
     <!-- This is the same as the kubernetes-client version referenced in spark3.2.1 -->
     <kubernetes-client.version>5.4.1</kubernetes-client.version>
     <!-- json -->
     <gson.version>2.8.9</gson.version>
-    <jackson-bom.version>2.15.0</jackson-bom.version>
     <nebula.version>3.0.0</nebula.version>
+    <!-- Kept for engine plugin pom resolution only; jersey dependencies are removed
+         from control plane. Hive/spark/flink/sqoop engines still reference this
+         property and may fail to compile under JDK 21 — exclude with -pl if so. -->
     <jersey.version>1.19.4</jersey.version>
-    <jersey.servlet.version>2.23.1</jersey.servlet.version>
-    <jline.version>2.14.6</jline.version>
-    <jetty.version>9.4.57.v20241219</jetty.version>
     <httpclient.version>4.5.13</httpclient.version>
     <httpmime.version>${httpclient.version}</httpmime.version>
-    <knife4j.version>2.0.9</knife4j.version>
-    <springfox.version>2.10.5</springfox.version>
+    <!-- jetty.version removed; Spring Boot 3.3.5 BOM manages Jetty 12 (EE10 namespace). -->
     <xstream.core.version>1.4.21</xstream.core.version>
     <reflections.version>0.9.12</reflections.version>
-    <mybatis-plus.boot.starter.version>3.5.7</mybatis-plus.boot.starter.version>
-    <mysql.connector.version>8.0.28</mysql.connector.version>
+    <mybatis-plus.boot.starter.version>3.5.9</mybatis-plus.boot.starter.version>
+    <mysql.connector.version>8.0.33</mysql.connector.version>
     <druid.version>1.2.4</druid.version>
-    <javassist.version>3.27.0-GA</javassist.version>
     <commons-collections.version>3.2.2</commons-collections.version>
     <commons-lang3.version>3.18.0</commons-lang3.version>
     <commons-logging.version>1.2</commons-logging.version>
@@ -156,18 +153,18 @@
     <commons-fileupload.version>1.6.0</commons-fileupload.version>
     <protobuf.version>3.25.5</protobuf.version>
     <cglib.version>3.3.0</cglib.version>
-    <asm-bom.version>9.3</asm-bom.version>
-    <slf4j.version>1.7.30</slf4j.version>
-    <log4j2.version>2.17.2</log4j2.version>
+    <slf4j.version>2.0.12</slf4j.version>
+    <log4j2.version>2.23.1</log4j2.version>
     <poi.version>5.2.3</poi.version>
     <snakeyaml.version>2.0</snakeyaml.version>
     <jettision.version>1.5.4</jettision.version>
     <woodstox.core.version>6.4.0</woodstox.core.version>
     <classgraph.version>4.8.112</classgraph.version>
     <kafka-client.version>3.9.1</kafka-client.version>
+    <jline.version>2.14.6</jline.version>
 
     <!-- jakarta -->
-    <annotation-api.version>1.3.5</annotation-api.version>
+    <annotation-api.version>2.1.1</annotation-api.version>
 
     <!-- test -->
     <junit5.version>5.7.2</junit5.version>
@@ -176,25 +173,25 @@
     <h2.version>2.2.220</h2.version>
 
     <!-- spring -->
-    <spring-framework.version>5.3.34</spring-framework.version>
-    <spring-security.version>5.7.11</spring-security.version>
-    <spring.boot.version>2.7.12</spring.boot.version>
-    <spring-netflix.version>3.1.7</spring-netflix.version>
-    <spring-cloud.version>2021.0.8</spring-cloud.version>
-    <spring-cloud-alibaba.version>2021.0.6.0</spring-cloud-alibaba.version>
-    <spring-cloud-common.version>3.1.7</spring-cloud-common.version>
-    <spring.boot.admin.version>2.7.16</spring.boot.admin.version>
+    <spring-framework.version>6.1.14</spring-framework.version>
+    <spring-security.version>6.3.4</spring-security.version>
+    <spring.boot.version>3.3.5</spring.boot.version>
+    <spring-netflix.version>4.1.4</spring-netflix.version>
+    <spring-cloud.version>2023.0.3</spring-cloud.version>
+    <spring-cloud-alibaba.version>2023.0.1.2</spring-cloud-alibaba.version>
+    <spring-cloud-common.version>4.1.4</spring-cloud-common.version>
+    <spring.boot.admin.version>3.3.5</spring.boot.admin.version>
 
     <!-- platform encoding override -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <!-- dev env -->
-    <java.version>1.8</java.version>
-    <maven.version>3.5.0</maven.version>
+    <java.version>21</java.version>
+    <maven.version>3.6.3</maven.version>
     <json4s.version>3.7.0-M11</json4s.version>
-    <scala.version>2.11.12</scala.version>
-    <scala.binary.version>2.11</scala.binary.version>
+    <scala.version>2.12.20</scala.version>
+    <scala.binary.version>2.12</scala.binary.version>
     <ant.version>1.10.12</ant.version>
 
     <!-- maven plugin versions -->
@@ -211,13 +208,12 @@
     <maven-surefire-plugin.version>3.0.0-M7</maven-surefire-plugin.version>
     <maven-compiler-plugin.version>3.10.1</maven-compiler-plugin.version>
     <flatten-maven-plugin.version>1.3.0</flatten-maven-plugin.version>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
+    <maven.compiler.release>21</maven.compiler.release>
     <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
     <maven-shade-plugin.version>3.3.0</maven-shade-plugin.version>
     <maven-helper-plugin.version>3.2.0</maven-helper-plugin.version>
     <scala-maven-plugin.version>4.7.1</scala-maven-plugin.version>
-    <spotless-maven-plugin.version>2.24.1</spotless-maven-plugin.version>
+    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
     <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
     <jacoco.skip>false</jacoco.skip>
 
@@ -257,6 +253,11 @@
             <artifactId>hibernate-validator</artifactId>
           </exclusion>
         </exclusions>
+      </dependency>
+      <dependency>
+        <groupId>io.swagger</groupId>
+        <artifactId>swagger-annotations</artifactId>
+        <version>1.6.14</version>
       </dependency>
       <dependency>
         <groupId>org.apache.linkis</groupId>
@@ -316,11 +317,6 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.javassist</groupId>
-        <artifactId>javassist</artifactId>
-        <version>${javassist.version}</version>
       </dependency>
       <dependency>
         <groupId>org.apache.ant</groupId>
@@ -412,67 +408,11 @@
         <artifactId>gson</artifactId>
         <version>${gson.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson</groupId>
-        <artifactId>jackson-bom</artifactId>
-        <version>${jackson-bom.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
 
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-client</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-server</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-servlet</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-core</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey</groupId>
-        <artifactId>jersey-json</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey.contribs</groupId>
-        <artifactId>jersey-guice</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
       <dependency>
         <groupId>com.google.protobuf</groupId>
         <artifactId>protobuf-java</artifactId>
         <version>${protobuf.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.sun.jersey.contribs</groupId>
-        <artifactId>jersey-apache-client4</artifactId>
-        <version>${jersey.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.eclipse.jetty</groupId>
-        <artifactId>jetty-bom</artifactId>
-        <version>${jetty.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.glassfish.jersey</groupId>
-        <artifactId>jersey-bom</artifactId>
-        <version>${jersey.servlet.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
       </dependency>
       <dependency>
         <groupId>jline</groupId>
@@ -939,13 +879,6 @@
       </dependency>
 
       <dependency>
-        <groupId>org.ow2.asm</groupId>
-        <artifactId>asm-bom</artifactId>
-        <version>${asm-bom.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <dependency>
         <groupId>cglib</groupId>
         <artifactId>cglib</artifactId>
         <version>${cglib.version}</version>
@@ -1150,7 +1083,7 @@
                     <version>${maven.version}</version>
                   </requireMavenVersion>
                   <requireJavaVersion>
-                    <version>${java.version}</version>
+                    <version>[21,22)</version>
                   </requireJavaVersion>
                   <bannedDependencies>
                     <excludes>
@@ -1167,6 +1100,9 @@
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
           <version>${maven-compiler-plugin.version}</version>
+          <configuration>
+            <parameters>true</parameters>
+          </configuration>
         </plugin>
         <plugin>
           <groupId>org.codehaus.mojo</groupId>
@@ -1226,7 +1162,7 @@
               <arg>-deprecation</arg>
               <arg>-feature</arg>
               <arg>-explaintypes</arg>
-              <arg>-target:jvm-${java.version}</arg>
+              <arg>-target:jvm-1.8</arg>
             </args>
           </configuration>
           <executions>
@@ -1381,13 +1317,13 @@
             </pom>
             <java>
               <googleJavaFormat>
-                <version>1.7</version>
+                <version>1.17.0</version>
                 <style>GOOGLE</style>
               </googleJavaFormat>
 
               <!-- \# refers to the static imports -->
               <importOrder>
-                <order>org.apache.linkis,org.apache,org.springframework,javax,java,scala,,\#</order>
+                <order>org.apache.linkis,org.apache,org.springframework,jakarta,javax,java,scala,,\#</order>
               </importOrder>
 
               <removeUnusedImports/>
@@ -1489,9 +1425,8 @@
         <revision>2.0.0-spark3</revision>
         <json4s.version>3.7.0-M11</json4s.version>
         <spark.version>3.4.4</spark.version>
-        <scala.version>2.12.18</scala.version>
+        <scala.version>2.12.20</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
-        <jackson-bom.version>2.14.2</jackson-bom.version>
       </properties>
     </profile>
 
@@ -1568,10 +1503,10 @@
     <profile>
       <id>jdk11-on</id>
       <activation>
-        <jdk>[11,)</jdk>
+        <jdk>[21,)</jdk>
       </activation>
       <properties>
-        <maven.compiler.release>8</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
       </properties>
       <build>
         <plugins>
