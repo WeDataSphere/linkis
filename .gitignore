@@ -46,3 +46,5 @@ nul
 .claude
 /deployment-materials/
 /install.bat
+
+.mcp.json
