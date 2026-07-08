@@ -9,7 +9,7 @@ The public enhancement services provide shared capabilities used across the Link
 - [BML Service](./bml.md) - Big Data Material Library
 - [DataSource Service](./datasource.md) - Data source management
 - [Context Service](./context.md) - Context and variable sharing
-- [Monitor Service](./monitor.md) - System monitoring
+- Monitor Service - 见 [`../microservice-governance/monitor.md`](../microservice-governance/monitor.md)
 
 ## Overview
 
