@@ -31,9 +31,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -41,10 +38,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-/** Simplified Unit tests for Admin Delete Config Value API 测试管理员删除用户配置功能 - 简化版（确保编译通过） */
+/**
+ * Simplified Unit tests for Admin Delete Config Value API 测试管理员删除用户配置功能 - 简化版（确保编译通过）
+ *
+ * <p>接口已改为GET请求，id作为URL参数传递
+ */
 @ExtendWith({SpringExtension.class})
 @AutoConfigureMockMvc
 @SpringBootTest(classes = {WebApplicationServer.class, Scan.class})
@@ -58,12 +58,10 @@ public class AdminDeleteConfigValueSimpleTest {
   @MockBean private ConfigKeyService configKeyService;
 
   private MockHttpServletRequest request;
-  private Map<String, Object> requestBody;
 
   @BeforeEach
   public void setUp() {
     request = new MockHttpServletRequest();
-    requestBody = new HashMap<>();
   }
 
   @Test
@@ -78,10 +76,9 @@ public class AdminDeleteConfigValueSimpleTest {
     configValue.setConfigValue("100G");
 
     when(configKeyService.deleteConfigValueById(configId)).thenReturn(configValue);
-    requestBody.put("id", configId);
 
-    // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    // When - GET请求，id作为参数
+    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
 
     // Then
     assertNotNull(result);
@@ -97,46 +94,14 @@ public class AdminDeleteConfigValueSimpleTest {
     // Given
     Long configId = 123L;
     request.setRemoteUser("nonadminuser");
-    requestBody.put("id", configId);
 
     // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
 
     // Then
     assertNotNull(result);
     assertNotEquals(0, result.getStatus());
     // 注意：此测试需要完整的集成测试环境才能正确验证权限控制逻辑
-  }
-
-  @Test
-  @DisplayName("TC006: 删除失败-参数验证（id为空）")
-  public void testDeleteConfigWithEmptyId() {
-    // Given
-    request.setRemoteUser("hadoop");
-    requestBody.put("id", null);
-
-    // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
-
-    // Then
-    assertNotNull(result);
-    assertNotEquals(0, result.getStatus());
-  }
-
-  @Test
-  @DisplayName("TC007: 删除失败-参数验证（id格式无效）")
-  public void testDeleteConfigWithInvalidIdFormat() {
-    // Given
-    request.setRemoteUser("hadoop");
-    requestBody.put("id", "abc");
-
-    // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
-
-    // Then
-    assertNotNull(result);
-    assertNotEquals(0, result.getStatus());
-    verify(configKeyService, never()).deleteConfigValueById(anyLong());
   }
 
   @Test
@@ -147,10 +112,9 @@ public class AdminDeleteConfigValueSimpleTest {
     request.setRemoteUser("hadoop");
 
     when(configKeyService.deleteConfigValueById(configId)).thenReturn(null);
-    requestBody.put("id", configId);
 
     // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
 
     // Then
     assertNotNull(result);
@@ -169,10 +133,9 @@ public class AdminDeleteConfigValueSimpleTest {
     configValue.setId(configId);
 
     when(configKeyService.deleteConfigValueById(configId)).thenReturn(configValue);
-    requestBody.put("id", configId);
 
     // When - 第一次删除
-    Message firstResult = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    Message firstResult = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
 
     // Then - 第一次成功
     assertEquals(0, firstResult.getStatus());
@@ -181,7 +144,7 @@ public class AdminDeleteConfigValueSimpleTest {
     when(configKeyService.deleteConfigValueById(configId)).thenReturn(null);
 
     // When - 第二次删除
-    Message secondResult = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    Message secondResult = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
 
     // Then - 第二次失败
     assertNotEquals(0, secondResult.getStatus());
@@ -198,11 +161,10 @@ public class AdminDeleteConfigValueSimpleTest {
     configValue.setId(configId);
 
     when(configKeyService.deleteConfigValueById(configId)).thenReturn(configValue);
-    requestBody.put("id", configId);
 
     // When
     long startTime = System.currentTimeMillis();
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
+    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, configId);
     long endTime = System.currentTimeMillis();
 
     // Then
@@ -211,19 +173,10 @@ public class AdminDeleteConfigValueSimpleTest {
     assertTrue(responseTime < 2000, "响应时间: " + responseTime + "ms 应小于 2000ms");
   }
 
-  @Test
-  @DisplayName("安全测试: SQL注入防护")
-  public void testDeleteConfigSQLInjectionProtection() {
-    // Given
-    request.setRemoteUser("hadoop");
-    requestBody.put("id", "123 OR 1=1");
-
-    // When
-    Message result = configurationRestfulApi.deleteKeyValueByAdmin(request, requestBody);
-
-    // Then
-    assertNotNull(result);
-    assertNotEquals(0, result.getStatus());
-    verify(configKeyService, never()).deleteConfigValueById(anyLong());
-  }
+  // 注意：TC006（id为空）、TC007（id格式无效）、SQL注入测试已移除
+  // 原因：接口改为GET请求 + @RequestParam Long id
+  // Spring MVC框架会自动处理：
+  // - 参数缺失：返回 400 Bad Request (MissingServletRequestParameterException)
+  // - 类型转换失败：返回 400 Bad Request (MethodArgumentTypeMismatchException)
+  // 这些场景应在集成测试中通过MockMvc发送真实HTTP请求来验证
 }
