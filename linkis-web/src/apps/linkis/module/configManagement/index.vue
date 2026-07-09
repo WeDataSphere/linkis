@@ -543,10 +543,9 @@ export default {
     // 检查是否为管理员
     async checkIsAdmin() {
       try {
-        const res = await api.fetch('/configuration/userinfo', 'get');
-        this.isAdmin = res.isAdmin || false;
+        const res = await api.fetch('/jobhistory/governanceStationAdmin', 'get');
+        this.isAdmin = res.admin || false;
       } catch(err) {
-        console.error('获取用户信息失败:', err);
         this.isAdmin = false;
       }
     },
