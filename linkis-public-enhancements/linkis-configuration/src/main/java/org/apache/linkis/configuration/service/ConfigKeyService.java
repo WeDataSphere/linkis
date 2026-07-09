@@ -49,13 +49,4 @@ public interface ConfigKeyService {
       String engineType, String key, String creator, String user);
 
   void updateConfigKey(ConfigKey configKey);
-
-  /**
-   * 管理员按ID删除配置值
-   *
-   * @param configKeyId 配置值ID
-   * @return 被删除的配置值对象
-   * @throws ConfigurationException 如果配置不存在或删除失败
-   */
-  ConfigValue deleteConfigValueById(Long configKeyId) throws ConfigurationException;
 }

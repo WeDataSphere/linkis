@@ -262,8 +262,7 @@ export default {
                   }
                 }
               }, this.$t('message.linkis.ipListManagement.edit')),
-              // 删除按钮仅管理员可见
-              this.isAdmin ? h('Button', {
+              h('Button', {
                 props: {
                   type: 'error',
                   size: 'small'
@@ -273,7 +272,7 @@ export default {
                     this.delete(params.row)
                   }
                 }
-              }, this.$t('message.linkis.ipListManagement.delete')) : null
+              }, this.$t('message.linkis.ipListManagement.delete'))
             ]);
           }
         }
@@ -281,8 +280,6 @@ export default {
       datalist: [],
       tableLoading: false,
       showCreateModal: false,
-      // 管理员标识
-      isAdmin: false,
       modalData: {
         key: '',
         name: '',
@@ -493,61 +490,20 @@ export default {
       this.mode = 'edit';
     },
     delete(data) {
-      const { key, name, engineType } = data;
-
       this.$Modal.confirm({
-        title: this.$t('message.linkis.ipListManagement.confirmDelete'),
-        content: `
-          <div>
-            <p>${this.$t('message.linkis.ipListManagement.isConfirmDelete', { name: name || key })}</p>
-            <p style="color: #ed4014; margin-top: 10px;">
-              ${this.$t('message.linkis.ipListManagement.deleteWarning')}
-            </p>
-            <div style="margin-top: 15px; padding: 10px; background-color: #f8f8f9; border-radius: 4px;">
-              <p><strong>${this.$t('message.linkis.ipListManagement.configInfo')}：</strong></p>
-              <p>${this.$t('message.linkis.ipListManagement.key')}：${key}</p>
-              <p>${this.$t('message.linkis.ipListManagement.name')}：${name || '-'}</p>
-              <p>${this.$t('message.linkis.ipListManagement.engineType')}：${engineType || '-'}</p>
-            </div>
-          </div>
-        `,
-        okText: this.$t('message.linkis.ipListManagement.confirm'),
-        cancelText: this.$t('message.linkis.ipListManagement.cancel'),
+        title: this.$t('message.linkis.ipListManagement.confirmDel'),
+        content: this.$t('message.linkis.ipListManagement.isConfirmDel', {name: `${data.name}`}),
         onOk: async () => {
           await this.confirmDelete(data);
           await this.getTableData();
         },
-        onCancel: () => {
-          // 取消删除，无需额外操作
-        }
-      });
+      })
     },
     async confirmDelete(data) {
       try {
-        const { id } = data;
-
-        // 调用管理员专用删除接口
-        await api.fetch('/configuration/admin/keyvalue', {
-          id: id
-        }, 'delete');
-
-        this.$Message.success(this.$t('message.linkis.ipListManagement.deleteSuccess'));
+        await api.fetch('/configuration/baseKeyValue', {id: data.id}, 'delete');
       } catch(err) {
-        const errorMsg = err && err.message ? err.message : this.$t('message.linkis.ipListManagement.unknownError');
-        this.$Message.error(this.$t('message.linkis.ipListManagement.deleteFailed', { error: errorMsg }));
-
-        // 重新抛出异常，阻止列表刷新
-        throw err;
-      }
-    },
-    // 检查是否为管理员
-    async checkIsAdmin() {
-      try {
-        const res = await api.fetch('/configuration/userinfo', 'get');
-        this.isAdmin = res.isAdmin || false;
-      } catch(err) {
-        console.error('获取用户信息失败:', err);
-        this.isAdmin = false;
+        return;
       }
     },
     async changePage(val) {
@@ -561,8 +517,7 @@ export default {
       await this.getTableData()
     }
   },
-  async created() {
-    await this.checkIsAdmin();
+  created() {
     api.fetch('/configuration/engineType', 'get').then(res => {
       this.getEngineTypes = ['all', ...res.engineType]
     })

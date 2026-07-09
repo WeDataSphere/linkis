@@ -370,12 +370,6 @@
         WHERE id = #{id}
     </delete>
 
-    <!-- 管理员按ID删除配置值 ⭐ 新增 -->
-    <delete id="deleteConfigValueById" >
-        DELETE FROM linkis_ps_configuration_config_value
-        WHERE id = #{id}
-    </delete>
-
     <select id="getConfigBykey" resultMap="ConfigKeyMap">
         SELECT
         `id`, `key`, `description`, `name` ,
