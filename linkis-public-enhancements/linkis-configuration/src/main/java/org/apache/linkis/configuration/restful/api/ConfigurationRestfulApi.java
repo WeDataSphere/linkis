@@ -694,12 +694,12 @@ public class ConfigurationRestfulApi {
     // 获取用户信息
     String username = ModuleUserUtils.getOperationUser(req, "deleteKeyValueByAdmin");
 
-    // ===== 管理员权限检查 ⭐ =====
+    // ===== 管理员权限检查 =====
     checkAdmin(username);
 
     logger.info("Admin user {} attempts to delete config value with id: {}", username, id);
 
-    // 删除配置值（按ID删除，不区分用户） ⭐ 新增Service方法
+    // 删除配置值（按ID删除，不区分用户）
     ConfigValue configValue = configKeyService.deleteConfigValueById(id);
 
     if (configValue == null) {
