@@ -688,7 +688,7 @@ public class ConfigurationRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "id", required = true, dataType = "Long", value = "Config value ID")
   })
-  @RequestMapping(path = "/admin/keyvalue", method = RequestMethod.GET)
+  @RequestMapping(path = "/admin/deleteKeyValueByAdmin", method = RequestMethod.GET)
   public Message deleteKeyValueByAdmin(HttpServletRequest req, @RequestParam(value = "id") Long id)
       throws ConfigurationException {
     // 获取用户信息

@@ -437,42 +437,23 @@ export default {
       this.mode = 'edit';
     },
     delete(data) {
-      const { key, name, user, creator, engineType } = data;
+      const { key, name, user } = data;
       this.$Modal.confirm({
         title: this.$t('message.linkis.ipListManagement.confirmDelete'),
-        content: `
-          <div>
-            <p>${this.$t('message.linkis.ipListManagement.isConfirmDelete', { name: name || key })}</p>
-            <p style="color: #ed4014; margin-top: 10px;">
-              ${this.$t('message.linkis.ipListManagement.deleteWarning')}
-            </p>
-            <div style="margin-top: 15px; padding: 10px; background-color: #f8f8f9; border-radius: 4px;">
-              <p><strong>${this.$t('message.linkis.ipListManagement.configInfo')}：</strong></p>
-              <p>${this.$t('message.linkis.ipListManagement.userName')}：${user || '-'}</p>
-              <p>${this.$t('message.linkis.ipListManagement.appName')}：${creator || '-'}</p>
-              <p>${this.$t('message.linkis.formItems.engineType')}：${engineType || '-'}</p>
-              <p>${this.$t('message.linkis.ipListManagement.key')}：${key}</p>
-            </div>
-          </div>
-        `,
-        okText: this.$t('message.linkis.ipListManagement.confirm'),
-        cancelText: this.$t('message.linkis.ipListManagement.cancel'),
+        content: this.$t('message.linkis.ipListManagement.isConfirmDelete', { name: `${user} - ${name || key}` }),
         onOk: async () => {
           await this.confirmDelete(data);
           await this.getTableData();
-        },
-        onCancel: () => {
-          // 取消删除，无需额外操作
         }
       });
     },
     async confirmDelete(data) {
       try {
         const { configValueId } = data;
-        // 调用管理员专用删除接口 deleteKeyValueByAdmin，按 configValueId 删除
-        await api.fetch('/configuration/admin/keyvalue', {
+        // 调用管理员专用删除接口 deleteKeyValueByAdmin（GET /configuration/admin/deleteKeyValueByAdmin?id=...），按 configValueId 删除
+        await api.fetch('/configuration/admin/deleteKeyValueByAdmin', {
           id: configValueId
-        }, 'delete');
+        }, 'get');
         this.$Message.success(this.$t('message.linkis.ipListManagement.deleteSuccess'));
       } catch(err) {
         const errorMsg = err && err.message ? err.message : this.$t('message.linkis.ipListManagement.unknownError');
