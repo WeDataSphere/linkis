@@ -42,6 +42,15 @@ object HadoopConf {
 
   val KEYTAB_HOST_ENABLED = CommonVars("wds.linkis.keytab.host.enabled", false)
 
+  /**
+   * When host.enabled=true, whether to automatically resolve the principal host from the local
+   * machine's short hostname (equivalent to shell `hostname`, e.g. hadoop/${hostname}). Default
+   * false to stay backward compatible; when disabled the static KEYTAB_HOST value is used. When
+   * enabled, the resolved hostname must exactly match the one registered in the keytab, otherwise
+   * Kerberos login will fail.
+   */
+  val KEYTAB_HOST_AUTO = CommonVars("wds.linkis.keytab.host.auto", false)
+
   val KEYTAB_PROXYUSER_ENABLED = CommonVars("wds.linkis.keytab.proxyuser.enable", false)
 
   val KEYTAB_PROXYUSER_SUPERUSER = CommonVars("wds.linkis.keytab.proxyuser.superuser", "hadoop")

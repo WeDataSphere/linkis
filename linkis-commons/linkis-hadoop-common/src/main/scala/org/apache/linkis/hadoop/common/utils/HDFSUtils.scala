@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.security.UserGroupInformation
 
 import java.io.File
+import java.net.InetAddress
 import java.nio.file.{Files, Paths}
 import java.nio.file.attribute.PosixFilePermissions
 import java.security.PrivilegedExceptionAction
@@ -454,18 +455,54 @@ object HDFSUtils extends Logging {
 
   def getKerberosUser(userName: String, label: String): String = {
     var user = userName
+    val host = resolveKeytabHost(label)
+    if (StringUtils.isNotBlank(host)) {
+      user = user + "/" + host
+    }
+    user
+  }
+
+  /**
+   * Resolve the host part of the kerberos principal.
+   *
+   *   - label == null: when host.enabled=true, uses the static KEYTAB_HOST value; if host.auto=true
+   *     the local machine short hostname (equivalent to shell `hostname`) is used instead. When
+   *     host.enabled=false, no host is appended.
+   *   - label != null: prefers the value in linkis.keytab.host.map for that label; if absent and
+   *     host.auto=true, falls back to the local machine short hostname; if absent and
+   *     host.auto=false, no host is appended.
+   *
+   * Any failure (e.g. UnknownHostException) is caught and falls back to the static KEYTAB_HOST
+   * value, so the kerberos login main path is never broken by the auto-resolution feature. Backward
+   * compatible: with host.auto=false (default) the behavior is identical to before.
+   */
+  private def resolveKeytabHost(label: String): String = Utils.tryCatch {
     if (label == null) {
       if (KEYTAB_HOST_ENABLED.getValue) {
-        user = user + "/" + KEYTAB_HOST.getValue
+        if (KEYTAB_HOST_AUTO.getValue) localHostname() else KEYTAB_HOST.getValue
+      } else {
+        null
       }
     } else {
       val hostMap = kerberosValueMapParser(KEYTAB_HOST_MAP.getValue)
       if (hostMap.contains(label)) {
-        user = user + "/" + hostMap(label)
+        hostMap(label)
+      } else if (KEYTAB_HOST_AUTO.getValue) {
+        localHostname()
+      } else {
+        null
       }
     }
-    user
+  } { case t: Throwable =>
+    logger.warn(s"Resolve keytab host failed, fallback to static value: ${KEYTAB_HOST.getValue}", t)
+    KEYTAB_HOST.getValue
   }
+
+  /**
+   * Local machine short hostname, equivalent to shell `hostname`. Used to build principal like
+   * `hadoop/${hostname}`. The returned value must exactly match the host registered in the keytab.
+   */
+  private def localHostname(): String = InetAddress.getLocalHost.getHostName
 
   def getKeytabSuperUser(label: String): String = {
     if (label == null) {
