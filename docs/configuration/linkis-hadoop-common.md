@@ -8,6 +8,7 @@
 |linkis-hadoop-common|wds.linkis.keytab.file|/appcom/keytab/|keytab.file|true|
 |linkis-hadoop-common|wds.linkis.keytab.host| 127.0.0.1|keytab.host |true|
 |linkis-hadoop-common|wds.linkis.keytab.host.enabled|false |keytab.host.enabled|true|
+|linkis-hadoop-common|wds.linkis.keytab.host.auto|false |keytab.host.auto: when host.enabled=true, auto-resolve the principal host from the local short hostname (equivalent to shell `hostname`, e.g. `hadoop/${hostname}`); disabled uses the static wds.linkis.keytab.host value |true|
 |linkis-hadoop-common|wds.linkis.keytab.proxyuser.enable| false|prometheus.endpoint  |true|
 |linkis-hadoop-common|wds.linkis.keytab.proxyuser.superuser|hadoop| proxyuser.superuser |true|
 |linkis-hadoop-common|hadoop.config.dir|  |config.dir|true|
