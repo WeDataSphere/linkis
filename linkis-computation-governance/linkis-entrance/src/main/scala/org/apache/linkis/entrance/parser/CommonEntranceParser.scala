@@ -21,6 +21,7 @@ import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.conf.EntranceConfiguration.{
+  SPARK3_VERSION_COERCION_CREATORS,
   SPARK3_VERSION_COERCION_DEPARTMENT,
   SPARK3_VERSION_COERCION_SWITCH,
   SPARK3_VERSION_COERCION_USERS
@@ -357,7 +358,7 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       executeUser: String,
       submitUser: String
   ): util.HashMap[String, Label[_]] = {
-    // 个人>部门
+    // 个人>部门>应用(creator)
     // 是否强制转换
     if (SPARK3_VERSION_COERCION_SWITCH && (null != labels && !labels.isEmpty)) {
       val engineTypeLabel = labels.get(LabelKeyConstant.ENGINE_TYPE_KEY)
@@ -403,6 +404,29 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
               )
             )
             return labels
+          }
+          // 应用级(creator)判定：优先级最低，用户级和部门级均未命中后执行
+          val userCreatorLabel = labels
+            .getOrDefault(LabelKeyConstant.USER_CREATOR_TYPE_KEY, null)
+            .asInstanceOf[UserCreatorLabel]
+          if (null != userCreatorLabel) {
+            val creator = userCreatorLabel.getCreator
+            if (
+                StringUtils
+                  .isNotBlank(creator) && SPARK3_VERSION_COERCION_CREATORS.contains(creator)
+            ) {
+              logger.info(
+                s"Spark version will be change 3.4.4 by creator:${creator},executeUser:${executeUser} "
+              )
+              labels.replace(
+                LabelKeyConstant.ENGINE_TYPE_KEY,
+                EngineTypeLabelCreator.createEngineTypeLabel(
+                  EngineType.SPARK.toString,
+                  LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+                )
+              )
+              return labels
+            }
           }
         }(s"error to Spark 3 version coercion: ${executeUser}")
       }
