@@ -46,5 +46,7 @@ nul
 .claude
 /deployment-materials/
 /install.bat
+/linkis-web/test-results/
+/linkis-web/playwright-report/
 
 .mcp.json
