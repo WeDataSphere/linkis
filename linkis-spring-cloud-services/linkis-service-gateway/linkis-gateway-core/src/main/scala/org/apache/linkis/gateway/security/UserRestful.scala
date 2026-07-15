@@ -68,8 +68,10 @@ abstract class AbstractUserRestful extends UserRestful with Logging {
 
   override def doUserRequest(gatewayContext: GatewayContext): Unit = {
     val path = gatewayContext.getRequest.getRequestURI.replace(userRegex, "")
-    if (StringUtils.isNotBlank(path) &&
-      (path.startsWith("sso-login") || path.startsWith("sso/login"))) {
+    if (
+        StringUtils.isNotBlank(path) &&
+        (path.startsWith("sso-login") || path.startsWith("sso/login"))
+    ) {
       ssoLogin(gatewayContext)
       return
     }
