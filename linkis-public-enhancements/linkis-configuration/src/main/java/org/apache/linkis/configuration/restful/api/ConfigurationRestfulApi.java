@@ -688,41 +688,26 @@ public class ConfigurationRestfulApi {
   @ApiImplicitParams({
     @ApiImplicitParam(name = "id", required = true, dataType = "Long", value = "Config value ID")
   })
-  @ApiOperationSupport(ignoreParameters = {"json"})
-  @RequestMapping(path = "/admin/keyvalue", method = RequestMethod.DELETE)
-  public Message deleteKeyValueByAdmin(
-      HttpServletRequest req, @RequestBody Map<String, Object> json) throws ConfigurationException {
+  @RequestMapping(path = "/admin/deleteKeyValueByAdmin", method = RequestMethod.GET)
+  public Message deleteKeyValueByAdmin(HttpServletRequest req, @RequestParam(value = "id") Long id)
+      throws ConfigurationException {
     // 获取用户信息
     String username = ModuleUserUtils.getOperationUser(req, "deleteKeyValueByAdmin");
 
-    // ===== 管理员权限检查 ⭐ =====
+    // ===== 管理员权限检查 =====
     checkAdmin(username);
 
-    // 提取参数
-    Object idObj = json.get("id");
-    if (idObj == null) {
-      return Message.error("id cannot be empty");
-    }
+    logger.info("Admin user {} attempts to delete config value with id: {}", username, id);
 
-    Long configKeyId;
-    try {
-      configKeyId = Long.parseLong(idObj.toString().trim());
-    } catch (NumberFormatException e) {
-      return Message.error("id must be a number");
-    }
-
-    logger.info("Admin user {} attempts to delete config value with id: {}", username, configKeyId);
-
-    // 删除配置值（按ID删除，不区分用户） ⭐ 新增Service方法
-    ConfigValue configValue = configKeyService.deleteConfigValueById(configKeyId);
+    // 删除配置值（按ID删除，不区分用户）
+    ConfigValue configValue = configKeyService.deleteConfigValueById(id);
 
     if (configValue == null) {
-      logger.warn("Failed to delete config value, id: {} not found", configKeyId);
+      logger.warn("Failed to delete config value, id: {} not found", id);
       return Message.error("Config value not found");
     }
 
-    logger.info(
-        "Admin user {} successfully deleted config value with id: {}", username, configKeyId);
+    logger.info("Admin user {} successfully deleted config value with id: {}", username, id);
     return Message.ok().data("configValue", configValue);
   }
 
