@@ -592,15 +592,15 @@ public class UDFServiceImpl implements UDFService {
     List<UDFAddVo> retList = new ArrayList<>();
     PageHelper.startPage(curPage, pageSize);
     String createUser;
-    boolean managerFlag;
+    // 系统管理员：可查看所有用户的UDF（多维度检索）
+    boolean isSystemAdmin;
     try {
-      managerFlag = Configuration.isAdmin(userName);
+      isSystemAdmin = Configuration.isAdmin(userName);
     } catch (Exception e) {
       logger.error("Failed to check isAdmin for user: {}", userName, e);
-      managerFlag = false;
+      isSystemAdmin = false;
     }
-    final boolean isManager = managerFlag;
-    if (isManager) {
+    if (isSystemAdmin) {
       if (StringUtils.isNotBlank(searchUser)) {
         createUser = searchUser;
       } else {
@@ -611,6 +611,8 @@ public class UDFServiceImpl implements UDFService {
     }
     retList = udfDao.getUdfInfoByPages(udfName, udfType, createUser);
     PageInfo<UDFAddVo> pageInfo = new PageInfo<>(retList);
+    // UDF管理员：可分享/发布UDF（查 linkis_ps_udf_manager 表）
+    boolean isUdfManager = isUDFManager(userName);
     List<Long> loadedUdf = udfDao.getLoadedUDFIds(userName);
     if (pageInfo.getList() != null) {
       pageInfo
@@ -630,9 +632,9 @@ public class UDFServiceImpl implements UDFService {
                 operationStatusMap.put("canUpdate", true);
                 operationStatusMap.put("canDelete", !finalCanExpire);
                 operationStatusMap.put("canExpire", finalCanExpire);
-                operationStatusMap.put("canShare", isManager);
+                operationStatusMap.put("canShare", isUdfManager);
                 operationStatusMap.put(
-                    "canPublish", isManager && Boolean.TRUE.equals(l.getShared()));
+                    "canPublish", isUdfManager && Boolean.TRUE.equals(l.getShared()));
                 operationStatusMap.put("canHandover", true);
                 l.setOperationStatus(operationStatusMap);
               });
