@@ -18,12 +18,13 @@
 package org.apache.linkis.gateway.security.token
 
 import org.apache.linkis.common.utils.{Logging, MD5Utils, TokenSensitiveUtils, Utils}
-import org.apache.linkis.gateway.authentication.service.TokenService
+import org.apache.linkis.gateway.authentication.service.{DynamicTokenService, TokenService}
 import org.apache.linkis.gateway.config.GatewayConfiguration
 import org.apache.linkis.gateway.config.GatewayConfiguration._
 import org.apache.linkis.gateway.http.GatewayContext
 import org.apache.linkis.gateway.security.{GatewaySSOUtils, SecurityFilter}
 import org.apache.linkis.server.Message
+import org.apache.linkis.server.conf.ServerConfiguration
 import org.apache.linkis.server.utils.ModuleUserUtils
 
 import org.apache.commons.lang3.StringUtils
@@ -33,9 +34,14 @@ import scala.util.Try
 object TokenAuthentication extends Logging {
 
   private var tokenService: TokenService = _
+  var dynamicTokenService: DynamicTokenService = _
 
   def setTokenService(tokenService: TokenService): Unit = {
     this.tokenService = tokenService
+  }
+
+  def setDynamicTokenService(dynamicTokenService: DynamicTokenService): Unit = {
+    this.dynamicTokenService = dynamicTokenService
   }
 
   def isTokenRequest(gatewayContext: GatewayContext): Boolean = {
@@ -101,6 +107,11 @@ object TokenAuthentication extends Logging {
         tokenAlive = true
       }
     }
+    // Dynamic token prefix routing
+    if (token.startsWith(DYNAMIC_TOKEN_PREFIX)) {
+      return dynamicTokenAuth(token, tokenUser, gatewayContext, login)
+    }
+
     var authMsg: Message = Message.noLogin(
       s"未授权的token$token，无法将请求绑定给tokenUser$tokenUser!"
     ) << gatewayContext.getRequest.getRequestURI
@@ -115,6 +126,16 @@ object TokenAuthentication extends Logging {
         s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
           .maskToken(token)}, tokenUser: $tokenUser, host: $host."
       )
+
+      // Dynamic token issuance: authenticated user (tokenUser) requests a token for target user
+      if (isDynamicTokenIssueRequest(gatewayContext)) {
+        val targetUser = extractTargetUsername(gatewayContext)
+        if (targetUser != null) {
+          issueDynamicToken(gatewayContext, targetUser)
+        }
+        return false
+      }
+
       if (login) {
         logger.info(
           s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
@@ -142,6 +163,131 @@ object TokenAuthentication extends Logging {
       )
       SecurityFilter.filterResponse(gatewayContext, authMsg)
       false
+    }
+  }
+
+  /**
+   * Dynamic token authentication.
+   *
+   * Core logic:
+   *   1. Check feature switch 2. Call DynamicTokenService.validateDynamicToken() 3. Set login user
+   *      on success (consistent with static token behavior)
+   *
+   * @param token
+   *   dynamic token string (with dyn- prefix)
+   * @param tokenUser
+   *   Token-User from request header
+   * @param gatewayContext
+   *   gateway context
+   * @param login
+   *   whether this is a login request
+   * @return
+   *   authentication result
+   */
+  private def dynamicTokenAuth(
+      token: String,
+      tokenUser: String,
+      gatewayContext: GatewayContext,
+      login: Boolean
+  ): Boolean = {
+    val host = gatewayContext.getRequest.getRequestRealIpAddr()
+    logger.info(
+      s"Dynamic token auth request, user: $tokenUser, ip: $host, " +
+        s"token: ${TokenSensitiveUtils.maskToken(token)}"
+    )
+
+    val ok: Boolean = Utils.tryCatch(dynamicTokenService.validateDynamicToken(token, tokenUser)) {
+      t =>
+        logger.warn(
+          s"Dynamic token validation failed: ${t.getMessage}, " +
+            s"user: $tokenUser, ip: $host"
+        )
+        val authMsg = Message.noLogin(
+          s"Dynamic Token Authentication Failed, reason: ${t.getMessage}"
+        ) << gatewayContext.getRequest.getRequestURI
+        SecurityFilter.filterResponse(gatewayContext, authMsg)
+        false
+    }
+
+    if (ok) {
+      logger.info(
+        s"Dynamic token authentication succeed, " +
+          s"uri: ${gatewayContext.getRequest.getRequestURI}, " +
+          s"token: ${TokenSensitiveUtils.maskToken(token)}, user: $tokenUser"
+      )
+      if (login) {
+        GatewaySSOUtils.setLoginUser(gatewayContext, tokenUser)
+        val msg =
+          Message.ok("login successful(登录成功)！").data("userName", tokenUser).data("isAdmin", false)
+        SecurityFilter.filterResponse(gatewayContext, msg)
+        return false
+      }
+      if (GatewayConfiguration.ENABLE_TOEKN_AUTHENTICATION_ALIVE.getValue) {
+        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, true)
+      } else {
+        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, false)
+      }
+      true
+    } else {
+      false
+    }
+  }
+
+  /**
+   * Check if the request is for issuing a dynamic token. URI pattern: /api/rest_j/v1/dynamic-token
+   * (POST only)
+   */
+  def isDynamicTokenIssueRequest(gatewayContext: GatewayContext): Boolean = {
+    val uri = gatewayContext.getRequest.getRequestURI
+    val userUri = ServerConfiguration.BDP_SERVER_USER_URI.getValue
+    val expectedPath = userUri.substring(0, userUri.lastIndexOf("/")) + "/dynamic-token"
+    "POST".equalsIgnoreCase(gatewayContext.getRequest.getMethod) &&
+    uri.startsWith(expectedPath)
+  }
+
+  /**
+   * Extract target username from query parameter. URL format:
+   * /api/rest_j/v1/dynamic-token?targetUser=user2 Called from tokenAuth() after static token
+   * authentication succeeds.
+   * @return
+   *   target username, or null if missing (response already sent)
+   */
+  private def extractTargetUsername(gatewayContext: GatewayContext): String = {
+    val targetUserArr = gatewayContext.getRequest.getQueryParams.get("targetUser")
+    val targetUser = if (targetUserArr != null && targetUserArr.nonEmpty) {
+      targetUserArr.head
+    } else null
+    if (StringUtils.isBlank(targetUser)) {
+      logger.warn("Missing targetUser query parameter")
+      SecurityFilter.filterResponse(
+        gatewayContext,
+        Message.error("缺少目标用户参数，请在URL中添加 ?targetUser=用户名")
+      )
+      null
+    } else targetUser
+  }
+
+  /**
+   * Issue a dynamic token for the target user. Called after static token authentication passes. The
+   * static token auth validated the requester (in Token-Code/Token-User headers), now we generate a
+   * dynamic HMAC-signed token for the target user (from POST body).
+   */
+  private def issueDynamicToken(gatewayContext: GatewayContext, targetUser: String): Unit = {
+    Utils.tryCatch {
+      val (token, expireTime) = dynamicTokenService.generateToken(targetUser)
+      logger.info(
+        s"Dynamic token issued for user: $targetUser, " +
+          s"expireTime: ${new java.util.Date(expireTime * 1000)}"
+      )
+      val msg = Message
+        .ok("动态Token签发成功")
+        .data("token", token)
+        .data("expireTime", expireTime)
+        .data("expireTimeStr", new java.util.Date(expireTime * 1000).toString)
+      SecurityFilter.filterResponse(gatewayContext, msg)
+    } { t =>
+      logger.error(s"Failed to issue dynamic token for user: $targetUser", t)
+      SecurityFilter.filterResponse(gatewayContext, Message.error(s"动态Token签发失败: ${t.getMessage}"))
     }
   }
 
