@@ -349,9 +349,6 @@ object EntranceConfiguration {
   val SPARK3_VERSION_COERCION_DEPARTMENT: String =
     CommonVars[String]("spark.version.coercion.department.id", "").getHotValue()
 
-  val SPARK3_VERSION_COERCION_CREATORS: String =
-    CommonVars[String]("spark.version.coercion.creators", "").getHotValue()
-
   val SPARK3_VERSION_COERCION_SWITCH: Boolean =
     CommonVars[Boolean]("spark.version.coercion.switch", false).getValue
 
