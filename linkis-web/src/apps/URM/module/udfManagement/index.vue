@@ -43,6 +43,14 @@
           />
         </Select>
       </FormItem> -->
+      <FormItem prop="searchUser" :label="$t('message.linkis.udf.inputUser')" v-show="isAdminModel">
+        <Input
+          v-model="searchBar.searchUser"
+          placeholder="请输入用户名"
+          style="width:120px;"
+        ></Input>
+      </FormItem>
+      <Divider type="vertical" class="divider" v-show="isAdminModel" />
       <FormItem>
         <Button
           type="primary"
@@ -54,6 +62,12 @@
           @click="showAddModal(true)"
           style="margin-right: 10px;"
         >{{ $t('message.linkis.udf.addUDF') }}</Button>
+        <Button
+          type="primary"
+          @click="toggleAdminView"
+          v-show="isLogAdmin"
+          style="margin-right: 10px;"
+        >{{ isAdminModel ? '普通视图' : '管理员视图' }}</Button>
       </FormItem>
     </Form>
     <div>
@@ -169,6 +183,8 @@ export default {
       getFunctionTypes: [],
       getCreators: [],
       isLoading: false,
+      isLogAdmin: false,
+      isAdminModel: false,
       pageSetting: {
         total: 0,
         pageSize: 25,
@@ -177,6 +193,7 @@ export default {
       searchBar: {
         functionName: '',
         functionType: '0,1,2',
+        searchUser: '',
         // creator: '',
       },
       inputType: 'number',
@@ -214,6 +231,7 @@ export default {
   },
   mounted() {
     this.init()
+    this.getAdminAuth()
     this.moduleHeight = this.$parent.$el.clientHeight - 228
     // 监听窗口变化，获取浏览器宽高
     window.addEventListener('resize', this.getHeight)
@@ -316,6 +334,22 @@ export default {
       this.search()
     },
 
+    getAdminAuth() {
+      api.fetch('/jobhistory/governanceStationAdmin', 'get')
+        .then(res => {
+          this.isLogAdmin = res.admin || false
+        })
+        .catch(() => {
+          this.isLogAdmin = false
+        })
+    },
+    toggleAdminView() {
+      this.searchBar.functionName = ''
+      this.searchBar.functionType = '0,1,2'
+      this.searchBar.searchUser = ''
+      this.isAdminModel = !this.isAdminModel
+      this.search()
+    },
     getParams() {
       const params = {
         udfName: this.searchBar.functionName,
@@ -323,6 +357,16 @@ export default {
         // createUser: this.searchBar.creator,
         curPage: this.pageSetting.current,
         pageSize: this.pageSetting.pageSize,
+      }
+      if (this.isAdminModel) {
+        if (this.searchBar.searchUser) {
+          params.searchUser = this.searchBar.searchUser
+        }
+      } else {
+        const userName = storage.get('userName') || (storage.get('baseInfo', 'local') ? storage.get('baseInfo', 'local').username : '')
+        if (userName) {
+          params.searchUser = userName
+        }
       }
       return params
     },
