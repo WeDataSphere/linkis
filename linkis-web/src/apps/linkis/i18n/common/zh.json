@@ -5,6 +5,12 @@
       "tokenCipher": "token密文",
       "udfLog": "UDF 日志",
       "diagnosticLog": "诊断日志",
+      "execDetail": {
+        "title": "执行详情",
+        "noData": "暂无数据",
+        "loadFailed": "数据加载失败，请稍后重试",
+        "reload": "重新加载"
+      },
       "refresh": "刷新",
       "findNewVer": "检测到新版本",
       "whetherUpdateNow": "是否立即更新？",

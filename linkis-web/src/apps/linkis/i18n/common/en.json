@@ -5,6 +5,12 @@
       "tokenCipher": "Ciphertext Token",
       "udfLog": "UDF Log",
       "diagnosticLog": "Diagnostic Log",
+      "execDetail": {
+        "title": "Execution Detail",
+        "noData": "No Data",
+        "loadFailed": "Data loading failed, please try again later",
+        "reload": "Reload"
+      },
       "refresh": "Refresh",
       "tableSetting": "Table Setting",
       "downloadLog": "Download",
