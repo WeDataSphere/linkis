@@ -132,4 +132,13 @@ object GatewayConfiguration {
     CommonVars("linkis.system.user.prohibit.login.prefix", "hduser,shduser,hadoop").getValue
       .toLowerCase()
 
+  // ============================================================
+  // Dynamic Token Authentication Configuration (prefix only, configs in DynamicTokenConfiguration)
+  // ============================================================
+
+  /**
+   * Dynamic token prefix for gateway routing recognition.
+   */
+  val DYNAMIC_TOKEN_PREFIX = "dyn-"
+
 }
