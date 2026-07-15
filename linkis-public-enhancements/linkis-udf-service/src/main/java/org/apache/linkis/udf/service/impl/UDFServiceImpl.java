@@ -581,15 +581,37 @@ public class UDFServiceImpl implements UDFService {
 
   @Override
   public PageInfo<UDFAddVo> getManagerPages(
-      String udfName, Collection<Integer> udfType, String createUser, int curPage, int pageSize)
+      String udfName,
+      Collection<Integer> udfType,
+      String userName,
+      int curPage,
+      int pageSize,
+      String searchUser)
       throws Exception {
     logger.info("begin to get managerPages.");
     List<UDFAddVo> retList = new ArrayList<>();
     PageHelper.startPage(curPage, pageSize);
+    String createUser;
+    boolean managerFlag;
+    try {
+      managerFlag = Configuration.isAdmin(userName);
+    } catch (Exception e) {
+      logger.error("Failed to check isAdmin for user: {}", userName, e);
+      managerFlag = false;
+    }
+    final boolean isManager = managerFlag;
+    if (isManager) {
+      if (StringUtils.isNotBlank(searchUser)) {
+        createUser = searchUser;
+      } else {
+        createUser = null;
+      }
+    } else {
+      createUser = userName;
+    }
     retList = udfDao.getUdfInfoByPages(udfName, udfType, createUser);
     PageInfo<UDFAddVo> pageInfo = new PageInfo<>(retList);
-    boolean ismanager = isUDFManager(createUser);
-    List<Long> loadedUdf = udfDao.getLoadedUDFIds(createUser);
+    List<Long> loadedUdf = udfDao.getLoadedUDFIds(userName);
     if (pageInfo.getList() != null) {
       pageInfo
           .getList()
@@ -598,7 +620,7 @@ public class UDFServiceImpl implements UDFService {
                 l.setLoad(loadedUdf.contains(l.getId()));
                 boolean canExpire = false;
                 if (Boolean.TRUE.equals(l.getShared())) {
-                  long loadCount = udfDao.getUserLoadCountByUdfId(l.getId(), createUser);
+                  long loadCount = udfDao.getUserLoadCountByUdfId(l.getId(), userName);
                   if (loadCount > 0) {
                     canExpire = true;
                   }
@@ -608,9 +630,9 @@ public class UDFServiceImpl implements UDFService {
                 operationStatusMap.put("canUpdate", true);
                 operationStatusMap.put("canDelete", !finalCanExpire);
                 operationStatusMap.put("canExpire", finalCanExpire);
-                operationStatusMap.put("canShare", ismanager);
+                operationStatusMap.put("canShare", isManager);
                 operationStatusMap.put(
-                    "canPublish", ismanager && Boolean.TRUE.equals(l.getShared()));
+                    "canPublish", isManager && Boolean.TRUE.equals(l.getShared()));
                 operationStatusMap.put("canHandover", true);
                 l.setOperationStatus(operationStatusMap);
               });
