@@ -378,7 +378,7 @@
         (select udf_id,description,path,register_format,use_format,bml_resource_version
         from linkis_ps_udf_version as puv1 where bml_resource_version = (select max(puv2.bml_resource_version)
         from linkis_ps_udf_version as puv2 where puv1.udf_id =puv2.udf_id)) b
-        on a.id=b.udf_id order by id desc
+        on a.id=b.udf_id order by update_time desc
     </select>
 
     <select id="getLatesetPublishedUDF" resultType="org.apache.linkis.udf.vo.UDFInfoVo">

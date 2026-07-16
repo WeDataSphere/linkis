@@ -103,7 +103,12 @@ public interface UDFService {
   List<UDFVersionVo> getUdfVersionList(long udfId);
 
   PageInfo<UDFAddVo> getManagerPages(
-      String udfName, Collection<Integer> udfType, String createUser, int curPage, int pageSize)
+      String udfName,
+      Collection<Integer> udfType,
+      String createUser,
+      int curPage,
+      int pageSize,
+      String searchUser)
       throws Exception;
 
   String downLoadUDF(long udfId, String version, String user) throws Exception;

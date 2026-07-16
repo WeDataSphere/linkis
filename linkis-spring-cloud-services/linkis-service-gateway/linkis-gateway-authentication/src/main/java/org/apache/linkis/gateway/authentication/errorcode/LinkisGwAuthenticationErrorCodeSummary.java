@@ -30,7 +30,14 @@ public enum LinkisGwAuthenticationErrorCodeSummary implements LinkisErrorCode {
   TOKEN_IS_NULL(15205, "token is null({0} 令牌参数为空)!"),
   FAILED_TO_BAD_SQLGRAMMAR(
       15206, "Failed to query token:{0} data(Token:{0} 数据查询失败), Caused by:{1}"),
-  NOT_EXIST_DB(15207, "Token:{0} does not exist in the table(Token:{0} 表中不存在)!, Caused by:{1}");
+  NOT_EXIST_DB(15207, "Token:{0} does not exist in the table(Token:{0} 表中不存在)!, Caused by:{1}"),
+  DYNAMIC_TOKEN_NOT_ENABLED(15208, "Dynamic token feature is not enabled(动态Token功能未启用)"),
+  DYNAMIC_TOKEN_FORMAT_ERROR(15209, "Dynamic token format error(动态Token格式错误)"),
+  DYNAMIC_TOKEN_SIGNATURE_INVALID(15210, "Dynamic token signature is invalid(动态Token签名无效)"),
+  DYNAMIC_TOKEN_EXPIRED(15211, "Dynamic token has expired(动态Token已过期), expired at: {0}"),
+  DYNAMIC_TOKEN_USER_MISMATCH(15212, "Dynamic token user mismatch(动态Token与用户不匹配), expected: {0}"),
+  DYNAMIC_TOKEN_KEY_NOT_CONFIGURED(
+      15213, "Dynamic token HMAC key is not configured(动态Token HMAC密钥未配置)");
 
   /** (errorCode)错误码 */
   private final int errorCode;

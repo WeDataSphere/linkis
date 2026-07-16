@@ -52,6 +52,11 @@
     <logWithPage ref="udfLog" logType="udfLog" v-show="tabName === 'udfLog' && showUDF && hasEngine" />
 
     <term ref="termRef" v-if="tabName === 'terminal'" :logs="termLogs" :script-view-state="scriptViewState" :loading="termLogLoading" />
+    <executionDetail
+      v-if="tabName === 'execDetail'"
+      :jobhistoryTask="jobhistoryTask"
+      @reload="initHistory($route.query.taskID)"
+    />
   </div>
 </template>
 <script>
@@ -63,6 +68,7 @@ import api from '@/common/service/api'
 import mixin from '@/common/service/mixin'
 import util from '@/common/util'
 import ViewLog from '@/apps/linkis/module/resourceManagement/log.vue'
+import executionDetail from './executionDetail.vue'
 import { cloneDeep, isUndefined } from 'lodash'
 import storage from '@/common/helper/storage';
 
@@ -73,7 +79,8 @@ export default {
     result,
     ViewLog,
     term,
-    logWithPage
+    logWithPage,
+    executionDetail
   },
   mixins: [mixin],
   props: {},
@@ -165,7 +172,8 @@ export default {
       { name: 'result', label: 'message.linkis.result' },
       { name: 'engineLog', label: 'message.linkis.engineLog' },
       { name: 'udfLog', label: 'message.linkis.udfLog' },
-      { name: 'terminal', label: 'message.linkis.diagnosticLog' }
+      { name: 'terminal', label: 'message.linkis.diagnosticLog' },
+      { name: 'execDetail', label: 'message.linkis.execDetail.title', icon: 'md-analytics' }
     ]
     if(!this.hasEngine) {
       this.tabs = this.tabs.filter(tab => tab.name !== 'engineLog')
@@ -267,6 +275,8 @@ export default {
 
         }
 
+      } else if (name === 'execDetail') {
+        // Data comes from the already loaded jobhistoryTask prop
       } else {
         this.$nextTick(() => {
           this.$refs.logRef.fold();
