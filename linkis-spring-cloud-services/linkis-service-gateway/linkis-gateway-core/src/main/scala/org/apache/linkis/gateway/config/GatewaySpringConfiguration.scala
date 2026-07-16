@@ -17,7 +17,7 @@
 
 package org.apache.linkis.gateway.config
 
-import org.apache.linkis.gateway.authentication.service.TokenService
+import org.apache.linkis.gateway.authentication.service.{DynamicTokenService, TokenService}
 import org.apache.linkis.gateway.security.{
   LDAPUserRestful,
   SecurityFilter,
@@ -46,10 +46,16 @@ class GatewaySpringConfiguration {
   @Autowired
   private var tokenService: TokenService = _
 
+  @Autowired(required = false)
+  private var dynamicTokenService: DynamicTokenService = _
+
   @PostConstruct
   def init(): Unit = {
     SecurityFilter.setUserRestful(userRestful)
     TokenAuthentication.setTokenService(tokenService)
+    if (dynamicTokenService != null) {
+      TokenAuthentication.setDynamicTokenService(dynamicTokenService)
+    }
   }
 
 //  @Bean(Array("defaultGatewayParser"))
