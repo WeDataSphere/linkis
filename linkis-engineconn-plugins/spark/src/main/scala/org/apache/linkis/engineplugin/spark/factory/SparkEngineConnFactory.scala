@@ -55,7 +55,11 @@ import org.apache.spark.util.SparkUtils
 
 import java.io.File
 import java.lang.reflect.Constructor
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import java.util
+
+import com.fasterxml.jackson.core.StreamReadConstraints
 
 /**
  */
@@ -64,6 +68,15 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
   override protected def createEngineConnSession(
       engineCreationContext: EngineCreationContext
   ): Any = {
+    // Override Jackson StreamReadConstraints defaults via reflection to avoid
+    // StreamConstraintsException when Spark EventLoggingListener processes large
+    // event strings via json4s-jackson. Jackson 2.15 does not provide a public API
+    // for global defaults override (added in 2.16), so we modify the internal
+    // DEFAULT field via reflection.
+    overrideStreamReadConstraintsDefaults(
+      SparkConfiguration.JACKSON_MAX_STRING_LENGTH.getValue,
+      SparkConfiguration.JACKSON_MAX_NESTING_DEPTH.getValue
+    )
     if (EngineConnServer.isOnceMode) {
       createSparkOnceEngineConnContext(engineCreationContext)
     } else {
@@ -327,6 +340,41 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
     classOf[SparkSqlExecutorFactory]
 
   override protected def getEngineConnType: EngineType = EngineType.SPARK
+
+  /**
+   * Override Jackson StreamReadConstraints global defaults via reflection. Jackson 2.15 does not
+   * provide a public API for global override (added in 2.16), so we modify the internal private
+   * static final DEFAULT field. This ensures all subsequently created JsonFactory instances
+   * (including json4s's) use the relaxed constraints.
+   */
+  private def overrideStreamReadConstraintsDefaults(
+      maxStringLength: Int,
+      maxNestingDepth: Int
+  ): Unit = {
+    try {
+      val newConstraints = StreamReadConstraints
+        .builder()
+        .maxStringLength(maxStringLength)
+        .maxNestingDepth(maxNestingDepth)
+        .build()
+
+      val defaultsField: Field = classOf[StreamReadConstraints].getDeclaredField("DEFAULT")
+      defaultsField.setAccessible(true)
+
+      // Remove final modifier on the field
+      val modifiersField = classOf[Field].getDeclaredField("modifiers")
+      modifiersField.setAccessible(true)
+      modifiersField.setInt(defaultsField, defaultsField.getModifiers & ~Modifier.FINAL)
+
+      defaultsField.set(null, newConstraints)
+      logger.info(
+        s"Overridden Jackson StreamReadConstraints defaults: maxStringLength=$maxStringLength, maxNestingDepth=$maxNestingDepth"
+      )
+    } catch {
+      case e: Exception =>
+        logger.warn("Failed to override Jackson StreamReadConstraints defaults", e)
+    }
+  }
 
   private val executorFactoryArray = Array[ExecutorFactory](
     new SparkSqlExecutorFactory,
