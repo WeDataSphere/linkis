@@ -54,6 +54,9 @@ class FileSplit(
   private var limitBytes = 0L
   private var limitColumnLength = 0
 
+  @scala.beans.BeanProperty
+  var truncatedByLimit: Boolean = false
+
   def page(page: Int, pageSize: Int): Unit = {
     if (!pageTrigger) {
       start = (page - 1) * pageSize
@@ -138,10 +141,15 @@ class FileSplit(
           resArr.foreach(res => tmpBytes = tmpBytes + res.getBytes.length)
           if (tmpBytes > limitBytes) {
             overFlag = true
+            truncatedByLimit = true
+          } else {
+            record.add(resArr)
           }
-          record.add(resArr)
-        } else {
+        } else if (!overFlag) {
           record.add(collectRecord(r))
+        }
+        if (overFlag) {
+          count = end + 1
         }
       }
     )
