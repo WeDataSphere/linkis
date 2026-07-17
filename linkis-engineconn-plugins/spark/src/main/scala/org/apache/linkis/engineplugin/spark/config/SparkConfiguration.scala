@@ -192,6 +192,16 @@ object SparkConfiguration extends Logging {
   val SPARK_PROHIBITS_DYNAMIC_RESOURCES_SWITCH =
     CommonVars[Boolean]("linkis.spark.dynamic.resource.switch", false).getValue
 
+  // Jackson StreamReadConstraints overrides for Spark EventLoggingListener
+  // Default maxStringLength in Jackson 2.15 is 5,000,000 which may cause
+  // StreamConstraintsException when Spark event log strings exceed this limit
+  val JACKSON_MAX_STRING_LENGTH =
+    CommonVars[Int]("linkis.spark.jackson.maxStringLength", 10000000)
+
+
+  val JACKSON_MAX_NESTING_DEPTH =
+    CommonVars[Int]("linkis.spark.jackson.maxNestingDepth", 2000)
+
   val SPARK_EXECUTOR_PARAMS_ENABLED = CommonVars[Boolean](
     "wds.linkis.spark.executor.params.enabled",
     false,
