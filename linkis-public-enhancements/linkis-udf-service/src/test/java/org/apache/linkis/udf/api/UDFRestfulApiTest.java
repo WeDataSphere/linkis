@@ -373,7 +373,8 @@ public class UDFRestfulApiTest {
                 Mockito.anyCollection(),
                 Mockito.anyString(),
                 Mockito.anyInt(),
-                Mockito.anyInt()))
+                Mockito.anyInt(),
+                null))
         .thenReturn(pageInfo);
     mvcResult =
         mockMvc

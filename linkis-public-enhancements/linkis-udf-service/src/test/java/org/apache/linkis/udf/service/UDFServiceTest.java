@@ -219,7 +219,7 @@ public class UDFServiceTest {
     Assertions.assertAll(
         () -> {
           PageInfo<UDFAddVo> managerPages =
-              udfServiceImpl.getManagerPages("test", udfType, "hadoop", 0, 10);
+              udfServiceImpl.getManagerPages("test", udfType, "hadoop", 0, 10, null);
           Assertions.assertTrue(managerPages.getSize() == 0);
         });
   }
