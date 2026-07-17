@@ -450,16 +450,40 @@ public class EngineRestfulApi {
   @RequestMapping(path = "/rm/enginekill", method = RequestMethod.POST)
   public Message killEngine(HttpServletRequest req, @RequestBody Map<String, String>[] param) {
     String userName = ModuleUserUtils.getOperationUser(req, "enginekill");
-
     Sender sender = Sender.getSender(Sender.getThisServiceInstance());
+
     for (Map<String, String> engineParam : param) {
       String moduleName = engineParam.get("applicationName");
       String engineInstance = engineParam.get("engineInstance");
-      EngineStopRequest stopEngineRequest =
-          new EngineStopRequest(ServiceInstance.apply(moduleName, engineInstance), userName);
+      ServiceInstance serviceInstance = ServiceInstance.apply(moduleName, engineInstance);
+
+      // Permission check: only the owner or an admin can kill the engine.
+      // If the engine record cannot be looked up (already stopped or a transient
+      // backend error), the permission check is skipped and the stop is still
+      // attempted, because engineStopService.stopEngine is idempotent for
+      // already-stopped engines and this avoids breaking batch kills on errors.
+      EngineNode engineNode = null;
+      try {
+        engineNode = engineNodeManager.getEngineNode(serviceInstance);
+      } catch (Exception e) {
+        logger.warn("Failed to look up EngineConn {}, skip permission check", serviceInstance, e);
+      }
+
+      // owner == null means ownership is not backfilled yet (e.g. right after engine
+      // creation); do not deny on null owner to avoid locking out the real owner.
+      // Use continue (not return) so one unauthorized engine does not abort the batch.
+      if (engineNode != null
+          && engineNode.getOwner() != null
+          && !userName.equals(engineNode.getOwner())
+          && Configuration.isNotAdmin(userName)) {
+        logger.warn("User {} has no permission to kill EngineConn {}", userName, serviceInstance);
+        continue;
+      }
+
+      EngineStopRequest stopEngineRequest = new EngineStopRequest(serviceInstance, userName);
       engineStopService.stopEngine(stopEngineRequest, sender);
     }
-    logger.info("Finished to kill engines");
+    logger.info("User {} finished to kill engines", userName);
     return Message.ok("Kill engineConn succeed.");
   }
 
