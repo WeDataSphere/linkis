@@ -31,6 +31,7 @@ import java.io.File
 import java.nio.file.Files
 import java.util
 import java.util.Date
+import java.util.regex.Pattern
 
 import scala.util.matching.Regex
 
@@ -83,8 +84,10 @@ class JobInfoResult extends DWSResult with UserAction with Status {
           case resultSetList: ResultSetListResult => resultSetList.getResultSetList
         }
       val numberRegex: Regex = """(\d+)""".r
+      // Use Pattern.quote to escape special regex characters in File.separator (e.g. '\' on Windows)
+      val separatorPattern: String = Pattern.quote(File.separator)
       return resultSetList.sortBy { fileName =>
-        numberRegex.findFirstIn(fileName.split(File.separator).last).getOrElse("0").toInt
+        numberRegex.findFirstIn(fileName.split(separatorPattern).last).getOrElse("0").toInt
       }
     }
     else if (resultSetList != null) resultSetList
