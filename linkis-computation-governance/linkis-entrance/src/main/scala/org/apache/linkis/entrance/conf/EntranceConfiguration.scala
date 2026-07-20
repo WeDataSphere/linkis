@@ -343,17 +343,20 @@ object EntranceConfiguration {
   val AI_SQL_RETRY_ONCE: CommonVars[Boolean] =
     CommonVars[Boolean]("linkis.ai.sql.once.enable", true)
 
-  val SPARK3_VERSION_COERCION_USERS: String =
-    CommonVars[String]("spark.version.coercion.users", "").getHotValue()
+  // spark3 强制切换配置：已迁移到配置项管理(linkis-configuration)，entrance 通过 RPC 实时读取
+  // (见 CommonEntranceParser.fetchSpark3CoercionConfig)。此处保留 CommonVars 对象，
+  // 其 default 作为 RPC 失败时的 fallback 默认值（getValue(null) 时走 default）。
+  val SPARK3_VERSION_COERCION_USERS =
+    CommonVars[String]("spark.version.coercion.users", "")
 
-  val SPARK3_VERSION_COERCION_DEPARTMENT: String =
-    CommonVars[String]("spark.version.coercion.department.id", "").getHotValue()
+  val SPARK3_VERSION_COERCION_DEPARTMENT =
+    CommonVars[String]("spark.version.coercion.department.id", "")
 
-  val SPARK3_VERSION_COERCION_CREATORS: String =
-    CommonVars[String]("spark.version.coercion.creators", "").getHotValue()
+  val SPARK3_VERSION_COERCION_CREATORS =
+    CommonVars[String]("spark.version.coercion.creators", "")
 
-  val SPARK3_VERSION_COERCION_SWITCH: Boolean =
-    CommonVars[Boolean]("spark.version.coercion.switch", false).getValue
+  val SPARK3_VERSION_COERCION_SWITCH =
+    CommonVars[Boolean]("spark.version.coercion.switch", false)
 
   val PYTHON_SAFE_CHECK_SWITCH = CommonVars("linkis.python.safe.check.switch", false).getValue
 

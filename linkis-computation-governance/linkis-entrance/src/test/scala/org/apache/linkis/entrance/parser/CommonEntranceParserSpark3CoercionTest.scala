@@ -17,130 +17,63 @@
 
 package org.apache.linkis.entrance.parser
 
-import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.persistence.PersistenceManager
-import org.apache.linkis.entrance.utils.EntranceUtils
 import org.apache.linkis.manager.label.conf.LabelCommonConfig
 import org.apache.linkis.manager.label.constant.LabelKeyConstant
 import org.apache.linkis.manager.label.entity.Label
 import org.apache.linkis.manager.label.entity.engine.{EngineType, EngineTypeLabel, UserCreatorLabel}
 import org.apache.linkis.manager.label.utils.EngineTypeLabelCreator
 
-import java.lang.reflect.{Field, Modifier}
 import java.util
 
-import org.junit.jupiter.api.{AfterEach, Assertions, BeforeEach, DisplayName, Test}
-import org.mockito.{ArgumentMatchers, Mockito}
+import org.junit.jupiter.api.{Assertions, BeforeEach, DisplayName, Test}
+import org.mockito.Mockito
 
 /**
- * Unit tests for Spark3 version coercion creator dimension in CommonEntranceParser.
+ * Unit tests for Spark3 version coercion in CommonEntranceParser.
  *
- * Tests the creator-level judgment branch added to the sparkVersionCoercion method. Uses reflection
- * to:
- *   - Modify EntranceConfiguration val fields (switch, creators, users, department)
- *   - Replace EntranceUtils singleton MODULE$ with a mock to prevent RPC calls
- *   - Invoke the private sparkVersionCoercion method
+ * After the config-service migration, coercion reads its 4 config keys via RPC
+ * (fetchSpark3CoercionConfig) and the department id via fetchUserDepartmentId. Both are
+ * short-circuited in tests by overriding them in an anonymous subclass (returning a preset
+ * configMap / deptId), so tests focus on the judgment logic (user > department > creator) without a
+ * live linkis-ps-configuration and without reflecting on the EntranceUtils singleton (which the JVM
+ * forbids for static-final fields on JDK 12+).
  */
 class CommonEntranceParserSpark3CoercionTest {
 
   private var parser: CommonEntranceParser = null
-  private var originalSwitch: Boolean = false
-  private var originalCreators: String = ""
-  private var originalUsers: String = ""
-  private var originalDepartment: String = ""
-  private var originalEntranceUtils: AnyRef = null
-  private var entranceUtilsModuleField: Field = null
-  private var mockEntranceUtils: AnyRef = null
+
+  /** Preset config map returned by the overridden fetchSpark3CoercionConfig. */
+  private val configMap: util.Map[String, String] = new util.HashMap[String, String]()
+
+  /** Preset department id returned by the overridden fetchUserDepartmentId. */
+  private var mockDeptId: String = ""
 
   private val spark2Version: String = LabelCommonConfig.SPARK_ENGINE_VERSION.getValue
   private val spark3Version: String = LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
 
   @BeforeEach
   def setUp(): Unit = {
-    // Save original EntranceConfiguration values
-    originalSwitch = EntranceConfiguration.SPARK3_VERSION_COERCION_SWITCH
-    originalCreators = EntranceConfiguration.SPARK3_VERSION_COERCION_CREATORS
-    originalUsers = EntranceConfiguration.SPARK3_VERSION_COERCION_USERS
-    originalDepartment = EntranceConfiguration.SPARK3_VERSION_COERCION_DEPARTMENT
+    configMap.clear()
+    // Default config: switch on, creators=IDE, users/department empty
+    configMap.put("spark.version.coercion.switch", "true")
+    configMap.put("spark.version.coercion.creators", "IDE")
+    configMap.put("spark.version.coercion.users", "")
+    configMap.put("spark.version.coercion.department.id", "")
+    mockDeptId = ""
 
-    // Set default test config: switch on, creators=IDE, users/department empty
-    setEntranceConfigField("SPARK3_VERSION_COERCION_SWITCH", java.lang.Boolean.TRUE)
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
-    setEntranceConfigField("SPARK3_VERSION_COERCION_USERS", "")
-    setEntranceConfigField("SPARK3_VERSION_COERCION_DEPARTMENT", "")
-
-    // Mock EntranceUtils singleton to prevent RPC calls in department check
-    mockEntranceUtilsSingleton()
-
-    // Create parser with mocked PersistenceManager
     val mockPersistenceManager = Mockito.mock(classOf[PersistenceManager])
-    parser = new CommonEntranceParser(mockPersistenceManager)
-  }
+    parser = new CommonEntranceParser(mockPersistenceManager) {
+      override def fetchSpark3CoercionConfig(
+          labels: util.HashMap[String, Label[_]],
+          executeUser: String
+      ): util.Map[String, String] = configMap
 
-  @AfterEach
-  def tearDown(): Unit = {
-    // Restore EntranceConfiguration values
-    setEntranceConfigField(
-      "SPARK3_VERSION_COERCION_SWITCH",
-      java.lang.Boolean.valueOf(originalSwitch)
-    )
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", originalCreators)
-    setEntranceConfigField("SPARK3_VERSION_COERCION_USERS", originalUsers)
-    setEntranceConfigField("SPARK3_VERSION_COERCION_DEPARTMENT", originalDepartment)
-
-    // Restore EntranceUtils singleton
-    restoreEntranceUtilsSingleton()
+      override def fetchUserDepartmentId(user: String): String = mockDeptId
+    }
   }
 
   // ==================== Helper Methods ====================
-
-  /**
-   * Uses reflection to modify a final val field on the EntranceConfiguration object. Removes the
-   * final modifier, sets the new value, for both Boolean and String fields.
-   */
-  private def setEntranceConfigField(fieldName: String, value: AnyRef): Unit = {
-    val configInstance = EntranceConfiguration
-    val field = configInstance.getClass.getDeclaredField(fieldName)
-    field.setAccessible(true)
-    val modifiersField = classOf[Field].getDeclaredField("modifiers")
-    modifiersField.setAccessible(true)
-    modifiersField.setInt(field, field.getModifiers & ~Modifier.FINAL)
-    field.set(configInstance, value)
-  }
-
-  /**
-   * Replaces the EntranceUtils$ MODULE$ singleton with a Mockito mock. The mock returns empty
-   * string for getUserDepartmentId to prevent RPC calls.
-   */
-  private def mockEntranceUtilsSingleton(): Unit = {
-    val entranceUtilsClass = EntranceUtils.getClass
-    entranceUtilsModuleField = entranceUtilsClass.getDeclaredField("MODULE$")
-    entranceUtilsModuleField.setAccessible(true)
-    originalEntranceUtils = entranceUtilsModuleField.get(null)
-
-    mockEntranceUtils = Mockito.mock(entranceUtilsClass)
-    val typedMock = mockEntranceUtils.asInstanceOf[EntranceUtils.type]
-    Mockito
-      .when(typedMock.getUserDepartmentId(ArgumentMatchers.anyString()))
-      .thenReturn("")
-
-    val modifiersField = classOf[Field].getDeclaredField("modifiers")
-    modifiersField.setAccessible(true)
-    modifiersField.setInt(
-      entranceUtilsModuleField,
-      entranceUtilsModuleField.getModifiers & ~Modifier.FINAL
-    )
-    entranceUtilsModuleField.set(null, mockEntranceUtils)
-  }
-
-  /**
-   * Restores the original EntranceUtils$ MODULE$ singleton.
-   */
-  private def restoreEntranceUtilsSingleton(): Unit = {
-    if (entranceUtilsModuleField != null && originalEntranceUtils != null) {
-      entranceUtilsModuleField.set(null, originalEntranceUtils)
-    }
-  }
 
   /**
    * Creates a labels map with a Spark2 EngineTypeLabel and a UserCreatorLabel with the specified
@@ -226,7 +159,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("creator 命中名单 → EngineTypeLabel version 改为 3.4.4")
   def testCreatorHit(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = createSpark2Labels("IDE")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     assertSpark3(result)
@@ -235,7 +168,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("creator 未命中名单 → 保持原 version")
   def testCreatorNotHit(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = createSpark2Labels("Schedulis")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     assertSpark2(result)
@@ -244,7 +177,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("creator 名单为空 → 保持原 version（与增强前一致）")
   def testCreatorListEmpty(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "")
+    configMap.put("spark.version.coercion.creators", "")
     val labels = createSpark2Labels("IDE")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     assertSpark2(result)
@@ -253,7 +186,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("UserCreatorLabel 不存在（labels 无该 key）→ 不抛异常，保持原 version")
   def testUserCreatorLabelNotExists(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = createSpark2LabelsWithoutUserCreator()
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     assertSpark2(result)
@@ -262,7 +195,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("creator 为 null/空白 → 不命中，保持原 version")
   def testCreatorBlank(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
 
     // Test with null creator
     val labelsNull = createSpark2Labels(null)
@@ -278,8 +211,8 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("用户级命中时不检查 creator（优先级）")
   def testUserPriorityOverCreator(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_USERS", "testUser")
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "Schedulis")
+    configMap.put("spark.version.coercion.users", "testUser")
+    configMap.put("spark.version.coercion.creators", "Schedulis")
     // creator is IDE (not in creators list), but user check should match first
     val labels = createSpark2Labels("IDE")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
@@ -289,14 +222,10 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("部门级命中时不检查 creator（优先级）")
   def testDepartmentPriorityOverCreator(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_USERS", "")
-    setEntranceConfigField("SPARK3_VERSION_COERCION_DEPARTMENT", "dept01")
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "Schedulis")
-    // Configure mock to return matching department ID
-    val typedMock = mockEntranceUtils.asInstanceOf[EntranceUtils.type]
-    Mockito
-      .when(typedMock.getUserDepartmentId(ArgumentMatchers.anyString()))
-      .thenReturn("dept01")
+    configMap.put("spark.version.coercion.users", "")
+    configMap.put("spark.version.coercion.department.id", "dept01")
+    configMap.put("spark.version.coercion.creators", "Schedulis")
+    mockDeptId = "dept01"
     // creator is IDE (not in creators list), but department check should match first
     val labels = createSpark2Labels("IDE")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
@@ -306,8 +235,8 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("总开关关闭 → creator 分支不执行")
   def testSwitchOff(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_SWITCH", java.lang.Boolean.FALSE)
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.switch", "false")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = createSpark2Labels("IDE")
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     assertSpark2(result)
@@ -316,7 +245,7 @@ class CommonEntranceParserSpark3CoercionTest {
   @Test
   @DisplayName("非 Spark 引擎 → 不切换")
   def testNonSparkEngine(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = createHiveLabels()
     val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
     val engineTypeLabel = result
@@ -326,9 +255,38 @@ class CommonEntranceParserSpark3CoercionTest {
   }
 
   @Test
+  @DisplayName("RPC 拉配置为 null（fallback）→ 不抛异常，保持原 version")
+  def testRpcFallbackToNull(): Unit = {
+    // Override fetch to return null (simulates RPC failure -> fallback to local default)
+    val mockPersistenceManager = Mockito.mock(classOf[PersistenceManager])
+    val nullRpcParser = new CommonEntranceParser(mockPersistenceManager) {
+      override def fetchSpark3CoercionConfig(
+          labels: util.HashMap[String, Label[_]],
+          executeUser: String
+      ): util.Map[String, String] = null
+
+      override def fetchUserDepartmentId(user: String): String = ""
+    }
+    val method = classOf[CommonEntranceParser].getDeclaredMethod(
+      "sparkVersionCoercion",
+      classOf[util.HashMap[_, _]],
+      classOf[String],
+      classOf[String]
+    )
+    method.setAccessible(true)
+    // RPC returns null -> getValue(null) walks CommonVars local default (switch=false, creators="")
+    // -> keep Spark2
+    val labels = createSpark2Labels("IDE")
+    val result = method
+      .invoke(nullRpcParser, labels, "testUser", "testUser")
+      .asInstanceOf[util.HashMap[String, Label[_]]]
+    assertSpark2(result)
+  }
+
+  @Test
   @DisplayName("异常降级（模拟 asInstanceOf 类型不匹配）→ 不抛异常，保持原 labels")
   def testExceptionDegradation(): Unit = {
-    setEntranceConfigField("SPARK3_VERSION_COERCION_CREATORS", "IDE")
+    configMap.put("spark.version.coercion.creators", "IDE")
     val labels = new util.HashMap[String, Label[_]]()
     val spark2Label =
       EngineTypeLabelCreator.createEngineTypeLabel(EngineType.SPARK.toString, spark2Version)
