@@ -61,6 +61,10 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-logging</artifactId>
         </exclusion>
+        <exclusion>
+          <artifactId>mchange-commons-java</artifactId>
+          <groupId>com.mchange</groupId>
+        </exclusion>
       </exclusions>
     </dependency>
 

@@ -226,6 +226,18 @@
       <groupId>org.apache.thrift</groupId>
       <artifactId>libfb303</artifactId>
       <version>0.9.3</version>
+      <exclusions>
+        <!-- 排除内置的旧版 libthrift，避免安全工单版本冲突 -->
+        <exclusion>
+          <groupId>org.apache.thrift</groupId>
+          <artifactId>libthrift</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.thrift</groupId>
+      <artifactId>libthrift</artifactId>
+      <version>0.23.0</version>
     </dependency>
     <dependency>
       <groupId>com.esotericsoftware</groupId>
