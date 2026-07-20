@@ -6,6 +6,8 @@
 **创建日期**: 2026-07-14
 **需求标签**: 【WDSL-UJES】【高风险】【运维需求】【BDP】【linkis】【后端】【非跨组件】
 
+> 🔔 **方案演进（2026-07-20）**：本文档已整合「配置项管理迁移」方案 —— 第 1-9 章为 creator 维度判定（已实现），第 10 章为配置机制迁移（3 名单从 properties 迁移到配置项管理、switch 保留 properties、entrance RPC 读取，已实现并验证）。
+
 ---
 
 ## 📋 需求速览
@@ -366,3 +368,59 @@ flowchart TD
 - 避免 Spark2 停维后的二线维护成本
 - 应用级灰度可减少全量切换的大范围回归测试成本
 - creator 名单热加载（getHotValue）支持不重启调整，降低运维操作成本与变更窗口压力
+
+---
+
+## 10. 配置项管理迁移 【核心】（2026-07-20 演进）
+
+### 10.1 迁移背景
+
+第 1-9 章的 creator 维度判定已实现，但配置（3 名单 + 总开关）原写在 `linkis-cg-entrance.properties`，运维改名单需登机器改配置文件。本章节把 3 个名单迁移到 Linkis 配置项管理前端可视化配置。
+
+> 业务方原话（v_kkhuang 7/17）：「加到配置项管理里面去，spark 引擎里面，2 和 3 虽然都会有，但可以在代码里面去判断下」；「把之前的强制也迁移到配置项管理」。
+
+### 10.2 迁移范围（分治原则）
+
+| 配置项 | 处置 | 理由 |
+|--------|------|------|
+| `spark.version.coercion.users` | **迁移**配置项管理 | 名单需前端热改 |
+| `spark.version.coercion.department.id` | **迁移**配置项管理 | 名单需前端热改 |
+| `spark.version.coercion.creators` | **迁移**配置项管理 | 名单需前端热改 |
+| `spark.version.coercion.switch` | **保留** properties | 总开关谨慎（重启生效） |
+
+### 10.3 技术方案
+
+- entrance 通过 RPC（`RequestQueryEngineConfigWithGlobalConfig`）读配置项管理的值，替代本地 properties
+- 降级：RPC 失败 `CommonVars.getValue(null)` 自动 fallback 到本地 properties 默认值（照搬 EntranceGroupFactory 范式）
+- 抽 2 个 `protected[parser]` seam（`fetchSpark3CoercionConfig` / `fetchUserDepartmentId`）便于单测
+- 三张表（缺一不可）：`config_key` + `key_engine_relation` + `config_value`
+- 绑 `*-*,spark-2.4.3` + `*-*,spark-3.4.4` 两个 label
+- 前端零开发（复用 setting 页面）
+
+### 10.4 兼容性
+
+- SQL 未执行 / RPC 失败 → `getValue` 走 properties 默认，行为与迁移前完全一致
+- 判定逻辑/优先级/命中行为完全不变（仅数据源 properties→RPC）
+- 仅新增配置项管理数据，无表结构变更（DDL）
+
+### 10.5 涉及文件
+
+- `EntranceConfiguration.scala`：4 声明改 CommonVars 对象
+- `CommonEntranceParser.scala`：sparkVersionCoercion 改 RPC 读 + 2 个 protected seam
+- `upgrade/2.1.0_schema/mysql/linkis_configuration.sql`：三张表初始化
+- `linkis-cg-entrance.properties`：英文 ASCII 注释，4 key 保留 fallback
+- `CommonEntranceParserSpark3CoercionTest.scala`：override seam + configMap
+
+### 10.6 风险
+
+- 三张表漏 `config_value` → SQL 含第③步初始化（缺则 queryConfig 查不到）
+- RPC 缓存（120s expireAfterAccess）→ 执行 SQL 后重启 `linkis-cg-entrance`
+- 名单被 AM 注入 EC（冗余）→ 接受：EC 不读、非敏感
+
+### 10.7 验收
+
+- 前端配名单值 + switch 开启 → Spark2 任务切换 Spark3
+- RPC 失败 → fallback properties，不阻断任务
+- 并发 ≥3 任务正确切换，无串扰
+
+> 详细设计见 [spark3-coercion-creator_设计.md](../design/spark3-coercion-creator_设计.md) Part 4。

@@ -11,6 +11,8 @@
 - **设计文档类型**: 单一设计文档
 - **需求文档**: [spark3-coercion-creator_需求.md](../requirements/spark3-coercion-creator_需求.md)
 
+> 🔔 **方案演进（2026-07-20）**：本文档已整合「配置项管理迁移」方案 —— Part 1-3 为 creator 维度判定设计（已实现），Part 4 为配置机制迁移设计（3 名单从 properties 迁移到配置项管理、switch 保留 properties、entrance RPC 读取，已实现并验证）。
+
 ---
 
 ## 执行摘要
@@ -849,3 +851,66 @@ SPARK3_VERSION_COERCION_CREATORS.split(",").contains(creator)
 | 版本 | 时间 | 作者 | 变更说明 |
 |------|------|------|---------|
 | v1.0 | 2026-07-14 | v-kkhuang | 初版创建 |
+| v2.0 | 2026-07-20 | v-kkhuang | 整合 Part 4 配置项管理迁移方案 |
+
+---
+
+# Part 4: 配置项管理迁移设计（2026-07-20 演进）
+
+> 本 Part 描述配置机制迁移（3 名单从 properties 迁移到配置项管理）。Part 1-3 的 creator 维度判定设计仍为核心，本 Part 仅改数据源。
+
+## 4.1 迁移范围与分治
+
+3 名单迁移配置项管理，switch 保留 properties。代码统一 `getValue(keyAndValue)` 读：生产 map 无 switch → 走 properties 默认；单测 configMap 含 switch → 走 configMap。无需代码分叉。
+
+## 4.2 读取流程
+
+```
+sparkVersionCoercion → fetchSpark3CoercionConfig (RPC, tryAndWarnMsg)
+  → keyAndValue Map (失败→null)
+  → getValue(keyAndValue) 读 4 个 key
+  → 判定 个人>部门>creator（不变）
+```
+
+**两条独立链路（重要）**：entrance（判定后丢弃）/ EC（AM 独立拉配置注入）。entrance 丢不影响 EC（详见 4.4 ADR-006）。
+
+## 4.3 关键代码变更
+
+- `EntranceConfiguration`：4 声明从 `String/Boolean`（getValue/getHotValue）→ 保留 `CommonVars` 对象
+- `CommonEntranceParser.sparkVersionCoercion`：开头调 `fetchSpark3CoercionConfig`；4 个 key 改 `getValue(keyAndValue)`
+- 新增 2 个 `protected[parser]` seam：
+  - `fetchSpark3CoercionConfig`：RPC 拉配置（`Utils.tryAndWarnMsg` 包裹）
+  - `fetchUserDepartmentId`：包 `EntranceUtils.getUserDepartmentId`（便于单测 + 绕过 JDK21 反射设单例限制）
+
+## 4.4 ADR（迁移相关）
+
+| ADR | 决策 | 理由 |
+|-----|------|------|
+| ADR-001 | 3 名单迁移、switch 保留 | 分治：名单热改、开关谨慎；getValue(map) 对缺失 switch 自动走 properties |
+| ADR-002 | 复用 RequestQueryEngineConfigWithGlobalConfig RPC | entrance 已有两处现成调用，零新协议 |
+| ADR-003 | 降级照搬 EntranceGroupFactory 范式 | 项目现行惯例，无灰度开关 |
+| ADR-004 | 双 protected seam | 单测可 override；JDK21 禁反射设单例 static final |
+| ADR-005 | 绑 spark2+spark3 label | spark2 读取生效 + 满足"2和3都会有"展示 |
+| ADR-006 | 接受名单注入 EC | AM 独立注入；改 §10.2 #10 高危区不划算；实际无害（EC 不读、非敏感） |
+| ADR-007 | 三张表（含 config_value） | 缺 config_value 则 queryConfig 查不到 |
+
+## 4.5 SQL 三张表
+
+详见 `upgrade/2.1.0_schema/mysql/linkis_configuration.sql`：
+1. `config_key`：3 个 key 模板（treeName='Spark3强制切换'）
+2. `key_engine_relation`：绑 spark2+spark3 label（CROSS JOIN 子查询）
+3. `config_value`：从 relation 衍生空值记录（queryConfig 靠它返回）
+
+## 4.6 缓存坑
+
+`RequestQueryEngineConfigWithGlobalConfig` 实现 `CacheableProtocol`，entrance 侧 `CacheableRPCInterceptor` 缓存（`wds.linkis.rpc.cache.expire.time` 默认 120000ms，**expireAfterAccess** 有访问就不过期）。直接执行 SQL 不清缓存；前端 `saveFullTree` 广播只清 AM 侧不清 entrance 侧 → **执行 SQL 后需重启 `linkis-cg-entrance`**。
+
+## 4.7 回滚
+
+1. 前端清空 3 名单值（无需重启）
+2. 删 `key_engine_relation`（key 不被 label 命中 → fallback properties）
+3. `git revert`
+
+## 4.8 测试
+
+单测（`CommonEntranceParserSpark3CoercionTest`，11 用例全过）：匿名子类 override `fetchSpark3CoercionConfig` 返回 configMap + `fetchUserDepartmentId` 返回 mockDeptId，覆盖 creator 命中/未命中/空名单、用户级/部门级优先级、switch off、非 Spark、RPC null fallback、异常降级。
