@@ -351,7 +351,7 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
       maxStringLength: Int,
       maxNestingDepth: Int
   ): Unit = {
-    try {
+    Utils.tryCatch {
       val newConstraints = StreamReadConstraints
         .builder()
         .maxStringLength(maxStringLength)
@@ -370,7 +370,7 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
       logger.info(
         s"Overridden Jackson StreamReadConstraints defaults: maxStringLength=$maxStringLength, maxNestingDepth=$maxNestingDepth"
       )
-    } catch {
+    } {
       case e: Exception =>
         logger.warn("Failed to override Jackson StreamReadConstraints defaults", e)
     }
