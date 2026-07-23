@@ -198,7 +198,6 @@ object SparkConfiguration extends Logging {
   val JACKSON_MAX_STRING_LENGTH =
     CommonVars[Int]("linkis.spark.jackson.maxStringLength", 10000000)
 
-
   val JACKSON_MAX_NESTING_DEPTH =
     CommonVars[Int]("linkis.spark.jackson.maxNestingDepth", 2000)
 
