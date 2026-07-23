@@ -370,9 +370,8 @@ class SparkEngineConnFactory extends MultiExecutorEngineConnFactory with Logging
       logger.info(
         s"Overridden Jackson StreamReadConstraints defaults: maxStringLength=$maxStringLength, maxNestingDepth=$maxNestingDepth"
       )
-    } {
-      case e: Exception =>
-        logger.warn("Failed to override Jackson StreamReadConstraints defaults", e)
+    } { case e: Exception =>
+      logger.warn("Failed to override Jackson StreamReadConstraints defaults", e)
     }
   }
 
