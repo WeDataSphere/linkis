@@ -1,0 +1,93 @@
+{
+  "root": {
+    "data": {"text": "BDP_Linkis"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：533908"},
+        "children": [{
+          "data": {"text": "Spark3强制切换配置项管理迁移"},
+          "children": [
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [{
+                "data": {"text": "【AIGC】RPC成功读配置项管理名单命中切换Spark3"},
+                "children": [
+                  {"data": {"text": "条件：Spark3强制切换总开关已开启；配置项管理已注册应用级名单（三张表config_key/key_engine_relation/config_value完整）；linkis-ps-configuration服务正常"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userM从应用appM（在名单中）提交Spark2任务\n2、entrance的fetchSpark3CoercionConfig发RequestQueryEngineConfigWithGlobalConfig RPC拉取配置项管理名单\n3、sparkVersionCoercion用getValue(keyAndValue)读取名单值"}, "children": []},
+                  {"data": {"text": "预期结果：任务被强制切换到Spark3，引擎版本3.4.4，日志记录creator级命中"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [{
+                "data": {"text": "【AIGC】RPC失败fallback到properties默认值不阻断任务"},
+                "children": [
+                  {"data": {"text": "条件：总开关在properties中已开启；应用级名单在配置项管理中配置为appN；linkis-ps-configuration服务不可用"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userN从应用appN提交Spark2任务\n2、fetchSpark3CoercionConfig的RPC调用失败\n3、Utils.tryAndWarnMsg捕获异常，keyAndValue=null\n4、CommonVars.getValue(null)走本地properties默认值"}, "children": []},
+                  {"data": {"text": "预期结果：RPC失败但不抛出异常，任务使用Spark2引擎执行，不阻断任务，记录warn级别日志"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [{
+                "data": {"text": "【AIGC】DB未注册key时行为与迁移前完全一致"},
+                "children": [
+                  {"data": {"text": "条件：总开关已开启；配置项管理未注册spark.version.coercion.*的key（SQL未执行）"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userO从应用appO提交Spark2任务\n2、RPC返回的map不含coercion相关key\n3、getValue走properties默认值"}, "children": []},
+                  {"data": {"text": "预期结果：任务使用Spark2引擎执行，行为与迁移前完全一致"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [{
+                "data": {"text": "【AIGC】三张表漏config_value时queryConfig查不到key"},
+                "children": [
+                  {"data": {"text": "条件：总开关已开启；config_key和key_engine_relation已注册，但config_value表无对应记录"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userP从应用appP提交Spark2任务\n2、queryConfigWithGlobalConfig查询\n3、因config_value无记录，key不被返回\n4、等效fallback到properties默认值"}, "children": []},
+                  {"data": {"text": "预期结果：queryConfig不返回coercion key，任务使用Spark2引擎执行"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [{
+                "data": {"text": "【AIGC】switch保留properties不迁移到配置项管理"},
+                "children": [
+                  {"data": {"text": "条件：配置项管理未注册spark.version.coercion.switch；properties中switch=true；应用级名单在配置项管理中包含appQ"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userQ从应用appQ提交Spark2任务\n2、RPC返回的map不含switch key\n3、getValue(map)对缺失的switch走properties默认值true"}, "children": []},
+                  {"data": {"text": "预期结果：switch走properties，任务被强制切换到Spark3，代码统一getValue(keyAndValue)无需分叉"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：流程案例"},
+              "children": [{
+                "data": {"text": "【AIGC】前端saveFullTree改名单后广播清AM缓存"},
+                "children": [
+                  {"data": {"text": "条件：总开关已开启；应用级名单初始为空"}, "children": []},
+                  {"data": {"text": "步骤：\n1、用户userR从应用appR提交Spark2任务（名单空）→Spark2\n2、运维在前端setting页面将appR加入应用级名单并saveFullTree\n3、saveFullTree广播RemoveCacheConfRequest清除AM缓存\n4、用户userR再次从appR提交Spark2任务"}, "children": []},
+                  {"data": {"text": "预期结果：下个任务读到新名单值，任务切换到Spark3，无需重启服务"}, "children": []}
+                ]
+              }]
+            },
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [{
+                "data": {"text": "【AIGC】直接执行SQL后需重启linkis-cg-entrance清RPC缓存"},
+                "children": [
+                  {"data": {"text": "条件：linkis-entrance的RPC缓存策略为expireAfterAccess 120000ms；配置项管理已注册应用级名单appS"}, "children": []},
+                  {"data": {"text": "步骤：\n1、运维直接执行SQL注册新key（未走前端saveFullTree）\n2、用户userS从appS提交Spark2任务（未重启entrance）→可能读旧缓存\n3、重启linkis-cg-entrance\n4、用户userS再次从appS提交Spark2任务"}, "children": []},
+                  {"data": {"text": "预期结果：重启前任务可能读旧缓存值；重启后RPC缓存清空，任务正确切换到Spark3"}, "children": []}
+                ]
+              }]
+            }
+          ]
+        }]
+      }]
+    }]
+  }
+}
