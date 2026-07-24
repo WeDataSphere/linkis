@@ -386,6 +386,7 @@ flowchart TD
 | `spark.version.coercion.users` | **迁移**配置项管理 | 名单需前端热改 |
 | `spark.version.coercion.department.id` | **迁移**配置项管理 | 名单需前端热改 |
 | `spark.version.coercion.creators` | **迁移**配置项管理 | 名单需前端热改 |
+| `spark.version.coercion.user.creators` | **迁移**配置项管理（⭐新增）| user+creator 组合细粒度（格式 `user:creator`，逗号分隔）|
 | `spark.version.coercion.switch` | **保留** properties | 总开关谨慎（重启生效） |
 
 ### 10.3 技术方案
@@ -396,6 +397,7 @@ flowchart TD
 - 三张表（缺一不可）：`config_key` + `key_engine_relation` + `config_value`
 - 绑 `*-*,spark-2.4.3` + `*-*,spark-3.4.4` 两个 label
 - 前端零开发（复用 setting 页面）
+- ⭐ user+creator 组合细粒度维度（新增）：优先级 **个人 > user+creator组合 > 部门 > creator**；名单格式 `"user:creator"`（如 `userA:IDE,userB:Schedulis`）；用 split 精确匹配（避免 contains 子串误命中）
 
 ### 10.4 兼容性
 

@@ -876,11 +876,12 @@ sparkVersionCoercion → fetchSpark3CoercionConfig (RPC, tryAndWarnMsg)
 
 ## 4.3 关键代码变更
 
-- `EntranceConfiguration`：4 声明从 `String/Boolean`（getValue/getHotValue）→ 保留 `CommonVars` 对象
-- `CommonEntranceParser.sparkVersionCoercion`：开头调 `fetchSpark3CoercionConfig`；4 个 key 改 `getValue(keyAndValue)`
+- `EntranceConfiguration`：5 声明从 `String/Boolean`（getValue/getHotValue）→ 保留 `CommonVars` 对象（含 ⭐新增 `SPARK3_VERSION_COERCION_USER_CREATORS`）
+- `CommonEntranceParser.sparkVersionCoercion`：开头调 `fetchSpark3CoercionConfig`；5 个 key 改 `getValue(keyAndValue)`；⭐在个人级判定后、部门级前插入 user+creator 组合判定（split 精确匹配 `user:creator` 对）
 - 新增 2 个 `protected[parser]` seam：
   - `fetchSpark3CoercionConfig`：RPC 拉配置（`Utils.tryAndWarnMsg` 包裹）
   - `fetchUserDepartmentId`：包 `EntranceUtils.getUserDepartmentId`（便于单测 + 绕过 JDK21 反射设单例限制）
+- 优先级链（含组合）：**个人(users) > user+creator组合 > 部门 > creator**
 
 ## 4.4 ADR（迁移相关）
 
@@ -893,6 +894,7 @@ sparkVersionCoercion → fetchSpark3CoercionConfig (RPC, tryAndWarnMsg)
 | ADR-005 | 绑 spark2+spark3 label | spark2 读取生效 + 满足"2和3都会有"展示 |
 | ADR-006 | 接受名单注入 EC | AM 独立注入；改 §10.2 #10 高危区不划算；实际无害（EC 不读、非敏感） |
 | ADR-007 | 三张表（含 config_value） | 缺 config_value 则 queryConfig 查不到 |
+| ADR-008 | ⭐新增 user+creator 组合维度 | 灰度更精细（特定用户+特定应用）；优先级 个人>组合>部门>creator；split 精确匹配避免 contains 子串误命中 |
 
 ## 4.5 SQL 三张表
 

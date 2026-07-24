@@ -24,6 +24,7 @@ import org.apache.linkis.entrance.conf.EntranceConfiguration.{
   SPARK3_VERSION_COERCION_CREATORS,
   SPARK3_VERSION_COERCION_DEPARTMENT,
   SPARK3_VERSION_COERCION_SWITCH,
+  SPARK3_VERSION_COERCION_USER_CREATORS,
   SPARK3_VERSION_COERCION_USERS
 }
 import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
@@ -394,6 +395,35 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
               )
             )
             return labels
+          }
+          // user+creator 组合细粒度判定（优先级：个人 > 组合 > 部门 > creator）
+          // 名单格式 "user:creator"，逗号分隔；用 split 精确匹配避免 contains 子串误命中
+          val coercionUserCreators = SPARK3_VERSION_COERCION_USER_CREATORS.getValue(keyAndValue)
+          if (StringUtils.isNotBlank(coercionUserCreators)) {
+            val comboUserCreatorLabel = labels
+              .getOrDefault(LabelKeyConstant.USER_CREATOR_TYPE_KEY, null)
+              .asInstanceOf[UserCreatorLabel]
+            if (null != comboUserCreatorLabel) {
+              val comboCreator = comboUserCreatorLabel.getCreator
+              if (StringUtils.isNotBlank(comboCreator)) {
+                val pairs = coercionUserCreators.split(",").map(_.trim).filter(_.nonEmpty)
+                val executePair = s"${executeUser}:${comboCreator}"
+                val submitPair = s"${submitUser}:${comboCreator}"
+                if (pairs.contains(executePair) || pairs.contains(submitPair)) {
+                  logger.info(
+                    s"Spark version will be change 3.4.4 by user+creator:${comboCreator},executeUser:${executeUser} "
+                  )
+                  labels.replace(
+                    LabelKeyConstant.ENGINE_TYPE_KEY,
+                    EngineTypeLabelCreator.createEngineTypeLabel(
+                      EngineType.SPARK.toString,
+                      LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+                    )
+                  )
+                  return labels
+                }
+              }
+            }
           }
           val executeUserDepartmentId = fetchUserDepartmentId(executeUser)
           val submitUserDepartmentId = fetchUserDepartmentId(submitUser)
