@@ -455,7 +455,7 @@ object HDFSUtils extends Logging {
 
   def getKerberosUser(userName: String, label: String): String = {
     var user = userName
-    val host = resolveKeytabHost(label)
+    val host = resolveKeytabHost()
     if (StringUtils.isNotBlank(host)) {
       user = user + "/" + host
     }
@@ -465,42 +465,24 @@ object HDFSUtils extends Logging {
   /**
    * Resolve the host part of the kerberos principal.
    *
-   *   - label == null: when host.enabled=true, uses the static KEYTAB_HOST value; if host.auto=true
-   *     the local machine short hostname (equivalent to shell `hostname`) is used instead. When
-   *     host.enabled=false, no host is appended.
-   *   - label != null: prefers the value in linkis.keytab.host.map for that label; if absent and
-   *     host.auto=true, falls back to the local machine short hostname; if absent and
-   *     host.auto=false, no host is appended.
+   * Single switch: when wds.linkis.keytab.host.enabled=true, the local machine hostname (see
+   * localHostname) is appended to the principal (e.g. `hadoop/${hostname}`); when false (default),
+   * no host is appended. The label is no longer involved in host resolution.
    *
-   * Any failure (e.g. UnknownHostException) is caught and falls back to the static KEYTAB_HOST
-   * value, so the kerberos login main path is never broken by the auto-resolution feature. Backward
-   * compatible: with host.auto=false (default) the behavior is identical to before.
+   * Any failure (e.g. UnknownHostException) is caught and returns null, i.e. no host is appended,
+   * rather than silently degrading to a static value that would not match the keytab anyway.
    */
-  private def resolveKeytabHost(label: String): String = Utils.tryCatch {
-    if (label == null) {
-      if (KEYTAB_HOST_ENABLED.getValue) {
-        if (KEYTAB_HOST_AUTO.getValue) localHostname() else KEYTAB_HOST.getValue
-      } else {
-        null
-      }
-    } else {
-      val hostMap = kerberosValueMapParser(KEYTAB_HOST_MAP.getValue)
-      if (hostMap.contains(label)) {
-        hostMap(label)
-      } else if (KEYTAB_HOST_AUTO.getValue) {
-        localHostname()
-      } else {
-        null
-      }
-    }
-  } { case t: Throwable =>
-    logger.warn(s"Resolve keytab host failed, fallback to static value: ${KEYTAB_HOST.getValue}", t)
-    KEYTAB_HOST.getValue
+  private def resolveKeytabHost(): String = Utils.tryCatch {
+    if (KEYTAB_HOST_ENABLED.getValue) localHostname() else null
+  } { t: Throwable =>
+    logger.warn("Resolve keytab host failed, no host will be appended to principal", t)
+    null
   }
 
   /**
-   * Local machine short hostname, equivalent to shell `hostname`. Used to build principal like
-   * `hadoop/${hostname}`. The returned value must exactly match the host registered in the keytab.
+   * Local machine hostname (InetAddress.getLocalHost.getHostName), used verbatim to build a
+   * principal like `hadoop/${hostname}`. The returned value must match the host registered in the
+   * keytab.
    */
   private def localHostname(): String = InetAddress.getLocalHost.getHostName
 

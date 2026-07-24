@@ -20,64 +20,37 @@ package org.apache.linkis.hadoop.common.utils
 import org.junit.jupiter.api.{Assertions, Test}
 
 /**
- * Unit tests for keytab principal host auto-resolution (resolveKeytabHost / getKerberosUser /
- * localHostname).
+ * Unit tests for keytab principal host resolution (resolveKeytabHost / getKerberosUser).
+ *
+ * The host part is driven by a single switch `wds.linkis.keytab.host.enabled`: when true the local
+ * machine hostname is appended to the principal; when false (default) no host is appended.
  *
  * Note: CommonVars.getValue is a `val` (cached at HadoopConf object init time), so runtime
- * System.setProperty override is unreliable. These tests therefore exercise the branches reachable
- * under default config values:
- *   - host.enabled = false (default)
- *   - host.auto = false (default)
- *   - host.map = "cluster1=127.0.0.2,cluster2=127.0.0.3" (default) The host.auto=true branches are
- *     verified via the design decision tree + code review (see keytab-hostname-auth_测试报告.md).
+ * System.setProperty override is unreliable. These tests therefore exercise the branch reachable
+ * under the default config (host.enabled=false -> no host). The host.enabled=true branch is
+ * verified via code review + integration testing on a real Kerberos cluster (see
+ * keytab-hostname-auth_测试报告.md).
  */
 class HDFSUtilsKeytabHostTest {
 
-  private def resolveKeytabHost(label: String): String = {
-    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost", classOf[String])
+  private def resolveKeytabHost(): String = {
+    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost")
     method.setAccessible(true)
-    method.invoke(HDFSUtils, label).asInstanceOf[String]
+    method.invoke(HDFSUtils).asInstanceOf[String]
   }
 
-  /** TC-01: label=null, host.enabled=false (default) -> no host appended. */
+  /** host.enabled=false (default) -> no host appended (resolveKeytabHost returns null). */
   @Test
-  def testResolveLabelNullDefaultNoHost: Unit = {
-    val host = resolveKeytabHost(null)
+  def testResolveDefaultNoHost: Unit = {
+    val host = resolveKeytabHost()
     Assertions.assertNull(host)
   }
-
-  /** TC-04: label="cluster1", default host.map hit -> "127.0.0.2". */
-  @Test
-  def testResolveLabelMapHitDefault: Unit = {
-    val host = resolveKeytabHost("cluster1")
-    Assertions.assertEquals("127.0.0.2", host)
-  }
-
-  /** TC-06: label not in host.map, auto=false (default) -> null (no host). */
-  @Test
-  def testResolveLabelMapMissDefault: Unit = {
-    val host = resolveKeytabHost("cluster-not-exists")
-    Assertions.assertNull(host)
-  }
-
-  /**
-   * localHostname() is inlined by scalac (private, simple body, single call site), so it is not
-   * reachable via reflection. Its correctness is covered indirectly by the host.auto=true branch of
-   * resolveKeytabHost and by code review.
-   */
 
   /** getKerberosUser: default host.enabled=false -> principal = userName (no host). */
   @Test
   def testGetKerberosUserNoHostByDefault: Unit = {
     val principal = HDFSUtils.getKerberosUser("hadoop", null)
     Assertions.assertEquals("hadoop", principal)
-  }
-
-  /** getKerberosUser: label="cluster1" default host.map hit -> "hadoop/127.0.0.2". */
-  @Test
-  def testGetKerberosUserWithMapHit: Unit = {
-    val principal = HDFSUtils.getKerberosUser("hadoop", "cluster1")
-    Assertions.assertEquals("hadoop/127.0.0.2", principal)
   }
 
 }
