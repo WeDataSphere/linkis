@@ -297,4 +297,82 @@ class CommonEntranceParserSpark3CoercionTest {
     assertSpark2(result)
   }
 
+  // ==================== user+creator 组合维度用例 ====================
+
+  @Test
+  @DisplayName("user+creator 组合命中 → 切换 Spark3")
+  def testUserCreatorComboHit(): Unit = {
+    configMap.put("spark.version.coercion.creators", "")
+    configMap.put("spark.version.coercion.user.creators", "testUser:IDE")
+    val labels = createSpark2Labels("IDE")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark3(result)
+  }
+
+  @Test
+  @DisplayName("user+creator 组合 - creator 不匹配 → 保持 Spark2")
+  def testUserCreatorComboCreatorNotMatch(): Unit = {
+    configMap.put("spark.version.coercion.creators", "")
+    configMap.put("spark.version.coercion.user.creators", "testUser:IDE")
+    // creator=Schedulis，组合 testUser:Schedulis 不在名单
+    val labels = createSpark2Labels("Schedulis")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark2(result)
+  }
+
+  @Test
+  @DisplayName("user+creator 组合 - user 不匹配 → 保持 Spark2")
+  def testUserCreatorComboUserNotMatch(): Unit = {
+    configMap.put("spark.version.coercion.creators", "")
+    configMap.put("spark.version.coercion.user.creators", "otherUser:IDE")
+    // executeUser=testUser，组合 testUser:IDE 不在名单（otherUser:IDE 在）
+    val labels = createSpark2Labels("IDE")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark2(result)
+  }
+
+  @Test
+  @DisplayName("user+creator 组合 - 精确匹配（子串安全）")
+  def testUserCreatorComboExactMatch(): Unit = {
+    configMap.put("spark.version.coercion.creators", "")
+    // 名单 "testUser:IDE"，creator="ID"（子串）→ testUser:ID 不在名单（split 精确匹配，不误命中）
+    configMap.put("spark.version.coercion.user.creators", "testUser:IDE")
+    val labels = createSpark2Labels("ID")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark2(result)
+  }
+
+  @Test
+  @DisplayName("用户级命中时不检查组合（优先级：个人 > 组合）")
+  def testUserPriorityOverCombo(): Unit = {
+    configMap.put("spark.version.coercion.users", "testUser")
+    configMap.put("spark.version.coercion.creators", "")
+    configMap.put("spark.version.coercion.user.creators", "otherUser:IDE")
+    // executeUser=testUser 在用户级名单 → 用户级命中切换（组合 testUser:IDE 不在，但用户级先命中）
+    val labels = createSpark2Labels("IDE")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark3(result)
+  }
+
+  @Test
+  @DisplayName("组合命中时不检查 creator（优先级：组合 > creator）")
+  def testComboPriorityOverCreator(): Unit = {
+    configMap.put("spark.version.coercion.creators", "Schedulis")
+    configMap.put("spark.version.coercion.user.creators", "testUser:IDE")
+    // 组合 testUser:IDE 命中 → 切换（creator 名单含 Schedulis 不含 IDE，但组合先命中）
+    val labels = createSpark2Labels("IDE")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark3(result)
+  }
+
+  @Test
+  @DisplayName("组合名单为空 → 跳过组合检查")
+  def testComboListEmpty(): Unit = {
+    configMap.put("spark.version.coercion.creators", "")
+    configMap.put("spark.version.coercion.user.creators", "")
+    val labels = createSpark2Labels("IDE")
+    val result = invokeSparkVersionCoercion(labels, "testUser", "testUser")
+    assertSpark2(result)
+  }
+
 }

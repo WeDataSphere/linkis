@@ -198,6 +198,46 @@
 - **步骤**：运维直接执行 SQL（未走前端）→ userS 提交（未重启，可能旧缓存）→ 重启 entrance → userS 再提交
 - **预期**：重启前可能旧值；重启后正确切换 Spark3
 
+### 2.8 user+creator 组合细粒度（Rule 8）⭐ 新增
+
+> 优先级：个人 > user+creator组合 > 部门 > creator。名单格式 "user:creator"，逗号分隔。split 精确匹配（避免 contains 子串误命中）。
+
+#### TC-COMBO-001：user+creator 组合命中切换 Spark3 `P0` `@combo @smoke` `功能测试`
+- **来源**：feature Rule 8, Scenario 1
+- **前置**：总开关开启；组合名单 "userA:IDE"；用户级/应用级空
+- **步骤**：userA 从 IDE 提交 Spark2 任务
+- **预期**：切换 Spark3，日志记录组合命中
+
+#### TC-COMBO-002：组合 creator 不匹配保持 Spark2 `P1` `@combo @negative` `功能测试`
+- **来源**：feature Rule 8, Scenario 2
+- **前置**：组合名单 "userA:IDE"
+- **步骤**：userA 从 Schedulis 提交（userA:Schedulis 不在名单）
+- **预期**：保持 Spark2
+
+#### TC-COMBO-003：组合 user 不匹配保持 Spark2 `P1` `@combo @negative` `功能测试`
+- **来源**：feature Rule 8, Scenario 3
+- **前置**：组合名单 "otherUser:IDE"
+- **步骤**：userA 从 IDE 提交（userA:IDE 不在名单）
+- **预期**：保持 Spark2
+
+#### TC-COMBO-004：组合精确匹配（子串安全）`P1` `@combo` `功能测试`
+- **来源**：feature Rule 8, Scenario 4
+- **前置**：组合名单 "userA:IDE"
+- **步骤**：userA 从 ID 提交（userA:ID 子串，split 精确不命中）
+- **预期**：保持 Spark2，验证精确匹配
+
+#### TC-COMBO-005：用户级命中时不检查组合 `P1` `@combo @priority` `功能测试`
+- **来源**：feature Rule 8, Scenario 5
+- **前置**：用户级含 userA；组合名单 "otherUser:IDE"
+- **步骤**：userA 从 IDE 提交
+- **预期**：切换 Spark3（用户级命中），组合未检查
+
+#### TC-COMBO-006：组合命中时不检查 creator `P1` `@combo @priority` `功能测试`
+- **来源**：feature Rule 8, Scenario 6
+- **前置**：组合名单 "userA:IDE"；应用级名单 "Schedulis"
+- **步骤**：userA 从 IDE 提交
+- **预期**：切换 Spark3（组合命中），creator 维度未检查
+
 ---
 
 ## 3. 测试用例统计
@@ -205,11 +245,11 @@
 ### 按优先级
 | 优先级 | 数量 | 占比 |
 |-------|:----:|:----:|
-| P0 | 9 | 30% |
-| P1 | 14 | 47% |
-| P2 | 4 | 13% |
-| 其他 | 3 | 10% |
-| **合计** | **30** | 100% |
+| P0 | 10 | 28% |
+| P1 | 19 | 53% |
+| P2 | 4 | 11% |
+| 其他 | 3 | 8% |
+| **合计** | **36** | 100% |
 
 ### 按测试类型
 | 类型 | 数量 |
@@ -229,6 +269,7 @@
 | 热加载 | 2 | TC-016~017 |
 | 冒烟 | 3 | TC-018~020 |
 | **配置项管理迁移** | **7** | **TC-MIG-001~007** |
+| **user+creator 组合** | **6** | **TC-COMBO-001~006** |
 
 ---
 
@@ -236,7 +277,7 @@
 
 | Feature 文件 | Rule 数 | Scenario 数 | 已生成 TC | 覆盖率 |
 |------------|:------:|:----------:|:--------:|:-----:|
-| spark3-coercion-creator.feature | 7 | 30 | 30 | 100% |
+| spark3-coercion-creator.feature | 8 | 36 | 36 | 100% |
 
 ### 验收标准覆盖
 | 验收标准（需求文档）| 覆盖 TC |

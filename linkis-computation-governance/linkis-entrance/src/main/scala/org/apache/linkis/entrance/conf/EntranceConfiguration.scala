@@ -355,6 +355,11 @@ object EntranceConfiguration {
   val SPARK3_VERSION_COERCION_CREATORS =
     CommonVars[String]("spark.version.coercion.creators", "")
 
+  // user+creator 组合细粒度名单（格式 "user:creator"，逗号分隔，如 "userA:IDE,userB:Schedulis"）
+  // 优先级：个人 > user+creator组合 > 部门 > creator
+  val SPARK3_VERSION_COERCION_USER_CREATORS =
+    CommonVars[String]("spark.version.coercion.user.creators", "")
+
   val SPARK3_VERSION_COERCION_SWITCH =
     CommonVars[Boolean]("spark.version.coercion.switch", false)
 
