@@ -709,7 +709,8 @@ public class FsRestfulApi {
           long collectMaxBytes = LinkisStorageConf.COLLECT_MAX_BYTES();
           LOGGER.info(
               "Enable collect bytes limit for resultset, maxBytes: {} bytes, path: {}",
-              collectMaxBytes, path);
+              collectMaxBytes,
+              path);
           fileSource = fileSource.limitBytes(collectMaxBytes);
         }
       } else if (fileSystem.getLength(fsPath)
@@ -836,16 +837,14 @@ public class FsRestfulApi {
             && fileSource.getFileSplits().length > 0
             && fileSource.getFileSplits()[0].getTruncatedByLimit()) {
           LOGGER.info(
-              "Resultset collect stopped early due to bytes limit, "
-                  + "returned {} rows, path: {}",
-              fileSource.getTotalLine(), path);
+              "Resultset collect stopped early due to bytes limit, " + "returned {} rows, path: {}",
+              fileSource.getTotalLine(),
+              path);
           message.data("partialData", true);
           message.data("collectMaxBytes", LinkisStorageConf.COLLECT_MAX_BYTES());
           message.data(
               "zh_msg",
-              "结果集数据量过大，为防止服务OOM，仅展示部分数据（"
-                  + fileSource.getTotalLine()
-                  + "行），完整数据请使用结果集导出功能");
+              "结果集数据量过大，为防止服务OOM，仅展示部分数据（" + fileSource.getTotalLine() + "行），完整数据请使用结果集导出功能");
           message.data(
               "en_msg",
               "Result set is too large, showing partial data ("

@@ -138,7 +138,13 @@ class FileSplit(
       r => {
         if (limitBytes > 0 && !overFlag) {
           val resArr = collectRecord(r)
-          resArr.foreach(res => tmpBytes = tmpBytes + res.getBytes.length)
+          // resArr 中可能存在 null 元素（当 TableRecord.row 的某列为 null 时，
+          // DataType.valueToString 会返回 null），此处对 null 做防护避免 NPE。
+          resArr.foreach { res =>
+            if (res != null) {
+              tmpBytes = tmpBytes + res.getBytes.length
+            }
+          }
           if (tmpBytes > limitBytes) {
             overFlag = true
             truncatedByLimit = true
