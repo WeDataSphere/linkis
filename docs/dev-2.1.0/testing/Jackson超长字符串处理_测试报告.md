@@ -6,7 +6,6 @@
 | DPMS | 534335 |
 | 模块 | linkis-engineconn-plugins/spark |
 | 测试日期 | 2026-07-27 |
-| 测试人 | v-kkhuang |
 | 关联用例文档 | [Jackson超长字符串处理_测试用例.md](./Jackson超长字符串处理_测试用例.md) |
 | 关联用例 JSON | [wemind/Jackson超长字符串处理_wemind导入.json](./wemind/Jackson超长字符串处理_wemind导入.json) |
 
