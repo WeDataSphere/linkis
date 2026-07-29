@@ -4,6 +4,7 @@
 |:----:|:----:|:----:|:--------|
 | 1.0 | 2026-07-14 | DevSyncAgent | 初始版本 |
 | 1.1 | 2026-07-24 | DevSyncAgent | 简化：复用 `host.enabled` 单开关；删除本轮新增的 `host.auto`，`host.map`（既有）保留声明不再驱动逻辑；hostname 取完整值原样认证 |
+| 1.2 | 2026-07-29 | DevSyncAgent | 收窄：`host.enabled=true` 时仅对 superUser（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop）拼 host；其他用户 principal 不带 host（维持原状） |
 
 ---
 
@@ -13,7 +14,7 @@
 Keytab Principal Host 自动获取（对接 `kinit -kt hadoop.keytab hadoop/${hostname}` 认证方式）
 
 ### 1.2 一句话描述
-复用既有 `wds.linkis.keytab.host.enabled` 开关，开启后 principal 的 host 部分自动取本机主机名（`InetAddress.getLocalHost.getHostName`，原样使用），免去多机部署逐机配置 host 的负担。
+复用既有 `wds.linkis.keytab.host.enabled` 开关，开启后**仅对超级用户**（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop，其 keytab 为 `hadoop/${hostname}`）的 principal 拼接本机主机名（`InetAddress.getLocalHost.getHostName`，原样使用），其他用户 principal 不带 host（维持原状），免去多机部署逐机配置 host 的负担。
 
 ### 1.3 功能类型
 功能增强 (ENHANCE)
@@ -71,16 +72,18 @@ def getKerberosUser(userName: String, label: String): String = {
 ## 三、解决方案设计
 
 ### 3.1 核心方案
-**复用既有开关 `wds.linkis.keytab.host.enabled`（默认 `false`）**。开启后，principal 的 host 部分自动取本机主机名 `InetAddress.getLocalHost.getHostName`（**完整值原样使用，不截取**）。关闭时不拼 host（与改造前 `host.enabled=false` 行为一致，向后兼容）。
+**复用既有开关 `wds.linkis.keytab.host.enabled`（默认 `false`）**。开启后，**仅当 `userName` 为超级用户**（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop——其 keytab 注册为 `hadoop/${hostname}`）时，principal 的 host 部分取本机主机名 `InetAddress.getLocalHost.getHostName`（**完整值原样使用，不截取**）；其他用户 principal 不带 host（维持原状）。关闭时所有用户都不拼 host（与改造前 `host.enabled=false` 一致，向后兼容）。
 
 **删除**本轮新增的 `wds.linkis.keytab.host.auto`；既有 `wds.linkis.keytab.host` 与 `linkis.keytab.host.map` 仅作 key 声明兼容（存量 properties 不报未知 key），不再驱动 principal 拼装。
 
 ### 3.2 关键设计
 
 #### 3.2.1 单开关语义
-- `host.enabled=false`（默认）：principal 不带 host（= `userName`）。
-- `host.enabled=true`：principal = `userName/<本机主机名>`，本机主机名取 `InetAddress.getLocalHost.getHostName` 原值。
-- `label` 参数不再参与 host 解析（本机主机名与集群 label 无关）。
+- `host.enabled=false`（默认）：所有用户 principal 不带 host（= `userName`）。
+- `host.enabled=true`：
+  - `userName == superUser`（默认 hadoop）：principal = `superUser/<本机主机名>`，本机主机名取 `InetAddress.getLocalHost.getHostName` 原值。
+  - `userName != superUser`：principal 不带 host（维持原状）。
+- `label` 参数不再参与 host 解析；superUser 由 `wds.linkis.keytab.proxyuser.superuser`（或其 map）决定。
 
 #### 3.2.2 异常处理
 `InetAddress.getLocalHost` 可能抛 `UnknownHostException`，用 `Utils.tryCatch` 包裹。**异常时返回 `null`（即不拼 host）并打 warn 日志**——而不是退化成静态 `127.0.0.1`（后者同样匹配不上 keytab，还会误导排查）。符合 CLAUDE.md §4 铁律：主链路不抛未捕获异常。
@@ -105,7 +108,7 @@ host 自动获取（`getKerberosUser`，拼 principal）与 AES 加密 keytab �
 
 | ID | 功能描述 | 验收标准 |
 |:--:|:--------|:--------|
-| F-01 | principal host 自动获取 | `host.enabled=true` 时，principal host = 本机主机名（`InetAddress.getLocalHost.getHostName` 原值，不截取） |
+| F-01 | 仅 superUser 拼 host | `host.enabled=true` 且 `userName == wds.linkis.keytab.proxyuser.superuser`（默认 hadoop）时 principal 带 host（本机主机名原值）；其他用户不带 host |
 | F-02 | 向后兼容 | `host.enabled=false`（默认）时，principal 不带 host |
 | F-03 | 异常处理 | `InetAddress` 抛 `UnknownHostException` 时返回 null（不拼 host）并打 warn，不抛未捕获异常 |
 

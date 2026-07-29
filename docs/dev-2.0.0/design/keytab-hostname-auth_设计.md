@@ -4,6 +4,7 @@
 |:----:|:----:|:----:|:--------|
 | 1.0 | 2026-07-14 | DevSyncAgent | 初始版本（基于已落地实现规范化） |
 | 1.1 | 2026-07-24 | DevSyncAgent | 简化重构：复用 `host.enabled` 单开关，删除 `host.auto`，`host`/`host.map` 降级为声明兼容，hostname 取完整值原样认证，异常返回 null |
+| 1.2 | 2026-07-29 | DevSyncAgent | 收窄：`host.enabled=true` 时仅对 superUser（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop）拼 host；其他用户 principal 不带 host |
 
 ---
 
@@ -11,7 +12,7 @@
 
 ### 1.1 设计目标
 
-为 Linkis keytab(Kerberos) 认证提供 principal host 自动获取能力：复用既有 `wds.linkis.keytab.host.enabled` 开关，开启后 principal 的 host 部分自动取本机主机名（`InetAddress.getLocalHost.getHostName`，完整值原样使用），对接集群 `kinit -kt hadoop.keytab hadoop/${hostname}` 认证方式，免去多机部署逐机配置 host 的运维负担。
+为 Linkis keytab(Kerberos) 认证提供 principal host 自动获取能力：复用既有 `wds.linkis.keytab.host.enabled` 开关，开启后**仅对超级用户**（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop）的 principal 拼接本机主机名（`InetAddress.getLocalHost.getHostName`，完整值原样使用），对接集群 `kinit -kt hadoop.keytab hadoop/${hostname}` 认证方式；其他用户 principal 不带 host。免去多机部署逐机配置 host 的运维负担。
 
 | 目标项 | 说明 |
 |:------|:-----|
@@ -78,22 +79,22 @@
 
 ## 三、核心方法设计
 
-### 3.1 resolveKeytabHost 单开关逻辑
+### 3.1 resolveKeytabHost 单开关 + superUser 逻辑
 
-`resolveKeytabHost()` 是 host 解析的唯一决策点，整体被 `Utils.tryCatch` 包裹。
+`resolveKeytabHost(userName, label)` 是 host 解析的唯一决策点，整体被 `Utils.tryCatch` 包裹。host 仅对超级用户（`wds.linkis.keytab.proxyuser.superuser`，默认 hadoop——其 keytab 注册为 `hadoop/${hostname}`）拼接，其他用户返回 null。
 
 ```
-resolveKeytabHost()
+resolveKeytabHost(userName, label)
 │
 ├── [TRY]
 │   │
-│   └── KEYTAB_HOST_ENABLED.getValue ?
+│   └── KEYTAB_HOST_ENABLED.getValue && userName == getKeytabSuperUser(label) ?
 │       │
-│       ├── true  ──> localHostname()          ← [分支A] 自动取本机主机名
+│       ├── true  ──> localHostname()          ← [分支A] superUser 拼 host = 本机主机名
 │       │
-│       └── false ──> null                     ← [分支B] 默认，不拼 host（向后兼容）
+│       └── false ──> null                     ← [分支B] 非 superUser 或开关关 → 不拼 host
 │
-├── [CATCH] (任何 Throwable)
+├── [CATCH] (任何 Throwable，含 superUser 未配置)
 │   │
 │   ├── logger.warn("Resolve keytab host failed, no host will be appended ...")
 │   │
@@ -106,11 +107,11 @@ resolveKeytabHost()
 
 | 分支 | 条件 | 返回值 | 说明 |
 |:----:|:-----|:-------|:-----|
-| A | `host.enabled=true` | `localHostname()` | principal = `userName/<hostname>` |
-| B | `host.enabled=false`（默认） | `null` | principal = `userName`（向后兼容） |
-| C | try 块抛出任何异常 | `null` | 不拼 host + warn 日志 |
+| A | `host.enabled=true` 且 `userName==superUser`（默认 hadoop） | `localHostname()` | principal = `superUser>/<hostname>` |
+| B | `host.enabled=false`，或 `userName!=superUser` | `null` | principal = `userName`（业务用户/默认不带 host） |
+| C | try 块抛出任何异常（含 superUser 未配置） | `null` | 不拼 host + warn 日志 |
 
-> 相比 v1.0 的 7 分支决策树（`label` × `host.enabled` × `host.auto` × `host.map`），简化为单开关 3 分支。`label` 不再参与 host 解析（本机主机名与集群 label 无关）。
+> v1.0 的 7 分支决策树 → v1.1 简化为单开关 3 分支 → **v1.2 收窄：仅 superUser 拼 host**（因仅 `hadoop.keytab` 注册为 `hadoop/${hostname}`，业务用户 principal 不带 host）。`label` 不再参与 host 解析；superUser 由 `wds.linkis.keytab.proxyuser.superuser`（默认 hadoop）决定。
 
 ### 3.2 getKerberosUser 重构
 
@@ -119,7 +120,7 @@ resolveKeytabHost()
 ```scala
 def getKerberosUser(userName: String, label: String): String = {
   var user = userName
-  val host = resolveKeytabHost()             // 委托给单开关方法（label 不再参与）
+  val host = resolveKeytabHost(userName, label)  // 委托（仅 superUser 拼 host）
   if (StringUtils.isNotBlank(host)) {         // null 安全检查
     user = user + "/" + host
   }
@@ -150,8 +151,8 @@ private def localHostname(): String = InetAddress.getLocalHost.getHostName
 
 ```scala
 // resolveKeytabHost（HDFSUtils.scala）
-private def resolveKeytabHost(): String = Utils.tryCatch {
-  if (KEYTAB_HOST_ENABLED.getValue) localHostname() else null
+private def resolveKeytabHost(userName: String, label: String): String = Utils.tryCatch {
+  if (KEYTAB_HOST_ENABLED.getValue && userName == getKeytabSuperUser(label)) localHostname() else null
 } { t: Throwable =>
   logger.warn("Resolve keytab host failed, no host will be appended to principal", t)
   null
@@ -163,7 +164,7 @@ private def localHostname(): String = InetAddress.getLocalHost.getHostName
 // getKerberosUser（HDFSUtils.scala）
 def getKerberosUser(userName: String, label: String): String = {
   var user = userName
-  val host = resolveKeytabHost()
+  val host = resolveKeytabHost(userName, label)
   if (StringUtils.isNotBlank(host)) {
     user = user + "/" + host
   }
@@ -291,7 +292,7 @@ resolveKeytabHost()
 
 | 配置项 | 默认值 | 说明 |
 |:------|:------|:-----|
-| `wds.linkis.keytab.host.enabled` | `false` | true → principal 拼本机主机名（`hadoop/${hostname}`）；false（默认）→ 不拼 host |
+| `wds.linkis.keytab.host.enabled` | `false` | true → **仅 superUser**（`proxyuser.superuser`，默认 hadoop）principal 拼本机主机名（`hadoop/${hostname}`）；其他用户 / false（默认）→ 不拼 host |
 
 ### 7.2 保留声明兼容（不再读取）
 
@@ -323,7 +324,7 @@ wds.linkis.keytab.host.enabled=true        # principal host 自动取本机主�
 
 | 验收标准 | 对应设计分支 | 验证方法 |
 |:--------|:-----------|:--------|
-| F-01: `host.enabled=true` 时 principal 带本机主机名 | 分支 A | 集成测试：`host.enabled=true` → principal = `hadoop/<hostname>` |
+| F-01: `host.enabled=true` 且为 superUser 时 principal 带本机主机名 | 分支 A | 集成测试：`host.enabled=true` + userName=hadoop → principal = `hadoop/<hostname>`；业务用户不带 host |
 | F-02: `host.enabled=false` 时 principal 不带 host | 分支 B | 单测 `testGetKerberosUserNoHostByDefault` + `testResolveDefaultNoHost` |
 | F-03: `UnknownHostException` 不拼 host | 分支 C | mock `InetAddress.getLocalHost` 抛异常 → principal = `hadoop` |
 | F-04: `host.enabled` × `keytab.switch` 组合可用 | §5.2 | 四组合各跑一次 Kerberos 登录冒烟 |
