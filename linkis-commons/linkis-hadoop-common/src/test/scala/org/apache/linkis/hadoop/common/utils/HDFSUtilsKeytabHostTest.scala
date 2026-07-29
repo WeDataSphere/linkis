@@ -23,26 +23,27 @@ import org.junit.jupiter.api.{Assertions, Test}
  * Unit tests for keytab principal host resolution (resolveKeytabHost / getKerberosUser).
  *
  * The host part is driven by a single switch `wds.linkis.keytab.host.enabled`: when true the local
- * machine hostname is appended to the principal; when false (default) no host is appended.
+ * machine hostname is appended to the principal, but ONLY for the super user (default hadoop);
+ * other users and the default (host.enabled=false) get no host.
  *
  * Note: CommonVars.getValue is a `val` (cached at HadoopConf object init time), so runtime
  * System.setProperty override is unreliable. These tests therefore exercise the branch reachable
- * under the default config (host.enabled=false -> no host). The host.enabled=true branch is
- * verified via code review + integration testing on a real Kerberos cluster (see
+ * under the default config (host.enabled=false -> no host). The host.enabled=true + super-user
+ * branch is verified via code review + integration testing on a real Kerberos cluster (see
  * keytab-hostname-auth_测试报告.md).
  */
 class HDFSUtilsKeytabHostTest {
 
-  private def resolveKeytabHost(): String = {
-    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost")
+  private def resolveKeytabHost(userName: String): String = {
+    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost", classOf[String])
     method.setAccessible(true)
-    method.invoke(HDFSUtils).asInstanceOf[String]
+    method.invoke(HDFSUtils, userName).asInstanceOf[String]
   }
 
   /** host.enabled=false (default) -> no host appended (resolveKeytabHost returns null). */
   @Test
   def testResolveDefaultNoHost: Unit = {
-    val host = resolveKeytabHost()
+    val host = resolveKeytabHost("hadoop")
     Assertions.assertNull(host)
   }
 

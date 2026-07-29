@@ -455,7 +455,7 @@ object HDFSUtils extends Logging {
 
   def getKerberosUser(userName: String, label: String): String = {
     var user = userName
-    val host = resolveKeytabHost()
+    val host = resolveKeytabHost(userName)
     if (StringUtils.isNotBlank(host)) {
       user = user + "/" + host
     }
@@ -466,14 +466,18 @@ object HDFSUtils extends Logging {
    * Resolve the host part of the kerberos principal.
    *
    * Single switch: when wds.linkis.keytab.host.enabled=true, the local machine hostname (see
-   * localHostname) is appended to the principal (e.g. `hadoop/${hostname}`); when false (default),
-   * no host is appended. The label is no longer involved in host resolution.
+   * localHostname) is appended to the principal (e.g. `hadoop/${hostname}`), but ONLY for the super
+   * user (wds.linkis.keytab.proxyuser.superuser, default hadoop), whose keytab is registered as
+   * `${superUser}/${hostname}`; other users keep the principal without host. When the switch is
+   * false (default), no host is appended for anyone.
    *
    * Any failure (e.g. UnknownHostException) is caught and returns null, i.e. no host is appended,
    * rather than silently degrading to a static value that would not match the keytab anyway.
    */
-  private def resolveKeytabHost(): String = Utils.tryCatch {
-    if (KEYTAB_HOST_ENABLED.getValue) localHostname() else null
+  private def resolveKeytabHost(userName: String): String = Utils.tryCatch {
+    if (KEYTAB_HOST_ENABLED.getValue && userName == KEYTAB_PROXYUSER_SUPERUSER.getValue)
+      localHostname()
+    else null
   } { t: Throwable =>
     logger.warn("Resolve keytab host failed, no host will be appended to principal", t)
     null

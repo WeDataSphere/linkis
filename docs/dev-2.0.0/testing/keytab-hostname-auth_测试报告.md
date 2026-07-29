@@ -4,13 +4,14 @@
 |:----:|:----:|:----:|:--------|
 | 1.0 | 2026-07-14 | DevSyncAgent | 初始版本 |
 | 1.1 | 2026-07-24 | DevSyncAgent | 简化重构后：单开关 `host.enabled`，删除 host.auto/host.map 相关用例 |
+| 1.2 | 2026-07-29 | DevSyncAgent | 收窄：resolveKeytabHost 加 superUser 判定，仅超级用户（默认 hadoop）拼 host；测试 3/3 通过 |
 
 ---
 
 ## 一、测试概述
 
 ### 1.1 测试对象
-`HDFSUtils.resolveKeytabHost` / `getKerberosUser` / `localHostname`（keytab principal host 自动获取改造 v1.1，单开关简化版）。
+`HDFSUtils.resolveKeytabHost` / `getKerberosUser` / `localHostname`（keytab principal host 自动获取改造 v1.2，单开关 + superUser 收窄版）。
 
 ### 1.2 测试环境
 | 项 | 值 |
@@ -51,7 +52,8 @@ BUILD SUCCESS
 
 | 项 | 未覆盖原因 | 替代验证方式 |
 |:----:|:--------|:--------|
-| `host.enabled=true`（分支 A，拼本机主机名） | `CommonVars.getValue` 为 `val`（HadoopConf object 初始化期缓存），运行时 `System.setProperty` 覆盖不可靠 | **设计决策树分支 A + 代码审查**（[设计文档](../design/keytab-hostname-auth_设计.md) §3.1）+ 真实 Kerberos 集群集成测试 |
+| `host.enabled=true` 且 `userName==superUser`（拼本机主机名） | `CommonVars.getValue` 为 `val`（HadoopConf object 初始化期缓存），运行时 `System.setProperty` 覆盖不可靠 | **代码审查**（`resolveKeytabHost(userName,label)` 中 `userName == getKeytabSuperUser(label)` 判定）+ 真实 Kerberos 集群集成测试 |
+| `userName != superUser`（不拼 host） | 同上缓存限制 | **代码审查**（同上，非 superUser 返回 null） |
 | `UnknownHostException` 异常（分支 C，返回 null） | 需异常注入环境 | **代码审查**确认 `resolveKeytabHost` 整体被 `Utils.tryCatch` 包裹，catch 返回 null（HDFSUtils.scala，符合 CLAUDE.md §4.2） |
 | `host.enabled` × `keytab.switch` 四组合 | 需真实 Kerberos 环境 | **设计文档组合矩阵**（§5.2）+ principal(`getKerberosUser`) 与 keytab 路径(`getLinkisUserKeytabFile`) 独立产出的正交性 |
 
