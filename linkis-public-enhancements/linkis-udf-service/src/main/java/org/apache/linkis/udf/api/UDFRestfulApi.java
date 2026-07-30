@@ -773,6 +773,8 @@ public class UDFRestfulApi {
       }
       String udfName = jsonNode.get("udfName") == null ? null : jsonNode.get("udfName").textValue();
       String udfType = jsonNode.get("udfType").textValue();
+      String searchUser =
+          jsonNode.get("searchUser") == null ? null : jsonNode.get("searchUser").textValue();
       int curPage = jsonNode.get("curPage").intValue();
       int pageSize = jsonNode.get("pageSize").intValue();
       Collection<Integer> udfTypes = null;
@@ -781,7 +783,7 @@ public class UDFRestfulApi {
             Arrays.stream(udfType.split(",")).map(Integer::parseInt).collect(Collectors.toList());
       }
       PageInfo<UDFAddVo> pageInfo =
-          udfService.getManagerPages(udfName, udfTypes, userName, curPage, pageSize);
+          udfService.getManagerPages(udfName, udfTypes, userName, curPage, pageSize, searchUser);
       message = Message.ok();
       message.data("infoList", pageInfo.getList());
       message.data("totalPage", pageInfo.getPages());
