@@ -21,8 +21,10 @@ import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.entrance.conf.EntranceConfiguration
 import org.apache.linkis.entrance.conf.EntranceConfiguration.{
+  SPARK3_VERSION_COERCION_CREATORS,
   SPARK3_VERSION_COERCION_DEPARTMENT,
   SPARK3_VERSION_COERCION_SWITCH,
+  SPARK3_VERSION_COERCION_USER_CREATORS,
   SPARK3_VERSION_COERCION_USERS
 }
 import org.apache.linkis.entrance.errorcode.EntranceErrorCodeSummary._
@@ -31,7 +33,12 @@ import org.apache.linkis.entrance.persistence.PersistenceManager
 import org.apache.linkis.entrance.timeout.JobTimeoutManager
 import org.apache.linkis.entrance.utils.EntranceUtils
 import org.apache.linkis.governance.common.entity.job.JobRequest
-import org.apache.linkis.governance.common.protocol.conf.{DepartmentRequest, DepartmentResponse}
+import org.apache.linkis.governance.common.protocol.conf.{
+  DepartmentRequest,
+  DepartmentResponse,
+  RequestQueryEngineConfigWithGlobalConfig,
+  ResponseQueryConfig
+}
 import org.apache.linkis.manager.common.conf.RMConfiguration
 import org.apache.linkis.manager.label.builder.factory.{
   LabelBuilderFactory,
@@ -44,6 +51,7 @@ import org.apache.linkis.manager.label.entity.cluster.ClusterLabel
 import org.apache.linkis.manager.label.entity.engine.{
   CodeLanguageLabel,
   EngineType,
+  EngineTypeLabel,
   UserCreatorLabel
 }
 import org.apache.linkis.manager.label.utils.{EngineTypeLabelCreator, LabelUtil}
@@ -357,9 +365,13 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       executeUser: String,
       submitUser: String
   ): util.HashMap[String, Label[_]] = {
-    // 个人>部门
-    // 是否强制转换
-    if (SPARK3_VERSION_COERCION_SWITCH && (null != labels && !labels.isEmpty)) {
+    // 通过 RPC 从配置项管理拉取 spark3 强制切换配置；失败返回 null，getValue(null) 时 fallback 到本地默认
+    val keyAndValue = fetchSpark3CoercionConfig(labels, executeUser)
+    // 个人>部门>应用(creator)
+    // 是否强制转换（keyAndValue 为 null 时 getValue 走本地默认值 false）
+    if (
+        SPARK3_VERSION_COERCION_SWITCH.getValue(keyAndValue) && (null != labels && !labels.isEmpty)
+    ) {
       val engineTypeLabel = labels.get(LabelKeyConstant.ENGINE_TYPE_KEY)
       val engineType = LabelUtil.getFromLabelStr(engineTypeLabel.getStringValue, "engine")
       val version = LabelUtil.getFromLabelStr(engineTypeLabel.getStringValue, "version")
@@ -370,10 +382,8 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
       ) {
         Utils.tryAndWarnMsg {
           // 判断用户是否是个人配置中的一员
-          if (
-              SPARK3_VERSION_COERCION_USERS.contains(executeUser) || SPARK3_VERSION_COERCION_USERS
-                .contains(submitUser)
-          ) {
+          val coercionUsers = SPARK3_VERSION_COERCION_USERS.getValue(keyAndValue)
+          if (coercionUsers.contains(executeUser) || coercionUsers.contains(submitUser)) {
             logger.info(
               s"Spark version will be change 3.4.4,submitUser:${submitUser},executeUser:${executeUser} "
             )
@@ -386,12 +396,42 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
             )
             return labels
           }
-          val executeUserDepartmentId = EntranceUtils.getUserDepartmentId(executeUser)
-          val submitUserDepartmentId = EntranceUtils.getUserDepartmentId(submitUser)
+          // user+creator 组合细粒度判定（优先级：个人 > 组合 > 部门 > creator）
+          // 名单格式 "user:creator"，逗号分隔；用 split 精确匹配避免 contains 子串误命中
+          val coercionUserCreators = SPARK3_VERSION_COERCION_USER_CREATORS.getValue(keyAndValue)
+          if (StringUtils.isNotBlank(coercionUserCreators)) {
+            val comboUserCreatorLabel = labels
+              .getOrDefault(LabelKeyConstant.USER_CREATOR_TYPE_KEY, null)
+              .asInstanceOf[UserCreatorLabel]
+            if (null != comboUserCreatorLabel) {
+              val comboCreator = comboUserCreatorLabel.getCreator
+              if (StringUtils.isNotBlank(comboCreator)) {
+                val pairs = coercionUserCreators.split(",").map(_.trim).filter(_.nonEmpty)
+                val executePair = s"${executeUser}:${comboCreator}"
+                val submitPair = s"${submitUser}:${comboCreator}"
+                if (pairs.contains(executePair) || pairs.contains(submitPair)) {
+                  logger.info(
+                    s"Spark version will be change 3.4.4 by user+creator:${comboCreator},executeUser:${executeUser} "
+                  )
+                  labels.replace(
+                    LabelKeyConstant.ENGINE_TYPE_KEY,
+                    EngineTypeLabelCreator.createEngineTypeLabel(
+                      EngineType.SPARK.toString,
+                      LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+                    )
+                  )
+                  return labels
+                }
+              }
+            }
+          }
+          val executeUserDepartmentId = fetchUserDepartmentId(executeUser)
+          val submitUserDepartmentId = fetchUserDepartmentId(submitUser)
+          val coercionDept = SPARK3_VERSION_COERCION_DEPARTMENT.getValue(keyAndValue)
           if (
-              (StringUtils.isNotBlank(executeUserDepartmentId) && SPARK3_VERSION_COERCION_DEPARTMENT
+              (StringUtils.isNotBlank(executeUserDepartmentId) && coercionDept
                 .contains(executeUserDepartmentId)) ||
-              (StringUtils.isNotBlank(submitUserDepartmentId) && SPARK3_VERSION_COERCION_DEPARTMENT
+              (StringUtils.isNotBlank(submitUserDepartmentId) && coercionDept
                 .contains(submitUserDepartmentId))
           ) {
             logger.info(s"Spark version will be change 3.4.4 by department:${executeUser} ")
@@ -404,10 +444,65 @@ class CommonEntranceParser(val persistenceManager: PersistenceManager)
             )
             return labels
           }
+          // 应用级(creator)判定：优先级最低，用户级和部门级均未命中后执行
+          val coercionCreators = SPARK3_VERSION_COERCION_CREATORS.getValue(keyAndValue)
+          val userCreatorLabel = labels
+            .getOrDefault(LabelKeyConstant.USER_CREATOR_TYPE_KEY, null)
+            .asInstanceOf[UserCreatorLabel]
+          if (null != userCreatorLabel) {
+            val creator = userCreatorLabel.getCreator
+            if (StringUtils.isNotBlank(creator) && coercionCreators.contains(creator)) {
+              logger.info(
+                s"Spark version will be change 3.4.4 by creator:${creator},executeUser:${executeUser} "
+              )
+              labels.replace(
+                LabelKeyConstant.ENGINE_TYPE_KEY,
+                EngineTypeLabelCreator.createEngineTypeLabel(
+                  EngineType.SPARK.toString,
+                  LabelCommonConfig.SPARK3_ENGINE_VERSION.getValue
+                )
+              )
+              return labels
+            }
+          }
         }(s"error to Spark 3 version coercion: ${executeUser}")
       }
     }
     labels;
+  }
+
+  /**
+   * 通过 RPC 从配置项管理(linkis-ps-configuration)拉取 spark3 强制切换配置。 失败时返回 null，调用方
+   * CommonVars.getValue(null) 会 fallback 到本地默认值，不阻断任务。 抽成单独的 protected 方法，便于单测覆盖（子类重写返回预设配置，避免真实
+   * RPC）。
+   */
+  protected[parser] def fetchSpark3CoercionConfig(
+      labels: util.HashMap[String, Label[_]],
+      executeUser: String
+  ): util.Map[String, String] = {
+    Utils.tryAndWarnMsg {
+      val sender =
+        Sender.getSender(Configuration.CLOUD_CONSOLE_CONFIGURATION_SPRING_APPLICATION_NAME.getValue)
+      val rpcUserCreatorLabel = labels
+        .getOrDefault(LabelKeyConstant.USER_CREATOR_TYPE_KEY, null)
+        .asInstanceOf[UserCreatorLabel]
+      val rpcEngineTypeLabel = labels
+        .getOrDefault(LabelKeyConstant.ENGINE_TYPE_KEY, null)
+        .asInstanceOf[EngineTypeLabel]
+      sender
+        .ask(RequestQueryEngineConfigWithGlobalConfig(rpcUserCreatorLabel, rpcEngineTypeLabel))
+        .asInstanceOf[ResponseQueryConfig]
+        .getKeyAndValue
+    }(
+      s"Get spark3 coercion config from configuration server failed, fallback to local default. executeUser:${executeUser}"
+    )
+  }
+
+  /**
+   * 获取用户部门ID（部门级强制切换判定用）。 包一层便于单测覆盖（子类重写返回预设值，避免真实 RPC 与单例反射）。
+   */
+  protected[parser] def fetchUserDepartmentId(user: String): String = {
+    EntranceUtils.getUserDepartmentId(user)
   }
 
   // todo to format code using proper way
