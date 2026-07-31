@@ -20,10 +20,10 @@ package org.apache.linkis.engineconnplugin.flink.ql.impl
 import org.apache.linkis.common.utils.CodeUtils
 import org.apache.linkis.common.utils.Logging
 import org.apache.linkis.engineconnplugin.flink.client.sql.operation.OperationUtil
-import org.apache.linkis.manager.label.entity.engine.EngineType
 import org.apache.linkis.engineconnplugin.flink.client.sql.operation.result.ResultSet
 import org.apache.linkis.engineconnplugin.flink.context.FlinkEngineConnContext
 import org.apache.linkis.engineconnplugin.flink.ql.Grammar
+import org.apache.linkis.manager.label.entity.engine.EngineType
 
 import org.apache.flink.table.api.internal.TableEnvironmentInternal
 
@@ -43,7 +43,8 @@ class CreateTableAsSelectGrammar(context: FlinkEngineConnContext, sql: String)
    */
   override def execute(): ResultSet = sql match {
     case CreateTableAsSelectGrammar.CREATE_TABLE_AS_SELECT_GRAMMAR(_, _, tableName, _, _, select) =>
-      logger.info(s"Ready to create a table $tableName, the sql is: ${CodeUtils.maskCode(select, EngineType.FLINK.toString())}.")
+      logger.info(s"Ready to create a table $tableName, the sql is: ${CodeUtils
+        .maskCode(select, EngineType.FLINK.toString())}.")
       val function = new java.util.function.Function[TableEnvironmentInternal, Unit] {
         override def apply(t: TableEnvironmentInternal): Unit = {
           val table = t.sqlQuery(select)

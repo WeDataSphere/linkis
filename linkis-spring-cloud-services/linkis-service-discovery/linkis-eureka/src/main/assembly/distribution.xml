@@ -140,6 +140,7 @@
                 <exclude>org.antlr:stringtemplate:jar</exclude>
                 <exclude>com.fasterxml.woodstox:woodstox-core:jar</exclude>
                 <exclude>com.thoughtworks.xstream:xstream:jar</exclude>
+                <exclude>javax.ws.rs:javax.ws.rs-api:jar</exclude>
             </excludes>
         </dependencySet>
     </dependencySets>

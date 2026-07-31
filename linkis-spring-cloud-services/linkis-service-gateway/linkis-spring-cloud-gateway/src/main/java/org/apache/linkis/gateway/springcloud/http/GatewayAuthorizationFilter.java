@@ -110,10 +110,11 @@ public class GatewayAuthorizationFilter implements GlobalFilter, Ordered {
         .startsWith(SpringCloudGatewayConfiguration.ROUTE_URI_FOR_WEB_SOCKET_HEADER())) {
       gatewayContext.setWebSocketRequest();
     }
-//        if (!gatewayContext.isWebSocketRequest() && parser.shouldContainRequestBody(gatewayContext)) {
-//            String requestBody = getRequestBody(exchange);
-//            springCloudGatewayHttpRequest.setRequestBody(requestBody);
-//        }
+    //        if (!gatewayContext.isWebSocketRequest() &&
+    // parser.shouldContainRequestBody(gatewayContext)) {
+    //            String requestBody = getRequestBody(exchange);
+    //            springCloudGatewayHttpRequest.setRequestBody(requestBody);
+    //        }
     return gatewayContext;
   }
 

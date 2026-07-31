@@ -29,6 +29,7 @@ import org.apache.linkis.engineconnplugin.flink.client.sql.operation.result.Colu
 import org.apache.linkis.engineconnplugin.flink.context.FlinkEngineConnContext;
 import org.apache.linkis.engineconnplugin.flink.exception.JobExecutionException;
 import org.apache.linkis.engineconnplugin.flink.exception.SqlExecutionException;
+import org.apache.linkis.manager.label.entity.engine.EngineType;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.api.java.tuple.Tuple2;
@@ -48,7 +49,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.apache.linkis.manager.label.entity.engine.EngineType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -182,7 +182,11 @@ public class SelectOperation extends AbstractJobOperation {
       // the result needs to be closed as long as
       // it not stored in the result store
       result.close();
-      LOG.error(String.format("Invalid SQL query, sql is %s.", CodeUtils.maskCode(query, EngineType.FLINK().toString())), t);
+      LOG.error(
+          String.format(
+              "Invalid SQL query, sql is %s.",
+              CodeUtils.maskCode(query, EngineType.FLINK().toString())),
+          t);
       // catch everything such that the query does not crash the executor
       throw new SqlExecutionException(INVALID_SQL_QUERY.getErrorDesc(), t);
     } finally {
