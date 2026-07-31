@@ -64,4 +64,14 @@ public class WorkSpaceConfigurationTest {
     Assertions.assertTrue(localFilesystemUserRefreshInterval == 1800000L);
     Assertions.assertTrue(enableUserGroup.booleanValue());
   }
+
+  @Test
+  @DisplayName("resultSetSizeCheckEnabledDefault")
+  public void resultSetSizeCheckEnabledDefault() {
+    // DPMS 534053: collect 字节限制开关默认开启（OOM 防护为安全默认）
+    Boolean sizeCheckEnabled =
+        WorkSpaceConfiguration.FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED.getValue();
+    Assertions.assertNotNull(sizeCheckEnabled);
+    Assertions.assertTrue(sizeCheckEnabled.booleanValue());
+  }
 }

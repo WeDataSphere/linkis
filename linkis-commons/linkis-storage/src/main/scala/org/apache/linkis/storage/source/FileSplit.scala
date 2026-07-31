@@ -54,6 +54,9 @@ class FileSplit(
   private var limitBytes = 0L
   private var limitColumnLength = 0
 
+  @scala.beans.BeanProperty
+  var truncatedByLimit: Boolean = false
+
   def page(page: Int, pageSize: Int): Unit = {
     if (!pageTrigger) {
       start = (page - 1) * pageSize
@@ -135,13 +138,24 @@ class FileSplit(
       r => {
         if (limitBytes > 0 && !overFlag) {
           val resArr = collectRecord(r)
-          resArr.foreach(res => tmpBytes = tmpBytes + res.getBytes.length)
+          // resArr 中可能存在 null 元素（当 TableRecord.row 的某列为 null 时，
+          // DataType.valueToString 会返回 null），此处对 null 做防护避免 NPE。
+          resArr.foreach { res =>
+            if (res != null) {
+              tmpBytes = tmpBytes + res.getBytes.length
+            }
+          }
           if (tmpBytes > limitBytes) {
             overFlag = true
+            truncatedByLimit = true
+          } else {
+            record.add(resArr)
           }
-          record.add(resArr)
-        } else {
+        } else if (!overFlag) {
           record.add(collectRecord(r))
+        }
+        if (overFlag) {
+          count = end + 1
         }
       }
     )

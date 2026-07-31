@@ -65,10 +65,14 @@ public class WorkSpaceConfiguration {
       CommonVars$.MODULE$.apply("linkis.os.user.group.enabled", true);
 
   public static final CommonVars<Integer> FILESYSTEM_RESULTSET_ROW_LIMIT =
-      CommonVars$.MODULE$.apply("linkis.filesystem.resultset.row.limit", 100000);
+      CommonVars$.MODULE$.apply("linkis.filesystem.resultset.row.limit", 10000);
 
   public static final CommonVars<Integer> FILESYSTEM_RESULT_SET_COLUMN_LIMIT =
       CommonVars$.MODULE$.apply("linkis.filesystem.result.set.column.limit", 10000);
+
+  // 结果集大小检查功能开关，默认启用
+  public static final CommonVars<Boolean> FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED =
+      CommonVars$.MODULE$.apply("linkis.filesystem.resultset.size.check.enabled", true);
 
   public static final CommonVars<Boolean> FILESYSTEM_JVM_USER_SWITCH =
       CommonVars$.MODULE$.apply("linkis.filesystem.jvm.user.switch", true);

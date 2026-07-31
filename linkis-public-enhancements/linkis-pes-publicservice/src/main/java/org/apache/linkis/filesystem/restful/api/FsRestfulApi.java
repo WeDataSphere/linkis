@@ -640,7 +640,10 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-
+    if (pageSize > FILESYSTEM_RESULTSET_ROW_LIMIT.getValue()) {
+      throw WorkspaceExceptionManager.createException(
+              80034, FILESYSTEM_RESULTSET_ROW_LIMIT.getValue());
+    }
     if (columnPage < 0 || columnPageSize < 0 || columnPageSize > 500) {
       throw WorkspaceExceptionManager.createException(80036, path);
     }
@@ -689,10 +692,7 @@ public class FsRestfulApi {
         if (!StringUtils.isEmpty(nullValue)) {
           fileSource.addParams("nullValue", nullValue);
         }
-        if (pageSize > FILESYSTEM_RESULTSET_ROW_LIMIT.getValue()) {
-          throw WorkspaceExceptionManager.createException(
-              80034, FILESYSTEM_RESULTSET_ROW_LIMIT.getValue());
-        }
+
 
         if (enableLimitResult) {
           LOGGER.info("set enable limit for thread: {}", Thread.currentThread().getName());
@@ -703,6 +703,16 @@ public class FsRestfulApi {
         }
 
         fileSource = fileSource.page(page, pageSize);
+
+        // 结果集collect总字节数限制，防止OOM
+        if (FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED.getValue()) {
+          long collectMaxBytes = LinkisStorageConf.COLLECT_MAX_BYTES();
+          LOGGER.info(
+              "Enable collect bytes limit for resultset, maxBytes: {} bytes, path: {}",
+              collectMaxBytes,
+              path);
+          fileSource = fileSource.limitBytes(collectMaxBytes);
+        }
       } else if (fileSystem.getLength(fsPath)
           > ByteTimeUtils.byteStringAsBytes(FILESYSTEM_FILE_CHECK_SIZE.getValue())) {
         // Increase file size limit, making it easy to OOM without limitation
@@ -820,6 +830,28 @@ public class FsRestfulApi {
         }
         message.data("type", fileSource.getFileSplits()[0].type());
         message.data("totalLine", fileSource.getTotalLine());
+
+        // 如果collect因字节限制提前终止，返回部分数据提示
+        if (FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED.getValue()
+            && fileSource.getFileSplits() != null
+            && fileSource.getFileSplits().length > 0
+            && fileSource.getFileSplits()[0].getTruncatedByLimit()) {
+          LOGGER.info(
+              "Resultset collect stopped early due to bytes limit, " + "returned {} rows, path: {}",
+              fileSource.getTotalLine(),
+              path);
+          message.data("partialData", true);
+          message.data("collectMaxBytes", LinkisStorageConf.COLLECT_MAX_BYTES());
+          message.data(
+              "zh_msg",
+              "结果集数据量过大，为防止服务OOM，仅展示部分数据（" + fileSource.getTotalLine() + "行），完整数据请使用结果集导出功能");
+          message.data(
+              "en_msg",
+              "Result set is too large, showing partial data ("
+                  + fileSource.getTotalLine()
+                  + " rows) to prevent OOM. Please use export for full data.");
+        }
+
         return message.data("page", page).data("totalPage", 0);
       } catch (ColLengthExceedException e) {
         LOGGER.info("Failed to open file {}", path, e);

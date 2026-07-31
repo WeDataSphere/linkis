@@ -83,6 +83,12 @@ object LinkisStorageConf {
   val LINKIS_READ_ROW_BYTE_MAX_LEN =
     ByteTimeUtils.byteStringAsBytes(LINKIS__READ_RESULT_ROW_MAX_LEN_STR)
 
+  // collect() 总字节数限制，超过后停止读取并返回部分数据
+  val COLLECT_MAX_BYTES_STR =
+    CommonVars("linkis.filesystem.resultset.collect.max.bytes", "1g").getValue
+
+  val COLLECT_MAX_BYTES = ByteTimeUtils.byteStringAsBytes(COLLECT_MAX_BYTES_STR)
+
   val FIELD_TRUNCATION_ENABLED =
     CommonVars("linkis.resultset.field.truncation.enabled", false).getValue
 
