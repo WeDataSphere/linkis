@@ -6,8 +6,8 @@
 |linkis-hadoop-common|wds.linkis.hadoop.root.user|hadoop-8|hadoop.root.user|true|
 |linkis-hadoop-common|wds.linkis.keytab.enable |false |keytab.enable|true|
 |linkis-hadoop-common|wds.linkis.keytab.file|/appcom/keytab/|keytab.file|true|
-|linkis-hadoop-common|wds.linkis.keytab.host| 127.0.0.1|keytab.host |true|
-|linkis-hadoop-common|wds.linkis.keytab.host.enabled|false |keytab.host.enabled|true|
+|linkis-hadoop-common|wds.linkis.keytab.host| 127.0.0.1|keytab.host (retained for config-key compatibility only; no longer drives principal assembly)|true|
+|linkis-hadoop-common|wds.linkis.keytab.host.enabled|false |when true, append the local hostname to the kerberos principal (e.g. `hadoop/${hostname}`, matching the host registered in the keytab); false (default) appends no host|true|
 |linkis-hadoop-common|wds.linkis.keytab.proxyuser.enable| false|prometheus.endpoint  |true|
 |linkis-hadoop-common|wds.linkis.keytab.proxyuser.superuser|hadoop| proxyuser.superuser |true|
 |linkis-hadoop-common|hadoop.config.dir|  |config.dir|true|

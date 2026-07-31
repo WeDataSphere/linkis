@@ -30,6 +30,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.hadoop.security.UserGroupInformation
 
 import java.io.File
+import java.net.InetAddress
 import java.nio.file.{Files, Paths}
 import java.nio.file.attribute.PosixFilePermissions
 import java.security.PrivilegedExceptionAction
@@ -454,18 +455,42 @@ object HDFSUtils extends Logging {
 
   def getKerberosUser(userName: String, label: String): String = {
     var user = userName
-    if (label == null) {
-      if (KEYTAB_HOST_ENABLED.getValue) {
-        user = user + "/" + KEYTAB_HOST.getValue
-      }
-    } else {
-      val hostMap = kerberosValueMapParser(KEYTAB_HOST_MAP.getValue)
-      if (hostMap.contains(label)) {
-        user = user + "/" + hostMap(label)
-      }
+    val host = resolveKeytabHost(userName)
+    if (StringUtils.isNotBlank(host)) {
+      user = user + "/" + host
     }
     user
   }
+
+  /**
+   * Resolve the host part of the kerberos principal.
+   *
+   * Single switch: when wds.linkis.keytab.host.enabled=true, the local machine hostname (see
+   * localHostname) is appended to the principal (e.g. `hadoop/${hostname}`), but ONLY for the super
+   * user (wds.linkis.keytab.proxyuser.superuser, default hadoop), whose keytab is registered as
+   * `${superUser}/${hostname}`; other users keep the principal without host. When the switch is
+   * false (default), no host is appended for anyone.
+   *
+   * Any failure (e.g. UnknownHostException) is caught and returns null, i.e. no host is appended,
+   * rather than silently degrading to a static value that would not match the keytab anyway.
+   */
+  private def resolveKeytabHost(userName: String): String = Utils.tryCatch {
+    if (KEYTAB_HOST_ENABLED.getValue && userName == KEYTAB_PROXYUSER_SUPERUSER.getValue) {
+      localHostname()
+    } else {
+      null
+    }
+  } { t: Throwable =>
+    logger.error("Resolve keytab host failed, no host will be appended to principal", t)
+    null
+  }
+
+  /**
+   * Local machine hostname (InetAddress.getLocalHost.getHostName), used verbatim to build a
+   * principal like `hadoop/${hostname}`. The returned value must match the host registered in the
+   * keytab.
+   */
+  private def localHostname(): String = InetAddress.getLocalHost.getHostName
 
   def getKeytabSuperUser(label: String): String = {
     if (label == null) {
