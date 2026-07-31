@@ -475,11 +475,13 @@ object HDFSUtils extends Logging {
    * rather than silently degrading to a static value that would not match the keytab anyway.
    */
   private def resolveKeytabHost(userName: String): String = Utils.tryCatch {
-    if (KEYTAB_HOST_ENABLED.getValue && userName == KEYTAB_PROXYUSER_SUPERUSER.getValue)
+    if (KEYTAB_HOST_ENABLED.getValue && userName == KEYTAB_PROXYUSER_SUPERUSER.getValue) {
       localHostname()
-    else null
+    } else {
+      null
+    }
   } { t: Throwable =>
-    logger.warn("Resolve keytab host failed, no host will be appended to principal", t)
+    logger.error("Resolve keytab host failed, no host will be appended to principal", t)
     null
   }
 
