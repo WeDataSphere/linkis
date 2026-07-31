@@ -216,7 +216,7 @@ export default {
         {
           title: this.$t('message.linkis.ipListManagement.action'),
           key: 'action',
-          width: 100,
+          width: 200,
           align: 'center',
           render: (h, params) => {
             return h('div', [
@@ -233,7 +233,19 @@ export default {
                     this.edit(params.row)
                   }
                 }
-              }, this.$t('message.linkis.ipListManagement.edit'))
+              }, this.$t('message.linkis.ipListManagement.edit')),
+              // 删除按钮仅管理员可见
+              this.isAdmin ? h('Button', {
+                props: {
+                  type: 'error',
+                  size: 'small'
+                },
+                on: {
+                  click: () => {
+                    this.delete(params.row)
+                  }
+                }
+              }, this.$t('message.linkis.ipListManagement.delete')) : null
             ]);
           }
         }
@@ -284,6 +296,8 @@ export default {
       configOption: [],
       versionOption: [],
       defaultValue: '',
+      // 管理员标识
+      isAdmin: false,
     }
   },
   computed: {
@@ -422,6 +436,41 @@ export default {
       this.showCreateModal = true;
       this.mode = 'edit';
     },
+    delete(data) {
+      const { key, name, user } = data;
+      this.$Modal.confirm({
+        title: this.$t('message.linkis.ipListManagement.confirmDelete'),
+        content: this.$t('message.linkis.ipListManagement.isConfirmDelete', { name: `${user} - ${name || key}` }),
+        onOk: async () => {
+          await this.confirmDelete(data);
+          await this.getTableData();
+        }
+      });
+    },
+    async confirmDelete(data) {
+      try {
+        const { configValueId } = data;
+        // 调用管理员专用删除接口 deleteKeyValueByAdmin（GET /configuration/admin/deleteKeyValueByAdmin?id=...），按 configValueId 删除
+        await api.fetch('/configuration/admin/deleteKeyValueByAdmin', {
+          id: configValueId
+        }, 'get');
+        this.$Message.success(this.$t('message.linkis.ipListManagement.deleteSuccess'));
+      } catch(err) {
+        const errorMsg = err && err.message ? err.message : this.$t('message.linkis.ipListManagement.unknownError');
+        this.$Message.error(this.$t('message.linkis.ipListManagement.deleteFailed', { error: errorMsg }));
+        // 重新抛出异常，阻止列表刷新
+        throw err;
+      }
+    },
+    // 检查是否为管理员
+    async checkIsAdmin() {
+      try {
+        const res = await api.fetch('/jobhistory/governanceStationAdmin', 'get');
+        this.isAdmin = res.admin || false;
+      } catch(err) {
+        this.isAdmin = false;
+      }
+    },
     ipListValidator(rule, val, cb) {
       if (!val) {
         cb(new Error(this.$t('message.linkis.ipListManagement.notEmpty')));
@@ -495,8 +544,9 @@ export default {
       })?.defaultValue
     }
   },
-  created() {
+  async created() {
     this.userName = storage.get('userName') || storage.get('baseInfo', 'local')?.username || '';
+    await this.checkIsAdmin();
     this.init();
     this.getEngineOptionsData();
   }

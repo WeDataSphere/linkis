@@ -1,654 +1,154 @@
 {
   "root": {
-    "data": {
-      "text": "Linkis运维工具"
-    },
-    "children": [
-      {
-        "data": {
-          "text": "路径"
-        },
-        "children": [
-          {
-            "data": {
-              "text": "需求：000001"
-            },
-            "children": [
-              {
-                "data": {
-                  "text": "用户配置删除功能测试"
+    "data": {"text": "Linkis"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：000001"},
+        "children": [{
+          "data": {"text": "用户配置删除功能测试"},
+          "children": [
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】TC001-增强后配置查看功能正常"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在用户配置，普通用户\"user1\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、用户访问配置管理页面\n2、用户查询自己的配置列表"}, "children": []},
+                    {"data": {"text": "预期结果：应该显示用户的配置列表，行为应该与增强前完全一致，不应该显示删除按钮"}, "children": []}
+                  ]
                 },
-                "children": [
-                  {
-                    "data": {
-                      "text": "分类：功能案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除配置-正常流程"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；配置管理页面已加载完成；配置列表中存在至少一条配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、验证配置列表中显示删除按钮\n3、点击配置行的'删除'按钮\n4、验证弹出确认对话框\n5、验证确认对话框显示配置信息（配置键、引擎类型、版本、创建者）\n6、点击'确认'按钮\n7、等待删除操作完成\n8、验证显示'删除成功'提示\n9、验证列表自动刷新\n10、验证已删除的配置不再显示在列表中"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：删除按钮对管理员用户可见；确认对话框正确显示配置的完整标识信息；点击'确认'后，配置被成功删除；显示'删除成功'提示信息；列表自动刷新，已删除的配置不再显示；删除操作响应时间 < 2秒；列表刷新时间 < 500ms"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员取消删除操作"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；配置管理页面已加载完成"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、点击配置行的'删除'按钮\n3、验证弹出确认对话框\n4、点击'取消'按钮\n5、验证对话框关闭\n6、验证配置列表保持不变\n7、验证配置仍然存在于列表中"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：点击'取消'按钮后，确认对话框关闭；配置列表保持不变，未刷新；配置仍然存在于列表中；不显示任何删除相关的提示信息"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】删除失败-权限不足（前端按钮隐藏）"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录（非管理员）；配置管理页面已加载完成"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户进入配置管理页面\n2、查看配置列表的操作列\n3、验证不显示'删除'按钮\n4、验证'编辑'按钮仍然显示"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：删除按钮不显示（v-if控制，DOM中不存在）；编辑按钮正常显示；查看功能正常；普通用户无法触发删除操作"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】删除失败-配置不存在"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；数据库中不存在ID为999999的配置"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、通过浏览器开发者工具或Postman构造删除请求\n3、调用删除接口，传递不存在的配置ID：DELETE /configuration/admin/keyvalue Body: {\"id\": 999999}"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：接口返回HTTP 200；响应体中status为1，message为'Config value not found'；前端显示'配置已被删除'或'配置不存在'提示；对话框保持打开状态（如果从前端调用）"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：接口案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除接口-成功响应验证"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；数据库中存在ID为123的配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、构造DELETE请求：URL: http://localhost:8080/api/configuration/admin/keyvalue；Method: DELETE；Headers: Content-Type: application/json；Body: {\"id\": 123}\n2、发送请求\n3、验证响应状态码和响应体"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：HTTP状态码：200；响应体结构：method为'/configuration/admin/keyvalue'，status为0，message为'OK'，data.configValue包含被删除的配置信息（id、key、configValue、configLabelId、createTime、updateTime）；数据库中该记录已被删除"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除接口-权限验证失败"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户构造DELETE请求：DELETE /configuration/admin/keyvalue Body: {\"id\": 123}\n2、发送请求\n3、验证返回权限错误"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：接口返回HTTP 200；响应体中status为1，message为'Only admin can perform this operation'；后端日志记录权限验证失败事件；数据库中配置未被删除"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除接口-参数验证（id为空）"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户构造删除请求\n2、调用删除接口，传递空参数：DELETE /configuration/admin/keyvalue Body: {}\n3、验证返回参数验证错误"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：接口返回HTTP 200；响应体中status为1，message为'id cannot be empty'；前端显示'参数错误'提示；配置未被删除"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除接口-参数验证（id无效）"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、构造DELETE请求，传递无效的id参数：Body: {\"id\": \"abc\"}\n2、发送请求\n3、验证返回参数格式错误"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：接口返回HTTP 200；响应体中status为1，message为'id must be a number'"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员删除接口-并发删除测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：两个管理员用户同时登录；数据库中存在ID为123的配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员A和管理员B同时发送删除请求：DELETE /configuration/admin/keyvalue Body: {\"id\": 123}\n2、验证只有一个请求成功\n3、另一个请求返回'配置不存在'"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：第一个请求返回成功（status: 0），配置被删除；第二个请求返回'配置不存在'（status: 1）；数据库中配置只被删除一次；无数据不一致问题"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】现有用户删除接口-保持兼容性测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录；用户有自己的配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户调用现有删除接口：DELETE /configuration/keyvalue Body: {\"engineType\": \"spark\", \"version\": \"2.4.3\", \"creator\": \"IDE\", \"configKey\": \"wds.linkis.rm.yarnqueue.memory.max\"}\n2、验证接口正常工作\n3、验证只删除用户自己的配置"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：现有接口正常工作，不受影响；接口签名保持不变；只删除当前用户的配置；接口响应格式保持不变"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：安全用例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】删除失败-权限不足（接口直接调用）"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录；已获取有效的Session Token"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户构造删除请求\n2、直接调用后端管理员删除接口：DELETE /configuration/admin/keyvalue Body: {\"id\": 123}\n3、添加普通用户的Session Token\n4、发送请求"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：接口返回HTTP 200（业务逻辑成功）；响应体中status为1，message为'Only admin can perform this operation'；数据库中配置未被删除；后端日志记录权限验证失败"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】前端权限控制绕过测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录；前端不显示删除按钮"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户进入配置管理页面\n2、打开浏览器开发者工具\n3、手动修改DOM，插入删除按钮\n4、点击手动添加的删除按钮\n5、验证是否能成功调用删除接口\n6、验证后端是否拒绝请求"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：前端可以手动添加删除按钮（无法避免）；点击后调用删除接口；后端返回权限错误；配置未被删除；前端显示权限不足提示"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】删除接口CSRF攻击测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；获取有效的CSRF Token"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户登录系统\n2、构造恶意页面，包含CSRF攻击（表单POST到DELETE接口）\n3、管理员用户访问恶意页面\n4、点击'点击领取奖品'按钮\n5、验证是否成功删除配置"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：CSRF防护机制生效（SameSite Cookie或CSRF Token验证）；删除请求被拒绝；配置未被删除；后端日志记录CSRF攻击尝试"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：功能案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】普通用户访问配置管理页面"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以普通用户身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、普通用户进入配置管理页面\n2、验证配置列表正常显示\n3、验证操作列中：编辑按钮显示，删除按钮不显示\n4、点击'编辑'按钮，验证编辑功能正常"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：配置列表正常加载；删除按钮不显示；编辑按钮显示且功能正常；查看功能正常；普通用户界面无变化"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】管理员访问配置管理页面"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、验证配置列表正常显示\n3、验证操作列中：编辑按钮显示，删除按钮显示（红色背景）\n4、点击'编辑'按钮，验证编辑功能正常\n5、点击'删除'按钮，验证删除功能正常"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：配置列表正常加载；删除按钮显示；编辑按钮显示且功能正常；查看功能正常；删除功能正常；新增功能不影响现有功能"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】编辑功能不受删除功能影响"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、点击配置行的'编辑'按钮\n3、修改配置值\n4、保存配置\n5、验证配置修改成功\n6、验证列表刷新后显示修改后的值"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：编辑功能正常工作；编辑对话框正常弹出；配置修改成功保存；列表刷新后显示修改后的值；删除功能的存在不影响编辑功能"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：功能案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】删除正在使用的配置"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；配置正在被作业使用（如YARN队列配置）"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、找到正在使用的配置项\n3、点击'删除'按钮\n4、验证确认对话框中显示警告信息\n5、确认删除\n6、验证删除成功\n7、检查正在运行的作业是否受影响"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：确认对话框显示警告'此操作可能影响正在运行的作业'；删除操作成功执行；正在运行的作业可能受影响（可能失败或使用默认值）；后续作业无法使用已删除的配置"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】删除系统关键配置"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；配置是系统关键配置（如数据库连接配置）"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、找到系统关键配置项\n3、点击'删除'按钮\n4、验证确认对话框中显示强警告信息\n5、确认删除\n6、验证删除成功\n7、检查系统是否受影响"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：确认对话框显示强警告'此配置为关键配置，删除可能导致系统异常'；删除操作成功执行；系统可能受影响（建议在测试环境验证）；用户可以重新创建配置以恢复系统"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：功能案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】网络错误处理"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；断开网络连接或模拟网络超时"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、点击'删除'按钮\n3、在确认对话框中点击'确认'\n4、模拟网络超时（断网或延迟）\n5、验证前端显示网络错误提示"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：前端捕获网络错误；显示'网络错误，请稍后重试'提示；对话框保持打开状态；列表不刷新；用户可以重试或取消"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】服务器错误处理"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；后端服务出现异常（如数据库连接失败）"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、点击'删除'按钮\n3、在确认对话框中点击'确认'\n4、后端服务返回500错误\n5、验证前端显示服务器错误提示"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：前端捕获服务器错误；显示'服务器错误，请联系管理员'提示；对话框保持打开状态；列表不刷新；配置未被删除"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】Session过期处理"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；Session已过期（超时或手动清除）"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、清除Session或等待Session过期\n3、点击'删除'按钮\n4、在确认对话框中点击'确认'\n5、验证前端处理Session过期"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：前端捕获Session过期错误；显示'Session已过期，请重新登录'提示；跳转到登录页面；配置未被删除"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  },
-                  {
-                    "data": {
-                      "text": "分类：性能案例"
-                    },
-                    "children": [
-                      {
-                        "data": {
-                          "text": "【AIGC】删除操作响应时间测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；数据库中存在至少10条配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、使用浏览器开发者工具记录网络请求时间\n3、执行删除操作10次（删除不同的配置）\n4、记录每次删除操作的响应时间\n5、计算平均响应时间和P99响应时间"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：平均响应时间 < 1秒；P99响应时间 < 2秒；无响应时间超过5秒的请求；响应时间稳定，无大幅波动"
-                            },
-                            "children": []
-                          }
-                        ]
-                      },
-                      {
-                        "data": {
-                          "text": "【AIGC】列表刷新性能测试"
-                        },
-                        "children": [
-                          {
-                            "data": {
-                              "text": "条件：用户已以管理员身份登录；配置列表中存在100条配置记录"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "步骤：\n1、管理员用户进入配置管理页面\n2、执行删除操作\n3、使用浏览器开发者工具记录列表刷新时间\n4、测量从删除接口返回到列表刷新完成的时间\n5、重复测试10次"
-                            },
-                            "children": []
-                          },
-                          {
-                            "data": {
-                              "text": "预期结果：列表刷新时间 < 500ms；刷新后列表正确显示；刷新过程不影响用户其他操作"
-                            },
-                            "children": []
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
+                {
+                  "data": {"text": "【AIGC】TC002-增强后配置编辑功能正常"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在用户配置，普通用户\"user1\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、用户访问配置管理页面\n2、用户点击编辑某个配置\n3、用户修改配置值\n4、用户保存配置"}, "children": []},
+                    {"data": {"text": "预期结果：应该打开编辑对话框，用户可以修改配置值，保存后配置应该更新成功"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC003-管理员可以看到删除按钮"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在用户配置，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员访问配置管理页面"}, "children": []},
+                    {"data": {"text": "预期结果：每个配置项的操作列应该显示\"删除\"按钮"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC004-普通用户看不到删除按钮"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在用户配置，普通用户\"user1\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、用户访问配置管理页面"}, "children": []},
+                    {"data": {"text": "预期结果：操作列不应该显示\"删除\"按钮，只应该显示\"编辑\"按钮"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC005-成功删除用户配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在配置(wds.linkis.test.key/hive/2.3.0/IDE/test-value)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员点击配置\"wds.linkis.test.key\"的\"删除\"按钮\n2、管理员在确认对话框中点击\"确认\""}, "children": []},
+                    {"data": {"text": "预期结果：应该显示\"删除成功\"提示，配置列表应该自动刷新，配置\"wds.linkis.test.key\"不应该再显示在列表中，数据库中该配置应该被删除"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC006-用户取消删除操作"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在配置(wds.linkis.test.key/hive/2.3.0/IDE/test-value)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员点击配置\"wds.linkis.test.key\"的\"删除\"按钮\n2、管理员在确认对话框中点击\"取消\""}, "children": []},
+                    {"data": {"text": "预期结果：确认对话框应该关闭，配置列表应该保持不变，配置\"wds.linkis.test.key\"应该仍然显示在列表中，数据库中该配置应该仍然存在"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC007-删除配置时显示完整配置信息"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在配置(wds.linkis.test.key/hive/2.3.0/IDE/test-value)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员点击配置\"wds.linkis.test.key\"的\"删除\"按钮"}, "children": []},
+                    {"data": {"text": "预期结果：确认对话框应该显示配置键、引擎类型、版本、创建者等完整信息"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC008-删除失败时显示错误信息"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在配置，管理员\"admin\"已登录，后端服务不可用或返回错误"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员点击某个配置的\"删除\"按钮\n2、管理员在确认对话框中点击\"确认\""}, "children": []},
+                    {"data": {"text": "预期结果：应该显示删除失败的错误提示，确认对话框应该保持打开，配置列表应该保持不变"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC009-删除不存在的配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中不存在某个配置，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员尝试删除该不存在的配置"}, "children": []},
+                    {"data": {"text": "预期结果：应该显示\"配置不存在\"的错误提示，配置列表应该保持不变"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC010-删除正在使用的重要配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在关键配置(wds.linkis.rm.yarnqueue.memory.max/*/*/*/100G)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员点击该配置的\"删除\"按钮"}, "children": []},
+                    {"data": {"text": "预期结果：确认对话框应该显示警告:\"此操作可能影响正在运行的作业\"，管理员仍然可以执行删除操作"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC013-删除用户配置后配置定义仍然存在"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在配置(wds.linkis.test.key/hive/2.3.0/IDE/test-value)，配置定义已存在，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员删除该配置值"}, "children": []},
+                    {"data": {"text": "预期结果：配置值应该被删除，配置定义应该仍然存在，用户可以重新创建该配置"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC014-删除全局配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在全局配置(wds.linkis.global.config/*/*/*/global-value)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员删除该全局配置"}, "children": []},
+                    {"data": {"text": "预期结果：全局配置应该被成功删除"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC015-删除引擎特定配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在引擎特定配置(wds.linkis.spark.executor.memory/spark/2.4.3/IDE/4g)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员删除该引擎配置"}, "children": []},
+                    {"data": {"text": "预期结果：引擎配置应该被成功删除，不应该影响其他引擎的相同配置"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC016-删除用户特定配置"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，配置数据库中存在用户特定配置(wds.linkis.user.queue/hive/2.3.0/IDE/user1/queueA)，管理员\"admin\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、管理员删除该用户配置"}, "children": []},
+                    {"data": {"text": "预期结果：用户配置应该被成功删除，不应该影响其他用户的相同配置"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：安全用例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】TC011-非管理员用户无法直接调用删除接口"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，普通用户\"user1\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、用户尝试直接调用删除接口 DELETE /configuration/keyvalue"}, "children": []},
+                    {"data": {"text": "预期结果：应该返回权限不足错误，HTTP状态码应该是403或401，配置不应该被删除"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】TC012-删除接口需要管理员权限"},
+                  "children": [
+                    {"data": {"text": "条件：系统已启动，用户已登录，配置管理功能正常，后端删除接口已启用管理员权限检查，普通用户\"user1\"已登录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、用户尝试通过界面删除配置"}, "children": []},
+                    {"data": {"text": "预期结果：删除按钮不应该显示，用户无法触发删除操作"}, "children": []}
+                  ]
+                }
+              ]
+            }
+          ]
+        }]
+      }]
+    }]
   }
 }
