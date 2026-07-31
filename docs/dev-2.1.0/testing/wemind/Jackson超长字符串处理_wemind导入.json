@@ -1,0 +1,119 @@
+{
+  "root": {
+    "data": { "text": "BDP_Linkis" },
+    "children": [{
+      "data": { "text": "路径" },
+      "children": [{
+        "data": { "text": "需求：534335" },
+        "children": [{
+          "data": { "text": "Spark引擎Jackson约束" },
+          "children": [
+            {
+              "data": { "text": "分类：参数配置" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-P-001 maxStringLength 默认值为 10000000" },
+                  "children": [
+                    { "data": { "text": "条件：未设置 -Dlinkis.spark.jackson.maxStringLength" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、读取 SparkConfiguration.JACKSON_MAX_STRING_LENGTH.getValue" }, "children": [] },
+                    { "data": { "text": "预期结果：返回 10000000" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-P-002 maxNestingDepth 默认值为 2000" },
+                  "children": [
+                    { "data": { "text": "条件：未设置 -Dlinkis.spark.jackson.maxNestingDepth" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、读取 SparkConfiguration.JACKSON_MAX_NESTING_DEPTH.getValue" }, "children": [] },
+                    { "data": { "text": "预期结果：返回 2000" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-P-003 配置项可被运行时参数覆盖" },
+                  "children": [
+                    { "data": { "text": "条件：通过 -Dlinkis.spark.jackson.maxStringLength=20000000 启动 EC" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、设置 JVM 系统属性 linkis.spark.jackson.maxStringLength=20000000\n2、读取 JACKSON_MAX_STRING_LENGTH.getValue\n3、反射调用 overrideStreamReadConstraintsDefaults 后读取 defaults().getMaxStringLength()" }, "children": [] },
+                    { "data": { "text": "预期结果：读到 20000000（自定义值生效，非默认 10000000）" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：功能案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-F-001 反射调用后 maxStringLength 放宽到 10000000" },
+                  "children": [
+                    { "data": { "text": "条件：new SparkEngineConnFactory()，记录调用前 defaults().getMaxStringLength()" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、反射调用 private overrideStreamReadConstraintsDefaults(10000000, 2000)\n2、读取 StreamReadConstraints.defaults().getMaxStringLength()" }, "children": [] },
+                    { "data": { "text": "预期结果：返回 10000000，且与调用前不同（确有变化）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-F-002 反射调用后 maxNestingDepth 放宽到 2000" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-F-001" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、反射调用 overrideStreamReadConstraintsDefaults(10000000, 2000)\n2、读取 defaults().getMaxNestingDepth()" }, "children": [] },
+                    { "data": { "text": "预期结果：返回 2000，且与调用前不同" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-F-003 放宽后的约束传播到新建 JsonFactory" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-F-001（json4s 的 JsonFactory 构造读 DEFAULT）" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、反射调用 overrideStreamReadConstraintsDefaults(10000000, 2000)\n2、new JsonFactory()\n3、读取 factory.streamReadConstraints().getMaxStringLength()/getMaxNestingDepth()" }, "children": [] },
+                    { "data": { "text": "预期结果：分别为 10000000、2000（证明 Spark EventLoggingListener 生效）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-F-004 基线-原 DEFAULT 等于 Jackson 文档常量" },
+                  "children": [
+                    { "data": { "text": "条件：测试套件启动、未做任何覆盖前捕获 originalDefault" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、读取 originalDefault.getMaxStringLength()/getMaxNestingDepth()" }, "children": [] },
+                    { "data": { "text": "预期结果：分别等于 DEFAULT_MAX_STRING_LEN、DEFAULT_MAX_DEPTH" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-E-001 反射失败兜底不阻断 EC 启动" },
+                  "children": [
+                    { "data": { "text": "条件：JDK 11+ 运行时、未加 --add-opens java.base/java.lang.reflect=ALL-UNNAMED" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、触发 overrideStreamReadConstraintsDefaults\n2、观察是否抛异常 / 是否阻断 createEngineConnSession\n3、读取 defaults()" }, "children": [] },
+                    { "data": { "text": "预期结果：不抛异常（catch 打 warn），不阻断 EC 启动，沿用 Jackson 原默认 5000000/1000" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-E-002 还原机制-测试后 DEFAULT 恢复原值不污染套件" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-F-001" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、反射调用 overrideStreamReadConstraintsDefaults(10000000, 2000)\n2、用还原助手将 DEFAULT 写回 originalDefault\n3、读取 defaults().getMaxStringLength()" }, "children": [] },
+                    { "data": { "text": "预期结果：等于 originalDefault.getMaxStringLength()，且等于 DEFAULT_MAX_STRING_LEN" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：流程案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-W-001 createEngineConnSession 调用顺序-在 SparkContext 初始化前" },
+                  "children": [
+                    { "data": { "text": "条件：SparkEngineConnFactory 源码" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、静态审查 createEngineConnSession\n2、确认 overrideStreamReadConstraintsDefaults 在 createSparkEngineSession 之前调用" }, "children": [] },
+                    { "data": { "text": "预期结果：调用顺序正确（先覆盖 DEFAULT，再建 SparkContext/EventLoggingListener）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-W-002 端到端-超长字符串 Spark 任务 EventLog 不再抛 StreamConstraintsException" },
+                  "children": [
+                    { "data": { "text": "条件：可用 Linkis + Spark EC 部署环境" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、提交会产生 > 5000000 字符事件（如超大 SQL / 大 SparkPlan）的 Spark 任务\n2、观察 EC 进程与事件日志" }, "children": [] },
+                    { "data": { "text": "预期结果：EventLoggingListener 正常序列化不再抛 StreamConstraintsException，事件日志完整落盘，任务正常推进" }, "children": [] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }]
+      }]
+    }]
+  }
+}
