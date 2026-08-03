@@ -642,7 +642,7 @@ public class FsRestfulApi {
     }
     if (pageSize > FILESYSTEM_RESULTSET_ROW_LIMIT.getValue()) {
       throw WorkspaceExceptionManager.createException(
-              80034, FILESYSTEM_RESULTSET_ROW_LIMIT.getValue());
+          80034, FILESYSTEM_RESULTSET_ROW_LIMIT.getValue());
     }
     if (columnPage < 0 || columnPageSize < 0 || columnPageSize > 500) {
       throw WorkspaceExceptionManager.createException(80036, path);
@@ -692,7 +692,6 @@ public class FsRestfulApi {
         if (!StringUtils.isEmpty(nullValue)) {
           fileSource.addParams("nullValue", nullValue);
         }
-
 
         if (enableLimitResult) {
           LOGGER.info("set enable limit for thread: {}", Thread.currentThread().getName());

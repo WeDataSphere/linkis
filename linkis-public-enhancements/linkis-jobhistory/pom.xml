@@ -37,8 +37,8 @@
           <artifactId>spring-boot-starter-logging</artifactId>
         </exclusion>
         <exclusion>
-          <artifactId>mchange-commons-java</artifactId>
           <groupId>com.mchange</groupId>
+          <artifactId>mchange-commons-java</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
