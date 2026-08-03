@@ -49,5 +49,10 @@ jobs:
       - name: Build frontend by node.js
         run: |
             cd linkis-web
-            npm install
+            # preinstall hook references wnpm (internal Webank npm wrapper unavailable on
+            # public GitHub runners). Skip lifecycle scripts, then apply the resolutions
+            # field (postcss 8.4.21) manually via npm-force-resolutions.
+            npm install --ignore-scripts
+            npx --no-install npm-force-resolutions
+            npm install --ignore-scripts
             npm run build
