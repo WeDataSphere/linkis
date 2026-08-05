@@ -5,8 +5,8 @@
 | 任务 | spark3-coercion-creator（配置项管理迁移） |
 | 测试时间 | 2026-07-24 |
 | 测试范围 | 配置项管理迁移代码变更（properties → 配置项管理 RPC 读取） |
-| 关联需求 | [spark3-coercion-creator_需求.md](../requirements/spark3-coercion-creator_需求.md) 第10章 |
-| 关联设计 | [spark3-coercion-creator_设计.md](../design/spark3-coercion-creator_设计.md) Part 4 |
+| 关联需求 | [spark3-coercion-creator_需求.md](../../requirements/spark3-coercion-creator_需求.md) 第10章 |
+| 关联设计 | [spark3-coercion-creator_设计.md](../../design/spark3-coercion-creator_设计.md) Part 4 |
 
 ---
 

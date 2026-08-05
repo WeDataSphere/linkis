@@ -1,0 +1,137 @@
+{
+  "root": {
+    "data": { "text": "BDP_Linkis" },
+    "children": [{
+      "data": { "text": "路径" },
+      "children": [{
+        "data": { "text": "需求：534053" },
+        "children": [{
+          "data": { "text": "结果集collect字节限制防OOM" },
+          "children": [
+            {
+              "data": { "text": "分类：参数配置" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-P-001 COLLECT_MAX_BYTES 默认值=500m(524288000)" },
+                  "children": [
+                    { "data": { "text": "条件：未设置 -Dlinkis.filesystem.resultset.collect.max.bytes" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、读取 LinkisStorageConf.COLLECT_MAX_BYTES" }, "children": [] },
+                    { "data": { "text": "预期结果：524288000（500*1024*1024）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-P-002 SIZE_CHECK_ENABLED 默认值=true" },
+                  "children": [
+                    { "data": { "text": "条件：未设置 -Dlinkis.filesystem.resultset.size.check.enabled" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、读取 WorkSpaceConfiguration.FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED.getValue" }, "children": [] },
+                    { "data": { "text": "预期结果：true（默认开启）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-P-003 collect.max.bytes 可配置覆盖" },
+                  "children": [
+                    { "data": { "text": "条件：-Dlinkis.filesystem.resultset.collect.max.bytes=100m" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、设置 JVM 系统属性 linkis.filesystem.resultset.collect.max.bytes=100m\n2、读取 COLLECT_MAX_BYTES" }, "children": [] },
+                    { "data": { "text": "预期结果：104857600（100*1024*1024，自定义值生效）" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：功能案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-F-001 collect 超限截断(truncatedByLimit=true 只保留budget内记录)" },
+                  "children": [
+                    { "data": { "text": "条件：in-memory FsReader 4条x100字节=400字节" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、new FileSplit(reader)，setLimitBytes(250)\n2、collect()\n3、读 truncatedByLimit 与记录数" }, "children": [] },
+                    { "data": { "text": "预期结果：truncatedByLimit=true，记录数=2（第3条累计300>250触发截断）" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-F-002 collect 未超限不截断(全部保留)" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-F-001" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、new FileSplit(reader)，setLimitBytes(10000000)\n2、collect()" }, "children": [] },
+                    { "data": { "text": "预期结果：truncatedByLimit=false，记录数=4" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-F-003 limitBytes=0 不截断(向后兼容)" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-F-001，不设 limitBytes" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、new FileSplit(reader)（limitBytes=0）\n2、collect()" }, "children": [] },
+                    { "data": { "text": "预期结果：truncatedByLimit=false，记录数=4（走 else if(!overFlag) 全部 add）" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：接口案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-I-001 结果集open按开关limitBytes(开关on)" },
+                  "children": [
+                    { "data": { "text": "条件：ps-publicservice 可用，SIZE_CHECK_ENABLED=true" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、open 较大结果集\n2、观察日志 Enable collect bytes limit for resultset\n3、验证 fileSource 被设 limitBytes" }, "children": [] },
+                    { "data": { "text": "预期结果：开关on 时结果集分支调用 fileSource.limitBytes(COLLECT_MAX_BYTES)" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-I-002 截断响应注入partialData+collectMaxBytes+中英文提示" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-I-001，结果集 > 500m" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、open 超大结果集\n2、读取响应 message.data" }, "children": [] },
+                    { "data": { "text": "预期结果：partialData=true, collectMaxBytes=524288000, zh_msg/en_msg 含部分数据提示, totalLine 为实际返回行数" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-I-003 未截断响应无partialData" },
+                  "children": [
+                    { "data": { "text": "条件：同 TC-I-001，结果集 < 500m" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、open 正常大小结果集\n2、读取响应 message.data" }, "children": [] },
+                    { "data": { "text": "预期结果：响应不含 partialData 字段（行为不变）" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：流程案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-W-001 端到端-超大结果集不再OOM返回部分数据" },
+                  "children": [
+                    { "data": { "text": "条件：Linkis 部署环境 + 产生 >500m 结果集的任务" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、提交产生超大结果集的任务\n2、前端/接口读取结果集" }, "children": [] },
+                    { "data": { "text": "预期结果：ps-publicservice 不 OOM，返回部分数据+提示，完整数据可经结果集导出获取" }, "children": [] }
+                  ]
+                },
+                {
+                  "data": { "text": "【AIGC】TC-W-002 开关关闭回退旧行为" },
+                  "children": [
+                    { "data": { "text": "条件：-Dlinkis.filesystem.resultset.size.check.enabled=false" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、关闭开关后 open 超大结果集\n2、观察是否 limitBytes" }, "children": [] },
+                    { "data": { "text": "预期结果：不调用 limitBytes，回退旧行为（不截断、无 partialData）" }, "children": [] }
+                  ]
+                }
+              ]
+            },
+            {
+              "data": { "text": "分类：功能案例" },
+              "children": [
+                {
+                  "data": { "text": "【AIGC】TC-E-001 普通文件大小检查不受影响" },
+                  "children": [
+                    { "data": { "text": "条件：FsRestfulApi 源码" }, "children": [] },
+                    { "data": { "text": "步骤：\n1、静态审查字节限制仅作用于结果集 collect 分支" }, "children": [] },
+                    { "data": { "text": "预期结果：FILESYSTEM_FILE_CHECK_SIZE 等普通文件检查逻辑不变" }, "children": [] }
+                  ]
+                }
+              ]
+            }
+          ]
+        }]
+      }]
+    }]
+  }
+}
