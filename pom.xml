@@ -887,6 +887,20 @@
             <groupId>com.github.spotbugs</groupId>
             <artifactId>spotbugs-annotations</artifactId>
           </exclusion>
+          <!--
+            Exclude Logback so it does not clash with log4j-slf4j-impl declared by
+            linkis-common. Without this, Spring Boot fails to load its application
+            context during tests ("LoggerFactory is not a Logback LoggerContext but
+            Logback is on the classpath").
+          -->
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+          </exclusion>
         </exclusions>
       </dependency>
 

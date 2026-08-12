@@ -33,6 +33,10 @@ public class SecurityUtilsTest {
   @BeforeAll
   public static void init() {
     BDPConfiguration.set("linkis.mysql.strong.security.enable", "true");
+    // Provide an in-memory generated RSA key pair so that RSAUtils.encryptWithLinkisPublicKey
+    // can work in CI environments where no key is configured by default.
+    BDPConfiguration.set("linkis.rsa.public.key", RSAUtils.getDefaultPublicKey());
+    BDPConfiguration.set("linkis.rsa.private.key", RSAUtils.getDefaultPrivateKey());
   }
 
   @Test

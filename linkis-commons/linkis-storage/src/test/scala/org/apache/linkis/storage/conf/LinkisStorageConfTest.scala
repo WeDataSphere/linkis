@@ -47,8 +47,8 @@ class LinkisStorageConfTest {
   @Test
   @DisplayName("collectMaxBytesDefault")
   def collectMaxBytesDefault(): Unit = {
-    // 500m = 500 * 1024 * 1024 = 524288000 bytes (DPMS 534053 OOM-fix collect limit)
-    Assertions.assertEquals(524288000L, LinkisStorageConf.COLLECT_MAX_BYTES)
+    // 1g = 1 * 1024 * 1024 * 1024 = 1073741824 bytes (default collect limit)
+    Assertions.assertEquals(1073741824L, LinkisStorageConf.COLLECT_MAX_BYTES)
   }
 
 }

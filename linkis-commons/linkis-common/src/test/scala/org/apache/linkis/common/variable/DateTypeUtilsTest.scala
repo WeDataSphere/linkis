@@ -210,7 +210,8 @@ class DateTypeUtilsTest {
 
     val result = weekType.calculator("-", "7") // Subtract 7 weeks
     val resultDate = dateFormat.parse(result)
-    val expected = dateFormat.parse("20251124") // 7 weeks before Monday = 2025-11-24
+    val expected =
+      dateFormat.parse("20260216") // 7 weeks (49 days) before Monday 2026-04-06 = 2026-02-16
 
     assertEquals(expected, resultDate)
   }
@@ -378,7 +379,7 @@ class DateTypeUtilsTest {
     val weekEnd = new CustomWeekType("20260409", false, true)
     val endResult = weekEnd.-(1)
     val endResultDate = dateFormat.parse(endResult)
-    assertEquals("20260329", endResult) // Previous Sunday
+    assertEquals("20260405", endResult) // Previous Sunday = 2026-04-05
   }
 
 }
