@@ -81,4 +81,13 @@ object HadoopConf {
    */
   val KEYTAB_TEMP_DIR = CommonVars("linkis.keytab.temp.dir", "/tmp/keytab")
 
+  /**
+   * Enable proactive Kerberos TGT refresh when retrieving cached HDFS FileSystem. When enabled,
+   * before returning a cached FileSystem, Hadoop's `reloginFromKeytab()` is called on the UGI to
+   * refresh the TGT if near expiry. If refresh fails (TGT expired and keytab unavailable), the
+   * cached entry is removed and a new FileSystem with fresh TGT is created.
+   */
+  val HDFS_TGT_PROACTIVE_CHECK_ENABLE =
+    CommonVars("linkis.hadoop.hdfs.tgt.proactive.check.enable", false)
+
 }
