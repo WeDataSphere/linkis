@@ -85,7 +85,7 @@ class HDFSUtilsKeytabCacheTest {
   @Test
   def testNullLabelDifferentFromDefaultLabel: Unit = {
     val method = getCreateKeytabCacheKeyMethod
-    // null label → "testuser", "default" label → "testuser#default", they are different
+    // null label → "testuser", "default" label → "testUser#default", they are different
     val key1 = method.invoke(HDFSUtils, "testuser", null).asInstanceOf[String]
     val key2 = method.invoke(HDFSUtils, "testuser", "default").asInstanceOf[String]
     Assertions.assertNotEquals(key1, key2)
