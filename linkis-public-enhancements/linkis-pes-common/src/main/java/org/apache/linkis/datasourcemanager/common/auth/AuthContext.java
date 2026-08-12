@@ -19,6 +19,7 @@ package org.apache.linkis.datasourcemanager.common.auth;
 
 import org.apache.linkis.common.conf.CommonVars;
 import org.apache.linkis.datasourcemanager.common.domain.DataSource;
+import org.apache.linkis.metadata.query.common.MdmConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -50,6 +51,12 @@ public class AuthContext {
   public static boolean hasPermission(DataSource dataSource, String username) {
     if (Objects.nonNull(dataSource)) {
       String creator = dataSource.getCreateUser();
+      if (MdmConfiguration.HIVE_DATASOURCE_SHARE_ENABLE.getValue()) {
+        String name = dataSource.getDataSourceType().getName();
+        if ("hive".equals(name)) {
+          return true;
+        }
+      }
       return (administrators.contains(username)
           || (StringUtils.isNotBlank(creator) && username.equals(creator)));
     }
