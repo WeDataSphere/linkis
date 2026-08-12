@@ -38,6 +38,7 @@ class HadoopConfTest {
     )
     Assertions.assertFalse(HadoopConf.HDFS_ENABLE_CACHE)
     Assertions.assertTrue(180000 == HadoopConf.HDFS_ENABLE_CACHE_IDLE_TIME)
+    Assertions.assertFalse(HadoopConf.HDFS_TGT_PROACTIVE_CHECK_ENABLE.getValue)
 
   }
 

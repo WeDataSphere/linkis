@@ -233,9 +233,23 @@ object HDFSUtils extends Logging {
       locker.intern().synchronized {
         if (fileSystemCache.containsKey(cacheKey)) {
           val hdfsFileSystemContainer = fileSystemCache.get(cacheKey)
-          hdfsFileSystemContainer.addAccessCount()
-          hdfsFileSystemContainer.updateLastAccessTime
-          hdfsFileSystemContainer.getFileSystem
+          // Proactive TGT expiry check: if expired, remove from cache and recreate
+          if (
+              HadoopConf.HDFS_TGT_PROACTIVE_CHECK_ENABLE.getValue && !hdfsFileSystemContainer
+                .isTgtValid()
+          ) {
+            logger.info(
+              s"Cached HDFS FileSystem TGT expired - user: $userName, label: $cacheLabel, removing from cache and recreating"
+            )
+            fileSystemCache.remove(cacheKey)
+            IOUtils.closeQuietly(hdfsFileSystemContainer.getFileSystem)
+            // Fall through to create new FileSystem with fresh TGT
+            getHDFSUserFileSystem(userName, label, getConfigurationByLabel(userName, label))
+          } else {
+            hdfsFileSystemContainer.addAccessCount()
+            hdfsFileSystemContainer.updateLastAccessTime
+            hdfsFileSystemContainer.getFileSystem
+          }
         } else {
           getHDFSUserFileSystem(userName, label, getConfigurationByLabel(userName, label))
         }
@@ -259,25 +273,33 @@ object HDFSUtils extends Logging {
       val cacheLabel = if (label == null) DEFAULT_CACHE_LABEL else label
       val cacheKey = userName + JOINT + cacheLabel
       locker.intern().synchronized {
-        val hdfsFileSystemContainer = if (fileSystemCache.containsKey(cacheKey)) {
-          fileSystemCache.get(cacheKey)
-        } else {
-          // we use cacheLabel to create HDFSFileSystemContainer, and in the rest part of HDFSUtils, we consistently
-          // use the same cacheLabel to operate HDFSFileSystemContainer, like close or remove.
-          // At the same time, we don't want to change the behavior of createFileSystem which is out of HDFSUtils,
-          // so we continue to use the original label to createFileSystem.
-          val newHDFSFileSystemContainer =
-            new HDFSFileSystemContainer(
-              createFileSystem(userName, label, conf),
-              userName,
-              cacheLabel
+        if (fileSystemCache.containsKey(cacheKey)) {
+          val hdfsFileSystemContainer = fileSystemCache.get(cacheKey)
+          // Proactive TGT expiry check: if expired, remove from cache and recreate
+          if (
+              HadoopConf.HDFS_TGT_PROACTIVE_CHECK_ENABLE.getValue && !hdfsFileSystemContainer
+                .isTgtValid()
+          ) {
+            logger.info(
+              s"Cached HDFS FileSystem TGT expired - user: $userName, label: $cacheLabel, removing from cache and recreating"
             )
-          fileSystemCache.put(cacheKey, newHDFSFileSystemContainer)
-          newHDFSFileSystemContainer
+            fileSystemCache.remove(cacheKey)
+            IOUtils.closeQuietly(hdfsFileSystemContainer.getFileSystem)
+            // Fall through to create new FileSystem with fresh TGT
+          } else {
+            hdfsFileSystemContainer.addAccessCount()
+            hdfsFileSystemContainer.updateLastAccessTime
+            return hdfsFileSystemContainer.getFileSystem
+          }
         }
-        hdfsFileSystemContainer.addAccessCount()
-        hdfsFileSystemContainer.updateLastAccessTime
-        hdfsFileSystemContainer.getFileSystem
+        // Cache miss or TGT expired → create new FileSystem with UGI
+        val (newFs, newUgi) = createFileSystemWithUgi(userName, label, conf)
+        val newHDFSFileSystemContainer =
+          new HDFSFileSystemContainer(newFs, userName, cacheLabel, newUgi)
+        fileSystemCache.put(cacheKey, newHDFSFileSystemContainer)
+        newHDFSFileSystemContainer.addAccessCount()
+        newHDFSFileSystemContainer.updateLastAccessTime
+        newHDFSFileSystemContainer.getFileSystem
       }
     } else {
       createFileSystem(userName, label, conf)
@@ -286,6 +308,45 @@ object HDFSUtils extends Logging {
 
   def createFileSystem(userName: String, conf: org.apache.hadoop.conf.Configuration): FileSystem =
     createFileSystem(userName, null, conf)
+
+  /**
+   * Create a FileSystem and also return the UserGroupInformation used to create it. The UGI is
+   * needed for proactive TGT validity checking in the cache layer.
+   */
+  private def createFileSystemWithUgi(
+      userName: String,
+      label: String,
+      conf: org.apache.hadoop.conf.Configuration
+  ): (FileSystem, UserGroupInformation) = {
+    val createCount = count.getAndIncrement()
+    val startTime = System.currentTimeMillis()
+    val labelInfo = if (label == null) "default" else label
+    logger.info(
+      s"Creating Hadoop FileSystem - user: $userName, label: $labelInfo, createCount: $createCount"
+    )
+    try {
+      val ugi = getUserGroupInformation(userName, label)
+      val fs = ugi
+        .doAs(new PrivilegedExceptionAction[FileSystem] {
+          def run: FileSystem = FileSystem.newInstance(conf)
+        })
+      val duration = System.currentTimeMillis() - startTime
+      logger.info(
+        s"Hadoop FileSystem created successfully - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
+          .msDurationToString(duration)}, createCount: $createCount"
+      )
+      (fs, ugi)
+    } catch {
+      case e: Exception =>
+        val duration = System.currentTimeMillis() - startTime
+        logger.error(
+          s"Failed to create Hadoop FileSystem - user: $userName, label: $labelInfo, duration: ${ByteTimeUtils
+            .msDurationToString(duration)}, createCount: $createCount",
+          e
+        )
+        throw e
+    }
+  }
 
   def createFileSystem(
       userName: String,
