@@ -18,10 +18,17 @@
 package org.apache.linkis.hadoop.common.entity
 
 import org.apache.linkis.hadoop.common.conf.HadoopConf
+import org.apache.linkis.hadoop.common.utils.KerberosTgtUtils
 
 import org.apache.hadoop.fs.FileSystem
+import org.apache.hadoop.security.UserGroupInformation
 
-class HDFSFileSystemContainer(fs: FileSystem, user: String, label: String) {
+class HDFSFileSystemContainer(
+    fs: FileSystem,
+    user: String,
+    label: String,
+    ugi: UserGroupInformation = null
+) {
 
   private var lastAccessTime: Long = System.currentTimeMillis()
 
@@ -32,6 +39,8 @@ class HDFSFileSystemContainer(fs: FileSystem, user: String, label: String) {
   def getUser: String = this.user
 
   def getLabel: String = this.label
+
+  def getUgi: UserGroupInformation = this.ugi
 
   def getLastAccessTime: Long = this.lastAccessTime
 
@@ -50,5 +59,15 @@ class HDFSFileSystemContainer(fs: FileSystem, user: String, label: String) {
     val idleTime = currentTime - this.lastAccessTime
     idleTime > HadoopConf.HDFS_ENABLE_CACHE_MAX_TIME || ((idleTime > HadoopConf.HDFS_ENABLE_CACHE_IDLE_TIME) && count <= 0)
   }
+
+  /**
+   * Check if the Kerberos TGT in this container's UGI is still valid. Delegates to
+   * KerberosTgtUtils.isTgtValid() which checks the KerberosTicket end time against current time.
+   *
+   * @return
+   *   true if TGT is valid (or UGI is null / non-Kerberos); false if TGT has expired → caller
+   *   should remove from cache and recreate FileSystem
+   */
+  def isTgtValid(): Boolean = KerberosTgtUtils.isTgtValid(ugi)
 
 }
