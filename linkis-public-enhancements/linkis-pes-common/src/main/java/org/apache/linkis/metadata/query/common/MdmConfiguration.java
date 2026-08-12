@@ -26,4 +26,15 @@ public class MdmConfiguration {
 
   public static CommonVars<String> DATA_SOURCE_SERVICE_APPLICATION =
       CommonVars.apply("wds.linkis.server.dsm.app.name", "linkis-ps-data-source-manager");
+
+  /**
+   * Feature switch for Hive datasource sharing. When enabled, non-creator users can query Hive
+   * datasource.
+   */
+  public static CommonVars<Boolean> HIVE_DATASOURCE_SHARE_ENABLE =
+      CommonVars.apply("linkis.datasource.hive.share.enable", false);
+
+  /** Local keytab directory path for Hive datasource sharing (used when share is enabled). */
+  public static CommonVars<String> HIVE_DATASOURCE_SHARE_KEYTAB_PATH =
+      CommonVars.apply("linkis.datasource.hive.share.keytab.path", "/appcom/keytab/");
 }

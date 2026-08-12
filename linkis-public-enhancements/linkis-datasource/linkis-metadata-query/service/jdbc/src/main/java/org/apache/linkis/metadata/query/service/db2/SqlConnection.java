@@ -47,7 +47,7 @@ public class SqlConnection implements Closeable {
   private static final CommonVars<String> SQL_SCHEMA_QUERY =
       CommonVars.apply(
           "wds.linkis.server.mdm.service.db2.schema.query.sql",
-          "SELECT SCHEMANAME FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('NULLID', 'SQLJ') WITH UR");
+          "SELECT TRIM(SCHEMANAME) FROM SYSCAT.SCHEMATA WHERE SCHEMANAME NOT LIKE 'SYS%' AND SCHEMANAME NOT IN ('NULLID', 'SQLJ') WITH UR");
 
   private Connection conn;
 

@@ -22,6 +22,7 @@ import org.apache.linkis.bml.client.BmlClientFactory;
 import org.apache.linkis.bml.protocol.BmlDownloadResponse;
 import org.apache.linkis.common.conf.CommonVars;
 import org.apache.linkis.datasourcemanager.common.util.json.Json;
+import org.apache.linkis.metadata.query.common.MdmConfiguration;
 import org.apache.linkis.metadata.query.common.domain.MetaColumnInfo;
 import org.apache.linkis.metadata.query.common.domain.MetaPartitionInfo;
 import org.apache.linkis.metadata.query.common.exception.MetaRuntimeException;
@@ -83,10 +84,36 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
       LOG.info("Try to connect Hive MetaStore in kerberos with principle:[" + principle + "]");
       String keytabResourceId =
           String.valueOf(params.getOrDefault(HiveParamsMapper.PARAM_HIVE_KEYTAB.getValue(), ""));
-      if (StringUtils.isNotBlank(keytabResourceId)) {
+
+      boolean hiveShareEnabled = MdmConfiguration.HIVE_DATASOURCE_SHARE_ENABLE.getValue();
+      String keytabFilePath;
+
+      if (hiveShareEnabled && StringUtils.isNotBlank(principle)) {
+        // When Hive datasource share is enabled, use local keytab path instead of BML download
+        // Extract primary from principal (e.g., "hadoop" from "hadoop@REALM" or
+        // "hadoop/host@REALM")
+        String principalPrimary = principle.split("/")[0].split("@")[0];
+        String keytabDir = MdmConfiguration.HIVE_DATASOURCE_SHARE_KEYTAB_PATH.getValue();
+        keytabFilePath = keytabDir + principalPrimary + ".keytab";
+        LOG.info(
+            "Hive datasource share is enabled, using local keytab path:["
+                + keytabFilePath
+                + "] for principal:["
+                + principle
+                + "]");
+        File keytabFile = new File(keytabFilePath);
+        if (!keytabFile.exists()) {
+          throw new MetaRuntimeException(
+              "Local keytab file not found:["
+                  + keytabFilePath
+                  + "], please ensure the keytab file is placed correctly",
+              null);
+        }
+      } else if (StringUtils.isNotBlank(keytabResourceId)) {
+        // Original behavior: download keytab from BML
         FileUtils.forceMkdir(new File(TMP_FILE_STORE_LOCATION.getValue()));
         LOG.info("Start to download resource id:[" + keytabResourceId + "]");
-        String keytabFilePath =
+        keytabFilePath =
             TMP_FILE_STORE_LOCATION.getValue()
                 + "/"
                 + UUID.randomUUID().toString().replace("-", "")
@@ -96,10 +123,10 @@ public class HiveMetaService extends AbstractDbMetaService<HiveConnection> {
           throw new MetaRuntimeException(
               "Fail to download resource i:[" + keytabResourceId + "]", null);
         }
-        conn = new HiveConnection(uris, principle, keytabFilePath, getExtraHadoopConf(params));
       } else {
         throw new MetaRuntimeException("Cannot find the keytab file in connect parameters", null);
       }
+      conn = new HiveConnection(uris, principle, keytabFilePath, getExtraHadoopConf(params));
     } else {
       conn = new HiveConnection(uris, getExtraHadoopConf(params));
     }

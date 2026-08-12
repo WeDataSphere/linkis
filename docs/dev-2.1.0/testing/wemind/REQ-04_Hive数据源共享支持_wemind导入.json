@@ -1,0 +1,205 @@
+{
+  "root": {
+    "data": {"text": "WDSL-UJES"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：539155"},
+        "children": [{
+          "data": {"text": "Hive数据源共享支持功能测试"},
+          "children": [{
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】开关关闭时非创建者非管理员访问Hive数据源被拦截"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；当前用户既非管理员也非数据源创建者；数据源类型为Hive"}, "children": []},
+                {"data": {"text": "步骤：\n1、以非创建者非管理员用户调用reqToGetDataSourceInfo\n2、验证hasPermission计算结果\n3、验证是否抛出ErrorException"}, "children": []},
+                {"data": {"text": "预期结果：hasPermission=false，抛出ErrorException，消息为\"Don't have query permission for data source\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关开启时非创建者非管理员访问Hive数据源放行"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；当前用户既非管理员也非数据源创建者；数据源类型为Hive"}, "children": []},
+                {"data": {"text": "步骤：\n1、以非创建者非管理员用户调用reqToGetDataSourceInfo\n2、验证hasPermission计算结果\n3、验证日志输出包含\"Hive datasource share is enabled\""}, "children": []},
+                {"data": {"text": "预期结果：hasPermission=true，正常返回DsInfoResponse"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关开启时非创建者访问非Hive数据源仍被拦截"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；数据源类型为Spark；非创建者非管理员用户"}, "children": []},
+                {"data": {"text": "步骤：\n1、以非创建者非管理员用户调用reqToGetDataSourceInfo，数据源类型为spark\n2、验证isHiveShareEnabled(\"spark\")返回false\n3、验证hasPermission计算结果"}, "children": []},
+                {"data": {"text": "预期结果：isHiveShareEnabled(\"spark\")=false，hasPermission=false，抛出权限异常"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关关闭时管理员访问Hive数据源正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；当前用户为管理员"}, "children": []},
+                {"data": {"text": "步骤：\n1、以管理员用户调用reqToGetDataSourceInfo\n2、验证hasPermission计算结果"}, "children": []},
+                {"data": {"text": "预期结果：hasPermission=true（因isAdmin=true），正常返回DsInfoResponse"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关关闭时创建者访问Hive数据源正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；当前用户为数据源创建者"}, "children": []},
+                {"data": {"text": "步骤：\n1、以创建者用户调用reqToGetDataSourceInfo\n2、验证hasPermission计算结果"}, "children": []},
+                {"data": {"text": "预期结果：hasPermission=true（因userName.equals(creator)），正常返回DsInfoResponse"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】创建者用户无论开关状态均能正常使用Hive数据源"},
+              "children": [
+                {"data": {"text": "条件：当前用户为数据源创建者"}, "children": []},
+                {"data": {"text": "步骤：\n1、开关关闭时以创建者身份查询Hive数据源\n2、开关开启时以创建者身份查询Hive数据源"}, "children": []},
+                {"data": {"text": "预期结果：两种情况下均正常通过权限校验"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：接口案例"},
+            "children": [{
+              "data": {"text": "【AIGC】开关开启完整流程-非创建者使用Hive数据源执行查询"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；Hive数据源由hadoop用户创建；本地keytab文件/mnt/bdap/keytab/hadoop.keytab存在；用户zhangsan既非管理员也非创建者"}, "children": []},
+                {"data": {"text": "步骤：\n1、以zhangsan身份查询Hive数据源元数据\n2、验证权限校验通过\n3、验证使用本地keytab建立Hive连接\n4、执行Hive SQL查询验证连接可用"}, "children": []},
+                {"data": {"text": "预期结果：zhangsan成功查询Hive数据源元数据；Hive连接使用本地keytab而非BML下载；SQL查询正常返回结果"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关关闭完整流程-非创建者使用Hive数据源被拦截"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；Hive数据源由hadoop用户创建；用户zhangsan既非管理员也非创建者"}, "children": []},
+                {"data": {"text": "步骤：\n1、以zhangsan身份查询Hive数据源元数据\n2、验证权限校验不通过\n3、验证返回权限错误"}, "children": []},
+                {"data": {"text": "预期结果：返回权限错误\"Don't have query permission for data source\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关开启时非创建者使用Spark数据源仍被拦截"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；Spark数据源由hadoop用户创建；用户zhangsan既非管理员也非创建者"}, "children": []},
+                {"data": {"text": "步骤：\n1、以zhangsan身份查询Spark数据源元数据\n2、验证权限校验不通过"}, "children": []},
+                {"data": {"text": "预期结果：返回权限错误，Spark数据源不受开关影响"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】非Kerberos Hive数据源连接不受开关影响"},
+              "children": [
+                {"data": {"text": "条件：Hive数据源不使用Kerberos认证（principle为空）"}, "children": []},
+                {"data": {"text": "步骤：\n1、开关关闭时连接非Kerberos Hive数据源\n2、开关开启时连接非Kerberos Hive数据源"}, "children": []},
+                {"data": {"text": "预期结果：两种情况下均使用非Kerberos方式建立连接，行为一致"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】开关开启+本地keytab存在时使用本地keytab"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；principle非空；本地keytab文件/mnt/bdap/keytab/hadoop.keytab存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中包含principle=\"hadoop@BDAP.COM\"\n2、验证不调用BML下载\n3、验证日志包含\"using local keytab path\"\n4、验证HiveConnection使用的keytab路径为本地路径"}, "children": []},
+                {"data": {"text": "预期结果：不调用BML下载；keytabFilePath=\"/mnt/bdap/keytab/hadoop.keytab\"；HiveConnection成功建立"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关开启+本地keytab不存在时抛出MetaRuntimeException"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；principle非空；本地keytab文件不存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中包含principle=\"hadoop@BDAP.COM\"\n2、验证抛出MetaRuntimeException\n3、验证异常消息包含\"Local keytab file not found\"和具体文件路径"}, "children": []},
+                {"data": {"text": "预期结果：抛出MetaRuntimeException，消息包含\"Local keytab file not found:[/mnt/bdap/keytab/hadoop.keytab]\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关关闭时走BML下载keytab（原逻辑）"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；principle非空；keytabResourceId非空"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection\n2、验证调用BML的downloadResource方法\n3、验证keytab文件路径为TMP_FILE_STORE_LOCATION下的随机文件名"}, "children": []},
+                {"data": {"text": "预期结果：调用downloadResource(keytabResourceId, operator, keytabFilePath)；keytabFilePath为临时目录下随机UUID.keytab"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】开关关闭+keytabResourceId为空时抛出MetaRuntimeException"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=false；principle非空；keytabResourceId为空"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中keytabResourceId为空字符串\n2、验证抛出MetaRuntimeException"}, "children": []},
+                {"data": {"text": "预期结果：抛出MetaRuntimeException，消息为\"Cannot find the keytab file in connect parameters\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】principle格式user@REALM正确提取primary"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；本地keytab文件存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中principle=\"hadoop@BDAP.COM\"\n2、验证principalPrimary解析结果\n3、验证keytabFilePath构造结果"}, "children": []},
+                {"data": {"text": "预期结果：principalPrimary=\"hadoop\"；keytabFilePath=\"/mnt/bdap/keytab/hadoop.keytab\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】principle格式user/host@REALM正确提取primary"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；本地keytab文件存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中principle=\"hadoop/node1.bdap.com@BDAP.COM\"\n2、验证principalPrimary解析结果\n3、验证keytabFilePath构造结果"}, "children": []},
+                {"data": {"text": "预期结果：principalPrimary=\"hadoop\"；keytabFilePath=\"/mnt/bdap/keytab/hadoop.keytab\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】principle无REALM时正确提取primary"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；本地keytab文件存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection，params中principle=\"hadoop\"（无@REALM）\n2、验证principalPrimary解析结果"}, "children": []},
+                {"data": {"text": "预期结果：principalPrimary=\"hadoop\"；keytabFilePath=\"/mnt/bdap/keytab/hadoop.keytab\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】isHiveShareEnabled传入null时返回false"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用isHiveShareEnabled(null)"}, "children": []},
+                {"data": {"text": "预期结果：返回false"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】isHiveShareEnabled对dsType忽略大小写"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true"}, "children": []},
+                {"data": {"text": "步骤：\n1、分别调用isHiveShareEnabled(\"Hive\")、isHiveShareEnabled(\"HIVE\")、isHiveShareEnabled(\"hive\")"}, "children": []},
+                {"data": {"text": "预期结果：三次调用均返回true"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：参数配置"},
+            "children": [{
+              "data": {"text": "【AIGC】验证配置项默认值正确"},
+              "children": [
+                {"data": {"text": "条件：不设置任何配置值"}, "children": []},
+                {"data": {"text": "步骤：\n1、验证HIVE_DATASOURCE_SHARE_ENABLE.getValue()返回false\n2、验证HIVE_DATASOURCE_SHARE_KEYTAB_PATH.getValue()返回\"/mnt/bdap/keytab/\""}, "children": []},
+                {"data": {"text": "预期结果：HIVE_DATASOURCE_SHARE_ENABLE默认值为false；HIVE_DATASOURCE_SHARE_KEYTAB_PATH默认值为\"/mnt/bdap/keytab/\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】验证配置文件包含新增配置项"},
+              "children": [
+                {"data": {"text": "条件：配置文件linkis-ps-publicservice.properties存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、读取linkis-ps-publicservice.properties\n2、验证包含linkis.datasource.hive.share.enable=false\n3、验证包含linkis.datasource.hive.share.keytab.path=/mnt/bdap/keytab/"}, "children": []},
+                {"data": {"text": "预期结果：配置文件包含两个新增配置项，默认值与MdmConfiguration声明一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】自定义keytab路径配置生效"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；linkis.datasource.hive.share.keytab.path=/data/keytabs/；对应路径下keytab文件存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、设置自定义keytab路径为/data/keytabs/\n2、调用getConnection\n3、验证keytabFilePath使用自定义路径"}, "children": []},
+                {"data": {"text": "预期结果：keytabFilePath=\"/data/keytabs/hadoop.keytab\""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】keytab路径不以/结尾时拼接结果"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.keytab.path=/mnt/bdap/keytab（无末尾/）"}, "children": []},
+                {"data": {"text": "步骤：\n1、设置keytab路径为/mnt/bdap/keytab（无末尾斜杠）\n2、调用getConnection\n3、验证keytabFilePath拼接结果"}, "children": []},
+                {"data": {"text": "预期结果：keytabFilePath=\"/mnt/bdap/keytabhadoop.keytab\"（直接拼接，建议配置时以/结尾）"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：安全用例"},
+            "children": [{
+              "data": {"text": "【AIGC】开关开启时非Hive数据源不受共享权限影响"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；数据源类型为Spark/JDBC；非创建者非管理员用户"}, "children": []},
+                {"data": {"text": "步骤：\n1、以非创建者用户访问Spark数据源\n2、以非创建者用户访问JDBC数据源\n3、验证权限校验结果"}, "children": []},
+                {"data": {"text": "预期结果：非Hive数据源权限校验不受开关影响，仍被拦截"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】本地keytab文件不存在时抛出明确异常而非静默失败"},
+              "children": [
+                {"data": {"text": "条件：linkis.datasource.hive.share.enable=true；本地keytab文件不存在"}, "children": []},
+                {"data": {"text": "步骤：\n1、调用getConnection\n2、验证抛出异常的类型和消息"}, "children": []},
+                {"data": {"text": "预期结果：抛出MetaRuntimeException，包含文件路径信息，便于排查"}, "children": []}
+              ]
+            }]
+          }]
+        }]
+      }]
+    }]
+  }
+}

@@ -452,7 +452,8 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
       boolean hasPermission =
           (AuthContext.isAdministrator(userName)
               || (StringUtils.isNotBlank(response.getCreator())
-                  && userName.equals(response.getCreator())));
+                  && userName.equals(response.getCreator()))
+              || isHiveShareEnabled(response.getDsType()));
       if (!hasPermission) {
         throw new ErrorException(-1, "Don't have query permission for data source [没有数据源的查询权限]");
       } else if (response.getParams().isEmpty()) {
@@ -511,7 +512,8 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
       boolean hasPermission =
           (AuthContext.isAdministrator(userName)
               || (StringUtils.isNotBlank(response.getCreator())
-                  && userName.equals(response.getCreator())));
+                  && userName.equals(response.getCreator()))
+              || isHiveShareEnabled(response.getDsType()));
       if (!hasPermission) {
         throw new ErrorException(-1, "Don't have query permission for data source [没有数据源的查询权限]");
       } else if (!useDefault && response.getParams().isEmpty()) {
@@ -539,6 +541,23 @@ public class MetadataQueryServiceImpl implements MetadataQueryService {
             dataSource.getCreateUser(),
             "")
         : null;
+  }
+
+  /**
+   * Check if Hive datasource share is enabled for the given datasource type. When the switch is on
+   * and the datasource type is "hive", non-creator users are allowed to query the datasource.
+   *
+   * @param dsType datasource type
+   * @return true if Hive share is enabled and the type is hive
+   */
+  private boolean isHiveShareEnabled(String dsType) {
+    boolean shareEnabled = MdmConfiguration.HIVE_DATASOURCE_SHARE_ENABLE.getValue();
+    if (shareEnabled && "hive".equalsIgnoreCase(dsType)) {
+      logger.info(
+          "Hive datasource share is enabled, allowing access for non-creator user to hive datasource");
+      return true;
+    }
+    return false;
   }
 
   /**
