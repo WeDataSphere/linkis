@@ -178,7 +178,7 @@ GET /api/rest_j/v1/jobhistory/task-diagnosis?taskID={id}
 **处理流程**：
 1. 接收taskID参数，查询JobHistory获取任务记录
 2. 校验任务状态必须为Failed/Cancelled/Timeout，否则返回提示
-3. 检查功能开关 `linkis.task.classified-diagnosis.enable` 是否开启
+3. 检查功能开关 `linkis.task.classified.diagnosis.enable` 是否开启
 4. 执行多规则分类判定（errorCode → metrics信号 → 日志关键词）
 5. 根据分类结果组装响应数据返回
 
@@ -291,7 +291,7 @@ GET /api/rest_j/v1/jobhistory/task-diagnosis?taskID={id}
 | R1.1 | taskID对应的任务不存在时，返回错误提示"任务不存在" |
 | R1.2 | 任务状态为Inited/Scheduled/Running等未完成状态时，返回提示"任务尚未完成，无法诊断" |
 | R1.3 | 任务状态为Succeed时，返回提示"任务执行成功，无需诊断" |
-| R1.4 | 功能开关 `linkis.task.classified-diagnosis.enable` 关闭时，返回提示"分类诊断功能未开启" |
+| R1.4 | 功能开关 `linkis.task.classified.diagnosis.enable` 关闭时，返回提示"分类诊断功能未开启" |
 | R1.5 | 诊断过程发生异常时，降级返回errorCode和errorDesc原始信息，标记diagnosisType为"ERROR" |
 
 **验收标准（三段式）**
@@ -403,7 +403,7 @@ GET /api/rest_j/v1/jobhistory/task-diagnosis?taskID={id}
 
 | 配置项 | 类型 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `linkis.task.classified-diagnosis.enable` | Boolean | false | 功能总开关 |
+| `linkis.task.classified.diagnosis.enable` | Boolean | false | 功能总开关 |
 | `linkis.task.classified-diagnosis.linkis.error-codes` | String | "20039,12003,40102,40103,40100,40105,20010,20011,20052" | 归为Linkis问题的errorCode列表（逗号分隔） |
 | `linkis.task.classified-diagnosis.engine.error-code-range-start` | Int | 26000 | 引擎插件errorCode范围起始值 |
 | `linkis.task.classified-diagnosis.engine.error-code-range-end` | Int | 29999 | 引擎插件errorCode范围结束值 |
@@ -553,7 +553,7 @@ GET /api/rest_j/v1/jobhistory/task-diagnosis?taskID={id}
 
 ### 10.2 回滚步骤
 
-1. 将 `linkis.task.classified-diagnosis.enable` 设置为 `false`（支持热加载，无需重启）
+1. 将 `linkis.task.classified.diagnosis.enable` 设置为 `false`（支持热加载，无需重启）
 2. 如需完全回滚代码：移除TaskDiagnosisService相关类和QueryRestfulApi中新增的方法
 3. 重新构建并部署linkis-jobhistory服务
 

@@ -22,7 +22,7 @@ import org.apache.linkis.common.conf.CommonVars
 object TaskDiagnosisConfiguration {
 
   val TASK_CLASSIFIED_DIAGNOSIS_ENABLE: CommonVars[Boolean] =
-    CommonVars("linkis.task.classified-diagnosis.enable", false)
+    CommonVars("linkis.task.classified.diagnosis.enable", true)
 
   val LINKIS_ERROR_CODES: CommonVars[String] =
     CommonVars(

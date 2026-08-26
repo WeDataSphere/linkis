@@ -640,7 +640,7 @@ metrics JSON
 
 | 配置项 | 类型 | 默认值 | 热加载 | 说明 |
 |--------|------|--------|:------:|------|
-| `linkis.task.classified-diagnosis.enable` | Boolean | false | 是 | 功能总开关 |
+| `linkis.task.classified.diagnosis.enable` | Boolean | false | 是 | 功能总开关 |
 | `linkis.task.classified-diagnosis.linkis.error-codes` | String | "20039,12003,40102,40103,40100,40105,20010,20011,20052" | 是 | Linkis 问题 errorCode 列表 |
 | `linkis.task.classified-diagnosis.engine.error-code-range-start` | Int | 26000 | 是 | 引擎插件 errorCode 范围起始 |
 | `linkis.task.classified-diagnosis.engine.error-code-range-end` | Int | 29999 | 是 | 引擎插件 errorCode 范围结束 |
@@ -770,7 +770,7 @@ object TaskDiagnosisConfiguration {
 
   // 功能总开关，默认关闭
   val TASK_CLASSIFIED_DIAGNOSIS_ENABLE =
-    CommonVars("linkis.task.classified-diagnosis.enable", false)
+    CommonVars("linkis.task.classified.diagnosis.enable", false)
 
   // 归为 Linkis 问题的 errorCode 列表
   val LINKIS_ERROR_CODES = CommonVars(
@@ -1416,7 +1416,7 @@ curl -X GET 'http://gateway:host/api/rest_j/v1/jobhistory/task-diagnosis?taskID=
 ```properties
 # ===== 任务分类诊断配置（REQ-04）=====
 # 功能总开关，默认关闭，开启后生效
-linkis.task.classified-diagnosis.enable=false
+linkis.task.classified.diagnosis.enable=false
 
 # 归为 Linkis 问题的 errorCode 列表（逗号分隔）
 linkis.task.classified-diagnosis.linkis.error-codes=20039,12003,40102,40103,40100,40105,20010,20011,20052
@@ -1464,7 +1464,7 @@ N/A - 本次新增不涉及数据库变更，无需数据迁移。
 
 ### 回滚方案
 
-1. 将 `linkis.task.classified-diagnosis.enable` 设置为 `false`（支持热加载，无需重启）
+1. 将 `linkis.task.classified.diagnosis.enable` 设置为 `false`（支持热加载，无需重启）
 2. 如需完全回滚代码：
    - 移除 QueryRestfulApi 中 `classifyTaskDiagnosis` 方法和 `taskDiagnosisService` 注入
    - 删除 TaskDiagnosisService.java、TaskDiagnosisServiceImpl.java、DiagnosisResult.java、TaskDiagnosisConfiguration.scala
