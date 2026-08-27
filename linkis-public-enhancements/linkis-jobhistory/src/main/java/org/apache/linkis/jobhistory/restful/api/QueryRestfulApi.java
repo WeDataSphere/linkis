@@ -23,10 +23,12 @@ import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.governance.common.entity.job.QueryException;
 import org.apache.linkis.jobhistory.cache.impl.DefaultQueryCacheManager;
 import org.apache.linkis.jobhistory.conf.JobhistoryConfiguration;
+import org.apache.linkis.jobhistory.conf.TaskDiagnosisConfiguration;
 import org.apache.linkis.jobhistory.conversions.TaskConversions;
 import org.apache.linkis.jobhistory.entity.*;
 import org.apache.linkis.jobhistory.service.JobHistoryDiagnosisService;
 import org.apache.linkis.jobhistory.service.JobHistoryQueryService;
+import org.apache.linkis.jobhistory.service.TaskDiagnosisService;
 import org.apache.linkis.jobhistory.transitional.TaskStatus;
 import org.apache.linkis.jobhistory.util.JobhistoryUtils;
 import org.apache.linkis.jobhistory.util.QueryUtils;
@@ -79,6 +81,7 @@ public class QueryRestfulApi {
 
   @Autowired private DefaultQueryCacheManager queryCacheManager;
   @Autowired private JobHistoryDiagnosisService jobHistoryDiagnosisService;
+  @Autowired private TaskDiagnosisService taskDiagnosisService;
 
   @ApiOperation(
       value = "governanceStationAdmin",
@@ -872,5 +875,34 @@ public class QueryRestfulApi {
       }
     }
     return Message.ok().data("diagnosisMsg", diagnosisMsg);
+  }
+
+  @ApiOperation(
+      value = "task-diagnosis",
+      notes = "classify failed task diagnosis type and return detailed info",
+      response = Message.class)
+  @ApiImplicitParams({@ApiImplicitParam(name = "taskID", dataType = "Long", required = true)})
+  @RequestMapping(path = "/task-diagnosis", method = RequestMethod.GET)
+  public Message classifyTaskDiagnosis(
+      HttpServletRequest req, @RequestParam(value = "taskID") Long taskID) {
+    String username = ModuleUserUtils.getOperationUser(req, "task-diagnosis");
+    if (!(Boolean) TaskDiagnosisConfiguration.TASK_CLASSIFIED_DIAGNOSIS_ENABLE().getHotValue()) {
+      return Message.ok().data("diagnosisType", "DISABLED").data("message", "分类诊断功能未开启");
+    }
+    DiagnosisResult result;
+    try {
+      result = taskDiagnosisService.classify(taskID, username);
+    } catch (Exception t) {
+      log.warn("Failed to classify task diagnosis for taskID: {}", taskID, t);
+      DiagnosisResult errorResult = new DiagnosisResult();
+      errorResult.setTaskID(taskID);
+      errorResult.setDiagnosisType("ERROR");
+      errorResult.setErrorDesc("诊断过程发生异常: " + t.getMessage());
+      result = errorResult;
+    }
+    if (result == null) {
+      return Message.error("任务不存在");
+    }
+    return Message.ok().data("result", result);
   }
 }
