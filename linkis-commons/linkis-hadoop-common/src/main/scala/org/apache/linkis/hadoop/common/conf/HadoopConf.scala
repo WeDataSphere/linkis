@@ -88,6 +88,16 @@ object HadoopConf {
    * cached entry is removed and a new FileSystem with fresh TGT is created.
    */
   val HDFS_TGT_PROACTIVE_CHECK_ENABLE =
-    CommonVars("linkis.hadoop.hdfs.tgt.proactive.check.enable", false)
+    CommonVars("linkis.hadoop.hdfs.tgt.proactive.check.enable", true)
+
+  /**
+   * 引擎TGT懒刷新公共开关。 开启后，Hive/JDBC/HBase引擎在执行任务前检查TGT有效性，过期则自动刷新。
+   *   - Hive: executeLine前检查持有的UGI对象TGT，过期则重新获取UGI
+   *   - JDBC: getConnection前检查JVM全局loginUser的TGT，过期则重新login
+   *   - HBase: getConnection前检查JVM全局loginUser的TGT，过期则重新login 适用场景：开启Kerberos认证且未开启HDFS缓存的长时间运行引擎。
+   *     默认关闭，需显式开启。
+   */
+  val ENGINE_TGT_REFRESH_ENABLE =
+    CommonVars[java.lang.Boolean]("linkis.engineconn.tgt.refresh.enable", false).getValue
 
 }

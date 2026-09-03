@@ -19,6 +19,8 @@ package org.apache.linkis.manager.engineplugin.jdbc;
 
 import org.apache.linkis.common.utils.AESUtils;
 import org.apache.linkis.common.utils.SecurityUtils;
+import org.apache.linkis.hadoop.common.conf.HadoopConf;
+import org.apache.linkis.hadoop.common.utils.KerberosTgtUtils;
 import org.apache.linkis.hadoop.common.utils.KerberosUtils;
 import org.apache.linkis.manager.engineplugin.jdbc.conf.JDBCConfiguration;
 import org.apache.linkis.manager.engineplugin.jdbc.constant.JDBCEngineConnConstant;
@@ -322,6 +324,10 @@ public class ConnectionManager {
                 properties, JDBCEngineConnConstant.JDBC_KERBEROS_AUTH_TYPE_PRINCIPAL, "");
         KerberosUtils.createKerberosSecureConfiguration(keytab, principal);
         LOG.debug("createKerberosSecureConfiguration() returned");
+        // TGT懒刷新：开关开启时检查JVM全局loginUser的TGT有效性，过期则重新login
+        if (HadoopConf.ENGINE_TGT_REFRESH_ENABLE()) {
+          KerberosTgtUtils.refreshLoginUserTgtIfNeeded();
+        }
         boolean isProxyEnabled =
             JDBCPropertiesParser.getBool(
                 properties, JDBCEngineConnConstant.JDBC_KERBEROS_AUTH_PROXY_ENABLE, true);
