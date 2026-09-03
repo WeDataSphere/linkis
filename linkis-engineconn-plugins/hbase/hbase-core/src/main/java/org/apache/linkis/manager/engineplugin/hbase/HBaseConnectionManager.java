@@ -19,6 +19,7 @@ package org.apache.linkis.manager.engineplugin.hbase;
 
 import org.apache.linkis.common.utils.Utils;
 import org.apache.linkis.hadoop.common.conf.HadoopConf;
+import org.apache.linkis.hadoop.common.utils.KerberosTgtUtils;
 import org.apache.linkis.manager.engineplugin.hbase.errorcode.HBaseErrorCodeSummary;
 import org.apache.linkis.manager.engineplugin.hbase.exception.HBaseParamsIllegalException;
 import org.apache.linkis.manager.engineplugin.hbase.exception.JobExecutorException;
@@ -113,6 +114,10 @@ public class HBaseConnectionManager {
       lock.lock();
       if (isKerberosAuthType(configuration) && kerberosEnvInit.compareAndSet(false, true)) {
         doKerberosLogin(configuration);
+      }
+      // TGT懒刷新：开关开启时检查JVM全局loginUser的TGT有效性，过期则重新login
+      if (isKerberosAuthType(configuration) && HadoopConf.ENGINE_TGT_REFRESH_ENABLE()) {
+        KerberosTgtUtils.refreshLoginUserTgtIfNeeded();
       }
       Connection connection;
       String proxyUser = getKerberosProxyUser(configuration);

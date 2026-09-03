@@ -1,0 +1,240 @@
+{
+  "root": {
+    "data": {"text": "BDP_Linkis"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：000001"},
+        "children": [{
+          "data": {"text": "引擎复用TGT过期修复测试"},
+          "children": [{
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】复现Bug-Hive引擎运行超过TGT有效期后复用失败"},
+              "children": [
+                {"data": {"text": "条件：Kerberos认证已开启，HDFS缓存已关闭，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、启动Hive引擎并执行SQL\n2、等待引擎UGI的TGT过期\n3、复用该引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出Kerberos认证异常，错误信息包含TGT或Kerberos，任务状态为失败"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】复现Bug-JDBC引擎运行超过TGT有效期后连接失败"},
+              "children": [
+                {"data": {"text": "条件：Kerberos认证已开启，HDFS缓存已关闭，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、启动JDBC引擎并执行SQL\n2、等待JVM全局loginUser的TGT过期\n3、复用该引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出Kerberos认证异常，任务状态为失败"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】复现Bug-HBase引擎运行超过TGT有效期后连接失败"},
+              "children": [
+                {"data": {"text": "条件：Kerberos认证已开启，HDFS缓存已关闭，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、启动HBase引擎并执行SQL\n2、等待JVM全局loginUser的TGT过期\n3、复用该引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出Kerberos认证异常，任务状态为失败"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-公共开关关闭时行为与修复前一致"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=false，Hive引擎已启动，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=false\n2、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：行为与修复前完全一致，不触发UGI刷新逻辑，使用原始UGI执行doAs"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-公共开关打开且TGT有效时正常执行"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT仍然有效"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=true\n2、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，不触发UGI刷新，不出现Kerberos认证异常"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-Hive引擎TGT过期时自动刷新UGI"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=true\n2、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统检测到TGT已过期，调用KerberosTgtUtils.refreshUgiIfNeeded获取新UGI，使用新UGI执行doAs，SQL正常执行，日志记录UGI刷新事件，失败计数器重置为0"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-JDBC引擎TGT过期时自动刷新loginUser"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，JDBC引擎已启动，loginUser的TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=true\n2、复用JDBC引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统调用KerberosTgtUtils.refreshLoginUserTgtIfNeeded，loginUser的TGT被刷新，SQL正常执行，失败计数器重置为0"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-HBase引擎TGT过期时自动刷新loginUser"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，HBase引擎已启动，loginUser的TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=true\n2、复用HBase引擎执行新的操作"}, "children": []},
+                {"data": {"text": "预期结果：系统调用KerberosTgtUtils.refreshLoginUserTgtIfNeeded，loginUser的TGT被刷新，操作正常执行，失败计数器重置为0"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-刷新成功后失败计数器重置为0"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，UGI刷新失败计数器为2，TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认ugiRefreshFailCount=2\n2、Mock HDFSUtils.getUserGroupInformation返回新UGI\n3、复用引擎执行SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，失败计数器重置为0，后续失败从0重新计数"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-非Kerberos场景下引擎复用正常"},
+              "children": [
+                {"data": {"text": "条件：Kerberos认证未开启，linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认Kerberos未开启\n2、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，isTgtValid返回true，不触发UGI刷新"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-Kerberos开启HDFS缓存的场景不受影响"},
+              "children": [
+                {"data": {"text": "条件：Kerberos认证已开启，HDFS缓存已开启，linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认HDFS缓存已开启\n2、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，行为与修复前一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-引擎首次启动执行SQL正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎刚启动"}, "children": []},
+                {"data": {"text": "步骤：\n1、引擎启动后立即执行第一条SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，不出现任何异常"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-引擎复用TGT未过期时SQL正常执行"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT仍然有效"}, "children": []},
+                {"data": {"text": "步骤：\n1、复用Hive引擎执行新的SQL"}, "children": []},
+                {"data": {"text": "预期结果：SQL正常执行，不触发UGI刷新，行为与开关关闭时一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-普通Hive SQL执行正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT有效"}, "children": []},
+                {"data": {"text": "步骤：\n1、执行DDL语句CREATE TABLE\n2、执行DML语句INSERT INTO\n3、执行查询SELECT"}, "children": []},
+                {"data": {"text": "预期结果：DDL执行成功，DML执行成功，查询返回正确结果，不触发TGT刷新"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-JDBC引擎各种数据库连接正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，JDBC引擎已启动，TGT有效（非Kerberos场景）"}, "children": []},
+                {"data": {"text": "步骤：\n1、使用JDBC引擎连接MySQL数据库\n2、执行SELECT查询\n3、验证连接和查询结果"}, "children": []},
+                {"data": {"text": "预期结果：数据库连接正常，SQL查询成功，不触发TGT检查"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】回归-HBase引擎连接正常"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，HBase引擎已启动，TGT有效"}, "children": []},
+                {"data": {"text": "步骤：\n1、使用HBase引擎连接HBase集群\n2、执行简单的Scan操作\n3、验证连接和操作结果"}, "children": []},
+                {"data": {"text": "预期结果：HBase连接正常，Scan操作返回结果，不触发TGT刷新"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：参数配置"},
+            "children": [{
+              "data": {"text": "【AIGC】参数化测试-不同TGT状态的引擎复用场景"},
+              "children": [
+                {"data": {"text": "条件：开关=false且TGT=valid；开关=false且TGT=expired；开关=true且TGT=valid；开关=true且TGT=expired"}, "children": []},
+                {"data": {"text": "步骤：\n1、按照参数设置开关值和TGT状态\n2、复用引擎执行SQL\n3、验证执行结果和刷新行为\n\n参数组合：\n组合1: switch=false, tgt=valid -> 成功, 不刷新\n组合2: switch=false, tgt=expired -> 失败, 不刷新\n组合3: switch=true, tgt=valid -> 成功, 不刷新\n组合4: switch=true, tgt=expired -> 成功, 刷新UGI"}, "children": []},
+                {"data": {"text": "预期结果：执行结果和刷新行为与参数表一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-Hive非Kerberos认证时不触发TGT检查"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，HBase引擎已启动，isKerberosAuthType=false"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认isKerberosAuthType返回false\n2、复用HBase引擎执行操作"}, "children": []},
+                {"data": {"text": "预期结果：不调用refreshLoginUserTgtIfNeeded，正常创建连接并执行操作"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：性能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】TGT检查性能开销可忽略"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动"}, "children": []},
+                {"data": {"text": "步骤：\n1、连续执行100条SQL\n2、记录每条SQL执行前TGT检查的耗时\n3、计算平均耗时"}, "children": []},
+                {"data": {"text": "预期结果：每条SQL的TGT检查耗时小于1毫秒，整体执行性能无明显下降"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】修复后-Hive UGI刷新前2次失败时降级使用原UGI"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT已过期，HDFSUtils.getUserGroupInformation抛出异常"}, "children": []},
+                {"data": {"text": "步骤：\n1、Mock HDFSUtils.getUserGroupInformation抛出异常\n2、第1次复用引擎执行SQL（failCount=1）\n3、第2次复用引擎执行SQL（failCount=2）"}, "children": []},
+                {"data": {"text": "预期结果：系统捕获UGI刷新异常，使用原始UGI执行doAs，日志记录warn级别刷新失败信息，计数器为1或2，不抛出未捕获异常"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-Hive UGI连续3次刷新失败时抛异常报错"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive引擎已启动，TGT已过期，ugiRefreshFailCount=2，HDFSUtils.getUserGroupInformation抛出异常"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认ugiRefreshFailCount=2\n2、Mock HDFSUtils.getUserGroupInformation抛出异常\n3、复用引擎执行SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出RuntimeException，异常信息包含3 times和aborting，任务状态为失败，ugiRefreshFailCount=3"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-loginUser连续3次刷新失败时抛异常报错"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，JDBC引擎已启动，loginUser的TGT已过期，loginUserRefreshFailCount=2，checkTGTAndReloginFromKeytab后TGT仍过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认loginUserRefreshFailCount=2\n2、Mock checkTGTAndReloginFromKeytab后TGT仍然无效\n3、复用JDBC引擎执行SQL"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出RuntimeException，异常信息包含3 times，任务状态为失败，loginUserRefreshFailCount=3"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-JDBC loginUser前2次刷新失败时降级"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，JDBC引擎已启动，loginUser的TGT已过期，checkTGTAndReloginFromKeytab抛出异常"}, "children": []},
+                {"data": {"text": "步骤：\n1、Mock checkTGTAndReloginFromKeytab抛出异常\n2、第1次复用JDBC引擎执行SQL（failCount=1）\n3、第2次复用JDBC引擎执行SQL（failCount=2）"}, "children": []},
+                {"data": {"text": "预期结果：系统捕获刷新异常，不抛出未捕获异常，日志记录warn级别刷新失败信息，计数器分别为1和2"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-JDBC开关关闭时不触发TGT检查"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=false，JDBC引擎已启动，loginUser的TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=false\n2、复用JDBC引擎执行SQL"}, "children": []},
+                {"data": {"text": "预期结果：不调用refreshLoginUserTgtIfNeeded，行为与修复前完全一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-HBase开关关闭时不触发TGT检查"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=false，HBase引擎已启动，isKerberosAuthType=true，loginUser的TGT已过期"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认配置linkis.engineconn.tgt.refresh.enable=false\n2、复用HBase引擎执行操作"}, "children": []},
+                {"data": {"text": "预期结果：不调用refreshLoginUserTgtIfNeeded，行为与修复前完全一致"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-HBase loginUser连续3次刷新失败时抛异常报错"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，HBase引擎已启动，loginUser的TGT已过期，loginUserRefreshFailCount=2"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认loginUserRefreshFailCount=2\n2、Mock checkTGTAndReloginFromKeytab后TGT仍然无效\n3、复用HBase引擎执行操作"}, "children": []},
+                {"data": {"text": "预期结果：系统抛出RuntimeException，异常信息包含3 times，任务状态为失败，loginUserRefreshFailCount=3"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-Hive引擎close阶段TGT过期不影响关闭"},
+              "children": [
+                {"data": {"text": "条件：Hive引擎已启动，TGT已过期，引擎即将关闭"}, "children": []},
+                {"data": {"text": "步骤：\n1、触发引擎close操作\n2、验证close过程中的行为"}, "children": []},
+                {"data": {"text": "预期结果：super.close()被Utils.tryQuietly包裹，不因TGT过期抛出未捕获异常，引擎正常关闭"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-Hive并发引擎close阶段TGT过期不影响关闭"},
+              "children": [
+                {"data": {"text": "条件：Hive并发引擎已启动，TGT已过期，引擎即将关闭"}, "children": []},
+                {"data": {"text": "步骤：\n1、触发并发引擎close操作\n2、验证close过程中的行为"}, "children": []},
+                {"data": {"text": "预期结果：super.close()被Utils.tryQuietly包裹，backgroundOperationPool正常shutdown，不抛出未捕获异常"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：性能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】修复后-并发模式下UGI刷新线程安全"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive并发引擎已启动，TGT已过期，backgroundOperationPool有多个工作线程"}, "children": []},
+                {"data": {"text": "步骤：\n1、启动多个线程同时调用executeLine\n2、Thread-1首先进入synchronized块执行UGI刷新\n3、Thread-2和Thread-3等待锁\n4、Thread-1完成刷新后释放锁\n5、Thread-2和Thread-3依次获取锁检查TGT已有效不重复刷新\n6、验证所有线程执行结果"}, "children": []},
+                {"data": {"text": "预期结果：UGI刷新线程安全，无竞态条件，所有线程使用刷新后的同一新UGI，所有SQL正常执行，synchronized同步锁保护UGI刷新，volatile保证UGI引用可见性，只有一次实际UGI刷新发生"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】修复后-并发模式下TGT有效时不触发刷新"},
+              "children": [
+                {"data": {"text": "条件：linkis.engineconn.tgt.refresh.enable=true，Hive并发引擎已启动，TGT仍然有效"}, "children": []},
+                {"data": {"text": "步骤：\n1、启动多个线程同时调用executeLine\n2、验证各线程的TGT检查行为"}, "children": []},
+                {"data": {"text": "预期结果：每个线程isTgtValid都返回true，不触发UGI刷新，所有线程直接使用原UGI执行doAs，synchronized块快速通过"}, "children": []}
+              ]
+            }]
+          }]
+        }]
+      }]
+    }]
+  }
+}

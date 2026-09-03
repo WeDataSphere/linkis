@@ -41,6 +41,7 @@ import org.apache.linkis.governance.common.constant.job.JobRequestConstants
 import org.apache.linkis.governance.common.paser.SQLCodeParser
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.hadoop.common.conf.HadoopConf
+import org.apache.linkis.hadoop.common.utils.KerberosTgtUtils
 import org.apache.linkis.manager.common.entity.resource.{CommonNodeResource, NodeResource}
 import org.apache.linkis.manager.common.protocol.resource.ResourceWithStatus
 import org.apache.linkis.manager.engineplugin.common.util.NodeResourceUtils
@@ -89,7 +90,7 @@ import org.slf4j.LoggerFactory
 class HiveEngineConnExecutor(
     id: Int,
     sessionState: SessionState,
-    ugi: UserGroupInformation,
+    private var ugi: UserGroupInformation,
     hiveConf: HiveConf,
     baos: ByteArrayOutputStream = null
 ) extends ComputationExecutor
@@ -219,6 +220,16 @@ class HiveEngineConnExecutor(
     val proc = CommandProcessorFactory.get(tokens, hiveConf)
     this.proc = proc
     LOG.debug("ugi is " + ugi.getUserName)
+
+    // TGT懒刷新：开关开启时检查TGT有效性，过期则重新获取UGI
+    // 工具方法内部前2次失败降级用原UGI，连续3次失败抛异常报错
+    if (HadoopConf.ENGINE_TGT_REFRESH_ENABLE) {
+      val refreshedUgi = KerberosTgtUtils.refreshUgiIfNeeded(ugi, Utils.getJvmUser)
+      if (refreshedUgi != ugi) {
+        ugi = refreshedUgi
+      }
+    }
+
     Utils.tryFinally {
       ugi.doAs(new PrivilegedExceptionAction[ExecuteResponse]() {
         override def run(): ExecuteResponse = {
@@ -509,7 +520,9 @@ class HiveEngineConnExecutor(
   override def close(): Unit = {
     singleSqlProgressMap.clear()
     Utils.tryAndWarnMsg(sessionState.close())("close session failed")
-    super.close()
+    Utils.tryQuietly {
+      super.close()
+    }
   }
 
   override def FetchResource: util.HashMap[String, ResourceWithStatus] = {
