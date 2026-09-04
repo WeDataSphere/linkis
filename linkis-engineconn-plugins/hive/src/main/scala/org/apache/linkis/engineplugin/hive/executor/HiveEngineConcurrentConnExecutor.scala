@@ -36,6 +36,7 @@ import org.apache.linkis.engineplugin.hive.exception.HiveQueryFailedException
 import org.apache.linkis.governance.common.paser.SQLCodeParser
 import org.apache.linkis.governance.common.utils.JobUtils
 import org.apache.linkis.hadoop.common.conf.HadoopConf
+import org.apache.linkis.hadoop.common.utils.KerberosTgtUtils
 import org.apache.linkis.manager.common.entity.resource.{
   CommonNodeResource,
   LoadInstanceResource,
@@ -91,7 +92,7 @@ import org.slf4j.LoggerFactory
 class HiveEngineConcurrentConnExecutor(
     id: Int,
     sessionState: SessionState,
-    ugi: UserGroupInformation,
+    @volatile private var ugi: UserGroupInformation,
     hiveConf: HiveConf,
     baos: ByteArrayOutputStream = null
 ) extends ConcurrentComputationExecutor
@@ -180,6 +181,22 @@ class HiveEngineConcurrentConnExecutor(
 
         val proc = CommandProcessorFactory.get(tokens, hiveConf)
         LOG.debug("ugi is " + ugi.getUserName)
+
+        // TGT懒刷新：开关开启时检查TGT有效性，过期则重新获取UGI（含同步锁保护）
+        // 工具方法内部前2次失败降级用原UGI，连续3次失败抛异常报错
+        if (HadoopConf.ENGINE_TGT_REFRESH_ENABLE) {
+          if (!KerberosTgtUtils.isTgtValid(ugi)) {
+            logger.info("TGT expired, refreshing UGI for HiveEngineConcurrentConnExecutor")
+            synchronized {
+              // double-check：防止多线程同时刷新
+              val refreshedUgi = KerberosTgtUtils.refreshUgiIfNeeded(ugi, Utils.getJvmUser)
+              if (refreshedUgi != ugi) {
+                ugi = refreshedUgi
+              }
+            }
+          }
+        }
+
         ugi.doAs(new PrivilegedExceptionAction[ExecuteResponse]() {
           override def run(): ExecuteResponse = {
             proc match {
@@ -457,7 +474,9 @@ class HiveEngineConcurrentConnExecutor(
       }
       backgroundOperationPool = null
     }
-    super.close()
+    Utils.tryQuietly {
+      super.close()
+    }
   }
 
   override def FetchResource: util.HashMap[String, ResourceWithStatus] = {
