@@ -130,11 +130,6 @@ abstract class JavaProcessEngineConnLaunchBuilder
     if (!enablePublicModule) {
       addPathToClassPath(environment, buildPath(Seq(LINKIS_PUBLIC_MODULE_PATH.getValue + "/*")))
     }
-    // then, add BES path if configured.
-    val besPath = EnvConfiguration.ENGINE_CONN_BES_PATH.getValue
-    if (StringUtils.isNotBlank(besPath)) {
-      addPathToClassPath(environment, besPath + "/*")
-    }
     // finally, add the suitable properties key to classpath
     val taskClassPathFiles = EnvConfiguration.ENGINE_CONN_CLASSPATH_FILES.getValue(
       engineConnBuildRequest.engineConnCreationDesc.properties
