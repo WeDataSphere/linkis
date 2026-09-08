@@ -86,4 +86,10 @@ object EnvConfiguration {
   )
 
   val LINKIS_CONF_DIR = CommonVars("LINKIS_CONF_DIR", Configuration.getLinkisHome() + "/conf")
+
+  val ENGINE_CONN_BES_PATH = CommonVars(
+    "linkis.engineconn.bes.path",
+    System.getenv("BES_PATH"),
+    "BES application server path for engineconn, auto-read from BES_PATH env var"
+  )
 }
