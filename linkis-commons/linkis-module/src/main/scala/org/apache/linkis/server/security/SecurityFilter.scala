@@ -51,8 +51,11 @@ class SecurityFilter extends Filter {
   private def filterResponse(message: Message)(implicit response: HttpServletResponse): Unit = {
     response.setHeader("Content-Type", "application/json;charset=UTF-8")
     response.setStatus(Message.messageToHttpStatus(message))
-    response.getOutputStream.print(message)
-    response.getOutputStream.flush()
+    // Use getWriter (respects response charset) instead of getOutputStream.print
+    // which uses ISO 8859-1 per the Servlet spec and fails on non-Latin characters.
+    val json: String = message
+    response.getWriter.write(json)
+    response.getWriter.flush()
   }
 
   def doFilter(request: HttpServletRequest)(implicit response: HttpServletResponse): Boolean = {

@@ -22,7 +22,6 @@ import org.apache.linkis.common.conf.BDPConfiguration;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.exception.LinkisException;
 import org.apache.linkis.common.utils.Utils;
-import org.apache.linkis.server.BDPJettyServerHelper;
 import org.apache.linkis.server.conf.ServerConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -32,9 +31,6 @@ import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
-import org.springframework.boot.web.embedded.jetty.JettyServerCustomizer;
-import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
-import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
@@ -49,19 +45,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.env.StandardEnvironment;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.web.filter.CharacterEncodingFilter;
-
-import javax.servlet.DispatcherType;
-
-import java.util.EnumSet;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -201,36 +188,5 @@ public class DataWorkCloudApplication extends SpringBootServletInitializer {
             .registerModule(new JavaTimeModule())
             .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, true);
     return objectMapper;
-  }
-
-  @Bean
-  public WebServerFactoryCustomizer<JettyServletWebServerFactory> jettyFactoryCustomizer() {
-    return new WebServerFactoryCustomizer<JettyServletWebServerFactory>() {
-      @Override
-      public void customize(JettyServletWebServerFactory jettyServletWebServerFactory) {
-        jettyServletWebServerFactory.addServerCustomizers(
-            new JettyServerCustomizer() {
-              @Override
-              public void customize(Server server) {
-                Handler[] childHandlersByClass =
-                    server.getChildHandlersByClass(WebAppContext.class);
-                final WebAppContext webApp = (WebAppContext) childHandlersByClass[0];
-                FilterHolder filterHolder = new FilterHolder(CharacterEncodingFilter.class);
-                filterHolder.setInitParameter("encoding", Configuration.BDP_ENCODING().getValue());
-                filterHolder.setInitParameter("forceEncoding", "true");
-                webApp.addFilter(filterHolder, "/*", EnumSet.allOf(DispatcherType.class));
-
-                // set servletHolder  for spring restful api
-                BDPJettyServerHelper.setupSpringRestApiContextHandler(webApp);
-                if (ServerConfiguration.BDP_SERVER_SOCKET_MODE().getValue()) {
-                  BDPJettyServerHelper.setupControllerServer(webApp);
-                }
-                if (!ServerConfiguration.BDP_SERVER_DISTINCT_MODE().getValue()) {
-                  BDPJettyServerHelper.setupWebAppContext(webApp);
-                }
-              }
-            });
-      }
-    };
   }
 }
