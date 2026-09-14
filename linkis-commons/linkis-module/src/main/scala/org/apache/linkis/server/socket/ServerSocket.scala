@@ -22,16 +22,15 @@ import org.apache.linkis.common.utils.Utils
 import org.apache.linkis.server.security.SecurityFilter
 
 import javax.servlet.http.HttpServletRequest
+import javax.websocket.Session
 
 import java.util.concurrent.TimeUnit
-
-import org.eclipse.jetty.websocket.api.{Session, WebSocketAdapter}
 
 case class ServerSocket(
     request: HttpServletRequest,
     socketListener: SocketListener,
     protocol: String = ""
-) extends WebSocketAdapter {
+) {
   private var session: Session = _
   private[socket] var id: Int = _
   val createTime = System.currentTimeMillis
@@ -46,7 +45,7 @@ case class ServerSocket(
       override def run(): Unit = {
         var message = cacheMessages.poll()
         while (message.isDefined) {
-          message.foreach(session.getRemote.sendString)
+          message.foreach(m => session.getBasicRemote.sendText(m))
           message = cacheMessages.poll()
         }
       }
@@ -57,15 +56,9 @@ case class ServerSocket(
     TimeUnit.MILLISECONDS
   )
 
-  override def onWebSocketClose(statusCode: Int, reason: String): Unit =
-    socketListener.onClose(this, statusCode, reason)
-
-  override def onWebSocketConnect(sess: Session): Unit = {
-    session = sess
-    socketListener.onOpen(this)
+  def setSession(s: Session): Unit = {
+    session = s
   }
-
-  override def onWebSocketText(message: String): Unit = socketListener.onMessage(this, message)
 
   def sendMessage(message: String): Unit = {
     cacheMessages.put(message)
