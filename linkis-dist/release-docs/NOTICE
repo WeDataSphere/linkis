@@ -1503,7 +1503,7 @@ The project maintains the following source code repositories:
 
 This project leverages the following third party content.
 
-JUnit (4.12)
+JUnit (4.13.2)
 
 * License: Eclipse Public License
 
@@ -1758,11 +1758,11 @@ file-management (3.0.0)
 * Source:
    https://svn.apache.org/viewvc/maven/shared/tags/file-management-3.0.0/
 
-JUnit (4.12)
+JUnit (4.13.2)
 
 * License: Eclipse Public License
 
-JUnit (4.12)
+JUnit (4.13.2)
 
 * License: Eclipse Public License
 
