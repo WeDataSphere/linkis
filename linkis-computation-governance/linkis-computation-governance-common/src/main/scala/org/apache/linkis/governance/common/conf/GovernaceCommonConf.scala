@@ -28,7 +28,7 @@ object GovernanceCommonConf {
 
   val SPARK_ENGINE_VERSION = CommonVars("wds.linkis.spark.engine.version", "2.4.3")
 
-  val HIVE_ENGINE_VERSION = CommonVars("wds.linkis.hive.engine.version", "1.2.1")
+  val HIVE_ENGINE_VERSION = CommonVars("wds.linkis.hive.engine.version", "2.3.3")
 
   val PYTHON_ENGINE_VERSION = CommonVars("wds.linkis.python.engine.version", "python2")
 
