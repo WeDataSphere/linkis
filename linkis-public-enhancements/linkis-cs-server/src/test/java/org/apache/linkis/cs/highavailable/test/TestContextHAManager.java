@@ -28,7 +28,6 @@ import org.apache.linkis.cs.common.exception.CSErrorException;
 import org.apache.linkis.cs.highavailable.AbstractContextHAManager;
 import org.apache.linkis.cs.highavailable.test.haid.TestHAID;
 import org.apache.linkis.cs.highavailable.test.persist.TestPersistence;
-import org.apache.linkis.server.BDPJettyServerHelper;
 import org.apache.linkis.server.conf.ServerConfiguration;
 
 import org.apache.commons.lang3.StringUtils;
@@ -178,14 +177,10 @@ public class TestContextHAManager extends SpringBootServletInitializer {
                 filterHolder.setInitParameter("encoding", Configuration.BDP_ENCODING().getValue());
                 filterHolder.setInitParameter("forceEncoding", "true");
                 webApp.addFilter(filterHolder, "/*", EnumSet.allOf(DispatcherType.class));
-                // BDPJettyServerHelper.setupRestApiContextHandler(webApp);
-                BDPJettyServerHelper.setupSpringRestApiContextHandler(webApp);
-                if (ServerConfiguration.BDP_SERVER_SOCKET_MODE().getValue()) {
-                  BDPJettyServerHelper.setupControllerServer(webApp);
-                }
-                if (!ServerConfiguration.BDP_SERVER_DISTINCT_MODE().getValue()) {
-                  BDPJettyServerHelper.setupWebAppContext(webApp);
-                }
+                // Jetty context/controller/webapp setup is now auto-configured by
+                // JettyServerCustomizerConfiguration (conditional on Jetty classpath).
+                // The former BDPJettyServerHelper.setupSpringRestApiContextHandler /
+                // setupControllerServer / setupWebAppContext methods have been removed.
               }
             });
       }
