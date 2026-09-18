@@ -217,6 +217,16 @@
         ></Page>
       </div>
     </div>
+    <Modal
+      v-model="overdueConfirm.show"
+      :title="$t('message.linkis.datasource.overdueConfirmTitle')"
+    >
+      <p style="text-align: center">{{ $t('message.linkis.datasource.overdueConfirmContent').format(overdueConfirm.name) }}</p>
+      <div slot="footer">
+        <Button type="primary" @click="confirmOverdue">{{ $t('message.linkis.datasource.overdueConfirmOk') }}</Button>
+        <Button @click="overdueConfirm.show = false">{{ $t('message.linkis.datasource.overdueConfirmCancel') }}</Button>
+      </div>
+    </Modal>
   </div>
 </template>
 <script>
@@ -256,6 +266,11 @@ export default {
       loadingForm: false,
       tableLoading: false,
       loadingVersionList: false,
+      overdueConfirm: {
+        show: false,
+        id: null,
+        name: '',
+      },
       page: {
         totalSize: 0,
         pageSize: 10,
@@ -446,7 +461,16 @@ export default {
   },
   methods: {
     overdue(data) {
-      expire(data.id).then(() => {
+      this.overdueConfirm = {
+        show: true,
+        id: data.id,
+        name: data.dataSourceName,
+      }
+    },
+    confirmOverdue() {
+      this.overdueConfirm.show = false
+      expire(this.overdueConfirm.id).then(() => {
+        this.$Message.success(this.$t('message.linkis.datasource.overdueSuccess'))
         this.searchList()
       })
     },
@@ -701,7 +725,7 @@ export default {
           if(this.$refs.datasourceForm.isEncrypt) {
             realFormData.connectParams.isEncrypt = this.$refs.datasourceForm.isEncrypt;
           }
-          
+
           realFormData.createSystem = 'Linkis'
           realFormData.dataSourceTypeId =
             this.currentSourceData.dataSourceTypeId
