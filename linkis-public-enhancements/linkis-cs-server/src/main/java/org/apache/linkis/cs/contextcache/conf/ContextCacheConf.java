@@ -34,4 +34,7 @@ public class ContextCacheConf {
       CommonVars.apply("wds.linkis.cs.cache.read.expire.mills", new TimeType("3h"))
           .getValue()
           .toLong();
+
+  public static final long CACHE_STATS_LOG_INTERVAL_MILLS =
+      CommonVars.apply("wds.linkis.cs.cache.stats.log.interval.mills", 30 * 60 * 1000L).getValue();
 }

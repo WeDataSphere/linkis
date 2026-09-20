@@ -18,6 +18,7 @@
 package org.apache.linkis.cs.contextcache.cache;
 
 import org.apache.linkis.common.listener.Event;
+import org.apache.linkis.common.utils.Utils;
 import org.apache.linkis.cs.common.entity.source.ContextID;
 import org.apache.linkis.cs.common.exception.CSErrorException;
 import org.apache.linkis.cs.contextcache.cache.csid.ContextIDValue;
@@ -41,10 +42,12 @@ import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheStats;
 import com.google.common.cache.RemovalListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,6 +80,38 @@ public class DefaultContextCache implements ContextCache, CSIDListener {
             .removalListener(contextIDRemoveListener)
             .recordStats()
             .build();
+    scheduleStatsLog();
+  }
+
+  private void scheduleStatsLog() {
+    try {
+      long intervalMills = ContextCacheConf.CACHE_STATS_LOG_INTERVAL_MILLS;
+      if (intervalMills <= 0) {
+        return;
+      }
+      Utils.defaultScheduler()
+          .scheduleAtFixedRate(
+              this::printCacheStats, intervalMills, intervalMills, TimeUnit.MILLISECONDS);
+      logger.info("ContextID cache stats log is scheduled, interval mills:{}", intervalMills);
+    } catch (Throwable t) {
+      logger.warn("Failed to schedule ContextID cache stats log", t);
+    }
+  }
+
+  private void printCacheStats() {
+    try {
+      CacheStats stats = cache.stats();
+      logger.info(
+          "ContextID cache stats, size:{}, requestCount:{}, hitCount:{}, missCount:{}, hitRate:{}, evictionCount:{}",
+          cache.size(),
+          stats.requestCount(),
+          stats.hitCount(),
+          stats.missCount(),
+          stats.hitRate(),
+          stats.evictionCount());
+    } catch (Throwable t) {
+      logger.warn("Failed to print ContextID cache stats", t);
+    }
   }
 
   @Override
@@ -87,6 +122,7 @@ public class DefaultContextCache implements ContextCache, CSIDListener {
     try {
       ContextIDValue contextIDValue = cache.getIfPresent(contextID.getContextId());
       if (contextIDValue == null) {
+        logger.warn("ContextID({}) is not in cache, will load from db", contextID.getContextId());
         contextIDValue = contextIDValueGenerator.createContextIDValue(contextID);
         put(contextIDValue);
         DefaultContextIDEvent defaultContextIDEvent = new DefaultContextIDEvent();
@@ -102,7 +138,7 @@ public class DefaultContextCache implements ContextCache, CSIDListener {
     } catch (Exception e) {
       String errorMsg =
           String.format("Failed to get contextIDValue of ContextID(%s)", contextID.getContextId());
-      logger.error(errorMsg);
+      logger.error(errorMsg, e);
       throw new CSErrorException(97001, errorMsg, e);
     }
   }
@@ -119,7 +155,12 @@ public class DefaultContextCache implements ContextCache, CSIDListener {
   public void put(ContextIDValue contextIDValue) throws CSErrorException {
 
     if (contextIDValue != null && StringUtils.isNotBlank(contextIDValue.getContextID())) {
-      logger.info("update contextID:{}", contextIDValue.getContextID());
+      boolean isNew = cache.getIfPresent(contextIDValue.getContextID()) == null;
+      if (isNew) {
+        logger.info("Put new ContextID({}) to cache", contextIDValue.getContextID());
+      } else {
+        logger.info("Replace ContextID({}) in cache", contextIDValue.getContextID());
+      }
       cache.put(contextIDValue.getContextID(), contextIDValue);
     }
   }

@@ -96,7 +96,9 @@ public abstract class ContextIDValueGeneratorImpl implements ContextIDValueGener
       throw new CSErrorException(97001, "Failed to get proxy of contextMapPersistence");
     }
 
+    long startTime = System.currentTimeMillis();
     List<ContextKeyValue> contextKeyValueList = contextMapPersistence.getAll(contextID);
+    int keyValueSize = null == contextKeyValueList ? 0 : contextKeyValueList.size();
 
     ContextKeyValueContext contextKeyValueContext = getContextKeyValueContext();
     contextKeyValueContext.setContextID(contextID);
@@ -124,7 +126,11 @@ public abstract class ContextIDValueGeneratorImpl implements ContextIDValueGener
       logger.error("Failed to register listener: ", e);
     }
 
-    logger.info("Finished to createContextIDValue of ContextID({}) ", contextID.getContextId());
+    logger.info(
+        "Finished to createContextIDValue of ContextID({}), keyValue size:{}, cost:{} ms",
+        contextID.getContextId(),
+        keyValueSize,
+        System.currentTimeMillis() - startTime);
     ContextIDValueImpl contextIDValue =
         new ContextIDValueImpl(contextID.getContextId(), contextKeyValueContext);
     listenerBus.addListener(contextIDValue);
