@@ -76,9 +76,20 @@ private[linkis] object BDPServerHelper extends Logging {
   def getSecurityFilterClass(): Class[Filter] =
     Class.forName(BDP_SERVER_SECURITY_FILTER.getValue).asInstanceOf[Class[Filter]]
 
-  def getMultipartConfigElement(): MultipartConfigElement =
-    org.apache.linkis.DataWorkCloudApplication.getApplicationContext
-      .getBean(classOf[MultipartConfigElement])
+  def getMultipartConfigElement(): MultipartConfigElement = {
+    val applicationContext = org.apache.linkis.DataWorkCloudApplication.getApplicationContext
+    if (applicationContext == null) {
+      // Fallback for host applications which are not started via DataWorkCloudApplication.main(),
+      // e.g. Copilot: use servlet default multipart limits instead of failing on NPE.
+      // 兜底：非 DataWorkCloudApplication.main() 启动的宿主应用，退回 Servlet 默认 multipart 限制
+      logger.warn(
+        "DataWorkCloudApplication applicationContext is null, fallback to default MultipartConfigElement."
+      )
+      new MultipartConfigElement("")
+    } else {
+      applicationContext.getBean(classOf[MultipartConfigElement])
+    }
+  }
 
   implicit val gson: Gson = new GsonBuilder()
     .setDateFormat("yyyy-MM-dd'T'HH:mm:ssZ")
