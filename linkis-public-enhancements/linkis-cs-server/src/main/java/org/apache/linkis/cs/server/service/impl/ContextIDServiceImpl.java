@@ -59,7 +59,9 @@ public class ContextIDServiceImpl extends ContextIDService {
   @Override
   public String createContextID(ContextID contextID) throws CSErrorException {
     ContextID res = getPersistence().createContextID(contextID);
-    logger.info(String.format("createContextID,csId:%s", res.getContextId()));
+    logger.info(
+        String.format(
+            "createContextID,csId:%s,csIdType:%s", res.getContextId(), res.getContextIDType()));
     return res.getContextId();
   }
 
@@ -71,7 +73,10 @@ public class ContextIDServiceImpl extends ContextIDService {
 
   @Override
   public void updateContextID(ContextID contextID) throws CSErrorException {
-    logger.info(String.format("updateContextID,csId:%s", contextID.getContextId()));
+    logger.info(
+        String.format(
+            "updateContextID,csId:%s,csIdType:%s",
+            contextID.getContextId(), contextID.getContextIDType()));
     getPersistence().updateContextID(contextID);
   }
 

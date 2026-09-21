@@ -88,19 +88,27 @@ public class ContextServiceImpl extends ContextService {
       return null;
     }
     logger.info(
-        "getContextValue,csId:{},key:{},csType:{},csScope:{}",
+        "getContextValue,csId:{},key:{},csType:{},csScope:{},value:{},keywords:{}",
         contextID.getContextId(),
         contextKey.getKey(),
         contextKey.getContextType(),
-        contextKey.getContextScope());
+        contextKey.getContextScope(),
+        keyValue.getContextValue().getValue(),
+        keyValue.getContextValue().getKeywords());
     return keyValue.getContextValue();
   }
 
   @Override
   public List<ContextKeyValue> searchContextValue(
       ContextID contextID, Map<Object, Object> conditionMap) throws ContextSearchFailedException {
-    logger.info("searchContextValue,csId:{}", contextID.getContextId());
-    return contextSearch.search(contextCacheService, contextID, conditionMap);
+    List<ContextKeyValue> result =
+        contextSearch.search(contextCacheService, contextID, conditionMap);
+    logger.info(
+        "searchContextValue,csId:{},condition:{},resultSize:{}",
+        contextID.getContextId(),
+        conditionMap,
+        result.size());
+    return result;
   }
 
   @Override
@@ -118,9 +126,11 @@ public class ContextServiceImpl extends ContextService {
             "try to create context ,type or scope cannot be empty");
       }
       logger.info(
-          "Create cs key value setValueByKey, csId:{}},key:{}",
+          "Create cs key value setValueByKey, csId:{}},key:{},csType:{},csScope:{}",
           contextID.getContextId(),
-          contextKey.getKey());
+          contextKey.getKey(),
+          contextKey.getContextType(),
+          contextKey.getContextScope());
       keyValue = new PersistenceContextKeyValue();
       keyValue.setContextKey(contextKey);
       keyValue.setContextValue(contextValue);
@@ -138,10 +148,14 @@ public class ContextServiceImpl extends ContextService {
     }
     contextCacheService.put(contextID, keyValue);
     logger.info(
-        "setValueByKey, csId:{},key: {},keywords:{}",
+        "setValueByKey, csId:{},key: {},csType:{},csScope:{},keywords:{},value:{},update: {}",
         contextID.getContextId(),
         contextKey.getKey(),
-        contextValue.getKeywords());
+        contextKey.getContextType(),
+        contextKey.getContextScope(),
+        contextValue.getKeywords(),
+        contextValue.getValue(),
+        keyValue != null);
   }
 
   @Override
@@ -185,9 +199,14 @@ public class ContextServiceImpl extends ContextService {
     // refresh cache
     contextCacheService.put(contextID, contextKeyValue);
     logger.info(
-        "From db and cache  to setValue, csId:{},key:{}",
+        "From db and cache  to setValue, csId:{},key:{},csType:{},csScope:{},keywords:{},value:{},update: {}",
         contextID.getContextId(),
-        contextKeyValue.getContextKey().getKey());
+        contextKeyValue.getContextKey().getKey(),
+        contextKeyValue.getContextKey().getContextType(),
+        contextKeyValue.getContextKey().getContextScope(),
+        contextKeyValue.getContextValue().getKeywords(),
+        contextKeyValue.getContextValue().getValue(),
+        keyValue != null);
   }
 
   @Override
@@ -197,9 +216,11 @@ public class ContextServiceImpl extends ContextService {
     // 2.reset cache
     contextCacheService.rest(contextID, contextKey);
     logger.info(
-        "From db and cache  resetValue, csId:{},key:{}",
+        "From db and cache  resetValue, csId:{},key:{},csType:{},csScope:{}",
         contextID.getContextId(),
-        contextKey.getKey());
+        contextKey.getKey(),
+        contextKey.getContextType(),
+        contextKey.getContextScope());
   }
 
   @Override
@@ -220,16 +241,21 @@ public class ContextServiceImpl extends ContextService {
     // 2.remove cache
     contextCacheService.remove(contextID, contextKey);
     logger.info(
-        "From db and cache removeValue, csId:{},key:{}",
+        "From db and cache removeValue, csId:{},key:{},csType:{},csScope:{}",
         contextID.getContextId(),
-        contextKey.getKey());
+        contextKey.getKey(),
+        contextKey.getContextType(),
+        contextKey.getContextScope());
   }
 
   @Override
   public void removeAllValue(ContextID contextID) throws CSErrorException {
     getPersistence().removeAll(contextID);
     contextCacheService.removeAll(contextID);
-    logger.info("From db and cache removeAllValue, csId:{}", contextID.getContextId());
+    logger.info(
+        "From db and cache removeAllValue, csId:{},csIdType:{}",
+        contextID.getContextId(),
+        contextID.getContextIDType());
   }
 
   @Override
@@ -262,8 +288,9 @@ public class ContextServiceImpl extends ContextService {
     contextCacheService.removeByKeyPrefix(contextID, keyPrefix);
     getPersistence().removeByKeyPrefix(contextID, keyPrefix);
     logger.info(
-        "From db and cache  removeAllValueByKeyPrefix, csId:{},keyPrefix:{}",
+        "From db and cache  removeAllValueByKeyPrefix, csId:{},csIdType:{},keyPrefix:{}",
         contextID.getContextId(),
+        contextID.getContextIDType(),
         keyPrefix);
   }
 
@@ -279,7 +306,7 @@ public class ContextServiceImpl extends ContextService {
         getIDPersistence().deleteContextID(csid);
         num++;
       } catch (Exception e) {
-        logger.warn("clear all for haid : {}", haid, e);
+        logger.warn("clear all for haid : {}, successNum : {}", haid, num, e);
       }
     }
     return num;
@@ -313,7 +340,12 @@ public class ContextServiceImpl extends ContextService {
         getIDPersistence().deleteContextID(csid);
         num++;
       } catch (Exception e) {
-        logger.error("Clear context of id {} failed, {}", id.getContextId(), e.getMessage());
+        logger.error(
+            "Clear context of id {} failed, source : {}, successNum : {}, error : {}",
+            id.getContextId(),
+            id.getSource(),
+            num,
+            e.getMessage());
       }
     }
     return num;
