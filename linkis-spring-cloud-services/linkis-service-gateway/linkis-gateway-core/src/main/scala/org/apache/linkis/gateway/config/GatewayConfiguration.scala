@@ -141,4 +141,26 @@ object GatewayConfiguration {
    */
   val DYNAMIC_TOKEN_PREFIX = "dyn-"
 
+  // ============================================================
+  // AI User Token Downgrade Authentication Configuration
+  // ============================================================
+
+  /**
+   * Switch of AI user token downgrade authentication, default disabled. When enabled, if a
+   * tokenUser ending with the AI user suffix(e.g. zhangsan_ai) fails token authentication, the
+   * gateway will strip the suffix and retry doAuth once with the original user(e.g. zhangsan) using
+   * the same token, so AI users can pass the gateway with the original user's token. The login
+   * identity still keeps the AI tokenUser, only the credential check is downgraded.
+   *
+   * Read via getHotValue so that it can be turned off at runtime without restarting the gateway.
+   */
+  val AI_USER_TOKEN_DOWNGRADE_ENABLE =
+    CommonVars("wds.linkis.gateway.ai.user.token.downgrade.enable", false)
+
+  /**
+   * Suffix of AI proxy users(e.g. zhangsan_ai), configurable to avoid code change when the suffix
+   * needs to be adjusted.
+   */
+  val AI_USER_SUFFIX = CommonVars("wds.linkis.gateway.ai.user.suffix", "_ai")
+
 }
