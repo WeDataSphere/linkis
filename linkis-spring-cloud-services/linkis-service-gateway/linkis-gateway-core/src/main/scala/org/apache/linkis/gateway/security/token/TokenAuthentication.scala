@@ -115,12 +115,29 @@ object TokenAuthentication extends Logging {
     var authMsg: Message = Message.noLogin(
       s"未授权的token$token，无法将请求绑定给tokenUser$tokenUser!"
     ) << gatewayContext.getRequest.getRequestURI
-    val ok: Boolean = Utils.tryCatch(tokenService.doAuth(token, tokenUser, host))(t => {
+    var ok: Boolean = Utils.tryCatch(tokenService.doAuth(token, tokenUser, host))(t => {
       authMsg = Message.noLogin(
         s"Token Authentication Failed, token: $token，tokenUser: $tokenUser, reason: ${t.getMessage}"
       ) << gatewayContext.getRequest.getRequestURI
       false
     })
+    // AI user token downgrade: when a tokenUser with the AI suffix(e.g. zhangsan_ai) fails
+    // token auth, strip the suffix and retry doAuth once with the original user(e.g.
+    // zhangsan) using the same token. Only the credential check is downgraded, the login
+    // identity still keeps the AI tokenUser. Any exception falls back to the original
+    // auth-failure behavior.
+    if (!ok) {
+      Utils.tryCatch {
+        ok = tryAiUserTokenDowngrade(token, tokenUser, host, gatewayContext)
+      } { t =>
+        logger.warn(
+          s"token downgrade: AI user token downgrade failed with exception, fallback to " +
+            s"original auth failure path, tokenUser: $tokenUser, uri: ${gatewayContext.getRequest.getRequestURI}.",
+          t
+        )
+        ok = false
+      }
+    }
     if (ok) {
       logger.info(
         s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
@@ -164,6 +181,89 @@ object TokenAuthentication extends Logging {
       SecurityFilter.filterResponse(gatewayContext, authMsg)
       false
     }
+  }
+
+  /** Max length of the original user stripped from an AI tokenUser. */
+  private val DOWNGRADE_USER_MAX_LENGTH = 64
+
+  /** Illegal chars in a stripped original user: path separators and wildcards. */
+  private val ILLEGAL_DOWNGRADE_USER_CHARS = "\\/:*?\"<>|"
+
+  /**
+   * Try AI user token downgrade authentication.
+   *
+   * Triggered only when all of the following hold: ① the downgrade switch is enabled; ② tokenUser
+   * ends with the configured AI user suffix(e.g. zhangsan_ai); ③ the direct doAuth for the AI user
+   * has just failed, e.g. there is no token record for it. Strip the suffix to get the original
+   * user(e.g. zhangsan), then retry doAuth at most once with the same token, so an AI user can pass
+   * the gateway with the original user's token. The login identity is NOT rewritten: on success the
+   * request still carries the AI tokenUser.
+   *
+   * @param token
+   *   the token carried by the request
+   * @param tokenUser
+   *   the Token-User of the request, e.g. zhangsan_ai
+   * @param host
+   *   the real request ip
+   * @param gatewayContext
+   *   gateway context
+   * @return
+   *   the downgrade retry result: true if the retry succeeds, false when the downgrade is not
+   *   applicable or the retry fails
+   */
+  private[token] def tryAiUserTokenDowngrade(
+      token: String,
+      tokenUser: String,
+      host: String,
+      gatewayContext: GatewayContext
+  ): Boolean = {
+    if (!GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.getHotValue) {
+      return false
+    }
+    val aiSuffix = GatewayConfiguration.AI_USER_SUFFIX.getHotValue
+    if (StringUtils.isBlank(aiSuffix) || !tokenUser.endsWith(aiSuffix)) {
+      return false
+    }
+    val originalUser = tokenUser.substring(0, tokenUser.length - aiSuffix.length)
+    if (!isLegalDowngradeUser(originalUser)) {
+      logger.warn(
+        s"token downgrade: illegal original user stripped from tokenUser $tokenUser, " +
+          s"skip downgrade, uri: ${gatewayContext.getRequest.getRequestURI}."
+      )
+      return false
+    }
+    logger.warn(
+      s"token downgrade: tokenUser $tokenUser failed token auth, retry doAuth with original " +
+        s"user $originalUser, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
+          .maskToken(token)}, host: $host."
+    )
+    val retryOk: Boolean = Utils.tryCatch(tokenService.doAuth(token, originalUser, host)) { t =>
+      logger.warn(
+        s"token downgrade: retry doAuth with original user $originalUser failed, tokenUser: " +
+          s"$tokenUser, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
+            .maskToken(token)}, reason: ${t.getMessage}."
+      )
+      false
+    }
+    if (retryOk) {
+      logger.info(
+        s"token downgrade: tokenUser $tokenUser passed auth with original user $originalUser's " +
+          s"token, uri: ${gatewayContext.getRequest.getRequestURI}."
+      )
+    }
+    retryOk
+  }
+
+  /**
+   * Validate the original user stripped from an AI tokenUser: not blank, not too long, no
+   * whitespace, path separators, wildcards or `..`, to prevent malformed usernames from bypassing
+   * the downgrade.
+   */
+  private def isLegalDowngradeUser(user: String): Boolean = {
+    StringUtils.isNotBlank(user) && user.length <= DOWNGRADE_USER_MAX_LENGTH &&
+    !user.contains("..") && !user.exists(c =>
+      c.isWhitespace || ILLEGAL_DOWNGRADE_USER_CHARS.indexOf(c) >= 0
+    )
   }
 
   /**
