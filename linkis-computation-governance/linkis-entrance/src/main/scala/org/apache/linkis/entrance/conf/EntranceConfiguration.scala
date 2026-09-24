@@ -335,7 +335,7 @@ object EntranceConfiguration {
     CommonVars[Boolean]("linkis.task.retry.switch", false)
 
   val TASK_RETRY_CODE_TYPE: String =
-    CommonVars[String]("linkis.task.retry.code.type", "aisql,jdbc").getValue
+    CommonVars[String]("linkis.task.retry.code.type", "aisql,jdbc,starrocks").getValue
 
   val RETRY_NUM_KEY: CommonVars[Int] =
     CommonVars[Int]("linkis.task.retry.num", 1)
