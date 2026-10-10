@@ -1,0 +1,619 @@
+{
+  "root": {
+    "data": {
+      "text": "DSS-DVS"
+    },
+    "children": [
+      {
+        "data": {
+          "text": "路径"
+        },
+        "children": [
+          {
+            "data": {
+              "text": "需求：000004"
+            },
+            "children": [
+              {
+                "data": {
+                  "text": "BES容器适配改造测试"
+                },
+                "children": [
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】开源版（保留Jetty）服务启动 + REST API 响应验证"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：不排除Jetty依赖，标准dev-2.1.4-webank分支构建，测试账号已通过Gateway登录获取token"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、执行标准构建 mvn clean package（开源版配置）\n2、启动linkis-mg-gateway服务\n3、启动ps-publicservice服务\n4、使用HTTP客户端发送GET请求到/api/rest_j/v1/userinfo，Header携带测试token Cookie\n5、检查HTTP响应状态码和响应体\n6、发送POST请求到/api/rest_j/v1/entrance/operation/info，验证业务接口可用"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：DataWorkCloudApplication移除Jetty专属main逻辑后启动正常；JettyServerCustomizerConfiguration加载（Jetty在classpath）；REST API返回HTTP 200，响应体为标准JSON格式；行为与改造前完全一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】开源版（保留Jetty）WebSocket 连接 + 消息收发验证"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开源版服务已启动，测试账号已登录获取token，WebSocket端点路径为/ws"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使用WebSocket客户端连接ws://{host}:{port}/ws，握手请求携带认证Cookie\n2、验证连接建立成功（onOpen触发）\n3、发送标准Linkis WS消息（如请求引擎状态）\n4、等待服务端响应消息\n5、验证响应消息内容正确\n6、主动关闭WebSocket连接"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：WebSocket连接成功建立；LinkisWebSocketEndpoint.onOpen正确从userProperties获取ControllerServer；HttpRequestCaptureConfigurator在握手期捕获HandshakeRequest；消息发送后服务端正确响应；连接关闭后onClose被触发，Session清理完成"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】@ConditionalOnClass 条件加载验证 - Jetty在classpath时加载"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开源版构建（保留Jetty依赖），服务启动后可通过Spring ApplicationContext检查Bean加载状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构建开源版（不排除Jetty）\n2、启动服务\n3、通过Spring Actuator或日志检查JettyServerCustomizerConfiguration是否被加载\n4、检查jettyFactoryCustomizer Bean是否存在\n5、检查Jetty专属WebAppContext/FilterHolder/ServletHolder配置是否生效\n6、验证日志中无@ConditionalOnClass条件跳过记录"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：JettyServerCustomizerConfiguration类被Spring扫描并加载；jettyFactoryCustomizer Bean正常创建；Jetty专属配置全部生效；嵌入式Jetty容器正常初始化；日志中无条件跳过记录"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】企业版（排除Jetty+引入BES）服务启动 + REST API 响应验证"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：企业版pom排除spring-boot-starter-jetty+jetty-*依赖，引入BES starter，BES环境可用，测试账号已登录"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、执行企业版构建（排除Jetty+引入BES）\n2、启动linkis-mg-gateway服务\n3、检查启动日志中BES嵌入式容器是否接管\n4、发送GET请求到/api/rest_j/v1/userinfo，携带测试token\n5、检查HTTP响应状态码和响应体\n6、发送POST请求验证业务接口"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：JettyServerCustomizerConfiguration不加载（@ConditionalOnClass条件不满足）；BES自动接管嵌入式容器；LinkisServletContextInitializer加载，通过BES的ServerContainer注册WS；REST API正常响应HTTP 200"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】企业版（排除Jetty+引入BES）WebSocket 连接 + 消息收发验证"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：企业版BES服务已启动，测试账号已登录获取token，BES ServerContainer可用"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使用WebSocket客户端连接企业版BES服务ws://{bes_host}:{bes_port}/ws\n2、握手请求携带认证Cookie\n3、验证连接建立成功\n4、发送标准Linkis WS消息\n5、等待服务端响应\n6、验证响应消息内容正确\n7、关闭连接"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：BES ServerContainer成功注册LinkisWebSocketEndpoint；WebSocket连接成功建立；onOpen从userProperties获取ControllerServer；HttpRequestCaptureConfigurator在BES握手期捕获HandshakeRequest；消息发送后服务端正确响应；连接关闭后onClose被触发"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】@ConditionalOnClass 条件加载验证 - Jetty不在classpath时不加载"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：企业版构建（排除Jetty+引入BES），服务启动后可通过Spring ApplicationContext检查Bean加载状态"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构建企业版（排除Jetty依赖）\n2、启动服务\n3、检查JettyServerCustomizerConfiguration是否被加载（应为不加载）\n4、检查jettyFactoryCustomizer Bean是否存在（应不存在）\n5、检查日志中是否有条件跳过记录\n6、验证NoClassDefFoundError未发生（方法签名不含Jetty类型）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：JettyServerCustomizerConfiguration类不被加载；jettyFactoryCustomizer Bean不存在；日志中记录@ConditionalOnClass条件不满足；无NoClassDefFoundError异常；BES自动接管"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】SecurityFilter.filterResponse 中文响应无乱码"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动（开源版或企业版），可发送无认证/过期token请求触发filterResponse"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、发送不带认证Cookie的GET请求到/api/rest_j/v1/userinfo\n2、触发SecurityFilter.filterResponse返回认证失败消息\n3、检查HTTP响应头Content-Type是否为application/json;charset=UTF-8\n4、检查响应体中文内容是否正常显示（无乱码）\n5、发送过期token的请求，重复验证\n6、对比改造前（getOutputStream.print）和改造后（getWriter.write）的输出差异"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：响应头Content-Type:application/json;charset=UTF-8；响应体中文消息正常显示，无ISO-8859-1乱码；response.getWriter.write(json)正确遵循response charset（UTF-8）"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】EC classpath 追加 BES_PATH 路径验证（BES_PATH 非空时）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：Linkis服务正常启动，引擎可用，设置环境变量export BES_PATH=/opt/bes"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、在Linkis服务器设置BES_PATH=/opt/bes环境变量\n2、提交一个简单SQL任务（如SELECT 1）触发EC启动\n3、等待引擎进程启动\n4、检查EC Java进程的启动参数中的classpath\n5、验证classpath包含/opt/bes/*\n6、验证引擎进程能加载BES相关类"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：EnvConfiguration.ENGINE_CONN_BES_PATH正确读取BES_PATH环境变量；JavaProcessEngineConnLaunchBuilder.buildEngineConnClassPath在public module path后追加$BES_PATH/*；EC进程classpath包含/opt/bes/*；引擎进程可加载BES类"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】BDPJettyServerHelper API 兼容验证"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，BDPJettyServerHelper facade可访问"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、调用BDPJettyServerHelper.gson，验证返回Gson实例\n2、调用BDPJettyServerHelper.jacksonJson，验证返回Jackson ObjectMapper实例\n3、调用BDPJettyServerHelper.getControllerServer，验证返回ControllerServer实例\n4、调用BDPJettyServerHelper.addServerEventService(service)，验证服务注册成功\n5、验证上述调用均委托给BDPServerHelper，无NPE\n6、验证79+调用方代码无需改动"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：gson返回有效的Gson实例（非null）；jacksonJson返回有效的ObjectMapper实例（非null）；getControllerServer返回有效的ControllerServer实例（非null）；addServerEventService正常执行；所有调用委托给BDPServerHelper，行为与改造前一致；无NPE或NoClassDefFoundError"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】BES_PATH 未设置时 EC classpath 不追加，行为不变"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：Linkis服务正常启动，引擎可用，不设置BES_PATH环境变量（或设置为空）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、确认BES_PATH环境变量未设置\n2、提交一个简单SQL任务触发EC启动\n3、等待引擎进程启动\n4、检查EC Java进程的classpath\n5、验证classpath不包含BES路径\n6、验证引擎进程正常工作"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：EnvConfiguration.ENGINE_CONN_BES_PATH.getValue返回空字符串或null；StringUtils.isNotBlank(besPath)返回false；classpath不追加BES路径；EC行为与改造前完全一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】LinkisServletContextInitializer REST DispatcherServlet + SecurityFilter 注册正确性"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动（开源版或企业版），可通过日志和功能验证注册正确性"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、检查LinkisServletContextInitializer.onStartup执行日志\n2、验证REST DispatcherServlet正确注册到ServletContext\n3、验证SecurityFilter正确注册\n4、发送REST API请求验证DispatcherServlet正常路由\n5、发送无认证请求验证SecurityFilter拦截生效\n6、验证HttpRequestCaptureConfigurator正确注册到ServerContainer"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：LinkisServletContextInitializer.onStartup正常执行；REST DispatcherServlet正确注册，REST API请求正常路由；SecurityFilter正确注册，无认证请求被拦截；HttpRequestCaptureConfigurator正确注册到ServerContainer；容器无关的注册逻辑在Jetty和BES下均正常"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】LinkisWebSocketEndpoint onOpen/onMessage/onClose/onError 生命周期"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，WebSocket端点已注册"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使用WebSocket客户端连接/ws端点\n2、验证onOpen被触发：从userProperties获取ControllerServer，适配HandshakeRequest调用SecurityFilter.getLoginUser\n3、发送一条文本消息\n4、验证onMessage被触发：委托ServerSocket.handleMessage处理消息\n5、验证服务端返回响应消息\n6、模拟异常场景（发送非法格式消息），验证onError被触发\n7、主动关闭连接\n8、验证onClose被触发：Session清理完成"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：onOpen正确获取ControllerServer和HandshakeRequest；onMessage委托ServerSocket.handleMessage处理，返回正确响应；onError捕获异常并记录日志；onClose清理Session，无资源泄漏；完整生命周期覆盖"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】HttpRequestCaptureConfigurator 握手期 HandshakeRequest 捕获"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，WebSocket端点已注册"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使用WebSocket客户端连接/ws端点，握手请求携带认证Cookie\n2、验证HttpRequestCaptureConfigurator在握手期被调用\n3、验证HandshakeRequest被捕获并存入userProperties\n4、在onOpen中验证可从config.getUserProperties()获取handshakeRequest\n5、验证HandshakeRequest适配为HttpServletRequest调用SecurityFilter.getLoginUser成功\n6、验证未携带认证信息的连接被正确处理"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：HttpRequestCaptureConfigurator在握手期正确执行；HandshakeRequest被捕获并存入userProperties；onOpen可从userProperties获取HandshakeRequest；SecurityFilter.getLoginUser正确获取登录用户；认证信息缺失时降级处理正常"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】ControllerServer 去除 Jetty WS 依赖后标准 Session 交互"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，WebSocket连接已建立"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、建立WebSocket连接\n2、验证ControllerServer不再依赖Jetty WebSocketServlet\n3、验证ControllerServer使用标准JSR-356 Session交互\n4、发送消息验证ControllerServer正确处理\n5、验证ControllerServer通过javax.websocket.Session发送响应\n6、验证多消息连续收发正常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：ControllerServer不引用任何Jetty WebSocket类；使用javax.websocket.Session标准API进行消息收发；消息处理逻辑正常；响应消息通过标准Session发送；连续消息收发正常"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】ServerSocket 改用 javax.websocket.Session 标准 API"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，WebSocket连接已建立"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、建立WebSocket连接\n2、验证ServerSocket使用javax.websocket.Session标准API\n3、验证ServerSocket不引用Jetty WebSocket类\n4、发送消息验证ServerSocket.handleMessage正确处理\n5、验证响应消息通过标准Session API发送\n6、验证Session关闭后ServerSocket清理正常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：ServerSocket使用javax.websocket.Session标准API；不引用Jetty WebSocket任何类；handleMessage正确处理入站消息；响应消息通过标准Session API发送；Session关闭后资源清理正常"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】BDPServerHelper controllerServer/EventBus/services 状态管理"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，BDPServerHelper可访问"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、验证BDPServerHelper.controllerServer初始化正确\n2、验证BDPServerHelper.serverListenerEventBus初始化正确\n3、验证BDPServerHelper.services初始化正确\n4、调用BDPServerHelper.getControllerServer，验证返回ControllerServer实例\n5、调用BDPServerHelper.addServerEventService(service)，验证服务正确注册\n6、验证getSecurityFilterClass和getMultipartConfigElement返回正确"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：controllerServer初始化为有效实例（非null）；serverListenerEventBus初始化为有效实例（非null）；services初始化为有效集合；getControllerServer返回ControllerServer实例；addServerEventService正确注册服务；getMultipartConfigElement返回正确配置（MAX_UPLOAD_SIZE=200MB）"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】DataWorkCloudApplication 移除 Jetty 专属 main 逻辑后启动正常"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开源版和企业版构建均可执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、验证DataWorkCloudApplication.java中移除了Jetty专属main逻辑\n2、验证移除了jettyFactoryCustomizer Bean的硬编码\n3、验证移除了BDPJettyServerHelper.setupSpringRestApiContextHandler等调用\n4、启动开源版服务，验证正常启动\n5、启动企业版服务（BES），验证正常启动\n6、检查启动日志中无Jetty相关的硬编码初始化"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：DataWorkCloudApplication不包含Jetty专属main逻辑；不包含jettyFactoryCustomizer Bean硬编码；不包含BDPJettyServerHelper.setupSpringRestApiContextHandler调用；开源版服务正常启动；企业版服务正常启动；启动日志中无Jetty硬编码初始化"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】BES 容器 WebSocket 大消息传输（接近 maxTextMessageSize）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：企业版BES服务已启动，WebSocket连接已建立"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、建立WebSocket连接到BES服务\n2、构造接近maxTextMessageSize的大消息（如64KB JSON）\n3、发送大消息到服务端\n4、验证服务端正确接收和处理\n5、验证服务端返回的响应消息正确\n6、构造超过maxTextMessageSize的消息发送\n7、验证服务端正确处理异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：接近maxTextMessageSize的大消息正确接收和处理；超过maxTextMessageSize时触发异常处理；BES WS实现对大消息的兼容性正常；连接在大消息后仍可用或按预期关闭"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】WebSocket 并发连接（多客户端同时连接）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，多个测试客户端可用"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使用5个WebSocket客户端同时连接/ws端点\n2、验证所有连接均建立成功（onOpen触发）\n3、每个客户端发送不同消息\n4、验证每个客户端收到正确的响应\n5、验证ControllerServer线程安全（无并发异常）\n6、逐个关闭连接，验证每个onClose正确触发"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：5个并发连接全部建立成功；每个客户端收到正确的响应消息；ControllerServer线程安全，无并发异常；连接关闭时每个Session正确清理；无资源泄漏"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】WebSocket 断线重连"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，WebSocket连接已建立"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、建立WebSocket连接\n2、模拟网络中断（强制断开客户端连接）\n3、验证onClose被触发，Session清理完成\n4、等待一段时间后重新建立连接\n5、验证重连后消息收发正常\n6、验证无资源泄漏（无残留Session）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：断线时onClose正确触发；Session清理完成，无资源泄漏；重连后消息收发正常；ControllerServer状态正确"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】SecurityFilter 非 UTF-8 字符集响应"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：服务已启动，可发送请求触发filterResponse"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、发送请求，Accept-Charset设置为GBK\n2、触发SecurityFilter.filterResponse\n3、检查响应头Content-Type和charset\n4、检查响应体中文内容编码\n5、发送请求，Accept-Charset设置为ISO-8859-1\n6、重复验证响应编码"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：CharacterEncodingFilter强制UTF-8，无论Accept-Charset如何设置；响应头Content-Type始终为application/json;charset=UTF-8；中文内容始终以UTF-8编码输出；非UTF-8字符集请求不影响响应编码"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】回归测试集联动（现有测试用例全量回归）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：现有回归测试集可用，服务已启动"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、执行现有Linkis全量回归测试用例\n2、检查所有测试用例通过率\n3、对比改造前后的测试结果\n4、识别新增的失败用例（如有）\n5、分析失败原因是否与本次改造相关"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：现有回归测试用例通过率与改造前一致；无因本次改造引入的新失败用例；改造未引入回归缺陷"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：参数配置"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】TestContextHAManager 编译通过"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：项目源码可编译，Maven构建环境正常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、执行 mvn compile -pl linkis-commons/linkis-module -am\n2、检查TestContextHAManager.java是否编译通过\n3、验证移除的setupSpringRestApiContextHandler/setupControllerServer/setupWebAppContext调用不再存在\n4、检查注释说明是否已添加\n5、执行 mvn test-compile -pl linkis-commons/linkis-module -am 验证测试编译"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：TestContextHAManager.java编译通过，无编译错误；不再依赖已删除的setupSpringRestApiContextHandler等方法；注释说明已添加；测试编译通过"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

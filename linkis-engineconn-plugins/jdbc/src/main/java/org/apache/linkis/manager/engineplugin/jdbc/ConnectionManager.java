@@ -56,7 +56,7 @@ public class ConnectionManager {
   private final JDBCDataSourceConfigurations jdbcDataSourceConfigurations;
 
   // Cache for validation query mapping parsed from configuration
-  private volatile Map<String, String> validationQueryMapping = null;
+  private final Map<String, String> validationQueryMapping;
 
   private static volatile ConnectionManager connectionManager; // NOSONAR
   private ScheduledExecutorService scheduledExecutorService;
@@ -65,14 +65,14 @@ public class ConnectionManager {
   private ConnectionManager() {
     jdbcDataSourceConfigurations = new JDBCDataSourceConfigurations();
     dataSourceFactories = new HashMap<>();
-    initValidationQueryMapping();
+    validationQueryMapping = initValidationQueryMapping();
   }
 
   /**
    * Parse validation query mapping from configuration. Format: dbType1:query1,dbType2:query2,...
    * Example: oracle:SELECT 1 FROM DUAL,db2:SELECT 1 FROM SYSIBM.SYSDUMMY1
    */
-  private void initValidationQueryMapping() {
+  private Map<String, String> initValidationQueryMapping() {
     String mappingConfig = JDBCConfiguration.JDBC_VALIDATION_QUERY_MAPPING();
     Map<String, String> mapping = new HashMap<>();
     if (StringUtils.isNotBlank(mappingConfig)) {
@@ -87,7 +87,7 @@ public class ConnectionManager {
         }
       }
     }
-    this.validationQueryMapping = mapping;
+    return Collections.unmodifiableMap(mapping);
   }
 
   /**

@@ -1,0 +1,128 @@
+{
+  "root": {
+    "data": {"text": "WDSL-RM"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：000003"},
+        "children": [{
+          "data": {"text": "数据源过期二次确认功能测试"},
+          "children": [{
+            "data": {"text": "分类：界面案例"},
+            "children": [{
+              "data": {"text": "【AIGC】点击过期按钮弹出二次确认 Modal"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表至少存在1条有效数据源记录"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至管理台"数据源管理"页面\n2、在数据源列表中找到一条有效数据源\n3、点击该数据源行的"过期"按钮"}, "children": []},
+                {"data": {"text": "预期结果：页面弹出Modal确认框，标题显示为"确认过期数据源"，Modal可见且处于模态遮挡状态"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】Modal内容包含数据源名称和不可恢复提示"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表至少存在1条有效数据源记录"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击某数据源行的"过期"按钮\n3、观察Modal内容区域"}, "children": []},
+                {"data": {"text": "预期结果：Modal内容显示"是否过期数据源：{数据源名称}？此操作不可恢复!"，数据源名称被替换为实际名称，不可恢复提示清晰可见"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】Modal包含确认和取消两个按钮"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击某数据源行的"过期"按钮\n3、检查Modal底部按钮区域"}, "children": []},
+                {"data": {"text": "预期结果：Modal底部包含2个按钮，第一个为"确认"（primary样式），第二个为"取消"（默认样式）"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】expire成功后提示数据源已过期并刷新列表"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、记录当前列表数据条数和目标数据源状态\n3、点击某数据源行的"过期"按钮\n4、点击Modal中的"确认"按钮\n5、等待expire接口返回成功"}, "children": []},
+                {"data": {"text": "预期结果：页面显示成功提示"数据源已过期"，数据源列表自动刷新，被操作的数据源状态变更为"过期"状态"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】中文环境下Modal文案正确显示"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，当前语言设置为中文"}, "children": []},
+                {"data": {"text": "步骤：\n1、确认管理台当前语言为中文\n2、导航至"数据源管理"页面\n3、点击某数据源行的"过期"按钮\n4、检查Modal各部分文案"}, "children": []},
+                {"data": {"text": "预期结果：Modal标题"确认过期数据源"，内容"是否过期数据源：{名称}？此操作不可恢复!"，确认按钮"确认"，取消按钮"取消"，成功提示"数据源已过期""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】英文环境下Modal文案正确显示"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，管理台支持中英文切换"}, "children": []},
+                {"data": {"text": "步骤：\n1、切换管理台语言为英文\n2、导航至"数据源管理"页面\n3、点击某数据源行的"Expire"按钮\n4、检查Modal各部分文案"}, "children": []},
+                {"data": {"text": "预期结果：Modal标题"Confirm Expire Datasource"，内容"Expire datasource \"{name}\"? This cannot be undone!"，确认按钮"Confirm"，取消按钮"Cancel"，成功提示"Datasource expired""}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】数据源名称为空时Modal内容处理"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据库中存在一条name为空的数据源记录"}, "children": []},
+                {"data": {"text": "步骤：\n1、通过DB直接插入一条name为空的数据源记录\n2、刷新数据源列表，找到该空名称数据源\n3、点击该数据源行的"过期"按钮\n4、观察Modal内容"}, "children": []},
+                {"data": {"text": "预期结果：Modal正常弹出，内容中数据源名称位置为空字符串，确认流程不受影响仍可正常调用expire接口"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】点击取消关闭Modal不调用expire接口"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，浏览器开发者工具Network面板已打开"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击某数据源行的"过期"按钮，弹出确认Modal\n3、在Network面板中清除已有记录\n4、点击Modal中的"取消"按钮"}, "children": []},
+                {"data": {"text": "预期结果：Modal关闭，Network面板中无新的expire接口请求，数据源列表不变该数据源状态仍为有效"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】点击确认关闭Modal并调用expire接口"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，浏览器开发者工具Network面板已打开"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击某数据源行的"过期"按钮，弹出确认Modal\n3、在Network面板中清除已有记录\n4、点击Modal中的"确认"按钮"}, "children": []},
+                {"data": {"text": "预期结果：Modal关闭，Network面板中观察到expire接口请求被发出，expire请求参数中包含正确的数据源ID"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】overdueConfirm状态对象正确管理show/id/name"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，浏览器Vue DevTools可用"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、通过Vue DevTools检查overdueConfirm状态对象的初始值\n3、点击某数据源行的"过期"按钮\n4、检查overdueConfirm状态变化"}, "children": []},
+                {"data": {"text": "预期结果：初始状态show=false/id=null/name=''，点击后show=true/id=数据源ID/name=数据源名称，取消后show=false"}, "children": []}
+              ]
+            }, {
+              "data": {"text": "【AIGC】overdue方法不再直接调用expire"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，浏览器开发者工具Network面板已打开"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、清除Network面板记录\n3、点击某数据源行的"过期"按钮\n4、观察Network面板是否有新请求"}, "children": []},
+                {"data": {"text": "预期结果：点击"过期"按钮后Modal弹出，Network面板中无expire接口请求，expire仅在点击"确认"后才被调用"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：流程案例"},
+            "children": [{
+              "data": {"text": "【AIGC】Modal关闭后overdueConfirm状态重置"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，浏览器Vue DevTools可用"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击数据源A的"过期"按钮，弹出Modal\n3、点击"取消"关闭Modal\n4、通过Vue DevTools检查overdueConfirm状态\n5、再次点击数据源B的"过期"按钮\n6、检查overdueConfirm状态"}, "children": []},
+                {"data": {"text": "预期结果：第一次取消后show=false，第二次点击后show=true且id/name为数据源B的值，无状态残留不影响第二次操作"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：接口案例"},
+            "children": [{
+              "data": {"text": "【AIGC】expire接口失败时错误提示"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据，模拟后端expire接口返回失败"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、点击某数据源行的"过期"按钮\n3、点击Modal中的"确认"按钮\n4、观察expire接口返回失败后的页面行为"}, "children": []},
+                {"data": {"text": "预期结果：Modal已关闭，expire接口返回失败，axios拦截器统一弹出错误提示，数据源列表不刷新保持原状态"}, "children": []}
+              ]
+            }]
+          }, {
+            "data": {"text": "分类：功能案例"},
+            "children": [{
+              "data": {"text": "【AIGC】连续快速点击过期按钮防竞态"},
+              "children": [
+                {"data": {"text": "条件：已登录管理台，数据源列表有数据"}, "children": []},
+                {"data": {"text": "步骤：\n1、导航至"数据源管理"页面\n2、快速连续点击同一数据源行的"过期"按钮3次\n3、观察Modal弹出情况"}, "children": []},
+                {"data": {"text": "预期结果：仅弹出1个Modal，overdueConfirm状态被最后一次点击覆盖，不出现多个Modal叠加或闪烁"}, "children": []}
+              ]
+            }]
+          }]
+        }]
+      }]
+    }]
+  }
+}
