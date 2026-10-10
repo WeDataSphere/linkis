@@ -194,7 +194,7 @@ public class ResultUtils {
       LOGGER.info(
           "Field masking applied for result set {}. Original columns: {}, Filtered columns: {}",
           i,
-          ((Map[]) metadata).length,
+          metadata instanceof Map[] ? ((Map[]) metadata).length : 0,
           filteredMetadata.length);
     }
   }
@@ -536,7 +536,7 @@ public class ResultUtils {
       LOGGER.info(
           "Field masking and truncation applied for result set {}. Original columns: {}, Filtered columns: {}, Truncated fields: {}",
           i,
-          ((Map[]) metadata).length,
+          metadata instanceof Map[] ? ((Map[]) metadata).length : 0,
           filteredMetadata.length,
           fieldTruncationResult.getOversizedFields().size());
     }
