@@ -184,7 +184,7 @@ public class DiagnosisLogCleanerTest {
 
     // Make one directory read-only (simulate deletion failure)
     File readOnlyDir = new File(TASK_DIR, "12345");
-    readOnlyDir.setReadOnly();
+    assertTrue("Failed to set directory read-only", readOnlyDir.setReadOnly());
 
     // Perform cleanup (should continue even if one file fails)
     int retentionDays = 7;
@@ -196,7 +196,7 @@ public class DiagnosisLogCleanerTest {
     assertTrue("Should delete at least 0 directories", deletedCount >= 0);
 
     // Clean up
-    readOnlyDir.setWritable(true);
+    assertTrue("Failed to restore directory writable", readOnlyDir.setWritable(true));
   }
 
   // Helper methods
@@ -325,11 +325,15 @@ public class DiagnosisLogCleanerTest {
           if (file.isDirectory()) {
             deleteDirectory(file);
           } else {
-            file.delete();
+            if (!file.delete()) {
+              System.err.println("Failed to delete file: " + file.getAbsolutePath());
+            }
           }
         }
       }
-      directory.delete();
+      if (!directory.delete()) {
+        System.err.println("Failed to delete directory: " + directory.getAbsolutePath());
+      }
     }
   }
 }

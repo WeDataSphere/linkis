@@ -123,10 +123,10 @@ public class ThreadUtilsTest {
     // 2. Verify no memory leaks
     // 3. Verify resources are released after tasks complete
 
-    long maxAcceptableMemoryIncrease = 100 * 1024 * 1024; // 100MB
+    long maxAcceptableMemoryIncrease = 100L * 1024 * 1024; // 100MB
 
     // Placeholder for actual resource measurement
-    long memoryIncrease = 50 * 1024 * 1024; // 50MB
+    long memoryIncrease = 50L * 1024 * 1024; // 50MB
 
     assertTrue(
         "Memory increase should be within limits", memoryIncrease < maxAcceptableMemoryIncrease);

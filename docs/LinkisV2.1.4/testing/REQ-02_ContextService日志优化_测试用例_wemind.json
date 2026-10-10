@@ -1,0 +1,644 @@
+{
+  "root": {
+    "data": {
+      "text": "WDSL-UJES"
+    },
+    "children": [
+      {
+        "data": {
+          "text": "路径"
+        },
+        "children": [
+          {
+            "data": {
+              "text": "需求：000002"
+            },
+            "children": [
+              {
+                "data": {
+                  "text": "ContextService日志优化测试"
+                },
+                "children": [
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】缓存统计周期调度 - 默认30min触发"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：DefaultContextCache实例可正常构造，CACHE_STATS_LOG_INTERVAL_MILLS使用默认值1800000（30min），Guava Cache已开启recordStats()"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造DefaultContextCache实例，验证构造期scheduleStatsLog()被调用\n2、验证日志输出\"ContextID cache stats log is scheduled, interval mills:1800000\"\n3、触发若干次ContextID读写（命中+未命中）\n4、等待一个调度周期（Mock调度器执行printCacheStats）\n5、验证日志输出\"ContextID cache stats, size:X, requestCount:Y, hitCount:Z, missCount:W, hitRate:P, evictionCount:Q\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：构造期日志包含\"ContextID cache stats log is scheduled, interval mills:1800000\"；printCacheStats日志包含size、requestCount、hitCount、missCount、hitRate、evictionCount字段；日志级别为INFO"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】缓存统计间隔=0关闭调度"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：配置wds.linkis.cs.cache.stats.log.interval.mills=0，CACHE_STATS_LOG_INTERVAL_MILLS值为0"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、设置ContextCacheConf.CACHE_STATS_LOG_INTERVAL_MILLS=0\n2、构造DefaultContextCache实例\n3、验证scheduleStatsLog()中intervalMills<=0时直接return\n4、验证不注册调度任务（无\"scheduled\"日志输出）\n5、验证无统计日志输出"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：无\"ContextID cache stats log is scheduled\"日志；无\"ContextID cache stats\"日志；调度器scheduleAtFixedRate未被调用"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】调度异常不传播"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：DefaultContextCache实例已构造，Mock使printCacheStats抛出RuntimeException"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造DefaultContextCache实例，正常调度注册\n2、Mock cache.stats()方法抛出RuntimeException\n3、触发printCacheStats执行\n4、验证异常被try/catch捕获\n5、验证warn日志\"Failed to print ContextID cache stats\"被输出\n6、验证调度任务不中断（scheduleAtFixedRate不终止）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：printCacheStats异常被捕获，输出warn日志；调度任务不中断，下一次周期仍可执行；异常不传播到外部调用方"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】ContextID加载耗时埋点"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDValueGeneratorImpl实例可正常创建，Mock contextMapPersistence.getAll返回非空List<ContextKeyValue>"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextIDValueGeneratorImpl实例\n2、Mock contextMapPersistence.getAll返回3个ContextKeyValue\n3、调用createContextIDValue(contextID)\n4、验证日志输出\"Finished to createContextIDValue of ContextID(X), keyValue size:3, cost:Z ms\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志包含contextID.getContextId()；日志包含keyValue size（值为3）；日志包含cost ms（值为非负整数）；日志级别为INFO"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】SIZE驱逐warn日志"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDRemoveListener实例可正常创建，构造RemovalNotification RemovalCause=SIZE，Mock ContextIDValue.getContextIDMetric()返回有效metric（cachedTime>0）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造RemovalNotification，设置RemovalCause.SIZE\n2、Mock value.getContextIDMetric()返回ContextIDMetric（cachedTime=now-60000）\n3、调用onRemoval(removalNotification)\n4、验证日志级别为WARN\n5、验证日志包含\"cause:SIZE\"\n6、验证日志包含cachedMillis（值>0）\n7、验证日志包含\"the cache reaches the max size, please consider tuning wds.linkis.cs.cache.size\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志级别为WARN；日志包含contextIDStr、cause=SIZE、cachedMillis；日志包含tuning提示\"please consider tuning wds.linkis.cs.cache.size\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】非容量驱逐info日志"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDRemoveListener实例可正常创建，构造RemovalNotification RemovalCause=EXPIRE，Mock ContextIDValue.getContextIDMetric()返回有效metric"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造RemovalNotification，设置RemovalCause.EXPIRE\n2、Mock value.getContextIDMetric()返回ContextIDMetric（cachedTime>0）\n3、调用onRemoval(removalNotification)\n4、验证日志级别为INFO\n5、验证日志包含\"cause:EXPIRE\"\n6、验证日志包含cachedMillis（值>0）\n7、验证日志不含tuning提示\n8、同样验证RemovalCause.COLLECTED/EXPLICIT/REPLACED走info"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志级别为INFO（非WARN）；日志包含contextIDStr、cause、cachedMillis；日志不含\"tuning\"或\"max size\"提示"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】缓存未命中warn日志"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：DefaultContextCache实例已构造，Mock cache.getIfPresent返回null（未命中）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock cache.getIfPresent(contextID.getContextId())返回null\n2、调用DefaultContextCache.get(contextID)\n3、验证warn日志\"ContextID(X) is not in cache, will load from db\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志级别为WARN；日志包含contextID.getContextId()；日志消息为\"ContextID(X) is not in cache, will load from db\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】put日志区分新增/替换"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：DefaultContextCache实例已构造，Mock ContextIDValue对象"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、首次调用put(contextIDValue)，Mock cache.getIfPresent返回null\n2、验证日志\"Put new ContextID(X) to cache\"\n3、二次调用put(同一contextIDValue)，Mock cache.getIfPresent返回已有对象\n4、验证日志\"Replace ContextID(X) in cache\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：首次put日志为\"Put new ContextID(X) to cache\"级别INFO；二次put日志为\"Replace ContextID(X) in cache\"级别INFO"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】getContextValue日志补全"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextCacheService.get返回有效ContextKeyValue"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock contextCacheService.get返回ContextKeyValue\n2、Mock keyValue.getContextValue()返回含value=\"test-value\"和keywords=\"test-keywords\"的对象\n3、调用contextServiceImpl.getContextValue(contextID, contextKey)\n4、验证日志包含csId、key、csType、csScope、value、keywords"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"getContextValue,csId:{},key:{},csType:{},csScope:{},value:{},keywords:{}\"；所有字段值与Mock对象一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】setValueByKey日志补全"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextCacheService.put正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID、ContextKey、ContextValue\n2、调用contextServiceImpl.setValueByKey(contextID, contextKey, contextValue)\n3、验证日志包含csId、key、csType、csScope、keywords、value、update字段"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"setValueByKey, csId:{},key: {},csType:{},csScope:{},keywords:{},value:{},update: {}\"；所有字段值与Mock对象一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】setValue日志补全"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextCacheService.put正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID、ContextKeyValue\n2、调用contextServiceImpl.setValue(contextID, contextKeyValue)\n3、验证日志包含csId、key、csType、csScope、keywords、value、update字段"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"From db and cache  to setValue, csId:{},key:{},csType:{},csScope:{},keywords:{},value:{},update: {}\"；所有字段值与Mock对象一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】searchContextValue先执行后打日志"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextSearch.search返回非空List<ContextKeyValue>"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock contextSearch.search返回3个ContextKeyValue\n2、调用contextServiceImpl.searchContextValue(contextID, conditionMap)\n3、验证日志在contextSearch.search执行后输出（非执行前）\n4、验证日志包含csId、condition、resultSize（值为3，与Mock返回列表大小一致）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"searchContextValue,csId:{},condition:{},resultSize:{}\"；resultSize为真实结果数（3），非空；日志在search执行后输出"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】ContextIDService create日志补csIdType"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDServiceImpl实例可正常创建，Mock getPersistence().createContextID返回ContextID"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock getPersistence().createContextID(contextID)返回res（contextId=\"test-cs-010\", contextIDType=\"ENV\")\n2、调用contextIDServiceImpl.createContextID(contextID)\n3、验证日志包含\"createContextID,csId:test-cs-010,csIdType:ENV\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"createContextID,csId:%s,csIdType:%s\"；csId值为res.getContextId()；csIdType值为res.getContextIDType()"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】ContextIDService update日志补csIdType"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDServiceImpl实例可正常创建，Mock getPersistence().updateContextID正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID（contextId=\"test-cs-011\", contextIDType=\"USER\"）\n2、调用contextIDServiceImpl.updateContextID(contextID)\n3、验证日志包含\"updateContextID,csId:test-cs-011,csIdType:USER\""
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"updateContextID,csId:%s,csIdType:%s\"；csId值为contextID.getContextId()；csIdType值为contextID.getContextIDType()"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】resetValue日志补字段"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextCacheService.rest正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID、ContextKey\n2、调用contextServiceImpl.resetValue(contextID, contextKey)\n3、验证日志包含csId、key、csType、csScope"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"From db and cache  resetValue, csId:{},key:{},csType:{},csScope:{}\"；所有字段值与Mock对象一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】removeValue日志补字段"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock getPersistence().remove正常执行，Mock contextCacheService.remove正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID、ContextKey\n2、调用contextServiceImpl.removeValue(contextID, contextKey)\n3、验证日志包含csId、key、csType、csScope"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"From db and cache removeValue, csId:{},key:{},csType:{},csScope:{}\"；所有字段值与Mock对象一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】removeAllValue日志补csIdType"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock getPersistence().removeAll正常执行，Mock contextCacheService.removeAll正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID（contextId=\"test-cs-014\", contextIDType=\"ENV\"）\n2、调用contextServiceImpl.removeAllValue(contextID)\n3、验证日志包含csId和csIdType"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"From db and cache removeAllValue, csId:{},csIdType:{}\"；csId值为\"test-cs-014\"；csIdType值为\"ENV\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】removeAllValueByKeyPrefix日志补csIdType"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock contextCacheService.removeByKeyPrefix正常执行，Mock getPersistence().removeByKeyPrefix正常执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造ContextID（contextId=\"test-cs-015\", contextIDType=\"USER\"）和keyPrefix=\"test_prefix_\"\n2、调用contextServiceImpl.removeAllValueByKeyPrefix(contextID, keyPrefix)\n3、验证日志包含csId、csIdType、keyPrefix"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"From db and cache  removeAllValueByKeyPrefix, csId:{},csIdType:{},keyPrefix:{}\"；csId值为\"test-cs-015\"；csIdType值为\"USER\"；keyPrefix值为\"test_prefix_\""
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】clearAllByHAID日志增强"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock getIDPersistence().getContextIDByHAID返回ContextID列表，Mock getIDPersistence().deleteContextID部分抛出异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock getIDPersistence().getContextIDByHAID(\"test-haid\")返回3个ContextID\n2、Mock第2个deleteContextID抛出Exception\n3、调用contextServiceImpl.clearAllByHAID(\"test-haid\")\n4、验证warn日志包含haid和successNum"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"clear all for haid : {}, successNum : {}\"；haid值为\"test-haid\"；successNum值为失败前已成功删除的数量"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】clearAllByID日志增强"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextServiceImpl实例可正常创建，Mock ContextID列表，Mock getIDPersistence().deleteContextID部分抛出异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、构造3个ContextID（含contextId和source字段）\n2、Mock第2个deleteContextID抛出Exception(\"test error\")\n3、调用contextServiceImpl.clearAllByID(contextIDList)\n4、验证error日志包含contextId、source、successNum、error"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：日志格式为\"Clear context of id {} failed, source : {}, successNum : {}, error : {}\"；contextId值为失败项的getContextId()；source值为失败项的getSource()；successNum值为失败前已成功删除的数量；error值为异常消息"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：参数配置"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】ContextIDMetric为null时cachedMillis=-1"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDRemoveListener实例可正常创建，Mock value.getContextIDMetric()返回null"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock value.getContextIDMetric()返回null\n2、构造RemovalNotification（cause=EXPIRE）\n3、调用onRemoval(removalNotification)\n4、验证日志包含cachedMillis（值为-1）\n5、验证日志正常输出cause"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：cachedMillis值为-1（metric==null分支）；日志级别为INFO（非SIZE驱逐）；日志正常输出contextIDStr和cause"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】contextKeyValueList为null时keyValueSize=0"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：ContextIDValueGeneratorImpl实例可正常创建，Mock contextMapPersistence.getAll返回null"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock contextMapPersistence.getAll(contextID)返回null\n2、调用createContextIDValue(contextID)\n3、验证日志包含keyValue size（值为0）\n4、验证日志包含cost ms（正常输出，非负）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：keyValue size值为0（list==null分支）；cost ms正常输出；不抛出NullPointerException"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】缓存统计日志调度注册失败兜底"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：Mock Utils.defaultScheduler().scheduleAtFixedRate抛出异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock Utils.defaultScheduler()返回的ScheduledExecutorService，使scheduleAtFixedRate抛出RejectedExecutionException\n2、构造DefaultContextCache实例\n3、验证scheduleStatsLog的try/catch捕获异常\n4、验证warn日志\"Failed to schedule ContextID cache stats log\"被输出\n5、验证DefaultContextCache构造不受影响"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：异常被try/catch捕获；warn日志输出\"Failed to schedule ContextID cache stats log\"；DefaultContextCache构造正常完成，cache可正常使用"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】DefaultContextCache.get异常补异常对象"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：DefaultContextCache实例已构造，Mock使get方法内部抛出Exception"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、Mock cache.getIfPresent和contextIDValueGenerator.createContextIDValue正常\n2、Mock listenerBus.dispatchEvent抛出Exception\n3、调用DefaultContextCache.get(contextID)\n4、验证error日志包含异常对象（e）\n5、验证日志格式从logger.error(errorMsg)变为logger.error(errorMsg, e)"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：error日志包含异常堆栈信息（errorMsg+exception object e）；抛出CSErrorException"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

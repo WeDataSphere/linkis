@@ -24,7 +24,9 @@ import javax.security.auth.kerberos.KerberosTicket;
 
 import java.lang.reflect.Method;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,8 +35,8 @@ public class KerberosTgtUtils {
 
   private static final Logger logger = LoggerFactory.getLogger(KerberosTgtUtils.class);
 
-  private static volatile Method getSubjectMethod = null;
-  private static volatile boolean getSubjectMethodResolved = false;
+  private static final AtomicReference<Method> getSubjectMethod = new AtomicReference<>();
+  private static final AtomicBoolean getSubjectMethodResolved = new AtomicBoolean(false);
 
   /** Maximum consecutive refresh failures before throwing an error. */
   private static final int MAX_REFRESH_FAILURES = 3;
@@ -50,26 +52,27 @@ public class KerberosTgtUtils {
    * Hadoop 2.7.x.
    */
   private static Subject getSubjectFromUgi(UserGroupInformation ugi) {
-    if (!getSubjectMethodResolved) {
+    if (!getSubjectMethodResolved.get()) {
       synchronized (KerberosTgtUtils.class) {
-        if (!getSubjectMethodResolved) {
+        if (!getSubjectMethodResolved.get()) {
           try {
             Method method = UserGroupInformation.class.getDeclaredMethod("getSubject");
             method.setAccessible(true);
-            getSubjectMethod = method;
+            getSubjectMethod.set(method);
           } catch (NoSuchMethodException e) {
             logger.warn("Failed to find getSubject method on UserGroupInformation", e);
-            getSubjectMethod = null;
+            getSubjectMethod.set(null);
           }
-          getSubjectMethodResolved = true;
+          getSubjectMethodResolved.set(true);
         }
       }
     }
-    if (getSubjectMethod == null) {
+    Method method = getSubjectMethod.get();
+    if (method == null) {
       return null;
     }
     try {
-      return (Subject) getSubjectMethod.invoke(ugi);
+      return (Subject) method.invoke(ugi);
     } catch (Exception e) {
       logger.warn("Failed to invoke getSubject on UserGroupInformation", e);
       return null;

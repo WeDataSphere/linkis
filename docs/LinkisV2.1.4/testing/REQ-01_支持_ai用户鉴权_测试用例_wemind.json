@@ -1,0 +1,233 @@
+{
+  "root": {
+    "data": {"text": "WDSL-UJES"},
+    "children": [{
+      "data": {"text": "路径"},
+      "children": [{
+        "data": {"text": "需求：000001"},
+        "children": [{
+          "data": {"text": "支持_ai用户鉴权"},
+          "children": [
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】开关关闭时不触发降级，doAuth不重试"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关 wds.linkis.gateway.ai.user.token.downgrade.enable=false（默认关闭），Token 认证已启用，tokenService 使用 Mockito mock"}, "children": []},
+                    {"data": {"text": "步骤：\n1、不设置开关系统属性（保持默认关闭）\n2、调用 TokenAuthentication.tryAiUserTokenDowngrade(\"TOKEN-A\", \"zhangsan_ai\", \"127.0.0.1\", gatewayContext)\n3、验证返回值为 false\n4、验证 tokenService.doAuth 从未被调用"}, "children": []},
+                    {"data": {"text": "预期结果：返回值为 false，tokenService.doAuth 从未被调用，降级代码零生效，行为与现网完全一致，日志中无 token downgrade 关键字"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】开关开启+zhangsan_ai降级成功，身份保持_ai"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，zhangsan_ai 在 linkis_token 表无记录，zhangsan 有有效 token 记录 TOKEN-A，tokenService mock 对 zhangsan 返回 true"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、Mock tokenService.doAuth 对任意参数返回 true\n3、调用 tryAiUserTokenDowngrade(\"TOKEN-A\", \"zhangsan_ai\", \"127.0.0.1\", gatewayContext)\n4、验证返回值为 true\n5、验证 doAuth(\"TOKEN-A\", \"zhangsan\", \"127.0.0.1\") 被调用恰好一次"}, "children": []},
+                    {"data": {"text": "预期结果：返回值为 true（降级成功），doAuth(\"TOKEN-A\", \"zhangsan\", \"127.0.0.1\") 被调用恰好一次，降级成功后放行身份保持 zhangsan_ai（setLoginUser 使用原始 tokenUser，不改写）"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】降级重试失败，无第二次重试，走原失败路径"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，zhangsan_ai 和 zhangsan 均无有效 token 记录，tokenService mock doAuth 对任意参数返回 false"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、Mock tokenService.doAuth 对任意参数返回 false\n3、调用 tryAiUserTokenDowngrade(\"TOKEN-A\", \"zhangsan_ai\", \"127.0.0.1\", gatewayContext)\n4、验证返回值为 false\n5、验证 tokenService.doAuth 被调用恰好一次（降级重试一次，无第二次重试）"}, "children": []},
+                    {"data": {"text": "预期结果：返回值为 false（降级失败），doAuth 被调用恰好一次，走现网原失败路径（noLogin + filterResponse），不产生新的错误形态"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】非_ai后缀用户不触发降级"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，测试用户 zhangsan（无后缀）和 zhangsan_ai2（非配置后缀）"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、调用 tryAiUserTokenDowngrade(\"T\", \"zhangsan\", \"h\", gatewayContext)\n3、调用 tryAiUserTokenDowngrade(\"T\", \"zhangsan_ai2\", \"h\", gatewayContext)\n4、验证两次调用均返回 false\n5、验证 tokenService.doAuth 从未被调用"}, "children": []},
+                    {"data": {"text": "预期结果：两次调用均返回 false，doAuth 从未被调用，非配置后缀用户不触发降级逻辑，行为与现网一致（认证失败）"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：安全用例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】降级异常被Utils.tryCatch捕获，返回false，不传播"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，tokenService mock doAuth 抛出 RuntimeException"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、Mock tokenService.doAuth 抛出 new RuntimeException(\"simulated doAuth failure\")\n3、调用 tryAiUserTokenDowngrade(\"TOKEN-A\", \"zhangsan_ai\", \"127.0.0.1\", gatewayContext)\n4、验证返回值为 false\n5、验证无异常抛出（异常被 Utils.tryCatch 捕获）\n6、验证 doAuth 被调用恰好一次"}, "children": []},
+                    {"data": {"text": "预期结果：返回值为 false，无异常抛出（异常被 Utils.tryCatch 捕获），doAuth 被调用恰好一次，异常被记录（warn 级别含 token downgrade 关键字），回退现网原报错路径"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：安全用例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】畸形用户名校验（空/路径分隔/../空白/通配符）跳过降级"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，tokenService mock doAuth 对任意参数返回 true（如果被调用的话）"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、依次调用 tryAiUserTokenDowngrade 传入以下畸形用户名：_ai（后缀only剥离后为空）、a/b_ai（含路径分隔符）、a/../b_ai（含路径穿越）、a b_ai（含空白字符）、a*b_ai（含通配符）\n3、验证每次调用返回 false\n4、验证 tokenService.doAuth 从未被调用"}, "children": []},
+                    {"data": {"text": "预期结果：所有畸形用户名调用均返回 false，doAuth 从未被调用，isLegalDowngradeUser 校验拦截所有畸形用户名，行为与现网一致（认证失败），日志记录跳过降级原因"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：性能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】并发30线程降级，无串扰，各请求结果独立正确"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，使用线程安全的 RecordingTokenService，15 个成功用户（user1~user15）+ 15 个失败用户（failuser1~failuser15），30 个 _ai 后缀用户并发请求"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、创建 RecordingTokenService 设置 15 个成功原用户集合\n3、构造 30 个 _ai 用户（15 成功 + 15 失败）\n4、使用 CountDownLatch 同步启动 30 个线程\n5、每个线程调用 tryAiUserTokenDowngrade(\"T\", aiUser, \"h\", gatewayContext)\n6、等待全部完成（超时 30 秒）\n7、检查各请求认证结果\n8、验证 doAuth 总调用次数"}, "children": []},
+                    {"data": {"text": "预期结果：各请求认证结果独立正确（15 个成功返回 true，15 个失败返回 false），无串扰，降级逻辑无共享可变状态，doAuth 总调用次数=30（每请求降级重试 1 次），无并发异常"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】后缀可配置（_bot触发，_ai不再触发）"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀配置为 _bot（而非默认 _ai），tokenService mock doAuth 对任意参数返回 true"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、通过 System.setProperty 设置后缀为 _bot\n3、调用 tryAiUserTokenDowngrade(\"T\", \"zhangsan_bot\", \"h\", gatewayContext)\n4、验证返回值为 true 且 doAuth(\"T\", \"zhangsan\", \"h\") 被调用\n5、调用 tryAiUserTokenDowngrade(\"T\", \"zhangsan_ai\", \"h\", gatewayContext)\n6、验证返回值为 false（_ai 不再触发）"}, "children": []},
+                    {"data": {"text": "预期结果：zhangsan_bot 触发降级返回 true，doAuth(\"T\", \"zhangsan\", \"h\") 被调用，zhangsan_ai 不再触发降级返回 false，后缀配置化生效"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：安全用例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】降级日志token全程脱敏（maskToken）"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，触发降级各场景（成功/失败/异常）"}, "children": []},
+                    {"data": {"text": "步骤：\n1、触发降级成功场景（zhangsan_ai -> zhangsan 成功）\n2、触发降级失败场景（failuser_ai -> failuser 失败）\n3、触发降级异常场景（doAuth 抛 RuntimeException）\n4、收集全部降级相关日志输出\n5、检查日志中所有 token 字段"}, "children": []},
+                    {"data": {"text": "预期结果：全部日志中 token 均为 TokenSensitiveUtils.maskToken 脱敏形态，无明文 token 输出，日志包含触发用户、降级目标用户、URI、结果，日志关键字 token downgrade 可检索"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：接口案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】动态token路径不走降级（前缀路由不介入）"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，动态 token 前缀路由已配置（DYNAMIC_TOKEN_PREFIX），DynamicTokenService 已配置"}, "children": []},
+                    {"data": {"text": "步骤：\n1、通过 System.setProperty 开启降级开关\n2、构造以动态 token 前缀（dyn-）开头的 token\n3、调用 TokenAuthentication.tokenAuth 方法\n4、验证请求走 dynamicTokenAuth 路径\n5、验证降级逻辑不介入"}, "children": []},
+                    {"data": {"text": "预期结果：走 dynamicTokenAuth 原路径，降级逻辑不介入（tryAiUserTokenDowngrade 不被调用），行为与降级开关无关"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：参数配置"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】开关热加载即时切换（关闭->开启->关闭）"},
+                  "children": [
+                    {"data": {"text": "条件：网关运行中，降级开关当前为关闭状态，zhangsan_ai 在 linkis_token 表无记录，zhangsan 有有效 token 记录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、开关关闭时发起 zhangsan_ai 请求验证认证失败\n2、不重启网关通过修改配置将开关设为 true\n3、再次发起 zhangsan_ai 请求验证降级成功\n4、不重启网关将开关改回 false\n5、再次发起 zhangsan_ai 请求验证认证失败"}, "children": []},
+                    {"data": {"text": "预期结果：行为随开关即时正确切换（不重启），开关关闭时认证失败，开关开启时降级成功，开关再次关闭时认证失败，getHotValue 热加载生效"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：功能案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】login模式xtokenAlive的4种组合行为一致"},
+                  "children": [
+                    {"data": {"text": "条件：降级开关开启，AI 后缀为默认 _ai，zhangsan_ai 降级可成功"}, "children": []},
+                    {"data": {"text": "步骤：\n1、降级开关开启测试 login=true x tokenAlive=true 组合\n2、测试 login=true x tokenAlive=false 组合\n3、测试 login=false x tokenAlive=true 组合\n4、测试 login=false x tokenAlive=false 组合\n5、降级成功后观察各分支行为"}, "children": []},
+                    {"data": {"text": "预期结果：成功后各分支（setLoginUser 的 alive/非 alive、login 响应）行为与非降级成功路径一致，身份均为 _ai 用户（tokenUser），4 种组合行为一致"}, "children": []}
+                  ]
+                }
+              ]
+            },
+            {
+              "data": {"text": "分类：流程案例"},
+              "children": [
+                {
+                  "data": {"text": "【AIGC】集成测试IT-01：开关关闭+_ai用户请求"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关=false，zhangsan_ai 在 linkis_token 表无记录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、以 zhangsan_ai 为 Token-User 携带有效但绑定用户不匹配的 token 发起请求\n2、观察网关认证行为和日志"}, "children": []},
+                    {"data": {"text": "预期结果：认证失败行为与现网完全一致（noLogin + filterResponse），降级代码零生效，日志中无 token downgrade 关键字"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-02：开关开启+zhangsan_ai降级成功"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关开启，zhangsan_ai 表无记录，zhangsan 有有效 TOKEN-A"}, "children": []},
+                    {"data": {"text": "步骤：\n1、以 zhangsan_ai 为 Token-User 携带 TOKEN-A 发起请求\n2、观察网关认证行为和日志\n3、验证放行身份"}, "children": []},
+                    {"data": {"text": "预期结果：首次 doAuth 失败，剥离后缀以 zhangsan 重试 doAuth 成功，请求放行身份=zhangsan_ai，日志记录降级事件"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-03：降级失败+原用户token也无效"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关开启，zhangsan_ai 和 zhangsan 均无有效 token 记录"}, "children": []},
+                    {"data": {"text": "步骤：\n1、以 zhangsan_ai 为 Token-User 携带任意 token 发起请求\n2、观察网关认证行为和日志"}, "children": []},
+                    {"data": {"text": "预期结果：首次 doAuth 失败，降级重试 doAuth 也失败，按现网原失败路径返回认证失败，无第二次重试"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-04：非_ai用户认证失败"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关开启，测试用户 zhangsan（无后缀）"}, "children": []},
+                    {"data": {"text": "步骤：\n1、以 zhangsan 为 Token-User 携带无效 token 发起请求\n2、观察网关认证行为和日志"}, "children": []},
+                    {"data": {"text": "预期结果：认证失败行为与现网一致，降级逻辑不触发，日志中无 token downgrade 关键字"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-05：动态token+_ai用户"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关开启，动态 token 前缀路由已配置"}, "children": []},
+                    {"data": {"text": "步骤：\n1、以 zhangsan_ai 为 Token-User 携带动态 token（dyn- 前缀）发起请求\n2、观察网关认证行为"}, "children": []},
+                    {"data": {"text": "预期结果：走 dynamicTokenAuth 原路径，降级逻辑不介入，行为与降级开关无关"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-06：开关运行时切换"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关当前为关闭状态"}, "children": []},
+                    {"data": {"text": "步骤：\n1、开关关闭时发起 zhangsan_ai 请求认证失败\n2、不重启网关将开关改为 true\n3、再次发起 zhangsan_ai 请求降级成功\n4、不重启网关将开关改回 false\n5、再次发起 zhangsan_ai 请求认证失败"}, "children": []},
+                    {"data": {"text": "预期结果：行为随开关即时正确切换，热加载（getHotValue）生效"}, "children": []}
+                  ]
+                },
+                {
+                  "data": {"text": "【AIGC】集成测试IT-07：login模式+tokenAlive"},
+                  "children": [
+                    {"data": {"text": "条件：linkis-mg-gateway 服务已部署，降级开关开启，测试 login 模式与 tokenAlive 的不同组合"}, "children": []},
+                    {"data": {"text": "步骤：\n1、降级开关开启分别测试 login=true/false x tokenAlive=true/false 的 4 种组合\n2、降级成功后观察各分支行为"}, "children": []},
+                    {"data": {"text": "预期结果：成功后各分支行为与非降级成功路径一致，身份均为 _ai 用户"}, "children": []}
+                  ]
+                }
+              ]
+            }
+          ]
+        }]
+      }]
+    }]
+  }
+}
