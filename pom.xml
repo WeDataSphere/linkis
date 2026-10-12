@@ -179,7 +179,7 @@
     <!-- spring -->
     <spring-framework.version>5.3.34</spring-framework.version>
     <spring-security.version>5.7.11</spring-security.version>
-    <spring.boot.version>2.7.12</spring.boot.version>
+    <spring.boot.version>2.7.32</spring.boot.version>
     <spring-netflix.version>3.1.7</spring-netflix.version>
     <spring-cloud.version>2021.0.8</spring-cloud.version>
     <spring-cloud-alibaba.version>2021.0.6.0</spring-cloud-alibaba.version>
@@ -1550,7 +1550,7 @@
         <spark.version>3.4.4</spark.version>
         <scala.version>2.12.18</scala.version>
         <scala.binary.version>2.12</scala.binary.version>
-        <jackson-bom.version>2.16.0</jackson-bom.version>
+        <jackson-bom.version>2.18.11</jackson-bom.version>
       </properties>
     </profile>
 
