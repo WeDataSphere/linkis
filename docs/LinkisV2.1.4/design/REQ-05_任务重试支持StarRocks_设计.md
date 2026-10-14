@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/47kgJOjVNXF8ZBqV)
+
 # 任务重试支持 StarRocks 设计文档
 
 **需求类型**: ENHANCE

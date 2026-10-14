@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/1lq7MwW1YVud0vAe)
+
 # 管理台数据源过期按钮二次确认 设计文档
 
 **需求类型**: ENHANCE（功能增强）

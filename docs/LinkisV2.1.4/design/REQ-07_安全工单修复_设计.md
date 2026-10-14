@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/8Nk6MwPYz5twPEqL)
+
 # 安全工单修复 设计文档
 
 **需求类型**: FIX（安全工单/依赖升级修复）
