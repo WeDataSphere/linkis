@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/5rk9dzJa0ytEyGqx)
+
 # BES 容器适配改造 需求文档
 
 **需求类型**: REFACTOR（架构级改造）

@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/gXqmeOjD6eIzxWqo)
+
 # 网关 _ai 用户 token 降级鉴权 设计文档
 
 **需求类型**: FEATURE（业务需求）

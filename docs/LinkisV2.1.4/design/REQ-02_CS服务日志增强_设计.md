@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/Wr3DVzDWapHREgkJ)
+
 # ContextService 日志增强 设计文档
 
 **需求类型**: OPTIMIZE（优化）

@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/zdkyBY2bevUXvMA6)
+
 # 任务重试支持 StarRocks 需求文档
 
 **需求类型**: ENHANCE（功能增强）
