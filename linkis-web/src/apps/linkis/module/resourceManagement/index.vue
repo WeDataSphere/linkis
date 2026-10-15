@@ -405,12 +405,12 @@ export default {
         await this.initExpandList();
       }
       this.getKeyList();
-      
+
     })
     await api.fetch('/linkisManager/rm/engineType', 'get').then(res => {
       this.engines =  ['all'].concat(res.engineType)
     })
-    
+
 
   },
   methods: {
@@ -549,7 +549,8 @@ export default {
       const calcCompanyToData = function(num, isCompany = false) {
         let data = num > 0 ? num : 0;
         if (isCompany) {
-          return data / 1024 / 1024 / 1024;
+          // 内存为字节，换算为 G；绝对值小于 1G 的极小残值直接归零，避免科学计数法(如 9.313225746154785e-9G)
+          return Math.abs(data) < 1073741824 ? 0 : data / 1024 / 1024 / 1024;
         }
         return data;
       }
@@ -566,22 +567,23 @@ export default {
         }
       } else {
         if (yarn) {
-          const yarnType = type === 'memory' ? 'queueMemory' : 'queueCores'
+          // 实例数列(type=instances)应取 queueInstances，不能落到 queueCores
+          const yarnType = type === 'memory' ? 'queueMemory' : ((type === 'instances' || type === 'instance') ? 'queueInstances' : 'queueCores')
           data = row[field].yarnResource[yarnType]
         } else {
-          // if(type === 'instance') {
-          //   type = instances;
-          // }
-          data = row[field].loadInstanceResource[type] || row[field].loadInstanceResource['instances']
+          const ld = row[field].loadInstanceResource || {}
+          // 0 是合法值（如 cores 剩余为 0），不能用 || 兜底，否则 0 会被 instances 的值顶替
+          data = (ld[type] !== undefined && ld[type] !== null) ? ld[type] : ld['instances']
         }
       }
       if (type === 'memory' && data !== ' -- ') {
-        data = data / 1024 / 1024 / 1024;
+        // 内存为字节，换算为 G；绝对值小于 1G 的极小残值直接归零，避免科学计数法(如 9.313225746154785e-9G)
+        data = Math.abs(data) < 1073741824 ? 0 : data / 1024 / 1024 / 1024;
       }
       if (data !== ' -- ') {
         if (type === 'memory') {
           data = data + 'G'
-        } else if (type === 'instance') {
+        } else if (type === 'instance' || type === 'instances') {
           data = data + 'apps'
         } else {
           data = data + 'cores'
@@ -602,7 +604,7 @@ export default {
       } else {
         await this.initExpandList();
       }
-      
+
     },
     async search() {
       const param = {
