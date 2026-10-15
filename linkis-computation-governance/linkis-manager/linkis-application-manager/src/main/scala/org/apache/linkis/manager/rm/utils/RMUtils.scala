@@ -71,6 +71,18 @@ object RMUtils extends Logging {
 
   val RM_RESOURCE_ACTION_RECORD = CommonVars("wds.linkis.manager.rm.resource.action.record", true)
 
+  // REQ-01 O3: 引擎退出消息负值丢弃开关，默认开启防御，关闭时回退原有行为
+  val RM_NEGATIVE_RESOURCE_DISCARD_ENABLE =
+    CommonVars("linkis.manager.engine.exit.negative.resource.discard.enable", true)
+
+  // REQ-01 OC1: 资源管理界面查询结果负数归零开关，默认开启，关闭时回退原有行为(直接返回原值不归一化)
+  val RM_USER_RESOURCE_NEGATIVE_NORMALIZE_ENABLE =
+    CommonVars("linkis.manager.rm.user.resource.negative.normalize.enable", true)
+
+  // REQ-01 增强: allUserResource 剩余资源重算开关(left = max - used)，默认开启，关闭时回退原有行为(保留DB快照left，不重算)
+  val RM_USER_RESOURCE_LEFT_RECOMPUTE_ENABLE =
+    CommonVars("linkis.manager.rm.user.resource.left.recompute.enable", true)
+
   def deserializeResource(plainResource: String): Resource = {
     jacksonUtil.readValue(plainResource, classOf[Resource])
   }
@@ -161,6 +173,181 @@ object RMUtils extends Logging {
       }
     }
     userResourceVo
+  }
+
+  /**
+   * REQ-01 需求变更:资源管理界面查询时,若"已使用资源/剩余资源"存在负数,强制归零。 资源值以数值字段(如 memory/cores/instances 等)存储,遍历 Map
+   * 中所有数值型字段, 将 < 0 的值原地改写为与字段类型一致的 0,保证前端展示不再出现负资源。 对 DriverAndYarn 等复合资源,值本身是嵌套 Map
+   * (loadInstanceResource/yarnResource), 需递归进入内层对其数值字段归零,避免嵌套负值漏归一。
+   * @return
+   *   归一化后的同一 Map(原地修改,便于链式调用)
+   */
+  def normalizeNegativeResource(resourceMap: util.Map[String, Any]): util.Map[String, Any] = {
+    if (resourceMap == null) {
+      return resourceMap
+    }
+    val it = resourceMap.entrySet().iterator()
+    while (it.hasNext) {
+      val entry = it.next()
+      entry.getValue match {
+        case m: util.Map[String, Any] @unchecked =>
+          // 复合资源(如 DriverAndYarn)的嵌套结构,递归归零内层数值字段
+          normalizeNegativeResource(m)
+        case n: java.lang.Integer if n.intValue() < 0 => entry.setValue(0: java.lang.Integer)
+        case n: java.lang.Long if n.longValue() < 0 => entry.setValue(0: java.lang.Long)
+        case n: java.lang.Double if n.doubleValue() < 0 => entry.setValue(0: java.lang.Double)
+        case n: java.lang.Float if n.floatValue() < 0 => entry.setValue(0: java.lang.Float)
+        case n: java.lang.Short if n.shortValue() < 0 =>
+          entry.setValue(java.lang.Short.valueOf(0.toShort))
+        case n: java.lang.Byte if n.byteValue() < 0 =>
+          entry.setValue(java.lang.Byte.valueOf(0.toByte))
+        case n: java.math.BigDecimal if n.doubleValue() < 0 =>
+          entry.setValue(java.math.BigDecimal.ZERO)
+        case n: java.math.BigInteger if n.signum() < 0 =>
+          entry.setValue(java.math.BigInteger.ZERO)
+        case _ => // 忽略非数值字段(如字符串 queueName/applicationId 等)
+      }
+    }
+    resourceMap
+  }
+
+  /**
+   * REQ-01 需求变更:对单个 UserResourceVo 的"已使用资源"与"剩余资源"执行负数归零。
+   */
+  def normalizeUserResourceVoNegative(vo: UserResourceVo): UserResourceVo = {
+    if (vo == null) {
+      return vo
+    }
+    // 功能开关关闭时回退原有行为，直接返回原 vo 不做负数归零
+    if (!RM_USER_RESOURCE_NEGATIVE_NORMALIZE_ENABLE.getValue) {
+      return vo
+    }
+    normalizeNegativeResource(vo.getUsedResource.asInstanceOf[util.Map[String, Any]])
+    normalizeNegativeResource(vo.getLeftResource.asInstanceOf[util.Map[String, Any]])
+    vo
+  }
+
+  /**
+   * REQ-01 增强: allUserResource 界面剩余资源重算为"最大资源 - 已用资源"。 仅在展示层(查询出口)生效，不改动底层DB数据。逻辑顺序:
+   *   1. 对已用资源 usedResource 中的负数强制归零(收集已用资源负值) 2. 取最大资源 maxResource 与归一化后的已用资源，逐数值字段计算 left = max -
+   *      used 3. 重算结果若为负(used > max)同样归零 主体接口逻辑不变，仅在接口最后追加本层计算。开关关闭时回退原有行为(保留DB快照left)。
+   */
+  def recomputeUserResourceLeftNegative(vo: UserResourceVo): UserResourceVo = {
+    if (vo == null) {
+      return vo
+    }
+    // 功能开关关闭时回退原有行为，不重算剩余资源(保留DB快照)
+    if (!RM_USER_RESOURCE_LEFT_RECOMPUTE_ENABLE.getValue) {
+      return vo
+    }
+    val usedMap = vo.getUsedResource.asInstanceOf[util.Map[String, Any]]
+    val maxMap = vo.getMaxResource.asInstanceOf[util.Map[String, Any]]
+    if (maxMap == null || usedMap == null) {
+      return vo
+    }
+    // 1. 先对已用资源负数归零(递归,兼容 DriverAndYarn 嵌套结构)
+    normalizeNegativeResource(usedMap)
+    // 2. 递归计算 left = max - used（数值字段相减、嵌套结构递归、非数值字段留 max）
+    val leftMap = computeLeftMap(maxMap, usedMap)
+    // 3. 重算结果若为负归零
+    normalizeNegativeResource(leftMap)
+    vo.setLeftResource(leftMap)
+    vo
+  }
+
+  /**
+   * 递归计算剩余资源 left = max - used。兼容两类资源结构: 1. 扁平结构(hive/shell 等): 顶层字段为数值(memory/cores/instances) 2.
+   * 复合结构(DriverAndYarn 等): 顶层字段为嵌套 Map(loadInstanceResource/yarnResource) 对嵌套 Map 递归处理; 对非数值字段(如
+   * queueName/applicationId)保留 max 值,不参与相减。
+   */
+  private def computeLeftMap(
+      maxMap: util.Map[String, Any],
+      usedMap: util.Map[String, Any]
+  ): util.Map[String, Any] = {
+    val leftMap = new util.HashMap[String, Any]()
+    if (maxMap == null) {
+      return leftMap
+    }
+    val it = maxMap.entrySet().iterator()
+    while (it.hasNext) {
+      val entry = it.next()
+      entry.getValue match {
+        case maxVal: java.lang.Number =>
+          val usedVal = usedMap.get(entry.getKey) match {
+            case u: java.lang.Number => u
+            case _ => null
+          }
+          if (usedVal == null) {
+            // 已用资源无该字段：剩余 = 最大(不重算，保留max值，但为负归0)
+            leftMap.put(entry.getKey, normalizeNumberNegative(maxVal))
+          } else {
+            // left = max - used
+            leftMap.put(entry.getKey, subtractNumbers(maxVal, usedVal))
+          }
+        case maxInner: util.Map[String, Any] @unchecked =>
+          // 复合资源(如 DriverAndYarn)嵌套结构：递归计算内层 left
+          val usedInner = usedMap.get(entry.getKey) match {
+            case u: util.Map[String, Any] @unchecked => u
+            case _ => new util.HashMap[String, Any]()
+          }
+          leftMap.put(entry.getKey, computeLeftMap(maxInner, usedInner))
+        case other =>
+          // 非数值、非嵌套结构字段(如字符串 queueName/applicationId)：保留 max 值
+          leftMap.put(entry.getKey, other)
+      }
+    }
+    leftMap
+  }
+
+  /** 数值相减，返回与 maxVal 类型一致的数值；结果为负时归零。 */
+  private def subtractNumbers(
+      maxVal: java.lang.Number,
+      usedVal: java.lang.Number
+  ): java.lang.Object = {
+    val result = (maxVal: Any, usedVal: Any) match {
+      case (a: java.lang.Integer, b: java.lang.Integer) =>
+        new java.lang.Integer(a.intValue() - b.intValue())
+      case (a: java.lang.Long, b: java.lang.Long) =>
+        new java.lang.Long(a.longValue() - b.longValue())
+      case (a: java.lang.Double, b: java.lang.Double) =>
+        new java.lang.Double(a.doubleValue() - b.doubleValue())
+      case (a: java.lang.Float, b: java.lang.Float) =>
+        new java.lang.Float(a.floatValue() - b.floatValue())
+      case (a: java.lang.Short, b: java.lang.Short) =>
+        java.lang.Short.valueOf((a.shortValue() - b.shortValue()).toShort)
+      case (a: java.lang.Byte, b: java.lang.Byte) =>
+        java.lang.Byte.valueOf((a.byteValue() - b.byteValue()).toByte)
+      case (a: java.math.BigDecimal, b: java.math.BigDecimal) =>
+        a.subtract(b)
+      case (a: java.math.BigInteger, b: java.math.BigInteger) =>
+        a.subtract(b)
+      case _ =>
+        // 类型不一致时按 double 兜底
+        new java.lang.Double(maxVal.doubleValue() - usedVal.doubleValue())
+    }
+    // 结果为负时归零
+    result match {
+      case n: java.lang.Number if n.doubleValue() < 0 => zeroLike(result)
+      case other => other
+    }
+  }
+
+  /** 生成与目标数值同类型的 0。 */
+  private def zeroLike(value: Any): java.lang.Object = value match {
+    case _: java.lang.Integer => new java.lang.Integer(0)
+    case _: java.lang.Long => new java.lang.Long(0L)
+    case _: java.lang.Double => new java.lang.Double(0d)
+    case _: java.lang.Float => new java.lang.Float(0f)
+    case _: java.lang.Short => java.lang.Short.valueOf(0.toShort)
+    case _: java.lang.Byte => java.lang.Byte.valueOf(0.toByte)
+    case _: java.math.BigDecimal => java.math.BigDecimal.ZERO
+    case _: java.math.BigInteger => java.math.BigInteger.ZERO
+    case _ => new java.lang.Integer(0)
+  }
+
+  /** 数值若为负则归零（供 max 单独存在时使用）。 */
+  private def normalizeNumberNegative(value: java.lang.Number): java.lang.Object = {
+    if (value.doubleValue() < 0) zeroLike(value) else value
   }
 
   def toPersistenceResource(nodeResource: NodeResource): PersistenceResource = {

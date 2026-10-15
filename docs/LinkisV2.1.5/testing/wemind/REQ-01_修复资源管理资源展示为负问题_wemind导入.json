@@ -1,0 +1,533 @@
+{
+  "root": {
+    "data": {
+      "text": "WDSL-UJES"
+    },
+    "children": [
+      {
+        "data": {
+          "text": "路径"
+        },
+        "children": [
+          {
+            "data": {
+              "text": "需求：552808"
+            },
+            "children": [
+              {
+                "data": {
+                  "text": "修复资源管理资源展示为负问题"
+                },
+                "children": [
+                  {
+                    "data": {
+                      "text": "分类：参数配置"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】TC001-O3负值丢弃（开关开启）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 linkis.manager.engine.exit.negative.resource.discard.enable=true（默认开启）；用户usedResource为0"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、linkis-manager收到引擎退出消息\n2、当前资源减回收资源后为负值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：丢弃扣减操作；引擎状态清理正常执行；打印warn日志含引擎/标签/原始值/回收值；usedResource保持0不变负"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC002-O3开关关闭回退（兼容）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 discard.enable=false；用户usedResource为0"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、linkis-manager收到引擎退出消息\n2、当前资源减回收资源后为负值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：按原有逻辑扣减；usedResource变负值；不打印丢弃warn日志；可能打印found error resource告警"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC003-O3正常引擎退出不受影响"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 discard.enable=true；用户usedResource为正值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、linkis-manager收到引擎退出消息\n2、当前资源减回收资源后为非负值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：正常执行资源回收；usedResource正确扣减；不触发丢弃逻辑；不打印丢弃warn日志"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC008-剩余资源重算开关关闭保留DB快照（回退）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 linkis.manager.rm.user.resource.left.recompute.enable=false；管理员权限"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、关闭重算开关\n2、GET /linkisManager/rm/allUserResource\n3、观察leftResource"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：不执行left=max-used重算；界面直接展示DB快照leftResource原值"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC012-O3关闭时OC1仍兜底展示非负"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：O3开关 discard.enable=false；OC1归零已生效"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、触发引擎退出产生负值\n2、调用allUserResource查询\n3、观察界面"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：O3不丢弃（保持原行为）；OC1仍将usedResource/leftResource负值归零；界面始终非负"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC016-O3开关非标准布尔值视为false（边界）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：参数 discard.enable=非标准布尔值（如abc、空、数值）"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、使配置生效\n2、触发引擎退出且满足负值条件\n3、观察行为"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：非标准布尔值视为false；按原有逻辑扣减不丢弃；行为与显式false一致"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：接口案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】TC004-OC1 usedResource负值归零"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员身份；存在用户资源记录含负值usedResource"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、返回某用户usedResource含负值\n3、观察返回值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：normalizeUserResourceVoNegative将usedResource负值字段归零；界面展示usedResource为0"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC005-OC1 leftResource负值归零"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员身份；用户资源记录leftResource含负值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、返回某用户leftResource含负值\n3、观察返回值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：normalizeUserResourceVoNegative将leftResource负值字段归零；界面展示leftResource为0"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC006-OC1非负值保持原值（回归）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员身份；用户资源usedResource与leftResource均非负"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、返回usedResource与leftResource均非负\n3、观察返回值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：不执行归零处理；界面展示原始资源值不变"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC007-剩余资源重算left=max-used（核心）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 recompute.enable=true；管理员权限；某用户max/used非负且left快照与max-used不一致"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、观察该用户leftResource"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：先归零used负值；逐字段left=max-used；结果为负归零；写回leftResource展示；不改底层DB"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC009-max/used缺失字段按规则计算（边界）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 recompute.enable=true；管理员权限；用户max含字段而used缺该字段"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、观察该用户leftResource计算"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：该字段剩余=最大资源原值（负则归零）；max中非数值字段忽略不进入重算"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC013-allUserResource非管理员被拒（权限）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：以非管理员普通用户身份登录"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、观察响应"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：抛出RMErrorException（ONLY_ADMIN_READ）；返回权限不足错误；不返回资源数据"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC014-allUserResource正常分页返回"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员权限；存在多条不同用户/creator/engineType资源"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource?page=1&size=20（可带过滤）\n2、观察响应"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：返回code=200；data.resources含max/used/left等字段；data.total为总数；资源经recompute+normalize处理"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC015-get-user-resource单用户查询保持原样"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：存在指定username/creator/engineType资源"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/get-user-resource?username=xxx&creator=xxx&engineType=xxx\n2、观察响应"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：返回code=200；值为toUserResourceVo原样输出；不重算不归零"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC017-OC1归零null/非数值容错（异常）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员权限；用户资源used/left含null或字符串等非数值字段"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、观察是否抛异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：normalizeNegativeResource遇null返回原值不抛异常；非数值字段忽略；接口正常返回；底层数据不变"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：流程案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】TC011-O3丢弃+OC1归零两层协同保证非负"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：O3丢弃已生效且开关开启；OC1归零已生效"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、触发引擎退出产生负值资源\n2、调用allUserResource查询\n3、观察界面"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：O3丢弃负值扣减（防御层）；OC1将used/left负值归零（展示层兜底）；界面始终显示非负"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC019-丢弃逻辑不影响引擎状态清理"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：O3开关开启；触发引擎退出且扣减为负"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、发生引擎退出且命中丢弃条件\n2、观察引擎状态清理执行"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：丢弃仅跳过资源扣减；EC记录删除/标签清理正常执行；不遗漏状态清理"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "data": {
+                      "text": "分类：功能案例"
+                    },
+                    "children": [
+                      {
+                        "data": {
+                          "text": "【AIGC】TC010-单用户接口不受剩余资源重算影响（回归）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：开关 recompute.enable=true；存在指定用户资源"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/get-user-resource\n2、观察返回值"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：不执行left=max-used重算（仅allUserResource生效）；返回值保持toUserResourceVo原样"
+                            },
+                            "children": []
+                          }
+                        ]
+                      },
+                      {
+                        "data": {
+                          "text": "【AIGC】TC018-OC1归零异常时接口仍正常返回（降级）"
+                        },
+                        "children": [
+                          {
+                            "data": {
+                              "text": "条件：管理员权限；模拟归零/重算过程某字段处理异常"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "步骤：\n1、GET /linkisManager/rm/allUserResource\n2、观察接口整体行为"
+                            },
+                            "children": []
+                          },
+                          {
+                            "data": {
+                              "text": "预期结果：归零/重算异常跳过该字段；接口整体正常返回不抛异常打断；底层DB未改写"
+                            },
+                            "children": []
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -244,7 +244,13 @@ class RMMonitorRest extends Logging {
           userResource.setVersion(userCreatorEngineType.getVersion)
         }
       }
-      userResources.add(RMUtils.toUserResourceVo(userResource))
+      // REQ-01 需求变更:查询结果若"已使用资源/剩余资源"存在负数,强制归零后返回
+      // REQ-01 增强:接口最后追加一层,将剩余资源重算为"最大资源-已用资源",保障展示口径准确
+      userResources.add(
+        RMUtils.recomputeUserResourceLeftNegative(
+          RMUtils.normalizeUserResourceVoNegative(RMUtils.toUserResourceVo(userResource))
+        )
+      )
     })
     Message.ok().data("resources", userResources).data("total", resultPage.getTotal)
   }

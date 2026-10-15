@@ -363,7 +363,8 @@ export default {
     calcCompany(num, isCompany = false) {
       let data = num > 0 ? num : 0;
       if(isCompany) {
-        return data / 1024 / 1024 / 1024;
+        // 内存为字节，换算为 G；绝对值小于 1G 的极小残值直接归零，避免科学计数法(如 9.313225746154785e-9G)
+        return Math.abs(data) < 1073741824 ? 0 : data / 1024 / 1024 / 1024;
       }
       return data;
     }

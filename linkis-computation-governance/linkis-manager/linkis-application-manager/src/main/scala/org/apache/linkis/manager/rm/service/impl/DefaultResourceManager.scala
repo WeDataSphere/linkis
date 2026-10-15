@@ -722,6 +722,9 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
         ecNode.getNodeStatus
       }
 
+      // REQ-01 O3: 读取负值丢弃开关，开启时引擎退出扣减产生负值则丢弃该扣减操作，避免资源展示为负
+      val discardNegativeResource = RMUtils.RM_NEGATIVE_RESOURCE_DISCARD_ENABLE.getValue
+
       labelContainer.getResourceLabels.asScala
         .filter(!_.isInstanceOf[EngineInstanceLabel])
         .foreach { label =>
@@ -771,25 +774,33 @@ class DefaultResourceManager extends ResourceManager with Logging with Initializ
               val labelResource = labelResourceService.getLabelResource(label)
               if (labelResource != null) {
                 if (label.isInstanceOf[EMInstanceLabel]) timeCheck(labelResource, usedResource)
+                val zeroResource = Resource.initResource(usedResource.getResourceType)
                 if (
-                    null != usedResource.getUsedResource && usedResource.getUsedResource.moreThan(
-                      Resource
-                        .initResource(usedResource.getResourceType)
-                    )
+                    null != usedResource.getUsedResource && usedResource.getUsedResource
+                      .moreThan(zeroResource)
                 ) {
-                  labelResource.setUsedResource(
+                  // REQ-01 O3: 扣减前计算减后值，若为负且开关开启则丢弃该扣减操作，防止资源展示为负
+                  if (null == labelResource.getUsedResource) {
+                    labelResource.setUsedResource(zeroResource)
+                  }
+                  val newUsedResource =
                     labelResource.getUsedResource.minus(usedResource.getUsedResource)
-                  )
-                  labelResource.setLeftResource(
-                    labelResource.getLeftResource.add(usedResource.getUsedResource)
-                  )
+                  if (discardNegativeResource && !newUsedResource.notLess(zeroResource)) {
+                    // 减后为负且开关开启 → 丢弃 usedResource 扣减，仅打印告警，继续处理 lockedResource 释放
+                    logger.warn(
+                      s"Discard negative resource deduction: label=${label.getStringValue}, currentUsed=${labelResource.getUsedResource}, releasedResource=${usedResource.getUsedResource}, calculatedResult=${newUsedResource}, engineInstance=${labelContainer.getEngineInstanceLabel}"
+                    )
+                  } else {
+                    // 正常执行资源扣减
+                    labelResource.setUsedResource(newUsedResource)
+                    labelResource.setLeftResource(
+                      labelResource.getLeftResource.add(usedResource.getUsedResource)
+                    )
+                  }
                 }
                 if (
                     null != usedResource.getLockedResource && usedResource.getLockedResource
-                      .moreThan(
-                        Resource
-                          .initResource(usedResource.getResourceType)
-                      )
+                      .moreThan(zeroResource)
                 ) {
                   labelResource.setLockedResource(
                     labelResource.getLockedResource.minus(usedResource.getLockedResource)
