@@ -1,1 +1,0 @@
-print(sqlContext.sql("select udf_hello_0907(col_1) from stacyyan_ind.test_1000columns_sql").collect())
