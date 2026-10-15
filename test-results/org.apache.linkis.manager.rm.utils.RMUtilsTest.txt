@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: org.apache.linkis.manager.rm.utils.RMUtilsTest
+-------------------------------------------------------------------------------
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.478 s - in org.apache.linkis.manager.rm.utils.RMUtilsTest

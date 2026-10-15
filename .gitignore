@@ -50,3 +50,5 @@ nul
 /linkis-web/playwright-report/
 
 .mcp.json
+/dev/project-state/
+/memory/

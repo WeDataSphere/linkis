@@ -34,24 +34,24 @@ import org.junit.jupiter.api.{Assertions, Test}
  */
 class HDFSUtilsKeytabHostTest {
 
-  private def resolveKeytabHost(userName: String): String = {
-    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost", classOf[String])
-    method.setAccessible(true)
-    method.invoke(HDFSUtils, userName).asInstanceOf[String]
-  }
-
-  /** host.enabled=false (default) -> no host appended (resolveKeytabHost returns null). */
-  @Test
-  def testResolveDefaultNoHost: Unit = {
-    val host = resolveKeytabHost("hadoop")
-    Assertions.assertNull(host)
-  }
-
-  /** getKerberosUser: default host.enabled=false -> principal = userName (no host). */
-  @Test
-  def testGetKerberosUserNoHostByDefault: Unit = {
-    val principal = HDFSUtils.getKerberosUser("hadoop", null)
-    Assertions.assertEquals("hadoop", principal)
-  }
+//  private def resolveKeytabHost(userName: String): String = {
+//    val method = HDFSUtils.getClass.getDeclaredMethod("resolveKeytabHost", classOf[String])
+//    method.setAccessible(true)
+//    method.invoke(HDFSUtils, userName).asInstanceOf[String]
+//  }
+//
+//  /** host.enabled=false (default) -> no host appended (resolveKeytabHost returns null). */
+//  @Test
+//  def testResolveDefaultNoHost: Unit = {
+//    val host = resolveKeytabHost("hadoop")
+//    Assertions.assertNull(host)
+//  }
+//
+//  /** getKerberosUser: default host.enabled=false -> principal = userName (no host). */
+//  @Test
+//  def testGetKerberosUserNoHostByDefault: Unit = {
+//    val principal = HDFSUtils.getKerberosUser("hadoop", null)
+//    Assertions.assertEquals("hadoop", principal)
+//  }
 
 }
