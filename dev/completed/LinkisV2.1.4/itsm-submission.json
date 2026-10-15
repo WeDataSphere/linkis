@@ -1,0 +1,18 @@
+{
+  "version_name": "LinkisV2.1.4",
+  "plan_id": "180524",
+  "product_id": "100484",
+  "state": "prepared",
+  "values": {
+    "changeOwner": "alexyang",
+    "changeStartTime": "2026-10-15 21:00:00",
+    "changeEndTime": "2026-11-14 21:00:00"
+  },
+  "input_issues": {},
+  "body_hash": "946516359d8e140acab12f296b86cd0e4f149d4188ea0b3f2b52fa7aeee77454",
+  "shimo_url": "http://docs.weoa.com/docs/vVAXVnO7bbcwRVqm",
+  "preview_nonce": "93632bbe216f4deab165c157e4b8b6e1",
+  "fingerprint": "693e99686852fc733bf067d299e95536a2bef77d3442354ff4ca4f54f6313dcf",
+  "source": "auto",
+  "updated_at": "2026-10-15T06:23:50.201975+00:00"
+}

@@ -1,0 +1,378 @@
+{
+  "version": "1.0",
+  "folders": {},
+  "documents": {
+    "REQ-01|requirement|docs/LinkisV2.1.4/requirements/REQ-01_支持_ai用户鉴权_需求.md": {
+      "document_id": "REQ-01|requirement|docs/LinkisV2.1.4/requirements/REQ-01_支持_ai用户鉴权_需求.md",
+      "requirement_key": "REQ-01",
+      "document_type": "requirement",
+      "display_name": "REQ-01_支持_ai用户鉴权_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-01_支持_ai用户鉴权_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/m5kv9LgO82IPwmqX",
+      "file_guid": "m5kv9LgO82IPwmqX",
+      "content_hash": "103a072512f5f694d572d64f532571639a6903ba32735c480fc1c2cfcf706765",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/m5kv9LgO82IPwmqX",
+          "file_guid": "m5kv9LgO82IPwmqX",
+          "content_hash": "103a072512f5f694d572d64f532571639a6903ba32735c480fc1c2cfcf706765",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "requirement",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-02|requirement|docs/LinkisV2.1.4/requirements/REQ-02_CS服务日志增强_需求.md": {
+      "document_id": "REQ-02|requirement|docs/LinkisV2.1.4/requirements/REQ-02_CS服务日志增强_需求.md",
+      "requirement_key": "REQ-02",
+      "document_type": "requirement",
+      "display_name": "REQ-02_CS服务日志增强_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-02_CS服务日志增强_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/KrkEVzDeb4T6MEAJ",
+      "file_guid": "KrkEVzDeb4T6MEAJ",
+      "content_hash": "258a8354de2dcec97f02c56b095aa11f688912eb8dd4936391bde5bf966d664b",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/KrkEVzDeb4T6MEAJ",
+          "file_guid": "KrkEVzDeb4T6MEAJ",
+          "content_hash": "258a8354de2dcec97f02c56b095aa11f688912eb8dd4936391bde5bf966d664b",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "requirement",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-03|requirement|docs/LinkisV2.1.4/requirements/REQ-03_数据源过期二次确认_需求.md": {
+      "document_id": "REQ-03|requirement|docs/LinkisV2.1.4/requirements/REQ-03_数据源过期二次确认_需求.md",
+      "requirement_key": "REQ-03",
+      "document_type": "requirement",
+      "display_name": "REQ-03_数据源过期二次确认_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-03_数据源过期二次确认_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/25q5Mj7LDpcWBlqD",
+      "file_guid": "25q5Mj7LDpcWBlqD",
+      "content_hash": "6c593def25f3b9da105f6f85a61918d860512fe13c287c9c14ee8f56fe458b9c",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/25q5Mj7LDpcWBlqD",
+          "file_guid": "25q5Mj7LDpcWBlqD",
+          "content_hash": "6c593def25f3b9da105f6f85a61918d860512fe13c287c9c14ee8f56fe458b9c",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "requirement",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-04|requirement|docs/LinkisV2.1.4/requirements/REQ-04_BES容器适配改造_需求.md": {
+      "document_id": "REQ-04|requirement|docs/LinkisV2.1.4/requirements/REQ-04_BES容器适配改造_需求.md",
+      "requirement_key": "REQ-04",
+      "document_type": "requirement",
+      "display_name": "REQ-04_BES容器适配改造_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-04_BES容器适配改造_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/5rk9dzJa0ytEyGqx",
+      "file_guid": "5rk9dzJa0ytEyGqx",
+      "content_hash": "fb4f7adb5e8150b75b21d01fa045a61fd9e0f52467bd1e449aaee8ff1f6f010c",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/5rk9dzJa0ytEyGqx",
+          "file_guid": "5rk9dzJa0ytEyGqx",
+          "content_hash": "fb4f7adb5e8150b75b21d01fa045a61fd9e0f52467bd1e449aaee8ff1f6f010c",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "requirement",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-5|requirement|docs/LinkisV2.1.4/requirements/REQ-05_任务重试支持StarRocks_需求.md": {
+      "document_id": "REQ-5|requirement|docs/LinkisV2.1.4/requirements/REQ-05_任务重试支持StarRocks_需求.md",
+      "requirement_key": "REQ-5",
+      "document_type": "requirement",
+      "display_name": "REQ-05_任务重试支持StarRocks_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-05_任务重试支持StarRocks_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/zdkyBY2bevUXvMA6",
+      "file_guid": "zdkyBY2bevUXvMA6",
+      "content_hash": "54785d25dfdfaecad5adaef480b2f56035ab37b6633e5b7a771f7048a88209e3",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/zdkyBY2bevUXvMA6",
+          "file_guid": "zdkyBY2bevUXvMA6",
+          "content_hash": "54785d25dfdfaecad5adaef480b2f56035ab37b6633e5b7a771f7048a88209e3",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ]
+    },
+    "REQ-7|requirement|docs/LinkisV2.1.4/requirements/REQ-07_安全工单修复_需求.md": {
+      "document_id": "REQ-7|requirement|docs/LinkisV2.1.4/requirements/REQ-07_安全工单修复_需求.md",
+      "requirement_key": "REQ-7",
+      "document_type": "requirement",
+      "display_name": "REQ-07_安全工单修复_需求.md",
+      "local_path": "docs/LinkisV2.1.4/requirements/REQ-07_安全工单修复_需求.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/1d3aVl1GBohBYpqg",
+      "file_guid": "1d3aVl1GBohBYpqg",
+      "content_hash": "d47eece49d4d1f14ea0e8596317bb14ad5aa342020a95182ab81ba2832ea3444",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/1d3aVl1GBohBYpqg",
+          "file_guid": "1d3aVl1GBohBYpqg",
+          "content_hash": "d47eece49d4d1f14ea0e8596317bb14ad5aa342020a95182ab81ba2832ea3444",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ]
+    },
+    "REQ-01|design|docs/LinkisV2.1.4/design/REQ-01_支持_ai用户鉴权_设计.md": {
+      "document_id": "REQ-01|design|docs/LinkisV2.1.4/design/REQ-01_支持_ai用户鉴权_设计.md",
+      "requirement_key": "REQ-01",
+      "document_type": "design",
+      "display_name": "REQ-01_支持_ai用户鉴权_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-01_支持_ai用户鉴权_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/gXqmeOjD6eIzxWqo",
+      "file_guid": "gXqmeOjD6eIzxWqo",
+      "content_hash": "499d1a7e8cbe155b85bb40d0c9ecf5b81f9f34f81e0ae8f41775d1c874b775c3",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/gXqmeOjD6eIzxWqo",
+          "file_guid": "gXqmeOjD6eIzxWqo",
+          "content_hash": "499d1a7e8cbe155b85bb40d0c9ecf5b81f9f34f81e0ae8f41775d1c874b775c3",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "design",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-02|design|docs/LinkisV2.1.4/design/REQ-02_CS服务日志增强_设计.md": {
+      "document_id": "REQ-02|design|docs/LinkisV2.1.4/design/REQ-02_CS服务日志增强_设计.md",
+      "requirement_key": "REQ-02",
+      "document_type": "design",
+      "display_name": "REQ-02_CS服务日志增强_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-02_CS服务日志增强_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/Wr3DVzDWapHREgkJ",
+      "file_guid": "Wr3DVzDWapHREgkJ",
+      "content_hash": "3de196ffdb3ef5ff97f138f446ac9addc5c93f76b289f1b2c43e77ad64c099a5",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/Wr3DVzDWapHREgkJ",
+          "file_guid": "Wr3DVzDWapHREgkJ",
+          "content_hash": "3de196ffdb3ef5ff97f138f446ac9addc5c93f76b289f1b2c43e77ad64c099a5",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "design",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-03|design|docs/LinkisV2.1.4/design/REQ-03_数据源过期二次确认_设计.md": {
+      "document_id": "REQ-03|design|docs/LinkisV2.1.4/design/REQ-03_数据源过期二次确认_设计.md",
+      "requirement_key": "REQ-03",
+      "document_type": "design",
+      "display_name": "REQ-03_数据源过期二次确认_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-03_数据源过期二次确认_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/1lq7MwW1YVud0vAe",
+      "file_guid": "1lq7MwW1YVud0vAe",
+      "content_hash": "3f654c44b52f1ddd9607ee28783290a561fc97a1413303c15d98ca00176b1737",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/1lq7MwW1YVud0vAe",
+          "file_guid": "1lq7MwW1YVud0vAe",
+          "content_hash": "3f654c44b52f1ddd9607ee28783290a561fc97a1413303c15d98ca00176b1737",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "design",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-04|design|docs/LinkisV2.1.4/design/REQ-04_BES容器适配改造_设计.md": {
+      "document_id": "REQ-04|design|docs/LinkisV2.1.4/design/REQ-04_BES容器适配改造_设计.md",
+      "requirement_key": "REQ-04",
+      "document_type": "design",
+      "display_name": "REQ-04_BES容器适配改造_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-04_BES容器适配改造_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/WlArzoPeZ5sOn9A2",
+      "file_guid": "WlArzoPeZ5sOn9A2",
+      "content_hash": "07b091cdcdecb32df331053e5d77e48ac8c78debbf5297c90f8f9f3b256e48c0",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/WlArzoPeZ5sOn9A2",
+          "file_guid": "WlArzoPeZ5sOn9A2",
+          "content_hash": "07b091cdcdecb32df331053e5d77e48ac8c78debbf5297c90f8f9f3b256e48c0",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "design",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    },
+    "REQ-5|design|docs/LinkisV2.1.4/design/REQ-05_任务重试支持StarRocks_设计.md": {
+      "document_id": "REQ-5|design|docs/LinkisV2.1.4/design/REQ-05_任务重试支持StarRocks_设计.md",
+      "requirement_key": "REQ-5",
+      "document_type": "design",
+      "display_name": "REQ-05_任务重试支持StarRocks_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-05_任务重试支持StarRocks_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/47kgJOjVNXF8ZBqV",
+      "file_guid": "47kgJOjVNXF8ZBqV",
+      "content_hash": "d4a62a93bb50e43eda36a47e73ebe7e1523bebfdc678839d5a0f49dc8de82fb9",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/47kgJOjVNXF8ZBqV",
+          "file_guid": "47kgJOjVNXF8ZBqV",
+          "content_hash": "d4a62a93bb50e43eda36a47e73ebe7e1523bebfdc678839d5a0f49dc8de82fb9",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ]
+    },
+    "REQ-7|design|docs/LinkisV2.1.4/design/REQ-07_安全工单修复_设计.md": {
+      "document_id": "REQ-7|design|docs/LinkisV2.1.4/design/REQ-07_安全工单修复_设计.md",
+      "requirement_key": "REQ-7",
+      "document_type": "design",
+      "display_name": "REQ-07_安全工单修复_设计.md",
+      "local_path": "docs/LinkisV2.1.4/design/REQ-07_安全工单修复_设计.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/8Nk6MwPYz5twPEqL",
+      "file_guid": "8Nk6MwPYz5twPEqL",
+      "content_hash": "7257428702fec60fd502be7abcccee07e98efd6e615a15f97e3c48990c788869",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/8Nk6MwPYz5twPEqL",
+          "file_guid": "8Nk6MwPYz5twPEqL",
+          "content_hash": "7257428702fec60fd502be7abcccee07e98efd6e615a15f97e3c48990c788869",
+          "uploaded_at": "2026-10-13T11:17:52Z"
+        }
+      ]
+    },
+    "operation|operation|docs/LinkisV2.1.4/operations/版本变更单_最终版.md": {
+      "document_id": "operation|operation|docs/LinkisV2.1.4/operations/版本变更单_最终版.md",
+      "requirement_key": "operation",
+      "document_type": "operation",
+      "display_name": "版本变更单_最终版.md",
+      "local_path": "docs/LinkisV2.1.4/operations/版本变更单_最终版.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/vVAXVnO7bbcwRVqm",
+      "file_guid": "vVAXVnO7bbcwRVqm",
+      "content_hash": "946516359d8e140acab12f296b86cd0e4f149d4188ea0b3f2b52fa7aeee77454",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/m8AZVlNWezUaPmAb",
+          "file_guid": "m8AZVlNWezUaPmAb",
+          "content_hash": "7d3d3a19cf1e9ed77684e26dfab9d9d73e88dee87df07c5c0dd980cddedbab89",
+          "uploaded_at": "2026-10-15T00:00:00Z",
+          "archive_destination": {
+            "product_id": "100484",
+            "product_name": "BDP_Linkis",
+            "version_name": "LinkisV2.1.4",
+            "document_type": "operation",
+            "archive_target_id": "codego_shared_archive",
+            "root_guid": "XKq4MRDYQesj9gkN"
+          }
+        },
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/vVAXVnO7bbcwRVqm",
+          "file_guid": "vVAXVnO7bbcwRVqm",
+          "content_hash": "946516359d8e140acab12f296b86cd0e4f149d4188ea0b3f2b52fa7aeee77454",
+          "uploaded_at": "2026-10-15T00:00:00Z",
+          "archive_destination": {
+            "product_id": "100484",
+            "product_name": "BDP_Linkis",
+            "version_name": "LinkisV2.1.4",
+            "document_type": "operation",
+            "archive_target_id": "codego_shared_archive",
+            "root_guid": "XKq4MRDYQesj9gkN"
+          }
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.4",
+        "document_type": "operation",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
+    }
+  },
+  "degradations": [],
+  "remoteCapabilities": {},
+  "publicationPolicy": "automatic",
+  "archiveTargetId": "codego_shared_archive"
+}

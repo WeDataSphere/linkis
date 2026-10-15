@@ -1,0 +1,26 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-07-24",
+  "project": {"name": "Apache Linkis"},
+  "modules": [
+    {
+      "id": "linkis-entrance",
+      "name": "任务入口服务",
+      "description": "Linkis 任务入口服务，含 sparkVersionCoercion（Spark3 强制切换）配置项管理迁移",
+      "criticalLevel": "critical",
+      "regressionDoc": "docs/project-knowledge/testing/regression/linkis-entrance_回归.md",
+      "regressionFeature": "docs/project-knowledge/testing/features/linkis-entrance.feature",
+      "sourceBranches": ["dev-2.0.0"],
+      "requirements": ["spark3-coercion-creator"],
+      "testCases": {
+        "functional": 7
+      },
+      "lastSync": "2026-07-24"
+    }
+  ],
+  "statistics": {
+    "totalModules": 1,
+    "totalTestCases": 7,
+    "criticalModules": 1
+  }
+}

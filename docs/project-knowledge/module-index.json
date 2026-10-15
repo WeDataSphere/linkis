@@ -1,0 +1,468 @@
+{
+  "version": "2.0",
+  "generated_at": "2026-07-27T11:54:43.066736",
+  "project_path": "G:\\kkhuang\\work\\linkis",
+  "config_hash": "10383a21",
+  "statistics": {
+    "total_files": 2383,
+    "by_language": {
+      "frontend": 309,
+      "python": 45,
+      "java": 2029
+    },
+    "by_module": {
+      "common": 2383
+    }
+  },
+  "modules": [
+    {
+      "id": "user",
+      "name": "用户模块",
+      "description": "用户注册、登录、信息管理",
+      "files_count": 0,
+      "avg_confidence": 0.0,
+      "files": []
+    },
+    {
+      "id": "payment",
+      "name": "支付模块",
+      "description": "支付、订单、交易处理",
+      "files_count": 0,
+      "avg_confidence": 0.0,
+      "files": []
+    },
+    {
+      "id": "inventory",
+      "name": "库存模块",
+      "description": "库存、商品、仓库管理",
+      "files_count": 0,
+      "avg_confidence": 0.0,
+      "files": []
+    },
+    {
+      "id": "notification",
+      "name": "通知模块",
+      "description": "通知、消息、邮件发送",
+      "files_count": 0,
+      "avg_confidence": 0.0,
+      "files": []
+    },
+    {
+      "id": "permission",
+      "name": "权限模块",
+      "description": "权限、角色、授权管理",
+      "files_count": 0,
+      "avg_confidence": 0.0,
+      "files": []
+    },
+    {
+      "id": "common",
+      "name": "通用模块",
+      "description": "未匹配到特定模块的文件",
+      "files_count": 2383,
+      "avg_confidence": 0.093,
+      "files": [
+        {
+          "path": "linkis-web\\src\\apps\\PythonModule\\src\\app.jsx",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\PythonModule\\src\\pages\\index\\index.jsx",
+          "language": "frontend",
+          "confidence": 0.3,
+          "patterns": [
+            "置信度0.30低于阈值0.6"
+          ]
+        },
+        {
+          "path": "linkis-web\\babel.config.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\mock.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\postcss.config.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\vue.config.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "deployment-materials\\task-viewer\\config.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-computation-governance\\linkis-jdbc-driver\\tableau_plugin\\connectionBuilder.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-computation-governance\\linkis-jdbc-driver\\tableau_plugin\\connectionProperties.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\dynamic-apps.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\main.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\router.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\components\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\dss\\router.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\utils\\string-format.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\utils\\watermark.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\bus.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\router.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\URM\\router.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\components\\cardList\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\components\\progress\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\components\\tag\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\components\\variable\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\acrossClusterRule\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\codeQuery\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\configManagement\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasource\\dataSourceApi.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasource\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceAccess\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceAccess\\service.js",
+          "language": "frontend",
+          "confidence": 0.3,
+          "patterns": [
+            "置信度0.30低于阈值0.6"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceEnv\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceEnv\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceType\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceType\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceTypeKey\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\datasourceTypeKey\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\departmentTagManagement\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\ECM\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\engineConfigurationTemplate\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\engineConfigurationTemplate\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\EnginePluginManagement\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\errorCode\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\errorCode\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\eurekaService\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\FAQ\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\gatewayAuthToken\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\gatewayAuthToken\\service.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\globalHistoryManagement\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\globalValiable\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        },
+        {
+          "path": "linkis-web\\src\\apps\\linkis\\module\\header\\index.js",
+          "language": "frontend",
+          "confidence": 0.0,
+          "patterns": [
+            "未匹配任何规则"
+          ]
+        }
+      ]
+    }
+  ]
+}
