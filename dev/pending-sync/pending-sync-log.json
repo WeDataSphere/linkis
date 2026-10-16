@@ -1,0 +1,444 @@
+{
+  "version": "1.0",
+  "description": "本地待补录日志（MCP biz-sync 不可用时的兜底）",
+  "items": [
+    {
+      "id": "ps-001",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "DPMS创建版本计划",
+      "stage": "version_init",
+      "mcp_method": "mcp__sdp__add-release-plan",
+      "mcp_params": {
+        "name": "LinkisV2.1.4",
+        "productId": 100484
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：DPMS创建版本计划",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-002",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "SCM新增产品线版本",
+      "stage": "version_init",
+      "mcp_method": "mcp__sdp__add-business-version",
+      "mcp_params": {
+        "items": [
+          {"subsystemId": 5435, "version": "2.1.4"},
+          {"subsystemId": 5436, "version": "2.1.4"},
+          {"subsystemId": 5902, "version": "1.23.2"}
+        ]
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：SCM新增产品线版本",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-003",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "SCM新建子系统版本",
+      "stage": "version_init",
+      "mcp_method": "mcp__sdp__add-subsystem-version",
+      "mcp_params": {
+        "subsystems": [
+          {"subSystemName": "WDSL-UJES", "subSystemVersionId": "2.1.4", "isEntry": true},
+          {"subSystemName": "WDSL-RM", "subSystemVersionId": "2.1.4", "isEntry": false},
+          {"subSystemName": "DSS-DVS", "subSystemVersionId": "1.23.2", "isEntry": false}
+        ],
+        "isNeedGrayRelease": 1,
+        "expectGrayReleaseDate": "2026-09-23",
+        "expectReleaseDate": "2026-09-26"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：SCM新建子系统版本",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-004",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "创建DPMS测试集",
+      "stage": "version_init",
+      "mcp_method": "mcp__tctp-dpms-set__新增测试集",
+      "mcp_params": {
+        "productId": 100484,
+        "versionName": "LinkisV2.1.4"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：创建DPMS测试集",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-005",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "创建DPMS回归测试集",
+      "stage": "version_init",
+      "mcp_method": "mcp__tctp-dpms-set__createTestPlanSet",
+      "mcp_params": {
+        "productId": 100484,
+        "testSetName": "LinkisV2.1.4-回归测试集",
+        "testStep": 2
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：创建DPMS回归测试集",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-006",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "更新PACE流水线版本及Git分支",
+      "stage": "version_init",
+      "mcp_method": "mcp__sdp__update-version-build-branch",
+      "mcp_params": {},
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "版本初始化跳过：更新PACE流水线版本及Git分支",
+      "status": "pending",
+      "created_at": "2026-09-24T00:00:00"
+    },
+    {
+      "id": "ps-007",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "DPMS创建系统需求-REQ-01-支持_ai用户鉴权",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__add-system-story",
+      "mcp_params": {
+        "name": "【低风险】【企金需求】【Linkis】【mg-gateway】【后端需求】支持_ai用户鉴权",
+        "productId": 100484,
+        "enableAiMode": 1,
+        "reqPrefix": "REQ-01"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：DPMS创建系统需求 REQ-01（代码已开发完成：commit 9544feead）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "9544feead",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，DPMS系统需求待创建"
+    },
+    {
+      "id": "ps-008",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本-REQ-01-支持_ai用户鉴权",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__associate-subsystem-version",
+      "mcp_params": {
+        "storyId": null,
+        "subsystemId": 5435,
+        "reqPrefix": "REQ-01"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：关联子系统版本 REQ-01（代码已开发完成：commit 9544feead）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "9544feead",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，子系统版本关联待执行"
+    },
+    {
+      "id": "ps-009",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "DPMS创建系统需求-REQ-02-ContextService日志优化",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__add-system-story",
+      "mcp_params": {
+        "name": "【低风险】【运维优化】【Linkis】【ps-cs】【后端需求】ContextService日志优化",
+        "productId": 100484,
+        "enableAiMode": 1,
+        "reqPrefix": "REQ-02"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：DPMS创建系统需求 REQ-02（代码已开发完成：commit 38e156050）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "38e156050",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，DPMS系统需求待创建"
+    },
+    {
+      "id": "ps-010",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本-REQ-02-ContextService日志优化",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__associate-subsystem-version",
+      "mcp_params": {
+        "storyId": null,
+        "subsystemId": 5435,
+        "reqPrefix": "REQ-02"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：关联子系统版本 REQ-02（代码已开发完成：commit 38e156050）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "38e156050",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，子系统版本关联待执行"
+    },
+    {
+      "id": "ps-011",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "DPMS创建系统需求-REQ-03-管理台数据源失效按钮增加二次确认",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__add-system-story",
+      "mcp_params": {
+        "name": "【低风险】【企金需求】【Linkis】【ps-datasource】【前端需求】管理台数据源失效按钮增加二次确认，防误触",
+        "productId": 100484,
+        "enableAiMode": 1,
+        "reqPrefix": "REQ-03"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：DPMS创建系统需求 REQ-03（代码已开发完成：commit 62662aed5）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "62662aed5",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，DPMS系统需求待创建"
+    },
+    {
+      "id": "ps-012",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本-REQ-03-管理台数据源失效按钮增加二次确认",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__associate-subsystem-version",
+      "mcp_params": {
+        "storyId": null,
+        "subsystemId": 5436,
+        "reqPrefix": "REQ-03"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：关联子系统版本 REQ-03（代码已开发完成：commit 62662aed5）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "62662aed5",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，子系统版本关联待执行"
+    },
+    {
+      "id": "ps-013",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "DPMS创建系统需求-REQ-04-XC改造排除jetty和tomcat包",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__add-system-story",
+      "mcp_params": {
+        "name": "【低风险】【运维优化】【Linkis】【bes】【后端需求】XC改造，排除jetty和tomcat包",
+        "productId": 100484,
+        "enableAiMode": 1,
+        "reqPrefix": "REQ-04"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：DPMS创建系统需求 REQ-04（代码已开发完成：commit 050b7aa55）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "050b7aa55",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，DPMS系统需求待创建"
+    },
+    {
+      "id": "ps-014",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本-REQ-04-XC改造排除jetty和tomcat包",
+      "stage": "requirement",
+      "mcp_method": "mcp__sdp__associate-subsystem-version",
+      "mcp_params": {
+        "storyId": null,
+        "subsystemId": 5902,
+        "reqPrefix": "REQ-04"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "需求创建跳过：关联子系统版本 REQ-04（代码已开发完成：commit 050b7aa55）",
+      "status": "pending",
+      "dev_completed": true,
+      "dev_commit_id": "050b7aa55",
+      "created_at": "2026-09-24T00:00:00",
+      "supplement_note": "2026-09-24 手动补录：代码已开发完成，子系统版本关联待执行"
+    },
+    {
+      "id": "ps-015",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A5.2-回归用例同步",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__linkTestCaseToTestPlan",
+      "mcp_params": {},
+      "skip_reason": "STAGE10_SKIPPED",
+      "context_description": "Stage 10 未执行（regressionTestSetId empty + module-index.json missing，补录恢复），A5.2 回归用例未同步",
+      "status": "pending",
+      "created_at": "2026-10-08T18:35:00",
+      "supplement_note": "2026-10-08 完成版本时跳过：Stage 10 已按规则跳过（补录恢复场景）"
+    },
+    {
+      "id": "ps-016",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A6-流水线封板[WDSL-UJES]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__freezePipeline",
+      "mcp_params": {
+        "pipelineId": null,
+        "operateUser": "jacklzliu",
+        "subsystem": "WDSL-UJES",
+        "version": "2.1.4",
+        "branch": "dev-2.1.4-webank",
+        "gitSshUrl": "git@code.weoa.com:Internal/incubator-linkis.git"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[WDSL-UJES]流水线封板",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-017",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本到Git分支[WDSL-UJES]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__sdp__associate-subsystem-version-branch",
+      "mcp_params": {
+        "userId": "jacklzliu",
+        "subsystemId": 5435,
+        "subsystemVersion": "2.1.4",
+        "gitUrl": "git@code.weoa.com:Internal/incubator-linkis.git",
+        "branch": "dev-2.1.4-webank",
+        "branchType": null
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[WDSL-UJES]关联子系统版本分支",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-018",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A6-流水线封板[WDSL-RM]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__freezePipeline",
+      "mcp_params": {
+        "pipelineId": null,
+        "operateUser": "jacklzliu",
+        "subsystem": "WDSL-RM",
+        "version": "2.1.4",
+        "branch": "dev-2.1.4-webank",
+        "gitSshUrl": "git@code.weoa.com:Internal/incubator-linkis.git"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[WDSL-RM]流水线封板",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-019",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本到Git分支[WDSL-RM]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__sdp__associate-subsystem-version-branch",
+      "mcp_params": {
+        "userId": "jacklzliu",
+        "subsystemId": 5436,
+        "subsystemVersion": "2.1.4",
+        "gitUrl": "git@code.weoa.com:Internal/incubator-linkis.git",
+        "branch": "dev-2.1.4-webank",
+        "branchType": null
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[WDSL-RM]关联子系统版本分支",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-020",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A6-流水线封板[DSS-DVS]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__freezePipeline",
+      "mcp_params": {
+        "pipelineId": null,
+        "operateUser": "jacklzliu",
+        "subsystem": "DSS-DVS",
+        "version": "1.23.2",
+        "branch": "dev-2.1.4-webank",
+        "gitSshUrl": "git@code.weoa.com:Internal/incubator-linkis.git"
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[DSS-DVS]流水线封板",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-021",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "关联子系统版本到Git分支[DSS-DVS]",
+      "stage": "version_complete",
+      "mcp_method": "mcp__sdp__associate-subsystem-version-branch",
+      "mcp_params": {
+        "userId": "jacklzliu",
+        "subsystemId": 5902,
+        "subsystemVersion": "1.23.2",
+        "gitUrl": "git@code.weoa.com:Internal/incubator-linkis.git",
+        "branch": "dev-2.1.4-webank",
+        "branchType": null
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：子系统[DSS-DVS]关联子系统版本分支",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-022",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A6-新增测试报告",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__createTestReport",
+      "mcp_params": {
+        "releasePlanId": null,
+        "productId": 100484,
+        "optUserName": "jacklzliu",
+        "testStepList": null
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：新增测试报告",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-023",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "A6-发布测试报告",
+      "stage": "version_complete",
+      "mcp_method": "mcp__tctp-dpms-set__submitTestReport",
+      "mcp_params": {
+        "reportId": null,
+        "optUserName": "jacklzliu",
+        "receiver": null,
+        "ccRecipient": null,
+        "approvalName": null
+      },
+      "skip_reason": "USER_SKIPPED",
+      "context_description": "A6系列跳过：发布测试报告",
+      "status": "pending",
+      "created_at": "2026-10-08T18:36:00"
+    },
+    {
+      "id": "ps-024",
+      "version_id": "LinkisV2.1.4",
+      "task_name": "更新Version状态",
+      "stage": "version_complete",
+      "mcp_method": "PATCH /api/version/{id}/status",
+      "mcp_params": {
+        "status": "completed",
+        "progress": 100
+      },
+      "skip_reason": "NETWORK_UNAVAILABLE",
+      "context_description": "完成版本时Business API Version状态更新失败（localhost:50009 连接被拒绝），需手动补录",
+      "status": "pending",
+      "created_at": "2026-10-08T18:37:00"
+    }
+  ],
+  "statistics": {
+    "total": 24,
+    "pending": 24,
+    "synced": 0,
+    "dev_completed_count": 8,
+    "dev_pending_count": 16,
+    "supplement_note": "2026-09-24 手动补录：8条需求项代码已开发完成；2026-10-08 完成版本跳过A6系列+A5.2+Version状态，新增9条跳过项"
+  }
+}
