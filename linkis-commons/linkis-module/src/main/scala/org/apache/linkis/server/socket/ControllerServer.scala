@@ -36,8 +36,11 @@ import java.util.concurrent.atomic.AtomicInteger
 
 import scala.collection.JavaConverters._
 
+import org.eclipse.jetty.websocket.servlet._
+
 private[server] class ControllerServer(serverListenerEventBus: ServerListenerEventBus)
-    extends SocketListener
+    extends WebSocketServlet
+    with SocketListener
     with Event
     with Logging {
 
@@ -45,6 +48,16 @@ private[server] class ControllerServer(serverListenerEventBus: ServerListenerEve
     new util.HashMap[Int, ServerSocket](BDP_SERVER_SOCKET_QUEUE_SIZE.getValue)
 
   private val idGenerator = new AtomicInteger(0)
+
+  override def configure(webSocketServletFactory: WebSocketServletFactory): Unit = {
+    webSocketServletFactory.setCreator(new WebSocketCreator {
+      override def createWebSocket(
+          servletUpgradeRequest: ServletUpgradeRequest,
+          servletUpgradeResponse: ServletUpgradeResponse
+      ): AnyRef =
+        ServerSocket(servletUpgradeRequest.getHttpServletRequest, ControllerServer.this)
+    })
+  }
 
   def sendMessage(id: Int, message: Message): Unit = {
     val socket = socketList.get(id)
