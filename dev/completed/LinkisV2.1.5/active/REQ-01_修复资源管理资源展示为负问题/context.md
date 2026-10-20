@@ -1,25 +1,32 @@
 ---
 contextSchemaVersion: "1.0"
-contextRevision: 13
-checkpointId: ""
+contextRevision: 22
+checkpointId: "LinkisV2.1.5:REQ-01:9:2026-10-19T09:30:00Z"
 checkpointState: "clean"
-currentStage: "5"
-lastCompletedStage: "4"
-stageHistory: ["0", "1", "1.1", "2", "2.1", "2.2", "3", "4"]
+currentStage: "9"
+lastCompletedStage: "9"
+testResult: "test_passed"
+cycleDecision: "proceed_to_stage_10"
+sdlResult:
+  status: "not_applicable"
+  conclusion: "需求内容无效——DPMS 判定需求内容过短或过于简单，无法识别并生成安全需求，自动标记为不执行 SDL"
+  source: "change_order_silent_refresh"
+  updatedAt: "2026-10-19T10:45:00Z"
+stageHistory: ["0", "1", "1.1", "2", "2.1", "2.2", "3", "4", "5", "5.5", "6", "6.1", "7", "8", "9"]
 segmentProgress:
   P1:
     status: "completed"
   S1:
-    status: "running"
+    status: "completed"
   P2:
-    status: "pending"
+    status: "completed"
   S2:
-    status: "pending"
+    status: "completed"
   D:
-    status: "pending"
+    status: "completed"
   V:
     status: "pending"
-skipDecisions: {"2.2": "executed"}
+skipDecisions: {"2.2": "executed", "6.1": "skipped_no_regression_sync_artifact_recovered"}
 rollbackHistory: []
 taskName: "REQ-01_修复资源管理资源展示为负问题"
 requirementType: "OPTIMIZE"
@@ -30,7 +37,7 @@ inputSource: "version_mode"
 reqIndex: "01"
 reqPrefix: "REQ-01"
 versionName: "LinkisV2.1.5"
-versionContextPath: "dev/versions/LinkisV2.1.5/version-context.md"
+versionContextPath: "dev/completed/LinkisV2.1.5/version-context.md"
 dpmsStoryId: "552808"
 testSetId: "322336"
 regressionTestSetId: "322337"
@@ -89,12 +96,164 @@ stageOutputs:
     originalCommitHash: "20a5a296b"
     originalBranch: "release_v2.1.5-bak"
     branchSwitchNote: "2026-10-14 11:55 外部将2.1.5发布基线由webank线切换为hadoop3线(原release_v2.1.5改名release_v2.1.5-bak保留,dev-2.1.4-hadoop3改名release_v2.1.5)。已通过3-way merge(merge-tree,无冲突)将REQ-01提交重放至新基线,生成commit b8df1c64并快进推送到远程release_v2.1.5。原提交20a5a296b完整保留于-bak分支。"
+  "5":
+      "status": "completed",
+      "summary": "部署确认完成：代码已推送至远程 release_v2.1.5（commit b8df1c64），用户确认 CI/CD 部署成功。pipelineId 为空，无法自动校验流水线状态，按用户判断信任继续。",
+      "artifacts": [],
+      "decisions": [
+        "deploy_confirmed_by_user",
+        "pipeline_id_absent_trust_user"
+      ],
+      "risks": [],
+      "contextUpdates": {
+        "deploymentStatus": "deployed",
+        "deploymentDecision": "confirmed_proceed"
+      },
+      "completedAt": "2026-10-16T10:18:30Z"
+  "5.5":
+      "status": "completed",
+      "summary": "recovered_from_artifacts：测试用例澄清已在前序会话完成——三维机制（O3/OC1/OC1增强）的测试范围、环境前置与管理员鉴权要求已落入 Feature 文件与测试用例文档 1.2/1.3 节；未单独落盘澄清纪要文件，按实际产物反推确认澄清结论有效",
+      "artifacts": [
+        "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/features/REQ-01_修复资源管理资源展示为负问题.feature"
+      ],
+      "decisions": [
+        "recovered_from_artifacts",
+        "no_separate_minutes_scope_embedded_in_feature_and_testcase_docs"
+      ],
+      "risks": [
+        "5.5澄清纪要未单独落盘，测试范围以Feature文件与测试用例文档为准"
+      ],
+      "contextUpdates": {},
+      "completedAt": "2026-10-19T03:29:10Z"
+  "6":
+      "status": "completed",
+      "summary": "recovered_from_artifacts：测试用例文档已生成（TC001-TC019，覆盖 O3/OC1/OC1增强 三维机制 12 个 Scenario，标注单测/远程API/开关翻转三类执行方式）",
+      "artifacts": [
+        "docs/LinkisV2.1.5/testing/REQ-01_修复资源管理资源展示为负问题_测试用例.md",
+        "docs/LinkisV2.1.5/testing/wemind/REQ-01_修复资源管理资源展示为负问题_wemind导入.json"
+      ],
+      "decisions": [
+        "recovered_from_artifacts",
+        "test_case_doc_and_wemind_import_recovered"
+      ],
+      "risks": [],
+      "contextUpdates": {
+        "testCaseArtifacts": ["docs/LinkisV2.1.5/testing/REQ-01_修复资源管理资源展示为负问题_测试用例.md"],
+        "featureArtifacts": ["dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/features/REQ-01_修复资源管理资源展示为负问题.feature"]
+      },
+      "completedAt": "2026-10-19T03:29:30Z"
+  "6.1":
+      "status": "skipped",
+      "summary": "recovered_from_artifacts：回归测试同步（module-testing-manager）无产物，按可跳过阶段处理，恢复期不补执行",
+      "artifacts": [],
+      "decisions": [
+        "recovered_from_artifacts",
+        "skipped_no_regression_sync_artifact"
+      ],
+      "risks": [],
+      "contextUpdates": {},
+      "completedAt": "2026-10-19T03:29:50Z"
+  "7":
+      "status": "completed",
+      "summary": "recovered_from_artifacts：测试执行已完成——单测 13/13 通过（RMUtilsTest，surefire 真实执行，含 BUG 修复后新增 2 个嵌套回归单测），UAT 已部署环境远程 API 5/5 通过（TC013a/b、TC014、TC015、TC016，hadoop 管理员鉴权），allUserResource 多页 0 负值、56/56 字段 left=max-used 精确匹配，UAT 复测 leftResource 嵌套结构确认 pass；TC002/TC003/TC005/TC006（O3/OC1/OC1增强 开关关闭态回退）未执行，整体 event_type=not_executed（如实记录，不虚报 test_passed）",
+      "artifacts": [
+        "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md",
+        "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/test-status.json"
+      ],
+      "decisions": [
+        "recovered_from_artifacts",
+        "unit_and_remote_api_real_execution_evidence",
+        "switch_flip_cases_deferred_to_stage9",
+        "event_type_kept_not_executed"
+      ],
+      "risks": [
+        "TC002/TC003/TC005/TC006 开关关闭回退用例未实测（需在已部署环境翻转运行时 CommonVars 开关），整体 event_type=not_executed，留待 Stage 9 循环决策处理"
+      ],
+      "contextUpdates": {
+        "eventType": "not_executed",
+        "testExecutionArtifacts": ["docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md", "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/test-status.json"]
+      },
+      "completedAt": "2026-10-19T03:30:10Z"
+  "8":
+      "status": "completed",
+      "summary": "recovered_from_artifacts：测试报告已产出（测试执行报告含三因子门控结论：16/19 真实执行全部通过、0 失败；event_type=not_executed 未虚报；测试期发现并修复 2 个 BUG：DriverAndYarn 复合结构 leftResource 被覆盖为空（P1，RMUtils 递归重算修复）、剩余资源 cores 为 0 显示错误（P2，前端 index.vue 修复），修复已提交并推送 release_v2.1.5）",
+      "artifacts": [
+        "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"
+      ],
+      "decisions": [
+        "recovered_from_artifacts",
+        "test_report_recovered_with_no_false_pass"
+      ],
+      "risks": [
+        "event_type=not_executed：开关翻转用例未实跑，Stage 9 需决策补执行或风险豁免"
+      ],
+      "contextUpdates": {
+        "testReportArtifacts": ["docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"],
+        "testReportSummary": "16/19 通过（单测13+远程API5，0失败），TC002/TC003/TC005/TC006 开关关闭回退未执行，event_type=not_executed"
+      },
+      "completedAt": "2026-10-19T03:30:30Z"
+  "9":
+      "status": "completed",
+      "summary": "开关翻转关闭态回退实测完成（tests_passed）：运维将 O3/OC1/OC1增强 3 类运行时开关在 UAT 落盘 false 后，远程实测 TC002/TC003/TC005/TC006 关闭态回退 4/4 通过——全量 41 记录 0 负值、41/41 字段 left=max-used 精确匹配、非负值原样保留（DB 快照透传）、跨轮真实引擎退出（hadoop/hive used 15G/15cores/15instances→0）扣减正确。单测 13 + 远程 API 9 共 22 次真实执行 0 失败，event_type 由 not_executed 升级 test_passed，R-TEST-001 关闭，全量门禁达成，推进 Stage 10 版本级回归",
+      "artifacts": [
+        "test-results/remote-api/TC002_o3_rollback_used.json",
+        "test-results/remote-api/TC003_auth_read_ok.json",
+        "test-results/remote-api/TC005_oc1_negative_zero.json",
+        "test-results/remote-api/TC005_TC006_allUserResource_full.json",
+        "test-results/remote-api/TC005_TC006_allUserResource_s1_p15.json",
+        "test-results/remote-api/TC006_nonnegative_preserved_rollback.json",
+        "test-results/remote-api/switch_flip_rollback_observation.json",
+        "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md",
+        "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/test-status.json"
+      ],
+      "decisions": [
+        "tests_passed",
+        "proceed_to_stage_10",
+        "r_test_001_resolved_by_flip_execution"
+      ],
+      "risks": [],
+      "contextUpdates": {
+        "cycleDecision": "proceed_to_stage_10",
+        "loopDecisionMode": "ask",
+        "testResult": "test_passed"
+      },
+      "completedAt": "2026-10-19T09:30:00Z"
 artifactIndex:
   designDocument:
     path: "docs/LinkisV2.1.5/design/REQ-01_修复资源管理资源展示为负问题_设计.md"
     sha256: "4907b44468528f09d7936a2ec0e6fe3bfabdd77ff601cb1b1c4d929f46a40888"
     stage: "2.1"
     status: "reviewed"
+  featureFile:
+    path: "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/features/REQ-01_修复资源管理资源展示为负问题.feature"
+    sha256: "dfaaa12ed08c73e681cae1a461ef519f7fbbec9f3efd85b22d33fef8cb61cc78"
+    stage: "5.5"
+    status: "generated"
+  testCases:
+    path: "docs/LinkisV2.1.5/testing/REQ-01_修复资源管理资源展示为负问题_测试用例.md"
+    sha256: "d67ace3d079b6053cb2db59242304be09d38970f45e44885295b7323cc4066cc"
+    stage: "6"
+    status: "generated"
+  wemindImport:
+    path: "docs/LinkisV2.1.5/testing/wemind/REQ-01_修复资源管理资源展示为负问题_wemind导入.json"
+    sha256: "716450ef7701afaeed2879da061a5d5f1d9053a52dff7158e63db39652b10237"
+    stage: "6"
+    status: "generated"
+  testExecutionReport:
+    path: "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"
+    sha256: "cc14ca94f89cc9a020b5b7693049471860e457a4776a5a37e1396b70aa4c179b"
+    stage: "7"
+    status: "generated"
+  testStatus:
+    path: "dev/versions/LinkisV2.1.5/active/REQ-01_修复资源管理资源展示为负问题/test-status.json"
+    sha256: "3f60f068bf7564e743861e1ce699532e5e1b3af9575b92fda10445a3802bd466"
+    stage: "7"
+    status: "generated"
+  switchFlipEvidence:
+    path: "test-results/remote-api/switch_flip_rollback_observation.json"
+    sha256: "5927e6ff8c24510b1be5afdfa07e75021e328b217e04129e955146068a760574"
+    stage: "9"
+    status: "generated"
 apiDocumentStatus: {}
 documentArchive: {}
 requirementWordExports: {}
@@ -108,6 +267,11 @@ designWordExports:
 stage3DesignReclosure: {}
 staleArtifacts: []
 openRisks: []
+    sourceStage: "7"
+    summary: "TC002/TC003/TC005/TC006（O3/OC1/OC1增强 开关关闭态回退）未在部署环境实测，整体 event_type=not_executed，待 Stage 9 循环决策处理"
+    evidenceRefs: ["docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"]
+    status: "open"
+
 decisionLog:
   - stage: "3-change"
     timestamp: "2026-10-15T00:00:00Z"
@@ -127,6 +291,21 @@ decisionLog:
         reason: "S1段module-code-manager模块代码管理:REQ-01为既有模块增量修改,无新增模块,跳过模块登记"
       - stage: "3.2"
         reason: "S1段java-code-review代码评审:Stage3已按设计完成O1-O4并自检,提交后由Stage5部署+测试段验证,本阶段跳过独立评审"
+  - stage: "recovery-align"
+    timestamp: "2026-10-19T03:30:50Z"
+    decision: "控制面对齐恢复（recovered_from_artifacts）：Stage 5.5/6/7/8 补记 completed、6.1 补记 skipped，lastCompletedStage 推进至 8，进入 Stage 9 循环决策；TC002/003/005/006 未执行用例留待 Stage 9 处理"
+    rationale: "实际产物（Feature/测试用例/测试执行报告/test-status.json）已达 Stage 7/8 而控制面停留在 Stage 5；用户明确选择对齐控制面到 Stage 8，未执行用例在 Stage 9 循环决策时处理"
+    skipDecisions:
+      - stage: "6.1"
+        reason: "P2段module-testing-manager回归测试同步:恢复期未发现产物,按可跳过阶段补记跳过"
+  - stage: "9-loop-decision"
+    timestamp: "2026-10-19T03:45:00Z"
+    decision: "Stage 9 循环决策=保留现场（pause_for_manual_intervention）：用户将安排运维在 UAT 翻转 3 类运行时开关后通知续跑，补执行 TC002/TC003/TC005/TC006"
+    rationale: "测试 16/19 真实通过、0 失败；未执行项为开关关闭态回退路径，需已部署环境翻转 CommonVars 方能实测。用户选择保留现场而非风险豁免，恢复时不回退、不重跑 Stage 3-8"
+  - stage: "9"
+    timestamp: "2026-10-19T09:30:00Z"
+    decision: "Stage 9 循环决策：测试通过收口（tests_passed），推进 Stage 10 版本级回归"
+    rationale: "运维将 3 类运行时开关（linkis.manager.engine.exit.negative.resource.discard.enable / linkis.manager.rm.user.resource.negative.normalize.enable / linkis.manager.rm.user.resource.left.recompute.enable）在 UAT 落盘 false（getValue JVM 启动快照语义，随服务重启生效），远程实测 TC002/TC003/TC005/TC006 关闭态回退 4/4 通过：全量 41 记录 0 负值、41/41 left=max-used、非负值原样保留、跨轮真实引擎退出扣减正确。单测 13 + 远程 API 9 共 22 次真实执行 0 失败，event_type 升级 test_passed，R-TEST-001 关闭。验证口径逐例登记于测试执行报告第八章（over-release 异常分支按守卫语义+关闭态全量观测判定，未构造 E2E 事件，如实披露）"
 stabilityRisks:
   - id: R-001
     risk_level: 高
@@ -861,7 +1040,7 @@ requirementWordExports:
     exportedAt: "2026-10-10T14:10:00Z"
     sourceStage: "1.1"
 createdAt: "2026-10-10T00:00:00Z"
-updatedAt: "2026-10-14T20:38:33Z"
+updatedAt: "2026-10-19T09:30:00Z"
 ---
 
 # 任务上下文

@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/loqeWOjpDWsglBAn)
+
 # 修复资源管理资源展示为负问题 设计文档
 
 ---

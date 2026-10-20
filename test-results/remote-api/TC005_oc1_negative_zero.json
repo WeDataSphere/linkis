@@ -1,0 +1,9 @@
+{
+  "http_status": 200,
+  "token_user": "hadoop",
+  "query": "page=1..3&size=15",
+  "total": 41,
+  "collected": 41,
+  "negative_fields": [],
+  "negative_count": 0
+}
