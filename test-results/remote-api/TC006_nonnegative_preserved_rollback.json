@@ -1,0 +1,342 @@
+{
+  "case_id": "TC006",
+  "scenario": "usedResource/leftResource 均为非负时保持原值不变（开关关闭态回退）",
+  "executed_at": "2026-10-19",
+  "environment": "UAT http://uat.dss.bdap.weoa.com (3类开关已由运维翻为false，用户确认)",
+  "method": "GET /api/rest_j/v1/linkisManager/rm/allUserResource?page=1..3&size=15 (Token-User: hadoop 管理员)",
+  "total_records": 41,
+  "negative_fields": 0,
+  "left_max_used_mismatches": 0,
+  "result": "PASS",
+  "conclusion": "41/41 记录 used/left 全非负且原值保留（含 DB 快照 Double 浮点原样透传，无篡改、无归零痕迹、无重算覆盖痕迹）；left=max-used 在全部记录成立",
+  "per_record": [
+    {
+      "username": "hadoop",
+      "creator": "DOPS_CLEAN",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "DOPS_CLEAN",
+      "engine": "shell-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "IDE",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "MCP",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "Qualitis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "Schedulis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hduser05",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hduser0506",
+      "creator": "Qualitis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "IDE",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "IDE",
+      "engine": "pipeline-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "IDE",
+      "engine": "python-python2",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_chongyanghe",
+      "creator": "Schedulis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_wbyjzhu",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "DOPS_COMPRESS",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "DOPS_OTHER",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "DOPS_PUBLIC",
+      "engine": "shell-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "IDE",
+      "engine": "shell-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "Schedulis",
+      "engine": "appconn-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "Schedulis",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "root",
+      "creator": "IDE",
+      "engine": "io_file-1.0",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "Schedulis",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "Schedulis",
+      "engine": "python-python2",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "stacyyan",
+      "creator": "Schedulis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_dingnashen",
+      "creator": "IDE",
+      "engine": "python-python2",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_dingnashen",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_jiahongyi",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_penghhe",
+      "creator": "Schedulis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_zhiyonggan",
+      "creator": "Schedulis",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "admin",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "DOPS_OTHER",
+      "engine": "shell-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "Doctoris",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "LINKISCLI",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "LINKISCLI",
+      "engine": "python-python2",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "LINKISCLI",
+      "engine": "shell-1",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hadoop",
+      "creator": "LINKISCLI",
+      "engine": "spark-2.4.3",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "hduser0506",
+      "creator": "aomp",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_jiahongyi",
+      "creator": "IDE",
+      "engine": "hive-2.3.3",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "v_shenghuili",
+      "creator": "IDE",
+      "engine": "jdbc-4",
+      "resourceType": "LoadInstance",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    },
+    {
+      "username": "zhaobincai",
+      "creator": "IDE",
+      "engine": "spark-3.4.4",
+      "resourceType": "DriverAndYarn",
+      "nonnegative_left": true,
+      "left_eq_max_minus_used": true
+    }
+  ]
+}

@@ -1,7 +1,8 @@
 {
+  "schema_version": "1.0",
   "version": "1.0",
   "description": "本地待补录日志（MCP biz-sync 不可用时的兜底）",
-  "items": [
+  "pending_items": [
     {
       "id": "ps-001",
       "version_id": "LinkisV2.1.4",
@@ -25,9 +26,18 @@
       "mcp_method": "mcp__sdp__add-business-version",
       "mcp_params": {
         "items": [
-          {"subsystemId": 5435, "version": "2.1.4"},
-          {"subsystemId": 5436, "version": "2.1.4"},
-          {"subsystemId": 5902, "version": "1.23.2"}
+          {
+            "subsystemId": 5435,
+            "version": "2.1.4"
+          },
+          {
+            "subsystemId": 5436,
+            "version": "2.1.4"
+          },
+          {
+            "subsystemId": 5902,
+            "version": "1.23.2"
+          }
         ]
       },
       "skip_reason": "USER_SKIPPED",
@@ -43,9 +53,21 @@
       "mcp_method": "mcp__sdp__add-subsystem-version",
       "mcp_params": {
         "subsystems": [
-          {"subSystemName": "WDSL-UJES", "subSystemVersionId": "2.1.4", "isEntry": true},
-          {"subSystemName": "WDSL-RM", "subSystemVersionId": "2.1.4", "isEntry": false},
-          {"subSystemName": "DSS-DVS", "subSystemVersionId": "1.23.2", "isEntry": false}
+          {
+            "subSystemName": "WDSL-UJES",
+            "subSystemVersionId": "2.1.4",
+            "isEntry": true
+          },
+          {
+            "subSystemName": "WDSL-RM",
+            "subSystemVersionId": "2.1.4",
+            "isEntry": false
+          },
+          {
+            "subSystemName": "DSS-DVS",
+            "subSystemVersionId": "1.23.2",
+            "isEntry": false
+          }
         ],
         "isNeedGrayRelease": 1,
         "expectGrayReleaseDate": "2026-09-23",
@@ -431,14 +453,112 @@
       "context_description": "完成版本时Business API Version状态更新失败（localhost:50009 连接被拒绝），需手动补录",
       "status": "pending",
       "created_at": "2026-10-08T18:37:00"
+    },
+    {
+      "id": "ps-025",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "REQ-01 Stage5.5-9 控制面对齐与循环决策状态同步",
+      "stage": "test_report",
+      "mcp_method": "mcp__biz-sync__biz_sync_stage",
+      "mcp_params": {
+        "biz_api_url": "http://localhost:50009",
+        "biz_task_id": "UNRESOLVED_需先经 GET /api/task?versionId=LinkisV2.1.5 解析",
+        "stage": "test_report",
+        "progress": 95,
+        "status": "running"
+      },
+      "skip_reason": "NETWORK_UNAVAILABLE",
+      "context_description": "REQ-01（LinkisV2.1.5）控制面按用户决策从 Stage 5 对齐至 Stage 8（recovered_from_artifacts）：Stage 5.5/6/7/8 补记 completed、6.1 补记 skipped（无回归同步产物），并进入 Stage 9 循环决策等待态（currentStage=9、lastCompletedStage=8、contextRevision=20、index status=paused）。biz API 不可用（localhost:50009 连接拒绝），阶段状态同步未执行；恢复后需先解析 biz_task_id 再补同步（Stage 9 决策后按实际终态更新 progress/status）。",
+      "status": "pending",
+      "created_at": "2026-10-19T03:30:50Z"
+    },
+    {
+      "id": "ps-026",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "REQ-01 Stage9 循环决策通过状态同步",
+      "stage": "loop_decision",
+      "mcp_method": "mcp__biz-sync__biz_sync_stage",
+      "mcp_params": {
+        "biz_api_url": "http://localhost:50009",
+        "biz_task_id": "UNRESOLVED_需求路由表 GET /api/task?versionId=LinkisV2.1.5 失败",
+        "stage": "completed",
+        "progress": 100,
+        "status": "completed"
+      },
+      "skip_reason": "NETWORK_UNAVAILABLE",
+      "context_description": "REQ-01（LinkisV2.1.5）开关翻转关闭态回退实测 TC002/TC003/TC005/TC006 4/4 通过，单测13+远程API9 共22次执行0失败，event_type 升级 test_passed；Stage 9 循环决策 tests_passed 收口，推进 Stage 10 版本级回归。biz API 不可用（localhost:50009 连接拒绝），阶段完成状态同步未执行，恢复后补同步。"
+    },
+    {
+      "id": "ps-027",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "A5.2-回归用例同步",
+      "stage": "stage10_skip",
+      "mcp_method": "mcp__tctp-dpms-set__linkTestCaseToTestPlan",
+      "mcp_params": {
+        "productId": "100484",
+        "testPlanId": "322337",
+        "tester": "v_kkhuang"
+      },
+      "skip_reason": "STAGE10_SKIPPED",
+      "context_description": "Stage 10 版本级回归按用户确认跳过（回归集留空）：知识库仅含模块索引，docs/project-knowledge/testing/regression/ 回归语料未构建，0 个模块有回归用例。REQ-01 自身 19 例已全量门禁达成（test_passed）。后续版本构建回归语料后补同步。"
+    },
+    {
+      "id": "ps-028",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "关联子系统版本到Git分支[WDSL-UJES]",
+      "stage": "complete-version-A6-Step0",
+      "mcp_method": "mcp__sdp__associate-subsystem-version-branch",
+      "mcp_params": {
+        "userId": "v_kkhuang",
+        "subsystemId": "5435",
+        "subsystemVersion": "2.1.5",
+        "gitUrl": "git@code.weoa.com:Internal/incubator-linkis.git",
+        "branch": "release_v2.1.5",
+        "branchType": "DEV"
+      },
+      "skip_reason": "MCP_FAILED",
+      "context_description": "A6-Step0 关联子系统版本分支失败：内网仓库 git@code.weoa.com:Internal/incubator-linkis.git 报[502]工程未关联子系统；备选 origin git@github.com:WeDataSphere/linkis.git 报[502]工程不存在或没权限。需 SCM 平台管理员在工程管理中将 Internal/incubator-linkis 工程与子系统5435(WDSL-UJES)关联后重试。"
+    },
+    {
+      "id": "ps-029",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "A6-流水线封板[WDSL-UJES]",
+      "stage": "complete-version-A6-Step1",
+      "mcp_method": "mcp__tctp-dpms-set__freezePipeline",
+      "mcp_params": {
+        "pipelineId": null,
+        "operateUser": "v_kkhuang",
+        "subsystem": "WDSL-UJES",
+        "version": "2.1.5",
+        "branch": "release_v2.1.5",
+        "gitSshUrl": "git@code.weoa.com:Internal/incubator-linkis.git"
+      },
+      "skip_reason": "MISSING_DATA",
+      "context_description": "A6-Step1 流水线封板跳过：版本配置 pipelineId 为空（用户在完成版本确认时已选择记待补录）。需先在 SCM/Pace 侧为 WDSL-UJES 2.1.5 版本确定流水线并补录 pipelineId 后执行封板。"
+    },
+    {
+      "id": "ps-030",
+      "version_id": "LinkisV2.1.5",
+      "task_name": "更新Version状态",
+      "stage": "complete-version-step8",
+      "mcp_method": "PATCH /api/version/LinkisV2.1.5/status",
+      "mcp_params": {
+        "status": "completed",
+        "progress": 100
+      },
+      "skip_reason": "NETWORK_UNAVAILABLE",
+      "context_description": "完成版本时 Business API Version 状态更新失败（localhost:50009 连接拒绝），需手动补录为 completed/progress=100"
     }
   ],
   "statistics": {
-    "total": 24,
-    "pending": 24,
-    "synced": 0,
-    "dev_completed_count": 8,
-    "dev_pending_count": 16,
-    "supplement_note": "2026-09-24 手动补录：8条需求项代码已开发完成；2026-10-08 完成版本跳过A6系列+A5.2+Version状态，新增9条跳过项"
+    "total": 30,
+    "by_version": {
+      "LinkisV2.1.4": 24,
+      "LinkisV2.1.5": 6
+    },
+    "by_status": {
+      "pending": 30,
+      "synced": 0
+    }
   }
 }

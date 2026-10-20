@@ -1,0 +1,8 @@
+{
+  "http_status": 200,
+  "token_user": "hadoop",
+  "observation": "O3 rollback check",
+  "negative_usedResource_records": [],
+  "negative_count": 0,
+  "note": "E2E engine-exit scenario not triggerable via read-only API; usedResource rollback visibility recorded"
+}

@@ -1,0 +1,1005 @@
+{
+  "http_status": 200,
+  "query": "page=1&size=15",
+  "token_user": "hadoop",
+  "raw": {
+    "method": null,
+    "status": 0,
+    "message": "OK",
+    "data": {
+      "total": 41,
+      "resources": [
+        {
+          "id": 1170148,
+          "username": "hadoop",
+          "creator": "DOPS_CLEAN",
+          "engineTypeWithVersion": "hive-2.3.3",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 107374182400,
+            "cores": 100,
+            "instances": 15,
+            "instance": 15
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 7516192768,
+            "cores": 7,
+            "instances": 7,
+            "instance": 7
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 107374182400.0,
+            "cores": 100,
+            "instance": 15,
+            "instances": 15
+          },
+          "createTime": 1791985845000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1170142,
+          "username": "hadoop",
+          "creator": "DOPS_CLEAN",
+          "engineTypeWithVersion": "shell-1",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 107374182400,
+            "cores": 100,
+            "instances": 100,
+            "instance": 100
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 107374182400.0,
+            "cores": 100,
+            "instance": 100,
+            "instances": 100
+          },
+          "createTime": 1791985798000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1172449,
+          "username": "hadoop",
+          "creator": "IDE",
+          "engineTypeWithVersion": "hive-2.3.3",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 107374182400,
+            "cores": 100,
+            "instances": 10,
+            "instance": 10
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 4294967296,
+            "cores": 2,
+            "instances": 2,
+            "instance": 2
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 103079215104,
+            "cores": 98,
+            "instance": 8,
+            "instances": 8
+          },
+          "createTime": 1792030801000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1170203,
+          "username": "hadoop",
+          "creator": "IDE",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400,
+              "cores": 100,
+              "instances": 100,
+              "instance": 100
+            },
+            "yarnResource": {
+              "queueMemory": 21474836480000,
+              "queueCores": 150,
+              "queueInstances": 300,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400.0,
+              "cores": 100,
+              "instance": 100,
+              "instances": 100
+            },
+            "yarnResource": {
+              "queueName": "dws",
+              "queueInstances": 300,
+              "queueMemory": 21474836480000.0,
+              "queueCores": 150,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1791986701000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1170189,
+          "username": "hadoop",
+          "creator": "MCP",
+          "engineTypeWithVersion": "hive-2.3.3",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 107374182400,
+            "cores": 100,
+            "instances": 10,
+            "instance": 10
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 107374182400.0,
+            "cores": 100,
+            "instance": 10,
+            "instances": 10
+          },
+          "createTime": 1791986411000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1170375,
+          "username": "hadoop",
+          "creator": "Qualitis",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400,
+              "cores": 100,
+              "instances": 10,
+              "instance": 10
+            },
+            "yarnResource": {
+              "queueMemory": 21474836480000,
+              "queueCores": 150,
+              "queueInstances": 300,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400.0,
+              "cores": 100,
+              "instance": 10,
+              "instances": 10
+            },
+            "yarnResource": {
+              "queueName": "dws",
+              "queueInstances": 300,
+              "queueMemory": 21474836480000.0,
+              "queueCores": 150,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1791989130000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1171903,
+          "username": "hadoop",
+          "creator": "Schedulis",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400,
+              "cores": 100,
+              "instances": 100,
+              "instance": 100
+            },
+            "yarnResource": {
+              "queueMemory": 21474836480000,
+              "queueCores": 150,
+              "queueInstances": 300,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 107374182400.0,
+              "cores": 100,
+              "instance": 100,
+              "instances": 100
+            },
+            "yarnResource": {
+              "queueName": "dws",
+              "queueInstances": 300,
+              "queueMemory": 21474836480000.0,
+              "queueCores": 150,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1792022442000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1172327,
+          "username": "hduser05",
+          "creator": "IDE",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304,
+              "cores": 10,
+              "instances": 20,
+              "instance": 20
+            },
+            "yarnResource": {
+              "queueMemory": 3221225472000,
+              "queueCores": 1500,
+              "queueInstances": 300,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_dops_compress",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_dops_compress",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304.0,
+              "cores": 10,
+              "instance": 20,
+              "instances": 20
+            },
+            "yarnResource": {
+              "queueName": "queue_0101_011",
+              "queueInstances": 300,
+              "queueMemory": 3221225472000.0,
+              "queueCores": 1500,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1792029144000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1170647,
+          "username": "hduser0506",
+          "creator": "Qualitis",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304,
+              "cores": 10,
+              "instances": 10,
+              "instance": 10
+            },
+            "yarnResource": {
+              "queueMemory": 3221225472000,
+              "queueCores": 1500,
+              "queueInstances": 300,
+              "queueName": "queue_0506_01",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0506_01",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0506_01",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304.0,
+              "cores": 10,
+              "instance": 10,
+              "instances": 10
+            },
+            "yarnResource": {
+              "queueName": "queue_0506_01",
+              "queueInstances": 300,
+              "queueMemory": 3221225472000.0,
+              "queueCores": 1500,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1791997367000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1172577,
+          "username": "stacyyan",
+          "creator": "IDE",
+          "engineTypeWithVersion": "hive-2.3.3",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 10737418240,
+            "cores": 100,
+            "instances": 10,
+            "instance": 10
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 10737418240.0,
+            "cores": 100,
+            "instance": 10,
+            "instances": 10
+          },
+          "createTime": 1792032874000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1172732,
+          "username": "stacyyan",
+          "creator": "IDE",
+          "engineTypeWithVersion": "pipeline-1",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 10737418240,
+            "cores": 100,
+            "instances": 1,
+            "instance": 1
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 10737418240.0,
+            "cores": 100,
+            "instance": 1,
+            "instances": 1
+          },
+          "createTime": 1792035610000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1172751,
+          "username": "stacyyan",
+          "creator": "IDE",
+          "engineTypeWithVersion": "python-python2",
+          "resourceType": "LoadInstance",
+          "maxResource": {
+            "memory": 107374182400,
+            "cores": 10,
+            "instances": 4,
+            "instance": 4
+          },
+          "minResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "usedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "lockedResource": {
+            "memory": 0,
+            "cores": 0,
+            "instances": 0,
+            "instance": 0
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "memory": 107374182400.0,
+            "cores": 10,
+            "instance": 4,
+            "instances": 4
+          },
+          "createTime": 1792035840000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": null
+        },
+        {
+          "id": 1172720,
+          "username": "stacyyan",
+          "creator": "IDE",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 10737418240,
+              "cores": 100,
+              "instances": 1,
+              "instance": 1
+            },
+            "yarnResource": {
+              "queueMemory": 107374182400,
+              "queueCores": 100,
+              "queueInstances": 10,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 10737418240.0,
+              "cores": 100,
+              "instance": 1,
+              "instances": 1
+            },
+            "yarnResource": {
+              "queueName": "dws",
+              "queueInstances": 10,
+              "queueMemory": 107374182400.0,
+              "queueCores": 100,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1792035385000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1171901,
+          "username": "v_chongyanghe",
+          "creator": "Schedulis",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304,
+              "cores": 10,
+              "instances": 10,
+              "instance": 10
+            },
+            "yarnResource": {
+              "queueMemory": 3221225472000,
+              "queueCores": 1500,
+              "queueInstances": 300,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "dws",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304.0,
+              "cores": 10,
+              "instance": 10,
+              "instances": 10
+            },
+            "yarnResource": {
+              "queueName": "dws",
+              "queueInstances": 300,
+              "queueMemory": 3221225472000.0,
+              "queueCores": 1500,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1792022441000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        },
+        {
+          "id": 1172182,
+          "username": "v_wbyjzhu",
+          "creator": "IDE",
+          "engineTypeWithVersion": "spark-3.4.4",
+          "resourceType": "DriverAndYarn",
+          "maxResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304,
+              "cores": 10,
+              "instances": 10,
+              "instance": 10
+            },
+            "yarnResource": {
+              "queueMemory": 3221225472000,
+              "queueCores": 1500,
+              "queueInstances": 300,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "minResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "default",
+              "applicationId": ""
+            }
+          },
+          "usedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "lockedResource": {
+            "loadInstanceResource": {
+              "memory": 0,
+              "cores": 0,
+              "instances": 0,
+              "instance": 0
+            },
+            "yarnResource": {
+              "queueMemory": 0,
+              "queueCores": 0,
+              "queueInstances": 0,
+              "queueName": "queue_0101_011",
+              "applicationId": ""
+            }
+          },
+          "expectedResource": null,
+          "leftResource": {
+            "loadInstanceResource": {
+              "memory": 22548578304.0,
+              "cores": 10,
+              "instance": 10,
+              "instances": 10
+            },
+            "yarnResource": {
+              "queueName": "queue_0101_011",
+              "queueInstances": 300,
+              "queueMemory": 3221225472000.0,
+              "queueCores": 1500,
+              "applicationId": ""
+            }
+          },
+          "createTime": 1792026938000,
+          "updateTime": null,
+          "loadResourceStatus": "normal",
+          "queueResourceStatus": "normal"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "analysis": "开关翻转关闭态回退跨轮观测（Oct15 开关默认true vs Oct19 用户确认已翻false）",
+  "switches": {
+    "O3_discard": "linkis.manager.engine.exit.negative.resource.discard.enable",
+    "OC1_normalize": "linkis.manager.rm.user.resource.negative.normalize.enable",
+    "OC1_recompute": "linkis.manager.rm.user.resource.left.recompute.enable",
+    "declaration": "三开关均为 CommonVars getValue（JVM 启动快照语义，翻转需随服务重启生效），用户确认运维已在 UAT 落盘 false",
+    "code_guards": {
+      "OC1_normalize": "RMUtils.scala:222 关闭时直接返回原 vo",
+      "OC1_recompute": "RMUtils.scala:240 关闭时保留 DB 快照 left",
+      "O3_discard": "DefaultResourceManager.scala:726 关闭时走原扣减分支"
+    }
+  },
+  "cross_round_real_engine_exit": {
+    "record": "hadoop/DOPS_CLEAN/hive-2.3.3 (LoadInstance)",
+    "oct15_used": {
+      "memory": 16106127360,
+      "cores": 15,
+      "instances": 15
+    },
+    "oct19_used": {
+      "memory": 0,
+      "cores": 0,
+      "instances": 0
+    },
+    "observation": "两轮之间该引擎真实退出：used 由 15G/15cores/15instances 正确扣减至 0，left 回满 max，无负值、无异常 → O3 关闭态下正常退出扣减路径（原行为）工作正常",
+    "supports": "TC003（正常退出不受丢弃逻辑影响）/TC002（关闭态回退不改变正常扣减行为）"
+  },
+  "float_typed_left_fields": {
+    "oct15_count": 4,
+    "oct19_count": 24,
+    "note": "浮点型 left 字段计数变化（4→24）与『DB 快照原样透传』预期方向一致；但只读接口无法字节级区分『重算关闭+快照健康』与『快照透传』，开关生效状态以运维确认为准（Given），代码守卫路径经源码核验"
+  },
+  "limitation": "只读接口无法直接读出服务器端 CommonVars 开关值；over-release（回收量>已用量）异常事件无法经只读接口构造，TC002 负值分支按『关闭守卫=原代码路径原样保留』+关闭态全量 0 负值观测判定",
+  "verification_basis": [
+    "用户/运维确认 3 开关已翻 false",
+    "源码守卫逻辑核验（3 处 getValue 守卫）",
+    "41 记录全量 0 负值复核",
+    "跨轮真实引擎退出扣减正确性观测"
+  ]
+}

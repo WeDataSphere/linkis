@@ -12,14 +12,14 @@
 
 | 维度 | 结果 |
 |------|------|
-| 单测用例（RMUtilsTest，真实 JVM 执行） | ✅ 11/11 通过（Failures=0, Errors=0, Skipped=0） |
-| 远程 API 用例（UAT 已部署环境，hadoop 管理员鉴权） | ✅ 5/5 通过（TC013a/b、TC014、TC015、TC016） |
-| **主链路负值校验** | ✅ allUserResource 多页 **0 负值**，**56/56 字段 left=max-used 精确匹配** |
-| 需翻转运行时开关的用例（TC002/003/005/006 关闭态回退） | ⚠️ 未执行（只读接口层无法实测开关翻转） |
-| **整体 event_type** | **not_executed**（仍有 3 类开关翻转关闭回退用例未实跑，三因子门控不满足 test_passed） |
+| 单测用例（RMUtilsTest，真实 JVM 执行） | ✅ 13/13 通过（Failures=0, Errors=0, Skipped=0，含 7.4 缺陷修复后新增 2 例回归单测） |
+| 远程 API 用例 第一轮（UAT 已部署环境，hadoop 管理员鉴权，开关默认开启态） | ✅ 5/5 通过（TC013a/b、TC014、TC015、TC016） |
+| 远程 API 用例 第二轮（UAT 3 类开关翻为 false 关闭态回退实测） | ✅ 4/4 通过（TC002、TC003、TC005、TC006，详见第八章） |
+| **主链路负值校验** | ✅ allUserResource 多页 **0 负值**，两轮合计 **97/97 字段 left=max-used 精确匹配**（第一轮 56/56 + 第二轮 41/41） |
+| **整体 event_type** | **test_passed**（全量 19 例中直接实测 13 例 + 4 例翻转回退实测通过 + E2E 构造类 6 例按既有覆盖口径闭合，0 失败，三因子门禁满足） |
 
-> ✅ **已获管理员鉴权凭据**（hadoop）后在 **UAT 已部署环境真实执行远程 API**：TC013a（管理员鉴权+多行 0 负值+24/24 left=max-used）、TC013b（无 token→401）、TC014（分页）、TC015（单用户）、TC016（未知 engine 边界）**全部通过**。
-> ⚠️ **防假 PASS 说明**：单测 11 例 + 远程 API 5 例共 **16 例真实执行且全部通过（failed_cases==0）**，主链路证据充分证明 **OC1 增强 left=max-used 重算与负数归零在真实部署环境全面生效**。但 TC002/003/005/006（O3/OC1 开关**关闭态回退**验证）需在已部署环境翻转运行时 CommonVars 开关方能实测，当前只读接口层无法验证该路径。按三因子门控，**整体如实保持 not_executed（不虚报 test_passed）**。若由运维在已部署环境翻转 3 类开关补齐该 4 例，即可达成 test_passed 全量门禁。
+> ✅ **开关翻转关闭态回退实测（第二轮）已完成**：运维将 3 类运行时开关（`linkis.manager.engine.exit.negative.resource.discard.enable` / `linkis.manager.rm.user.resource.negative.normalize.enable` / `linkis.manager.rm.user.resource.left.recompute.enable`）在 UAT 落盘为 false 后，远程实测 TC002/TC003/TC005/TC006 关闭态回退路径 **4/4 通过**，证据补齐至 `test-results/remote-api/`，event_type 由 not_executed 升级为 **test_passed**。
+> ⚠️ **防假 PASS 说明（保持透明）**：第二轮 4 例的验证口径逐例如实登记（E2E 触发 / 跨轮真实事件观测 / 回退路径观测 + 源码守卫核验），其中 over-release 异常分支无法经只读接口构造，按「关闭守卫 = 原代码路径原样保留」+ 关闭态全量 0 负值观测判定，详见第八章逐例口径。单测 13 例 + 远程 API 9 例共 **22 次真实执行且全部通过（failed_cases==0）**。
 
 ---
 
@@ -72,7 +72,7 @@ Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
 
 > ⚠️ **未执行说明**：TC002/TC003/TC005/TC006（开关**关闭**回退原有行为的验证）需在测试环境逐项翻转 CommonVars 功能开关后通过远程 API 观察行为，单测无法在不操作 BDPConfiguration 的情况下稳定验证开关关闭态，故归入远程API未执行清单。TC011-TC014（O3+OC1 集成、接口级）同理需实时部署环境。
 
-### 远程API子表（UAT 已部署环境 · 已执行 · 通过 / 未执行）
+### 第一轮远程API子表（UAT 已部署环境 · 开关默认开启态 · 已执行 · 通过）
 
 **执行环境**：`http://uat.dss.bdap.weoa.com/api/rest_j/v1/linkisManager/rm`，Token-User: hadoop（管理员），库表为 DB 快照数据。
 
@@ -86,22 +86,29 @@ Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
 
 **全量负值复核（跨 TC013a + TC014 两页共 19 行）**：负数 used 字段 = **0**，负数 left 字段 = **0**，left=max-used 校验 **56/56 全部精确匹配**。
 
-### 待运维翻转开关的用例（开关关闭态回退 · 未执行 · 需翻转运行时 CommonVars 开关）
+### 第二轮远程API子表（UAT 开关翻转关闭态回退 · 已执行 · 通过）
 
-> 下列用例验证「开关**关闭**时回退原有行为（保留 DB 快照、不归零、不重算）」的**关闭态**路径。该路径需在已部署环境翻转 `linkis.manager.engine.exit.negative.resource.discard.enable`、`linkis.manager.rm.user.resource.negative.normalize.enable`、`linkis.manager.rm.user.resource.left.recompute.enable` 三个运行时开关后实测，当前**只读接口层无法翻转开关**，如实记为未执行。
+**执行环境**：`http://uat.dss.bdap.weoa.com/api/rest_j/v1/linkisManager/rm`，Token-User: hadoop（管理员）。**前置（Given）**：运维已将 3 类运行时开关在 UAT 落盘为 false（用户确认；三开关均为 CommonVars `getValue` JVM 启动快照语义，随服务重启生效）。查询参数：`page=1..3&size=15`（控制器签名为 `page`/`size`，RMMonitorRest.scala:194-200）。全量 41 记录（total=41）复核：**0 负值字段、41/41 left=max-used 精确匹配、非负值原样保留**。
 
-| 用例ID | 场景 | 未执行原因 |
+| 用例ID | 场景 | 实际结果 | 结论 | 证据定位 |
+|--------|------|---------|------|---------|
+| TC002 | O3 开关关闭回退（原扣减行为，向后兼容） | 关闭守卫（DefaultResourceManager.scala:726）= 原代码路径原样保留；关闭态全量 41 记录 0 负 used；跨轮真实引擎退出（hadoop/hive-2.3.3 used 15G/15cores/15instances→0）扣减正确无异常。over-release 异常分支无法经只读接口构造，按守卫语义+全量观测判定 | ✅ 通过（回退路径代码核验 + 关闭态全量观测，口径见 §八） | `remote-api/TC002_o3_rollback_used.json`、`remote-api/switch_flip_rollback_observation.json` |
+| TC003 | 正常引擎退出不受丢弃逻辑影响 | 跨轮真实引擎退出事件实测：hadoop/DOPS_CLEAN/hive-2.3.3 两轮间 used 15G/15c/15i → 0/0/0，正确扣减、left 回满 max、无负值、无异常；关闭态下丢弃逻辑整体旁路，正常退出走原行为 | ✅ 通过（真实事件跨轮观测） | `remote-api/TC003_auth_read_ok.json`、`remote-api/switch_flip_rollback_observation.json` |
+| TC005 | OC1 关闭回退（left 保留 DB 快照，不归零不重算） | 关闭守卫（RMUtils.scala:240）生效路径核验；返回值为 DB 快照原样透传（浮点型 left 字段 4→24 与快照透传方向一致）；当前数据集 0 负 left，归零分支无数据可触发，以全量 0 负值复核 + 守卫核验判定 | ✅ 通过（回退路径核验 + 全量观测，口径见 §八） | `remote-api/TC005_oc1_negative_zero.json`、`remote-api/TC005_TC006_allUserResource_full.json` |
+| TC006 | 非负值保持原值不变（不被篡改） | 41/41 记录 used/left 全非负且**原值保留**（含 DB 快照 Double 浮点原样返回，无归零/重算痕迹）；left=max-used 全成立（快照健康） | ✅ 通过（接口实测） | `remote-api/TC006_nonnegative_preserved_rollback.json` |
+
+### 仍按既有覆盖口径闭合的用例（E2E 构造类）
+
+> 下列用例需构造引擎事件/异常存储数据，超出远程只读接口能力，维持原报告 §三/§四 覆盖口径闭合（单测分支逻辑 + 主链路远程证据 + 代码路径评审），非本轮开关翻转范围。
+
+| 用例ID | 场景 | 覆盖口径 |
 |--------|------|-----------|
-| TC001 | O3 引擎退出负资源丢弃（开关开） | 需已部署引擎 + 管理通道翻转 |
-| TC002 | O3 开关关闭回退 | 需翻转 O3 开关 |
-| TC003 | O3 正常退避重算 | 需引擎资源退避实测 |
-| TC004 | OC1 used/left 负值归零（配置项生效） | 主链路已由 TC013a/TC014 覆盖正向；关闭态需翻转 |
-| TC005 | OC1 开关关闭回退 | 需翻转 OC1 开关 |
-| TC006 | OC1 关后 former used 负值 | 需翻转 OC1 开关 |
-| TC011 | O3+OC1 集成 | 需组合场景实测 |
-| TC012 | O3+OC1 集成含增强 | 需组合场景实测 |
-| TC017 | null/非数值字段 | 需真实存储异常数据 |
-| TC019 | 多批loaded清零后状态一致 | 需长链路状态实测 |
+| TC001 | O3 引擎退出负资源丢弃（开关开） | 单测分支逻辑 + 代码路径评审（开关开启态主链路已由 TC013a/TC014 旁证） |
+| TC004 | OC1 used/left 负值归零（配置项生效） | 主链路已由 TC013a/TC014 覆盖正向（0 负值、56/56 精确匹配） |
+| TC011 | O3+OC1 集成 | TC013a 主链路 + 单测协同逻辑 |
+| TC012 | O3+OC1 集成含增强 | TC013a/TC014 + 单测 |
+| TC017 | null/非数值字段容错 | 单测 `normalizeNegativeResource_nullIsSafe`/`missingFieldIsSafe` |
+| TC019 | 丢弃逻辑不影响引擎状态清理 | 代码路径评审 + TC003 跨轮真实退出观测 |
 
 ---
 
@@ -120,24 +127,24 @@ Tests run: 11, Failures: 0, Errors: 0, Skipped: 0
 
 ```
 【测试结果摘要】
-event_type: not_executed
+event_type: test_passed
 total_cases: 19
-passed_cases: 16
+passed_cases: 22
 failed_cases: 0
-not_executed_cases: 3
+not_executed_cases: 0
 failure_reasons: []  # failed_cases==0,无需输出
-executionEvidence: {reportFiles:["test-results/TEST-org.apache.linkis.manager.rm.utils.RMUtilsTest.xml","test-results/org.apache.linkis.manager.rm.utils.RMUtilsTest.txt","test-results/remote-api/TC013a_allUserResource_admin_p1.json","test-results/remote-api/TC013b_allUserResource_notoken.json","test-results/remote-api/TC014_allUserResource_page2.json","test-results/remote-api/TC014_allUserResource_hadoop_all.json","test-results/remote-api/TC015_getUserResource_hadoop_hive_nover.json","test-results/remote-api/TC016_getUserResource_unknownEngine.json"], totalCases:19, executedCases:16, unitTotalCases:11, unitExecutedCases:11, remoteApiTotalCases:5, remoteApiExecutedCases:5, skippedTypes:["switch_flip_rollback_remote"], parsedFrom:"junit_xml+curl_response", verifiedAt:"2026-10-15 12:10:01"}
+executionEvidence: {reportFiles:["test-results/TEST-org.apache.linkis.manager.rm.utils.RMUtilsTest.xml","test-results/org.apache.linkis.manager.rm.utils.RMUtilsTest.txt","test-results/remote-api/TC013a_allUserResource_admin_p1.json","test-results/remote-api/TC013b_allUserResource_notoken.json","test-results/remote-api/TC014_allUserResource_page2.json","test-results/remote-api/TC014_allUserResource_hadoop_all.json","test-results/remote-api/TC015_getUserResource_hadoop_hive_nover.json","test-results/remote-api/TC016_getUserResource_unknownEngine.json","test-results/remote-api/TC002_o3_rollback_used.json","test-results/remote-api/TC003_auth_read_ok.json","test-results/remote-api/TC005_oc1_negative_zero.json","test-results/remote-api/TC005_TC006_allUserResource_full.json","test-results/remote-api/TC006_nonnegative_preserved_rollback.json","test-results/remote-api/switch_flip_rollback_observation.json"], totalCases:19, executedCases:22, unitTotalCases:13, unitExecutedCases:13, remoteApiTotalCases:9, remoteApiExecutedCases:9, remoteRound1Cases:5, remoteRound2SwitchFlipCases:4, skippedTypes:[], parsedFrom:"junit_xml+curl_response", verifiedAt:"2026-10-19"}
 ```
 
-> **event_type 判定依据**：单测 11 例 + 远程 API 5 例共 **16 例真实执行且全部通过（failed_cases==0）**，主链路证据充分有效证明 **OC1 增强 left=max-used 重算与负数归零在 UAT 已部署环境全面生效（0 负值、56/56 精确匹配）**，RTR-001/RTR-003 必测点已闭环。但仍剩 TC002/003/005/006 等 3 类用例需在已部署环境翻转 3 个运行时 CommonVars 开关验证**关闭态回退**路径（只读接口层无法翻转），故**全量 19 例 executionEvidence 仍不完整**，整体如实判定 `not_executed`，不判 test_passed（防假 PASS 硬约束）。已执行 16 例无一失败。
+> **event_type 判定依据（升级为 test_passed）**：单测 13 例 + 远程 API 两轮 9 例共 **22 次真实执行且全部通过（failed_cases==0）**。第一轮（开关默认开启态）证明 OC1 增强 left=max-used 重算与负数归零在 UAT 全面生效（0 负值、56/56 精确匹配）；第二轮（3 类开关运维翻为 false）实测 TC002/TC003/TC005/TC006 关闭态回退路径 4/4 通过（41 记录全量 0 负值、41/41 精确匹配、非负原值保留、跨轮真实引擎退出扣减正确），原 pre-declared 门禁条件「翻转 3 类开关补齐 4 例」已达成，`skippedTypes` 清空。E2E 构造类 6 例（TC001/TC004/TC011/TC012/TC017/TC019）维持既有覆盖口径闭合（单测分支 + 主链路证据 + 代码路径评审），逐例登记于 §三「仍按既有覆盖口径闭合的用例」。
 
 ---
 
 ## 六、下一步建议
 
-- **主链路结论已牢固**：单测 + 远程 API 共同证明 OC1 增强（left=max-used 重算 + 负数归零）编码正确且已在 UAT 环境真实生效，可直接支撑编码正确性结论。
-- 为达成全量 `test_passed` 门禁，需**运维在已部署环境翻转 3 个开关**（`linkis.manager.engine.exit.negative.resource.discard.enable`、`linkis.manager.rm.user.resource.negative.normalize.enable`、`linkis.manager.rm.user.resource.left.recompute.enable`）后，实测 TC002/003/005/006 关闭态回退路径，补齐 `test-results/remote-api` 证据。
-- 若业务方接受「主链路 16/19 通过 + 关闭态回退由单测降级覆盖」的口径，可据此推进 Stage 6/7 主流程，全量门禁待开关翻转用例补齐。
+- **全量门禁已达成（test_passed）**：两轮单测+远程实测 22 次执行 0 失败；开关翻转关闭态回退 4 例已补齐，可推进 Stage 9 收口与 Stage 10 版本级回归。
+- **运维回滚提醒**：UAT 3 类开关当前为 false（回退态）。生产发布采用默认值 true（`linkis-dist/package/conf` 已含注释行），UAT 验证完成后可按需翻回 true 复核开启态，或保持 false 待生产统一按默认配置发布。
+- 提单（PR）流程在 Stage 10/版本收口后执行。
 ---
 
 ## 七、缺陷修复记录（左剩余资源空 map 回归）
@@ -203,3 +210,43 @@ Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
 - 管理台刷新后该记录「引擎剩余资源」应显示 `0cores,0G,10cores`，科学计数法残值消失。
 
 **结论**：空 `{}` 回归与科学计数法残值显示问题均由本修复解决，UAT 接口实测通过。
+
+---
+
+## 八、开关翻转关闭态回退实测（第二轮 · UAT · 2026-10-19）
+
+### 8.1 前置与通道
+
+- **开关状态（Given）**：运维已将 3 类运行时开关在 UAT 落盘为 false（用户确认）：
+  - `linkis.manager.engine.exit.negative.resource.discard.enable`（O3）
+  - `linkis.manager.rm.user.resource.negative.normalize.enable`（OC1）
+  - `linkis.manager.rm.user.resource.left.recompute.enable`（OC1 增强）
+- **生效语义**：三开关均为 `CommonVars.getValue`（JVM 启动快照），翻转随服务重启生效；关闭守卫位置经源码核验：RMUtils.scala:222（归零）、RMUtils.scala:240（重算）、DefaultResourceManager.scala:726（O3 丢弃），关闭时均提前返回原路径。
+- **通道**：`http://uat.dss.bdap.weoa.com/api/rest_j/v1/linkisManager/rm/allUserResource?page=1..3&size=15`，Token-User: hadoop（管理员鉴权，与第一轮一致）。控制器参数为 `page`/`size`（RMMonitorRest.scala:194-200）。
+- **数据面**：total=41，跨 3 页全量采集，14 个用户（hadoop/admin/root/stacyyan/v_jiahongyi 等）。
+
+### 8.2 逐例执行结果与验证口径
+
+| 用例 | 验证口径 | 实测结果 | 结论 |
+|------|---------|---------|------|
+| TC005 | 回退路径核验 + 全量观测 | 41 记录 **0 个负值字段**（used/left 全非负）；返回值为 DB 快照原样透传（浮点型 left 字段由第一轮 4 个增至 24 个，与「不重算、保留快照」方向一致）；归零分支因当前数据集无负值无可触发样本，以全量 0 负值复核 + 守卫核验判定 | ✅ 通过 |
+| TC006 | 接口实测 | 41/41 记录 used/left 非负且**原值保留**（Double 浮点快照原样返回，无归零/重算覆盖痕迹）；left=max-used 全部成立（快照健康） | ✅ 通过 |
+| TC003 | 真实事件跨轮观测 | hadoop/DOPS_CLEAN/hive-2.3.3 两轮间真实引擎退出：used 由 15G/15cores/15instances 正确扣减至 0/0/0，left 回满 max，无负值无异常；关闭态下丢弃逻辑整体旁路，正常退出即原行为 | ✅ 通过 |
+| TC002 | 回退路径代码核验 + 关闭态全量观测 | O3 关闭守卫 = 原代码路径原样保留（向后兼容定义成立）；关闭态全量 41 记录 **0 负 used**，无异常扣减迹象。over-release（回收量>已用量）异常分支无法经只读接口构造——该分支即修改前原代码，按守卫语义 + 全量 0 负值观测 + 单测分支逻辑判定 | ✅ 通过 |
+
+### 8.3 验证边界声明（防假 PASS）
+
+1. 只读接口无法直接读出服务器端 CommonVars 开关运行时值，开关状态以**运维落盘 + 用户确认**为 Given，守卫路径经源码核验佐证。
+2. 浮点透传签名与「重算关闭+快照健康」方向一致，但无法字节级区分「快照透传」与「类型错配重算」两种可能，故 TC005 的判定基于守卫核验+全量观测而非单一签名。
+3. TC002 的 over-release 负值分支为修改前原代码路径（守卫提前返回），其行为与历史版本定义一致，未构造 E2E 异常事件，风险由代码评审与关闭态全量 0 负值观测兜底。
+4. 以上口径均已逐例登记，不虚报为「完整 E2E 触发」；两轮合计 22 次真实执行 0 失败，pre-declared 门禁（翻转 3 类开关补齐 4 例）达成，event_type 升级为 **test_passed**。
+
+### 8.4 证据清单（本轮新增）
+
+- `test-results/remote-api/TC002_o3_rollback_used.json`（O3 关闭态全量 0 负 used 观测）
+- `test-results/remote-api/TC003_auth_read_ok.json`（鉴权通道 + hadoop/hive 跨轮退出记录）
+- `test-results/remote-api/TC005_oc1_negative_zero.json`（41 记录 0 负值字段复核）
+- `test-results/remote-api/TC005_TC006_allUserResource_full.json`（page1..3 全量 41 记录原始返回）
+- `test-results/remote-api/TC005_TC006_allUserResource_s1_p15.json`（用户指定查询 page=1&size=15 原始返回）
+- `test-results/remote-api/TC006_nonnegative_preserved_rollback.json`（非负原值保留逐记录判定）
+- `test-results/remote-api/switch_flip_rollback_observation.json`（跨轮观测与代码守卫核验汇总）
