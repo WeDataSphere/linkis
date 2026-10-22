@@ -89,6 +89,11 @@ public class WorkspaceExceptionManager {
     map.put(
         "80037",
         "Parameter error, page size is incorrect, please pass in a number within [1-500] (参数错误，列筛选最多支持筛选50列)");
+    map.put(
+        "80038",
+        "The page view exceeds the accumulated row limit {0}, page viewing is not supported. "
+            + "Please reduce the page size or page number "
+            + "(翻页累计行数超过{0}，暂不支持页面查看，请减小页码或页大小)");
     return map;
   }
 

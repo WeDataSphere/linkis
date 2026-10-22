@@ -74,6 +74,14 @@ public class WorkSpaceConfiguration {
   public static final CommonVars<Boolean> FILESYSTEM_RESULTSET_SIZE_CHECK_ENABLED =
       CommonVars$.MODULE$.apply("linkis.filesystem.resultset.size.check.enabled", true);
 
+  // REQ-02: openFile 翻页 OOM 拦截开关，默认关闭（保守上线，灰度后再开）
+  public static final CommonVars<Boolean> FILESYSTEM_OPENFILE_PAGE_LIMIT_ENABLED =
+      CommonVars$.MODULE$.apply("linkis.workspace.openfile.limit.enable", false);
+
+  // REQ-02: 翻页累计行数阈值：(page-1)*pageSize 超过此值则拦截，默认 100000
+  public static final CommonVars<Integer> FILESYSTEM_OPENFILE_PAGE_LIMIT_THRESHOLD =
+      CommonVars$.MODULE$.apply("linkis.workspace.openfile.limit.threshold", 100000);
+
   public static final CommonVars<Boolean> FILESYSTEM_JVM_USER_SWITCH =
       CommonVars$.MODULE$.apply("linkis.filesystem.jvm.user.switch", true);
 
