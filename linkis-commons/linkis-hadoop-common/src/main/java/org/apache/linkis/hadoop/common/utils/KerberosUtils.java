@@ -86,23 +86,7 @@ public class KerberosUtils {
   }
 
   public static Long getKerberosRefreshInterval() {
-    long refreshInterval;
-    String refreshIntervalString = "43200";
-    // defined in linkis-env.sh, if not initialized then the default value is 43200 s (0.5d).
-    if (System.getenv("LINKIS_KERBEROS_REFRESH_INTERVAL") != null) {
-      refreshIntervalString = System.getenv("LINKIS_KERBEROS_REFRESH_INTERVAL");
-    }
-    try {
-      refreshInterval = Long.parseLong(refreshIntervalString);
-    } catch (NumberFormatException e) {
-      LOG.error(
-          "Cannot get time in S for the given string, "
-              + refreshIntervalString
-              + " defaulting to 43200 ",
-          e);
-      refreshInterval = 43200;
-    }
-    return refreshInterval;
+    return HadoopConf.LINKIS_KERBEROS_REFRESH_INTERVAL();
   }
 
   public static Integer kinitFailTimesThreshold() {

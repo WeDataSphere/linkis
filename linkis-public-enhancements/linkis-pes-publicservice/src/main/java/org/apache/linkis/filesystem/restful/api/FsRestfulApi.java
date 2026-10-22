@@ -648,6 +648,42 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80036, path);
     }
 
+    // REQ-02: 翻页 OOM 监控——累计行数 (page-1)*pageSize 超阈值则告警，不阻断 openFile 主链路（降级到原逻辑）
+    // 无论开关是否开启，超阈值均打 warn 日志；开关仅供后续硬阻断灰度预留，当前一律降级放行
+    try {
+      long accRows = (long) (page - 1) * pageSize;
+      int threshold = FILESYSTEM_OPENFILE_PAGE_LIMIT_THRESHOLD.getValue();
+      if (accRows > threshold) {
+        if (FILESYSTEM_OPENFILE_PAGE_LIMIT_ENABLED.getValue()) {
+          LOGGER.warn(
+              "openFile page rows exceed threshold, limit enabled but degrade to original flow "
+                  + "（翻页累计行数超过阈值，开关已开启，降级放行不阻断）: path={}, page={}, pageSize={}, "
+                  + "accRows={}, threshold={}",
+              path,
+              page,
+              pageSize,
+              accRows,
+              threshold);
+        } else {
+          LOGGER.warn(
+              "openFile page rows exceed threshold, limit disabled, warn only "
+                  + "（翻页累计行数超过阈值，开关未开启，仅告警）: path={}, page={}, pageSize={}, "
+                  + "accRows={}, threshold={}",
+              path,
+              page,
+              pageSize,
+              accRows,
+              threshold);
+        }
+      }
+    } catch (Throwable t) {
+      // 拦截逻辑自身异常：降级，记录 warn 日志，放行原 openFile 流程（不阻断主链路）
+      LOGGER.warn(
+          "openFile page limit check failed, fallback to original flow（翻页校验失败，降级放行）, path: {}",
+          path,
+          t);
+    }
+
     // 检查是否为管理台请求（enableLimit=true）
     boolean enableLimitResult = Boolean.parseBoolean(enableLimit);
 

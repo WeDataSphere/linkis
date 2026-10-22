@@ -100,4 +100,15 @@ object HadoopConf {
   val ENGINE_TGT_REFRESH_ENABLE =
     CommonVars[java.lang.Boolean]("linkis.engineconn.tgt.refresh.enable", false).getValue
 
+  val LINKIS_KERBEROS_REFRESH_INTERVAL =
+    CommonVars[java.lang.Long]("linkis.kerberos.refresh.interval", 43200).getValue
+
+  /**
+   * 引擎TGT提前续期阈值（秒）。当TGT剩余有效时间小于该阈值时，即使尚未过期也会触发续期，避免MR/长任务 执行中途TGT过期导致"No valid
+   * credentials"（生产日志28025验证：10649958入口检查时TGT有效，但MR跑22秒 中途TGT过期，查job
+   * status时认证失败）。仅在ENGINE_TGT_REFRESH_ENABLE开启时生效。默认60秒，可按MR典型时长调整。
+   */
+  val ENGINE_TGT_REFRESH_AHEAD_SECONDS =
+    CommonVars[java.lang.Long]("linkis.engineconn.tgt.refresh.ahead.seconds", 60L).getValue
+
 }
