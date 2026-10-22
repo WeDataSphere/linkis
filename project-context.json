@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "project_name": "incubator-linkis",
+  "generated_at": "2026-10-21T00:00:00Z",
+  "generated_by": "dev-flow P4 (CLAUDE.md synthesis)",
+  "tech_stack_summary": "Java 1.8 / Scala 2.11.12 / Spring Boot 2.7.12 / Spring Cloud 2021.0.8 / MyBatis-Plus 3.5.7 / Vue 2.6.12 + iview 3.5.4",
+  "build_tool": "Maven (mvnw, multi-module)",
+  "current_revision": "2.0.0 (dev-2.0.0)",
+  "existing_modules": [
+    "linkis-commons (CommonVars/Configuration, RPC, protocol, storage, scheduling)",
+    "linkis-spring-cloud-services (Eureka + linkis-mg-gateway)",
+    "linkis-orchestrator (computation/code/core)",
+    "linkis-public-enhancements (configuration/bml/datasource/jobhistory/cs/udf/instance-label)",
+    "linkis-computation-governance (linkis-entrance, linkis-manager AM/LM/RM, linkis-engineconn, linkis-engineconn-manager, linkis-client, linkis-jdbc-driver)",
+    "linkis-engineconn-plugins (hive/spark/python/jdbc/flink/presto/trino/doris/nebula/openlookeng/elasticsearch/hbase/impala/pipeline/repl/seatunnel/shell/sqoop/io_file)",
+    "linkis-dist (package, deploy, default conf)",
+    "linkis-web (Vue 2.6.12 + iview 3.5.4, current)",
+    "linkis-web-next (not landed, Cucumber feature only)"
+  ],
+  "key_dependencies": {
+    "jdk": "1.8 (no Java 9+ syntax/API; jdk11-on profile forces release=8)",
+    "scala": "2.11.12 (spark-3 profile -> 2.12.18)",
+    "spring_boot": "2.7.12 (no Boot 3 jakarta.*)",
+    "spring_cloud": "2021.0.8 (Netflix 3.1.7)",
+    "log4j2": "2.17.2 (CVE fixed, no downgrade)",
+    "mysql_connector": "8.0.28 (no downgrade)",
+    "guava": "33.2.1-jre",
+    "hadoop": "2.7.2 default (hadoop-3.3 profile -> 3.3.1)",
+    "spark": "2.4.3 default (spark-3 profile -> 3.4.4 + scala 2.12)",
+    "hbase": "1.2.1 default (hbase-2.5 -> 2.5.3)",
+    "netty": "4.2.7",
+    "jackson": "2.15.0 (spark-3 -> 2.14.2)",
+    "mybatis_plus": "3.5.7",
+    "junit": "5.7.2",
+    "mockito": "3.9.0"
+  },
+  "frontend_stack": {
+    "framework": "Vue 2.6.12 (no major upgrade to 3)",
+    "ui_library": "iview 3.5.4 (no major upgrade)",
+    "router": "vue-router 3.4.8",
+    "i18n": "vue-i18n 8.22.1",
+    "cli": "@vue/cli-service 5.0.8",
+    "eslint": "7.21.0 + eslint-plugin-vue 9.6.0",
+    "editor": "monaco-editor 0.30.1",
+    "sql_parser": "dt-sql-parser 3.0.5, sql-formatter 2.3.3",
+    "terminal": "xterm 5.3.0",
+    "axios": "1.12.2",
+    "apps": ["linkis (main admin, 30 modules)", "URM (udf+function, 2 modules)", "scriptis (script edit)", "PythonModule (React subproject)"]
+  },
+  "code_conventions": {
+    "license_header": "All new .scala/.java files must have ASF Apache 2.0 license header (scalastyle HeaderMatchesChecker)",
+    "scala_style": "scalastyle-config.xml: 200 char max line, 2-space indent, no Tab, class/object PascalCase",
+    "feature_switch_rule": "All new features must declare switch in *Conf.scala (CommonVars), default false, Utils.tryCatch fallback",
+    "exception_handling": "Utils.tryCatch/tryAndWarn/tryQuietly (Scala); try/catch with project logger (Java, no printStackTrace)",
+    "logging": "extends Logging trait; LogUtils.generateInfo/Warn/Error for frontend; no sensitive info in logs (use CodeUtils.maskCode)",
+    "config": "CommonVars[T](key, default, description?) in *Conf/*Configuration.scala; getValue (cached) vs getHotValue (runtime)",
+    "rpc_protocol": "Protocol case classes in linkis-commons/linkis-protocol/ (cross-module); @BeanProperty for Java interop",
+    "restful": "@RestController + RestfulApi suffix; @RequestMapping(/api/rest_j/v1/<module>/<action>); ModuleUserUtils.getOperationUser for auth",
+    "mybatis": "Mapper XML in src/main/resources/mapper/common/; @Transactional(rollbackFor=Exception.class) for writes"
+  },
+  "domain_concepts": {
+    "task_flow": "frontend -> gateway -> entrance(interceptor chain -> parser -> orchestrator) -> AM(select/create EC) -> ECM(launch) -> EC(execute+callback) -> entrance(persist jobhistory) -> frontend",
+    "key_components": ["Entrance", "JobRequest", "Orchestrator", "EngineConn(EC)", "ECM", "AM/LinkisManager", "RM", "LM", "Label", "EngineConnPlugin", "PES", "BML", "CS"],
+    "task_params": "TaskUtils: startup/runtime/special/variable sub-maps (do NOT params.get directly)",
+    "high_risk_zones": ["Protocol case classes", "interceptor chain order", "linkis-engineconn.properties", "error code numbers", "LM material refresh", "ECM material download", "engine launch script assembly"]
+  },
+  "deploy_config_dir": "linkis-dist/package/conf/",
+  "ai_snippets": ".ai/snippets.md (12 high-frequency code templates)",
+  "ai_pitfalls": ".ai/common-pitfalls.md (8 anti-patterns)",
+  "ai_rules": ".ai/rules.md (DB change / config management / code boundaries)"
+}
