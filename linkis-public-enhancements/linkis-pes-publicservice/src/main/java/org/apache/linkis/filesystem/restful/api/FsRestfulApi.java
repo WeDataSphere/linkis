@@ -648,22 +648,42 @@ public class FsRestfulApi {
       throw WorkspaceExceptionManager.createException(80036, path);
     }
 
-    // REQ-02: 翻页 OOM 监控——累计行数 (page-1)*pageSize 超阈值则告警，不阻断 openFile 主链路（降级到原逻辑）
-    // 无论开关是否开启，超阈值均打 warn 日志；开关仅供后续硬阻断灰度预留，当前一律降级放行
+    // REQ-02: 翻页 OOM 拦截——累计行数 page * pageSize 超阈值则拦截
+    // 开关开：硬拦截，返回空数据+用户提示，不走后续读文件逻辑（防OOM）
+    // 开关关：仅打 warn 日志监控，放行原逻辑
     try {
-      long accRows = (long) (page - 1) * pageSize;
+      long accRows = (long) page * pageSize;
       int threshold = FILESYSTEM_OPENFILE_PAGE_LIMIT_THRESHOLD.getValue();
       if (accRows > threshold) {
         if (FILESYSTEM_OPENFILE_PAGE_LIMIT_ENABLED.getValue()) {
+          // 开关开：硬拦截，直接返回空数据+用户提示，不走后续读文件逻辑（防OOM）
           LOGGER.warn(
-              "openFile page rows exceed threshold, limit enabled but degrade to original flow "
-                  + "（翻页累计行数超过阈值，开关已开启，降级放行不阻断）: path={}, page={}, pageSize={}, "
-                  + "accRows={}, threshold={}",
+              "openFile page rows exceed threshold, limit enabled, block and return empty "
+                  + "（翻页累计行数超过阈值，开关已开启，拦截返回空+提示）: path={}, page={}, "
+                  + "pageSize={}, accRows={}, threshold={}",
               path,
               page,
               pageSize,
               accRows,
               threshold);
+          message.data("pageLimitExceed", true);
+          message.data("display_prohibited", true);
+          message.data(
+              "zh_msg",
+              "当前翻页累计行数 "
+                  + accRows
+                  + " 超过阈值 "
+                  + threshold
+                  + "，为防止服务OOM，已拦截不返回数据，请减小pageSize或页码，或使用结果集导出功能");
+          message.data(
+              "en_msg",
+              "Current pagination accumulated rows "
+                  + accRows
+                  + " exceed threshold "
+                  + threshold
+                  + ", blocked to prevent OOM. Please reduce pageSize or page, "
+                  + "or use export for full data.");
+          return message.data("page", page).data("totalPage", 0);
         } else {
           LOGGER.warn(
               "openFile page rows exceed threshold, limit disabled, warn only "
