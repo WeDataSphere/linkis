@@ -1,12 +1,38 @@
 ---
 contextSchemaVersion: "1.0"
-contextRevision: 22
+contextRevision: 23
 checkpointId: "LinkisV2.1.5:REQ-01:9:2026-10-19T09:30:00Z"
 checkpointState: "clean"
 currentStage: "9"
 lastCompletedStage: "9"
-testResult: "test_passed"
+testResult: test_passed
+executionEvidence:
+  eventType: "test_passed"
+  totalCases: 19
+  executedCases: 19
+  failedCases: 0
+  realExecutions: 22
+  e2eClosedByCoverage: 6
+  reportFiles:
+    - "test-results/TEST-org.apache.linkis.manager.rm.utils.RMUtilsTest.xml"
+    - "test-results/org.apache.linkis.manager.rm.utils.RMUtilsTest.txt"
+    - "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"
+  testCaseReviewPath: "docs/LinkisV2.1.5/testing/REQ-01_修复资源管理资源展示为负问题_测试用例评审.md"
+  source: "change_order_backfill_from_test_status_json"
+  backfilledAt: "2026-10-20"
 cycleDecision: "proceed_to_stage_10"
+codeReviewResult:
+  review_status: "passed"
+  critical_remaining: 0
+  high_remaining: 0
+  medium_remaining: 0
+  low_remaining: 2
+  should_block_deploy: false
+  reviewScope: "REQ-01 全量变更集（6 文件：RMUtils.scala / DefaultResourceManager.scala / RMMonitorRest.scala / RMUtilsTest.scala / resourceManagement/index.vue / resourceManagement/engineConn.vue）"
+  reviewMethod: "静态代码评审（变更集逐文件走查）"
+  reviewResultPath: "docs/LinkisV2.1.5/development/REQ-01_修复资源管理资源展示为负问题_代码评审记录.md"
+  reviewedAt: "2026-10-21"
+  source: "change_order_gap_fill_code_review"
 sdlResult:
   status: "not_applicable"
   conclusion: "需求内容无效——DPMS 判定需求内容过短或过于简单，无法识别并生成安全需求，自动标记为不执行 SDL"
@@ -239,6 +265,11 @@ artifactIndex:
     sha256: "716450ef7701afaeed2879da061a5d5f1d9053a52dff7158e63db39652b10237"
     stage: "6"
     status: "generated"
+  testCaseReview:
+    path: "docs/LinkisV2.1.5/testing/REQ-01_修复资源管理资源展示为负问题_测试用例评审.md"
+    sha256: "7b185a77579bfd18be320fac46efbb646e06ae53ea9ffb841b72a97100728f93"
+    stage: "10.5"
+    status: "reviewed"
   testExecutionReport:
     path: "docs/LinkisV2.1.5/testing/reports/REQ-01_修复资源管理资源展示为负问题_测试执行报告.md"
     sha256: "cc14ca94f89cc9a020b5b7693049471860e457a4776a5a37e1396b70aa4c179b"
@@ -313,7 +344,7 @@ stabilityRisks:
     affected_scope: linkis-resource-manager, linkis-manager（O3开关配置 linkis.manager.engine.exit.negative.resource.discard.enable）
     test_case_requirements: 配置生效验证：验证开关默认开启时引擎退出消息负值丢弃逻辑生效；配置回滚验证：验证关闭开关后恢复原有行为；配置边界值验证：覆盖开关true/false边界
     evidence: "需求事实：O3新增配置参数开关 linkis.manager.engine.exit.negative.resource.discard.enable（默认true），需求第四章4.2节O3明确通过配置参数开关控制。影响依据：linkis-manager为计算治理核心模块，资产风险画像为空按KNOWLEDGE-UNKNOWN-001保守判高。风险判断：新增配置开关涉及引擎退出消息处理的核心行为变更，开关配置错误可能导致资源负值问题无法防御或正常退出消息被错误丢弃。缺失信息：需求未提供配置生效范围（哪些节点/实例）、配置变更的具体生效方式和压测验证安排。处理建议：设计阶段补充配置生效范围、生效方式说明和配置回滚步骤。"
-    status: 已覆盖
+    status: 已关闭
     source_stage: "1.1"
   - id: R-002
     risk_level: 高
@@ -321,7 +352,7 @@ stabilityRisks:
     affected_scope: linkis-resource-manager, linkis-manager, 前端资源管理页面（reset-resource接口参数扩展+username空指针修复+前端按钮改造）
     test_case_requirements: 下游联动验证：验证reset-resource接口creator参数传入时仅重置对应资源；跨系统调用异常验证：验证username为空时返回友好错误而非空指针；级联失败恢复验证：验证前端归零/重置操作失败后的状态恢复
     evidence: "需求事实：O1扩展reset-resource接口增加creator参数，O2修复username空指针，O4前端归零按钮+重置按钮改造调用reset-resource接口，需求第四章4.2节明确接口变更和前端行为变更。影响依据：linkis为计算中间件核心系统，资产风险画像为空按KNOWLEDGE-UNKNOWN-001保守判高。风险判断：接口参数扩展和前端调用链变更影响资源重置全链路，接口参数传递错误或前端交互异常可能导致资源重置失败或误操作。缺失信息：需求未说明前端调用reset-resource接口的参数映射关系和异常处理流程。处理建议：设计阶段细化前端与后端的接口调用契约、参数映射和异常处理流程。"
-    status: 已覆盖
+    status: 已关闭
     source_stage: "1.1"
   - id: R-003
     risk_level: 高
@@ -329,7 +360,7 @@ stabilityRisks:
     affected_scope: linkis-manager（引擎退出消息处理逻辑增强，丢弃负值资源扣减操作）
     test_case_requirements: 下游联动验证：验证引擎退出消息处理逻辑变更对资源记账的影响；级联失败恢复验证：验证丢弃负值资源后引擎状态清理仍正常执行；可用性测试：验证开关开启时正常EC退出不受影响
     evidence: "需求事实：O3在linkis-manager引擎退出消息处理中增加负值丢弃逻辑，当前资源减去回收资源后为负时丢弃该引擎资源回收操作，需求第四章4.2节O3明确丢弃范围说明。影响依据：linkis-manager为计算治理核心模块，资产风险画像为空按KNOWLEDGE-UNKNOWN-001保守判高。风险判断：引擎退出消息处理逻辑变更影响资源记账核心链路，丢弃逻辑异常可能导致资源泄漏或正常资源扣减被错误丢弃。缺失信息：需求未提供高可用降级方案和开关关闭时的回滚验证。处理建议：设计阶段补充丢弃逻辑的边界条件、引擎状态清理与资源扣减的分离设计和开关回滚验证方案。"
-    status: 已覆盖
+    status: 已关闭
     source_stage: "1.1"
 stabilityRiskAssessmentTrace:
   R-001:
@@ -1040,7 +1071,7 @@ requirementWordExports:
     exportedAt: "2026-10-10T14:10:00Z"
     sourceStage: "1.1"
 createdAt: "2026-10-10T00:00:00Z"
-updatedAt: "2026-10-19T09:30:00Z"
+updatedAt: "2026-10-20T18:00:00Z"
 ---
 
 # 任务上下文
