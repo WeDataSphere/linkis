@@ -1,0 +1,20 @@
+{
+  "identity": {
+    "local_path": "docs/LinkisV2.1.5/operations/版本变更单_最终版.md",
+    "document_type": "operation",
+    "archive_target_id": "codego_shared_archive",
+    "root_guid": "XKq4MRDYQesj9gkN",
+    "content_hash": "f88bdf4483d3b243d8a9a7b9084a71d058e08f17ca2b9843039bce16908afbad",
+    "archive_destination": {
+      "product_id": "100484",
+      "product_name": "BDP_Linkis",
+      "version_name": "LinkisV2.1.5",
+      "document_type": "operation",
+      "archive_target_id": "codego_shared_archive",
+      "root_guid": "XKq4MRDYQesj9gkN"
+    }
+  },
+  "file_guid": "ZzkLVJ9415U4xL3Q",
+  "folder_id": "gXqmeOjN5EToNrqo",
+  "progress": "100"
+}
