@@ -32,6 +32,38 @@
         "archive_target_id": "codego_shared_archive",
         "root_guid": "XKq4MRDYQesj9gkN"
       }
+    },
+    "operation": {
+      "success": true,
+      "folder_id": "gXqmeOjN5EToNrqo",
+      "product_name": "BDP_Linkis",
+      "archive_target_id": "codego_shared_archive",
+      "root_guid": "XKq4MRDYQesj9gkN",
+      "lineage": [
+        {
+          "name": "BDP_Linkis",
+          "folder_id": "N2A1MwNjE0fgV7AD",
+          "parent_guid": "XKq4MRDYQesj9gkN"
+        },
+        {
+          "name": "LinkisV2.1.5",
+          "folder_id": "gO3oxOjL6QTPP5qD",
+          "parent_guid": "N2A1MwNjE0fgV7AD"
+        },
+        {
+          "name": "operations",
+          "folder_id": "gXqmeOjN5EToNrqo",
+          "parent_guid": "gO3oxOjL6QTPP5qD"
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.5",
+        "document_type": "operation",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      }
     }
   },
   "documents": {
@@ -72,6 +104,44 @@
         "root_guid": "XKq4MRDYQesj9gkN"
       },
       "folder_id": "vVqRVeLjmxh6bwqy"
+    },
+    "_|operation|docs/LinkisV2.1.5/operations/版本变更单_最终版.md": {
+      "document_id": "_|operation|docs/LinkisV2.1.5/operations/版本变更单_最终版.md",
+      "requirement_key": "",
+      "document_type": "operation",
+      "display_name": "",
+      "local_path": "docs/LinkisV2.1.5/operations/版本变更单_最终版.md",
+      "source": "uploaded",
+      "url": "http://docs.weoa.com/docs/ZzkLVJ9415U4xL3Q",
+      "file_guid": "ZzkLVJ9415U4xL3Q",
+      "content_hash": "f88bdf4483d3b243d8a9a7b9084a71d058e08f17ca2b9843039bce16908afbad",
+      "content_verified": true,
+      "history": [
+        {
+          "source": "uploaded",
+          "url": "http://docs.weoa.com/docs/ZzkLVJ9415U4xL3Q",
+          "file_guid": "ZzkLVJ9415U4xL3Q",
+          "content_hash": "f88bdf4483d3b243d8a9a7b9084a71d058e08f17ca2b9843039bce16908afbad",
+          "uploaded_at": "2026-10-22T13:05:54.135044+00:00",
+          "archive_destination": {
+            "product_id": "100484",
+            "product_name": "BDP_Linkis",
+            "version_name": "LinkisV2.1.5",
+            "document_type": "operation",
+            "archive_target_id": "codego_shared_archive",
+            "root_guid": "XKq4MRDYQesj9gkN"
+          }
+        }
+      ],
+      "archive_destination": {
+        "product_id": "100484",
+        "product_name": "BDP_Linkis",
+        "version_name": "LinkisV2.1.5",
+        "document_type": "operation",
+        "archive_target_id": "codego_shared_archive",
+        "root_guid": "XKq4MRDYQesj9gkN"
+      },
+      "folder_id": "gXqmeOjN5EToNrqo"
     }
   },
   "degradations": [],
