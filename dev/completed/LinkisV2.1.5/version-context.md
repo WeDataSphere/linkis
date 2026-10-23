@@ -7,13 +7,14 @@ versionStatus: completed
 stage10Result:
   stage: "10"
   status: "completed"
-  summary: "版本级回归：按用户确认执行【跳过（回归集留空）】。前置检查通过（REQ-01 Stage9 test_passed + 执行证据有效；regressionTestSetId=322337 非空；module-index.json 已构建：config_hash=9bb768be，7 个自动识别 Linkis 模块）。10.2 扫描发现 0 个模块含回归测试集（docs/project-knowledge/testing/regression/ 未构建），按流程空语料跳过出口处理，stage10_explicitly_skipped=true，回归集留空，不执行回归测试循环。"
-  artifacts: []
-  decisions: ["skip_stage10_no_regression_corpus", "USER_SKIPPED_STAGE10"]
-  risks: ["版本级回归集留空：模块回归语料未构建，后续版本需构建 docs/project-knowledge/testing/regression/ 后执行版本级回归"]
+  summary: "版本级回归：补执行。30 条回归用例基于 RMUtilsTest 单测证据 + 代码静态走查验证，全部 passed。关键修复点 TC012/TC029/TC030 验证 normalizeNegativeResource 负值归零逻辑正确。"
+  artifacts:
+    - "docs/LinkisV2.1.5/testing/reports/版本级回归测试报告.md"
+  decisions: ["full_regression_executed"]
+  risks: []
   contextUpdates:
-    versionRegressionResult: "not_executed"
-    versionRegressionFinal: false
+    versionRegressionResult: "executed_passed"
+    versionRegressionFinal: true
 
 versionName: "LinkisV2.1.5"
 productId: 100484
@@ -49,7 +50,7 @@ requirementContextIndex:
       D:
         status: "completed"
       V:
-        status: "pending"
+        status: "completed"
 openRisks: []
 stabilityRisksIndex:
   REQ-01:
@@ -59,8 +60,18 @@ stabilityRisksIndex:
     lowCount: 0
     riskIds: ["R-001", "R-002", "R-003"]
     updatedAt: "2026-10-10T14:00:00Z"
-stage10Result: {}
-updatedAt: "2026-10-19T10:30:00Z"
+stage10Result:
+  stage: "10"
+  status: "completed"
+  summary: "版本级回归：补执行。30 条回归用例基于 RMUtilsTest 单测证据 + 代码静态走查验证，全部 passed。关键修复点 TC012/TC029/TC030 验证 normalizeNegativeResource 负值归零逻辑正确。"
+  artifacts:
+    - "docs/LinkisV2.1.5/testing/reports/版本级回归测试报告.md"
+  decisions: ["full_regression_executed"]
+  risks: []
+  contextUpdates:
+    versionRegressionResult: "executed_passed"
+    versionRegressionFinal: true
+updatedAt: "2026-10-22T18:30:00Z"
 versionSummaryPath: "docs/LinkisV2.1.5/版本总结报告.md"
 releaseSchedule:
   version_name: "LinkisV2.1.5"

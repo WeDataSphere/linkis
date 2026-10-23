@@ -1,0 +1,156 @@
+{
+  "uploadedCases": [
+    {
+      "caseKey": "fe1e026f9e523abb057997fbd1acbb39",
+      "testCaseId": 52011615,
+      "name": "【回归】linkis-computation_governance-TC001"
+    },
+    {
+      "caseKey": "f40e5429e45081523153df38a4f4e2a3",
+      "testCaseId": 52011616,
+      "name": "【回归】linkis-computation_governance-TC002"
+    },
+    {
+      "caseKey": "8a87fb0cea90fd3481002ad2aba6018b",
+      "testCaseId": 52011617,
+      "name": "【回归】linkis-computation_governance-TC003"
+    },
+    {
+      "caseKey": "d490fd3ca3841f31b3f43e3a059b3815",
+      "testCaseId": 52011618,
+      "name": "【回归】linkis-computation_governance-TC004"
+    },
+    {
+      "caseKey": "738bdfa3ad5f6f62ba4705f7c94cda08",
+      "testCaseId": 52011619,
+      "name": "【回归】linkis-computation_governance-TC005"
+    },
+    {
+      "caseKey": "b981450d45cf1b788e52d0cd423e8d66",
+      "testCaseId": 52011620,
+      "name": "【回归】linkis-computation_governance-TC006"
+    },
+    {
+      "caseKey": "bf763be27a1cf1fd9981335a0faad5f1",
+      "testCaseId": 52011621,
+      "name": "【回归】linkis-computation_governance-TC007"
+    },
+    {
+      "caseKey": "6faf40eff8d37ceb84b356010e1c5f28",
+      "testCaseId": 52011622,
+      "name": "【回归】linkis-computation_governance-TC008"
+    },
+    {
+      "caseKey": "23d2ad898a99b2da42b0a37d3b57dde7",
+      "testCaseId": 52011623,
+      "name": "【回归】linkis-computation_governance-TC009"
+    },
+    {
+      "caseKey": "acfea2abcc99fa655515433960a90dc4",
+      "testCaseId": 52011624,
+      "name": "【回归】linkis-computation_governance-TC010"
+    },
+    {
+      "caseKey": "e01adc460914bc2ac0ba7c6575d2bca0",
+      "testCaseId": 52011625,
+      "name": "【回归】linkis-computation_governance-TC011"
+    },
+    {
+      "caseKey": "154b3bcc732f3510ffb0c9d2106ce43d",
+      "testCaseId": 52011626,
+      "name": "【回归】linkis-computation_governance-TC012"
+    },
+    {
+      "caseKey": "5f3435a207145c98a51189e0841cb068",
+      "testCaseId": 52011627,
+      "name": "【回归】linkis-computation_governance-TC013"
+    },
+    {
+      "caseKey": "78d6f816761f116809334f5306c7d6dc",
+      "testCaseId": 52011628,
+      "name": "【回归】linkis-computation_governance-TC014"
+    },
+    {
+      "caseKey": "b0dd6efb8fde9d645852eb1487c37e56",
+      "testCaseId": 52011629,
+      "name": "【回归】linkis-computation_governance-TC015"
+    },
+    {
+      "caseKey": "33135154b169051f941023f9ab21d187",
+      "testCaseId": 52011630,
+      "name": "【回归】linkis-computation_governance-TC016"
+    },
+    {
+      "caseKey": "b176f5cef05bd588970090ca87744d40",
+      "testCaseId": 52011631,
+      "name": "【回归】linkis-computation_governance-TC017"
+    },
+    {
+      "caseKey": "8a70810ae790d69ef40aea84782bb5f7",
+      "testCaseId": 52011632,
+      "name": "【回归】linkis-computation_governance-TC018"
+    },
+    {
+      "caseKey": "44535238de341f9ff639e7b8c0eced42",
+      "testCaseId": 52011633,
+      "name": "【回归】linkis-computation_governance-TC019"
+    },
+    {
+      "caseKey": "b60dcaa5b9e42abfd37309a3297ab8b7",
+      "testCaseId": 52011634,
+      "name": "【回归】linkis-computation_governance-TC020"
+    },
+    {
+      "caseKey": "abd570bd6d483d087570e52681248898",
+      "testCaseId": 52011635,
+      "name": "【回归】linkis-computation_governance-TC021"
+    },
+    {
+      "caseKey": "b3c9eb742d707958e11319e9c6b354c4",
+      "testCaseId": 52011636,
+      "name": "【回归】linkis-computation_governance-TC022"
+    },
+    {
+      "caseKey": "646426621cdd911f57ea564d92014167",
+      "testCaseId": 52011637,
+      "name": "【回归】linkis-computation_governance-TC023"
+    },
+    {
+      "caseKey": "b7556e05ee2edd0541685e45d836d040",
+      "testCaseId": 52011638,
+      "name": "【回归】linkis-computation_governance-TC024"
+    },
+    {
+      "caseKey": "7c49476d2b4d2642a49d8c0ef5b5092c",
+      "testCaseId": 52011639,
+      "name": "【回归】linkis-computation_governance-TC025"
+    },
+    {
+      "caseKey": "3778c675b47334f2958f430c7cd11f43",
+      "testCaseId": 52011640,
+      "name": "【回归】linkis-computation_governance-TC026"
+    },
+    {
+      "caseKey": "671733cc64f2e08cda8cc591ec7b429b",
+      "testCaseId": 52011641,
+      "name": "【回归】linkis-computation_governance-TC027"
+    },
+    {
+      "caseKey": "e2ba0ef64cbb13799358cc7d2e0b648b",
+      "testCaseId": 52011642,
+      "name": "【回归】linkis-computation_governance-TC028"
+    },
+    {
+      "caseKey": "d54f37d929f1b88b5972ad66eced2eb6",
+      "testCaseId": 52011643,
+      "name": "【回归】linkis-computation_governance-TC029"
+    },
+    {
+      "caseKey": "964c2b2353a964fe1c7be1f290da6ada",
+      "testCaseId": 52011644,
+      "name": "【回归】linkis-computation_governance-TC030"
+    }
+  ],
+  "version": "LinkisV2.1.5",
+  "createdAt": "2026-10-22"
+}
