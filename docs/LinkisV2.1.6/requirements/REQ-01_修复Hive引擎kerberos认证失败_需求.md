@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/5rk9dzJvKBiMzjqx)
+
 # 修复 Hive 引擎 Kerberos 认证失败问题分析报告
 
 **需求类型**: FIX（Bug 修复）

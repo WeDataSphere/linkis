@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/9030MdNjJlcGDxqw)
+
 # openfile 拦截防 OOM 需求文档
 
 **需求类型**: ENHANCE（功能增强/防护增强）
