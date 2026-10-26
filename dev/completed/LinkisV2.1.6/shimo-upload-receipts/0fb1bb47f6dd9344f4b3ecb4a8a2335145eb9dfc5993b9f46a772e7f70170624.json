@@ -1,0 +1,20 @@
+{
+  "identity": {
+    "local_path": "docs/LinkisV2.1.6/design/REQ-01_修复Hive引擎kerberos认证失败_设计.md",
+    "document_type": "design",
+    "archive_target_id": "codego_shared_archive",
+    "root_guid": "XKq4MRDYQesj9gkN",
+    "content_hash": "324ddbd32a1b24ff81be7cb40659a914252310c4c018e9f0c604bb04362ada25",
+    "archive_destination": {
+      "product_id": "100484",
+      "product_name": "BDP_Linkis",
+      "version_name": "LinkisV2.1.6",
+      "document_type": "design",
+      "archive_target_id": "codego_shared_archive",
+      "root_guid": "XKq4MRDYQesj9gkN"
+    }
+  },
+  "file_guid": "1d3aVl1YM1C0rbqg",
+  "folder_id": "vVAXVnOaMguNjOqm",
+  "progress": "100"
+}

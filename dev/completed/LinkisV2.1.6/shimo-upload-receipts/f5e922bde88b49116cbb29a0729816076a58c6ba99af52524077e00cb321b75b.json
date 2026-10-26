@@ -1,0 +1,20 @@
+{
+  "identity": {
+    "local_path": "docs/LinkisV2.1.6/requirements/REQ-02_openfile拦截防OOM_需求.md",
+    "document_type": "requirement",
+    "archive_target_id": "codego_shared_archive",
+    "root_guid": "XKq4MRDYQesj9gkN",
+    "content_hash": "e182a004cd1e447cec65f54473d2a8bd15770e23dfa48661ad7d37ebe8eeb54b",
+    "archive_destination": {
+      "product_id": "100484",
+      "product_name": "BDP_Linkis",
+      "version_name": "LinkisV2.1.6",
+      "document_type": "requirement",
+      "archive_target_id": "codego_shared_archive",
+      "root_guid": "XKq4MRDYQesj9gkN"
+    }
+  },
+  "file_guid": "9030MdNjJlcGDxqw",
+  "folder_id": "5rk9dzJvKvTMR8qx",
+  "progress": "100"
+}
