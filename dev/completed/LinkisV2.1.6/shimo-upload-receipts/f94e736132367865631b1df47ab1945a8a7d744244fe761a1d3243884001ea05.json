@@ -1,0 +1,20 @@
+{
+  "identity": {
+    "local_path": "docs/LinkisV2.1.6/requirements/REQ-01_修复Hive引擎kerberos认证失败_需求.md",
+    "document_type": "requirement",
+    "archive_target_id": "codego_shared_archive",
+    "root_guid": "XKq4MRDYQesj9gkN",
+    "content_hash": "f86ffd6796ef0ff720bb9555ffedfd4c1d79b3e7f2bbaf639cb135357874ccb6",
+    "archive_destination": {
+      "product_id": "100484",
+      "product_name": "BDP_Linkis",
+      "version_name": "LinkisV2.1.6",
+      "document_type": "requirement",
+      "archive_target_id": "codego_shared_archive",
+      "root_guid": "XKq4MRDYQesj9gkN"
+    }
+  },
+  "file_guid": "5rk9dzJvKBiMzjqx",
+  "folder_id": "5rk9dzJvKvTMR8qx",
+  "progress": "100"
+}

@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/1d3aVl1YM1C0rbqg)
+
 # 修复Hive引擎kerberos认证失败 - 设计文档
 
 ## 文档信息

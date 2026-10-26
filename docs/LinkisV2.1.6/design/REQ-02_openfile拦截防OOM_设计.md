@@ -1,3 +1,5 @@
+> 石墨文档链接：[点击查看](http://docs.weoa.com/docs/16q8MwZjxPsg8Qk7)
+
 # REQ-02 openfile 拦截防 OOM — 设计方案
 
 > 版本：LinkisV2.1.6 ｜ 分支：release_v2.1.6 ｜ 需求类型：ENHANCE/P2 ｜ dpmsStoryId：555374
