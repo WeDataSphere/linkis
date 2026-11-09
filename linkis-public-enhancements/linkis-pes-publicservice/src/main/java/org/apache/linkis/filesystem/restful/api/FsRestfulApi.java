@@ -140,6 +140,158 @@ public class FsRestfulApi {
     return checkIsUsersDirectory(requestPath, userName, true);
   }
 
+  // ==================== REQ-01 _ai 用户身份归一（设计 v1.2 定稿）====================
+
+  /** 判断是否为 AI 用户（后缀判定，后缀取自公共配置，与网关同 key） */
+  private boolean isAiUser(String userName) {
+    if (StringUtils.isBlank(userName)) {
+      return false;
+    }
+    return userName.endsWith(Configuration.AI_USER_SUFFIX().getValue());
+  }
+
+  /** 剥离 AI 后缀，得到原用户 */
+  private String stripAiSuffix(String aiUser) {
+    String suffix = Configuration.AI_USER_SUFFIX().getValue();
+    if (StringUtils.isBlank(suffix) || StringUtils.isBlank(aiUser)) {
+      return aiUser;
+    }
+    return aiUser.endsWith(suffix)
+        ? aiUser.substring(0, aiUser.length() - suffix.length())
+        : aiUser;
+  }
+
+  /**
+   * 处理 getFsType 的陷阱：FsPath.getFsType() 在 scheme 为空时默认返回 "file"， 会把无 scheme 的相对路径误判为本地路径。
+   * 此处显式判空后回落本地。
+   */
+  private String resolveFsType(String rawPath) {
+    if (StringUtils.isBlank(rawPath)) {
+      return StorageUtils.FILE();
+    }
+    try {
+      String scheme = java.net.URI.create(rawPath.trim()).getScheme();
+      // 无 scheme（相对路径）按本地处理，与 FsPath 默认语义一致但不依赖其默认值
+      return StringUtils.isBlank(scheme) ? StorageUtils.FILE() : scheme;
+    } catch (Exception e) {
+      LOGGER.warn("resolveFsType failed, fallback to FILE for path: {}", rawPath, e);
+      return StorageUtils.FILE();
+    }
+  }
+
+  /** 日志路径截断：防止用户输入超长路径刷爆日志 */
+  private String truncatePath(String path) {
+    if (path == null) {
+      return null;
+    }
+    return path.length() > 200 ? path.substring(0, 200) : path;
+  }
+
+  /**
+   * 按路径归属归一执行身份（五象限规则）。 开关关闭 / 非 _ai 用户 / 无法判定 → 一律返回 loginUser（老路径）。
+   *
+   * <p>降级不报错（ADR-005，用户决策），但必须可观测（N-1）：仅 undeterminable / exception 打 warn，关键字
+   * resolveOpUser.fallback 固定不变，供运维 grep 定位降级事件。
+   */
+  private String resolveOpUser(String loginUser, String rawPath) {
+    String fsType = null;
+    try {
+      // Scala object 经静态转发器后泛型擦除为 raw type，须显式强转（先例：QueryRestfulApi:891）
+      if (!(Boolean) Configuration.AI_USER_ENABLE().getHotValue()) {
+        LOGGER.debug("resolveOpUser.fallback: loginUser={}, reason=switch_off", loginUser);
+        return loginUser;
+      }
+      if (!isAiUser(loginUser)) {
+        LOGGER.debug("resolveOpUser.fallback: loginUser={}, reason=not_ai_user", loginUser);
+        return loginUser;
+      }
+      if (StringUtils.isBlank(rawPath)) {
+        LOGGER.debug("resolveOpUser.fallback: loginUser={}, reason=blank_path", loginUser);
+        return loginUser;
+      }
+      String origUser = stripAiSuffix(loginUser);
+      fsType = resolveFsType(rawPath);
+      if (StorageUtils.FILE().equalsIgnoreCase(fsType)) {
+        // Q1：本地根 <localRoot><user>，localRoot 已带尾分隔符（suffixTuning 保证）。
+        // 两侧均剥掉 file:// 前缀后比较，兼容带 scheme（file:///...）与裸路径（/...）两种入参形态
+        String localRoot = WorkspaceUtil.suffixTuning(LOCAL_USER_ROOT_PATH.getValue());
+        if (isUnder(stripFileScheme(rawPath), stripFileScheme(localRoot + origUser))) {
+          return origUser;
+        }
+        LOGGER.warn(
+            "resolveOpUser.fallback: loginUser={}, rawPath={}, fsType={}, reason=undeterminable",
+            loginUser,
+            truncatePath(rawPath),
+            fsType);
+        return loginUser;
+      }
+      if (StorageUtils.HDFS().equalsIgnoreCase(fsType)) {
+        // 与 checkIsUsersDirectory 同源拼接：prefix 经 suffixTuning，suffix 原样
+        String hdfsPrefix = WorkspaceUtil.suffixTuning(HDFS_USER_ROOT_PATH_PREFIX.getValue());
+        String hdfsSuffix = HDFS_USER_ROOT_PATH_SUFFIX.getValue();
+        // Q2：_ai 独立根，保持 _ai（必须先判，否则 <user>_ai 会命中 <user> 前缀）
+        if (isUnder(rawPath, hdfsPrefix + loginUser + hdfsSuffix)) {
+          return loginUser;
+        }
+        // Q3：原用户根，归一为原用户
+        if (isUnder(rawPath, hdfsPrefix + origUser + hdfsSuffix)) {
+          return origUser;
+        }
+        LOGGER.warn(
+            "resolveOpUser.fallback: loginUser={}, rawPath={}, fsType={}, reason=undeterminable",
+            loginUser,
+            truncatePath(rawPath),
+            fsType);
+        return loginUser;
+      }
+      // 其他 scheme → 无法判定归属（Q5）
+      LOGGER.warn(
+          "resolveOpUser.fallback: loginUser={}, rawPath={}, fsType={}, reason=undeterminable",
+          loginUser,
+          truncatePath(rawPath),
+          fsType);
+      return loginUser;
+    } catch (Exception e) {
+      // 降级：任何异常退回老路径，不中断作业（CLAUDE.md §4.2 / ADR-005）
+      LOGGER.warn(
+          "resolveOpUser.fallback: loginUser={}, rawPath={}, fsType={}, reason=exception, msg={}",
+          loginUser,
+          truncatePath(rawPath),
+          fsType,
+          e.getMessage(),
+          e);
+      return loginUser;
+    }
+  }
+
+  /** 路径归一：统一分隔符、去尾部斜杠，避免 /a/b/ 与 /a/b 判定不一致 */
+  private String normalizePath(String path) {
+    String p = path.trim().replace('\\', '/');
+    while (p.length() > 1 && p.endsWith("/")) {
+      p = p.substring(0, p.length() - 1);
+    }
+    return p;
+  }
+
+  /** 剥离本地路径的 file:// / file:/ 前缀，兼容 scheme 与裸路径两种形态 */
+  private String stripFileScheme(String p) {
+    String n = normalizePath(p);
+    if (n.startsWith("file://")) {
+      return n.substring("file://".length());
+    }
+    if (n.startsWith("file:/")) {
+      return n.substring("file:/".length());
+    }
+    return n;
+  }
+
+  /** p 是否等于 root 或在 root 之下（按路径段判定，不用 contains；不区分大小写，与 checkIsUsersDirectory 一致） */
+  private boolean isUnder(String p, String root) {
+    String r = normalizePath(root);
+    String n = normalizePath(p);
+    return n.equalsIgnoreCase(r) || n.toLowerCase().startsWith(r.toLowerCase() + "/");
+  }
+
   @ApiOperation(value = "getUserRootPath", notes = "get user root path", response = Message.class)
   @ApiImplicitParams({
     @ApiImplicitParam(name = "pathType", required = false, dataType = "String", value = "path type")
@@ -193,7 +345,8 @@ public class FsRestfulApi {
       throws IOException, WorkSpaceException {
 
     String path = json.get("path").textValue();
-    String userName = ModuleUserUtils.getOperationUser(req, "createNewDir " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "createNewDir " + path), path);
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
@@ -219,7 +372,8 @@ public class FsRestfulApi {
   public Message createNewFile(HttpServletRequest req, @RequestBody JsonNode json)
       throws IOException, WorkSpaceException {
     String path = json.get("path").textValue();
-    String userName = ModuleUserUtils.getOperationUser(req, "createNewFile " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "createNewFile " + path), path);
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
@@ -247,7 +401,8 @@ public class FsRestfulApi {
       throws IOException, WorkSpaceException {
     String oldDest = json.get("oldDest").textValue();
     String newDest = json.get("newDest").textValue();
-    String userName = ModuleUserUtils.getOperationUser(req, "rename " + newDest);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "rename " + newDest), newDest);
     if (FILESYSTEM_PATH_CHECK_TRIGGER.getValue()) {
       LOGGER.info(
           String.format(
@@ -288,7 +443,8 @@ public class FsRestfulApi {
       throws IOException, WorkSpaceException {
     String filePath = json.get("filePath").textValue();
     String newDir = json.get("newDir").textValue();
-    String userName = ModuleUserUtils.getOperationUser(req, "move " + filePath);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "move " + filePath), filePath);
     if (StringUtils.isEmpty(filePath)) {
       return Message.ok();
     }
@@ -336,7 +492,7 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "upload " + path);
+    String userName = resolveOpUser(ModuleUserUtils.getOperationUser(req, "upload " + path), path);
     LoggerUtils.setJobIdMDC("uploadThread_" + userName);
     LOGGER.info("userName {} start to upload File {}", userName, path);
     if (!checkIsUsersDirectory(path, userName)) {
@@ -370,7 +526,8 @@ public class FsRestfulApi {
       throws IOException, WorkSpaceException {
 
     String path = json.get("path").textValue();
-    String userName = ModuleUserUtils.getOperationUser(req, "deleteDirOrFile " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "deleteDirOrFile " + path), path);
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
@@ -402,7 +559,8 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "getDirFileTrees " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "getDirFileTrees " + path), path);
     if (!checkIsUsersDirectory(path, userName)) {
       throw WorkspaceExceptionManager.createException(80010, userName, path);
     }
@@ -466,7 +624,8 @@ public class FsRestfulApi {
     try {
       String charset = json.get("charset");
       String path = json.get("path");
-      String userName = ModuleUserUtils.getOperationUser(req, "download " + path);
+      String userName =
+          resolveOpUser(ModuleUserUtils.getOperationUser(req, "download " + path), path);
       LoggerUtils.setJobIdMDC("downloadThread_" + userName);
       LOGGER.info("userName {} start to download File {}", userName, path);
       if (StringUtils.isEmpty(path)) {
@@ -523,7 +682,7 @@ public class FsRestfulApi {
   public Message isExist(
       HttpServletRequest req, @RequestParam(value = "path", required = false) String path)
       throws IOException, WorkSpaceException {
-    String userName = ModuleUserUtils.getOperationUser(req, "isExist " + path);
+    String userName = resolveOpUser(ModuleUserUtils.getOperationUser(req, "isExist " + path), path);
     FsPath fsPath = new FsPath(path);
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
@@ -553,7 +712,8 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "fileInfo " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "fileInfo " + path), path);
     FsPath fsPath = new FsPath(path);
     FileSystem fileSystem = fsService.getFileSystemForRead(userName, fsPath);
     // Throws an exception if the file does not have read access(如果文件没读权限，抛出异常)
@@ -707,7 +867,8 @@ public class FsRestfulApi {
     // 检查是否为管理台请求（enableLimit=true）
     boolean enableLimitResult = Boolean.parseBoolean(enableLimit);
 
-    String userName = ModuleUserUtils.getOperationUser(req, "openFile " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "openFile " + path), path);
     LoggerUtils.setJobIdMDC("openFileThread_" + userName);
     LOGGER.info("userName {} start to open File {}", userName, path);
     Long startTime = System.currentTimeMillis();
@@ -959,7 +1120,8 @@ public class FsRestfulApi {
   public Message saveScript(HttpServletRequest req, @RequestBody Map<String, Object> json)
       throws IOException, WorkSpaceException {
     String path = (String) json.get("path");
-    String userName = ModuleUserUtils.getOperationUser(req, "saveScript " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "saveScript " + path), path);
     LoggerUtils.setJobIdMDC("saveScriptThread_" + userName);
     LOGGER.info("userName {} start to saveScript File {}", userName, path);
     if (StringUtils.isEmpty(path)) {
@@ -1076,7 +1238,8 @@ public class FsRestfulApi {
         quoteRetouchEnable,
         charset);
     try {
-      String userName = ModuleUserUtils.getOperationUser(req, "resultsetToExcel " + path);
+      String userName =
+          resolveOpUser(ModuleUserUtils.getOperationUser(req, "resultsetToExcel " + path), path);
       LoggerUtils.setJobIdMDC("resultsetToExcelThread_" + userName);
       LOGGER.info("userName {} start to resultsetToExcel File {}", userName, path);
       FsPath fsPath = new FsPath(path);
@@ -1224,7 +1387,8 @@ public class FsRestfulApi {
     PrintWriter writer = null;
     FileSource fileSource = null;
     try {
-      String userName = ModuleUserUtils.getOperationUser(req, "resultsetsToExcel " + path);
+      String userName =
+          resolveOpUser(ModuleUserUtils.getOperationUser(req, "resultsetsToExcel " + path), path);
       LoggerUtils.setJobIdMDC("resultsetsToExcelThread_" + userName);
       LOGGER.info("userName {} start to resultsetsToExcel File {}", userName, path);
       FsPath fsPath = new FsPath(path);
@@ -1355,7 +1519,7 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "formate " + path);
+    String userName = resolveOpUser(ModuleUserUtils.getOperationUser(req, "formate " + path), path);
     LoggerUtils.setJobIdMDC("formateThread_" + userName);
     LOGGER.info("userName {} start to formate File {}", userName, path);
     if (!checkIsUsersDirectory(path, userName)) {
@@ -1450,7 +1614,8 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "getSheetInfo " + path);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "getSheetInfo " + path), path);
     LoggerUtils.setJobIdMDC("getSheetInfoThread_" + userName);
     LOGGER.info("userName {} start to getSheetInfo File {}", userName, path);
     if (!checkIsUsersDirectory(path, userName)) {
@@ -1533,7 +1698,7 @@ public class FsRestfulApi {
     if (StringUtils.isEmpty(path)) {
       throw WorkspaceExceptionManager.createException(80004, path);
     }
-    String userName = ModuleUserUtils.getOperationUser(req, "openLog " + path);
+    String userName = resolveOpUser(ModuleUserUtils.getOperationUser(req, "openLog " + path), path);
     LoggerUtils.setJobIdMDC("openLogThread_" + userName);
     LOGGER.info("userName {} start to openLog File {}, logLevel: {}", userName, path, logLevel);
     if (proxyUser != null && Configuration.isJobHistoryAdmin(userName)) {
@@ -1673,7 +1838,8 @@ public class FsRestfulApi {
           Boolean isRecursion,
       @RequestParam(value = "filePermission", required = true) String filePermission)
       throws WorkSpaceException, IOException {
-    String userName = ModuleUserUtils.getOperationUser(req, "chmod " + filePath);
+    String userName =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "chmod " + filePath), filePath);
     if (StringUtils.isEmpty(filePath)) {
       return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, filePath));
     }
@@ -1712,7 +1878,8 @@ public class FsRestfulApi {
   public Message encryptPath(
       HttpServletRequest req, @RequestParam(value = "filePath", required = false) String filePath)
       throws WorkSpaceException, IOException {
-    String username = ModuleUserUtils.getOperationUser(req, "encrypt-path " + filePath);
+    String username =
+        resolveOpUser(ModuleUserUtils.getOperationUser(req, "encrypt-path " + filePath), filePath);
     if (StringUtils.isEmpty(filePath)) {
       return Message.error(MessageFormat.format(PARAMETER_NOT_BLANK, "filePath"));
     }
