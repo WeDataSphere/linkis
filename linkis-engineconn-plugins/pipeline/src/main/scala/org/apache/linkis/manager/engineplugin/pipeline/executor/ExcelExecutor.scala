@@ -59,7 +59,10 @@ class ExcelExecutor extends PipeLineExecutor with Logging {
     val destFsPath = new FsPath(destPath)
     val sourceFs = FSFactory.getFs(sourceFsPath)
     sourceFs.init(null)
-    val destFs = FSFactory.getFs(destFsPath)
+    // REQ-01: 目标 FS 优先按归属切换为原用户代理 FS（_ai 场景），不满足或失败回落原逻辑
+    val destFs = PipelineExecutorUtils
+      .getDestFsByOwner(engineExecutorContext.getExecutorUser, destFsPath)
+      .getOrElse(FSFactory.getFs(destFsPath))
     destFs.init(null)
 
     try {
