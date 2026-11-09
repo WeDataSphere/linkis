@@ -73,24 +73,32 @@ object PipelineExecutorUtils {
   }
 
   /** destFsPath 是否归属原用户的工作空间根（仅支持本地 file 与 HDFS，其他类型不切换） */
-  private def isUnderOwnerRoot(destFsPath: FsPath, origUser: String): Boolean = {
+  private[executor] def isUnderOwnerRoot(destFsPath: FsPath, origUser: String): Boolean = {
     if (destFsPath == null) {
       return false
     }
     // FsPath.getPath() 返回不含 scheme 的路径，配置根（file:/// 或 hdfs:///）须剥掉 scheme 再比较
     val fsType = destFsPath.getFsType
     if ("file".equalsIgnoreCase(fsType)) {
-      isUnder(destFsPath.getPath, stripScheme(LOCAL_USER_ROOT_PATH.getValue) + origUser)
+      val localRoot = stripScheme(LOCAL_USER_ROOT_PATH.getValue)
+      localRoot.nonEmpty && isUnder(destFsPath.getPath, joinRoot(localRoot, origUser))
     } else if ("hdfs".equalsIgnoreCase(fsType)) {
-      isUnder(
+      val hdfsPrefix = stripScheme(HDFS_USER_ROOT_PATH_PREFIX.getValue)
+      hdfsPrefix.nonEmpty && isUnder(
         destFsPath.getPath,
-        stripScheme(
-          HDFS_USER_ROOT_PATH_PREFIX.getValue + origUser + HDFS_USER_ROOT_PATH_SUFFIX.getValue
-        )
+        joinRoot(hdfsPrefix, origUser) + HDFS_USER_ROOT_PATH_SUFFIX.getValue
       )
     } else {
       false
     }
+  }
+
+  /**
+   * 拼接用户根路径。 stripScheme 会去掉尾部斜杠（配置默认值 file:///tmp/linkis/、hdfs:///tmp/ 都带尾分隔符）， 直接字符串相加会得到
+   * /tmp/linkisalice 这类错误根，必须补回分隔符。
+   */
+  private def joinRoot(strippedRoot: String, user: String): String = {
+    normalizePath(strippedRoot) + "/" + user
   }
 
   /** 剥离路径的 scheme 与 authority（如 hdfs://nameservice1），返回裸路径，与 FsPath.getPath() 对齐 */
