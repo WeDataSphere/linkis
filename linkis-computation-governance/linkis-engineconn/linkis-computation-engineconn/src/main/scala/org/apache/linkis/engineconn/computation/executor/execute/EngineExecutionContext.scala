@@ -236,9 +236,6 @@ class EngineExecutionContext(executor: ComputationExecutor, executorUser: String
 
   def getExecutor: Executor = executor
 
-  // REQ-01: 供 pipeline 等执行器读取执行身份（原提交用户；若构造未显式传入则回落 JVM 用户）
-  def getExecutorUser: String = executorUser
-
   def getEnableResultsetMetaWithTableName: Boolean = enableResultsetMetaWithTableName
 
   def setEnableResultsetMetaWithTableName(withTableName: Boolean): Unit =

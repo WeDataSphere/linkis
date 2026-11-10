@@ -96,9 +96,7 @@ public class QueryRestfulApi {
         .data("historyAdmin", Configuration.isJobHistoryAdmin(username))
         .data("deptAdmin", Configuration.isDepartmentAdmin(username))
         .data("canResultSet", Configuration.canResultSetByDepartment(departmentId))
-        .data("errorMsgTip", Configuration.ERROR_MSG_TIP().getValue())
-        // REQ-01: _ai 用户切换开关下发，前端据此渲染；热加载，关掉立即生效
-        .data("aiSwitch", Configuration.AI_USER_ENABLE().getHotValue());
+        .data("errorMsgTip", Configuration.ERROR_MSG_TIP().getValue());
   }
 
   @ApiOperation(value = "getTaskByID", notes = "get task by id", response = Message.class)
