@@ -210,4 +210,14 @@ object ServerConfiguration extends Logging {
   val LINKIS_SERVER_ENTRANCE_HEADER_KEY =
     CommonVars("linkis.server.entrance.header.key", "jobInstanceKey")
 
+  // 会话票证有界缓存总开关（默认关闭，现网存在 OOM 时上线显式置 true 并重启）
+  // Whether to back the session ticket container with a bounded cache (capacity + access expiry)
+  val SESSION_TICKET_CACHE_BOUNDED_ENABLE =
+    CommonVars("linkis.server.session.ticket.cache.bounded.enable", true)
+
+  // 有界缓存最大条目数（按"在线用户数×3"估算，超出即 LRU 逐出；≤0 时按 100000 兜底）
+  // Maximum number of session tickets held by the bounded cache
+  val SESSION_TICKET_CACHE_MAX_SIZE =
+    CommonVars("linkis.server.session.ticket.cache.max.size", 100000)
+
 }

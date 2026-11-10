@@ -41,6 +41,12 @@
       <version>${knife4j.version}</version>
     </dependency>
 
+    <!--bounded session ticket cache (SSOUtils); version managed by root pom, do not upgrade-->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+
     <dependency>
       <groupId>io.springfox</groupId>
       <artifactId>springfox-spring-webflux</artifactId>
