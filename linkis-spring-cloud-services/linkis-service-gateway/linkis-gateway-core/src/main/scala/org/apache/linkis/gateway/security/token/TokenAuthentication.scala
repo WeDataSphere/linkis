@@ -26,8 +26,8 @@ import org.apache.linkis.gateway.security.{GatewaySSOUtils, SecurityFilter}
 import org.apache.linkis.server.Message
 import org.apache.linkis.server.conf.ServerConfiguration
 import org.apache.linkis.server.utils.ModuleUserUtils
-
 import org.apache.commons.lang3.StringUtils
+import org.apache.linkis.common.conf.Configuration
 
 import scala.util.Try
 
@@ -217,10 +217,10 @@ object TokenAuthentication extends Logging {
       host: String,
       gatewayContext: GatewayContext
   ): Boolean = {
-    if (!GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.getHotValue) {
+    if (!GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.getValue) {
       return false
     }
-    val aiSuffix = GatewayConfiguration.AI_USER_SUFFIX.getHotValue
+    val aiSuffix = Configuration.AI_USER_SUFFIX.getValue
     if (StringUtils.isBlank(aiSuffix) || !tokenUser.endsWith(aiSuffix)) {
       return false
     }

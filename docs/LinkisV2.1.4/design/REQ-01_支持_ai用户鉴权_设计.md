@@ -168,7 +168,7 @@ val AI_USER_TOKEN_DOWNGRADE_ENABLE =
  * Suffix of AI proxy users(e.g. zhangsan_ai), configurable to avoid code change when the suffix
  * needs to be adjusted.
  */
-val AI_USER_SUFFIX = CommonVars("wds.linkis.gateway.ai.user.suffix", "_ai")
+val AI_USER_SUFFIX = CommonVars("linkis.ai.user.suffix", "_ai")
 ```
 
 **设计要点**:
@@ -336,7 +336,7 @@ private def isLegalDowngradeUser(user: String): Boolean = {
 
 # === AI 用户后缀（默认 _ai）===
 # 可配置，避免后缀变更时改代码
-# wds.linkis.gateway.ai.user.suffix=_ai
+# linkis.ai.user.suffix=_ai
 ```
 
 ---
@@ -360,7 +360,7 @@ private def isLegalDowngradeUser(user: String): Boolean = {
 
 **决策：配置化，默认 `_ai`**
 
-新增 `AI_USER_SUFFIX` 配置项（`wds.linkis.gateway.ai.user.suffix`，默认 `_ai`），成本极低且避免后缀变更时改代码。单测 `configurableSuffix` 验证：改为 `_bot` 后 `zhangsan_bot` 触发降级，`zhangsan_ai` 不再触发。
+新增 `AI_USER_SUFFIX` 配置项（`linkis.ai.user.suffix`，默认 `_ai`），成本极低且避免后缀变更时改代码。单测 `configurableSuffix` 验证：改为 `_bot` 后 `zhangsan_bot` 触发降级，`zhangsan_ai` 不再触发。
 
 ### Q3: 开关是否要求热加载？
 
@@ -718,7 +718,7 @@ SecurityFilter.filterResponse(gatewayContext, authMsg)
 | 配置 Key | 类型 | 默认值 | 说明 |
 |---------|------|--------|------|
 | `wds.linkis.gateway.ai.user.token.downgrade.enable` | Boolean | `false` | `_ai` 用户 token 降级鉴权开关 |
-| `wds.linkis.gateway.ai.user.suffix` | String | `_ai` | AI 用户后缀（可配置） |
+| `linkis.ai.user.suffix` | String | `_ai` | AI 用户后缀（可配置） |
 
 ### 12.2 配置位置
 
@@ -736,7 +736,7 @@ SecurityFilter.filterResponse(gatewayContext, authMsg)
 # wds.linkis.gateway.ai.user.token.downgrade.enable=false
 
 # AI 用户后缀（默认 _ai）
-# wds.linkis.gateway.ai.user.suffix=_ai
+# linkis.ai.user.suffix=_ai
 ```
 
 开启方式（无需重启）：

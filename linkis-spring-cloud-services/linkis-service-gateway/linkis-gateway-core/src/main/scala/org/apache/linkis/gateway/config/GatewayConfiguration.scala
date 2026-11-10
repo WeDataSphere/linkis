@@ -157,10 +157,5 @@ object GatewayConfiguration {
   val AI_USER_TOKEN_DOWNGRADE_ENABLE =
     CommonVars("wds.linkis.gateway.ai.user.token.downgrade.enable", false)
 
-  /**
-   * Suffix of AI proxy users(e.g. zhangsan_ai), configurable to avoid code change when the suffix
-   * needs to be adjusted.
-   */
-  val AI_USER_SUFFIX = CommonVars("wds.linkis.gateway.ai.user.suffix", "_ai")
 
 }

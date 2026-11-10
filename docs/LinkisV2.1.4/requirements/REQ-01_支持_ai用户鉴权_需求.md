@@ -105,7 +105,7 @@ tokenAuth(gatewayContext, login)                          :55
 | 编号 | 功能点 | 描述 |
 |------|--------|------|
 | F-1 | 降级开关 | 新增 `wds.linkis.gateway.ai.user.token.downgrade.enable`（默认 `false`），使用 `getHotValue` 读取，支持不重启关停 |
-| F-2 | AI 后缀配置 | 新增 `wds.linkis.gateway.ai.user.suffix`（默认 `_ai`），使用 `getHotValue` 读取，支持后缀可配置 |
+| F-2 | AI 后缀配置 | 新增 `linkis.ai.user.suffix`（默认 `_ai`），使用 `getHotValue` 读取，支持后缀可配置 |
 | F-3 | 降级触发判定 | 三个条件同时满足才触发：① 开关开启；② tokenUser 以配置后缀结尾；③ 该用户 token 认证失败（含 `ILLEGAL_TOKENUSER` 等异常） |
 | F-4 | 后缀剥离与合法性校验 | 剥离后缀得到原用户，校验：非空、长度 ≤64、不含 `..`、不含路径分隔符（`\/:*?"<>|`）和空白字符；不合法则跳过降级 |
 | F-5 | 降级重试 doAuth | 用同一 token 对原用户重试 `doAuth` 一次（至多一次，禁止二次降级/循环重试）；重试异常用 `Utils.tryCatch` 包裹，异常时回退 false |
@@ -120,7 +120,7 @@ tokenAuth(gatewayContext, login)                          :55
 | 编号 | 问题 | 决策结论 | 代码锚点 |
 |:----:|------|---------|---------|
 | **Q1** | 降级成功后，请求放行身份是谁？ | **选项 A：仅凭证降级**——doAuth 用原用户，`setLoginUser` 仍写 `_ai` 用户。身份与隔离目的对齐，jobhistory 记 `_ai`，引擎以 `<user>_ai` 拉起 | `TokenAuthentication.scala:200` 注释明确 "The login identity is NOT rewritten"；`:161` setLoginUser(tokenUser) |
-| **Q2** | `_ai` 后缀是否配置化？ | **配置化**，新增 `wds.linkis.gateway.ai.user.suffix`（默认 `_ai`），用 `getHotValue` 读取 | `GatewayConfiguration.scala:152-157` AI_USER_SUFFIX |
+| **Q2** | `_ai` 后缀是否配置化？ | **配置化**，新增 `linkis.ai.user.suffix`（默认 `_ai`），用 `getHotValue` 读取 | `GatewayConfiguration.scala:152-157` AI_USER_SUFFIX |
 | **Q3** | 开关是否要求热加载？ | **要求热加载**（`getHotValue`），鉴权链路出问题时可不重启网关一键关停 | `GatewayConfiguration.scala:144-149` AI_USER_TOKEN_DOWNGRADE_ENABLE + `:220` getHotValue |
 | **Q4** | 降级审计口径？ | **仅日志**（与现网 token 认证审计口径一致），不额外落库/上报 | `TokenAuthentication.scala:235-253` warn/info 日志 |
 | **Q5** | 原用户 token 已过期/禁用场景是否降级？ | **统一触发，不做异常分支过滤**——降级重试 doAuth 时由 `CachedTokenService` 自行判断 token 有效性。若 token 已过期/禁用，doAuth 返回 false，降级失败走原失败路径。不在降级层做异常类型区分 | `TokenAuthentication.scala:240` 直接调用 doAuth，不区分异常类型 |
@@ -331,7 +331,7 @@ tokenAuth(gatewayContext, login)                          :55
 | 配置Key | 默认值 | 说明 |
 |---------|--------|------|
 | `wds.linkis.gateway.ai.user.token.downgrade.enable` | `false` | `_ai` 用户 token 降级鉴权开关。开启后，`_ai` 后缀用户 token 认证失败时，剥离后缀用原用户 token 重试鉴权一次。使用 `getHotValue` 读取，支持不重启关停 |
-| `wds.linkis.gateway.ai.user.suffix` | `_ai` | AI 用户后缀配置。可配置化，避免后缀变更时改代码。使用 `getHotValue` 读取 |
+| `linkis.ai.user.suffix` | `_ai` | AI 用户后缀配置。可配置化，避免后缀变更时改代码。使用 `getHotValue` 读取 |
 
 ### 5.2 配置位置
 
@@ -348,7 +348,7 @@ tokenAuth(gatewayContext, login)                          :55
 
 # AI 用户后缀配置（默认 _ai）
 # 若 MCP 端切换使用其他后缀，可在此配置
-# wds.linkis.gateway.ai.user.suffix=_ai
+# linkis.ai.user.suffix=_ai
 ```
 
 ### 5.4 技术约束

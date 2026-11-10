@@ -17,6 +17,7 @@
 
 package org.apache.linkis.gateway.security.token
 
+import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.gateway.authentication.bo.{Token, User}
 import org.apache.linkis.gateway.authentication.service.TokenService
 import org.apache.linkis.gateway.config.GatewayConfiguration
@@ -24,7 +25,6 @@ import org.apache.linkis.gateway.http.{GatewayContext, GatewayHttpRequest}
 
 import java.util.concurrent.{ConcurrentHashMap, CountDownLatch, TimeUnit}
 import java.util.concurrent.atomic.AtomicInteger
-
 import org.junit.jupiter.api.{AfterEach, Assertions, BeforeEach, DisplayName, Test}
 import org.mockito.ArgumentMatchers.{anyString, eq => eqTo}
 import org.mockito.Mockito
@@ -38,7 +38,7 @@ import org.mockito.Mockito
 class TokenAuthenticationAiDowngradeTest {
 
   private val SwitchKey = GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.key
-  private val SuffixKey = GatewayConfiguration.AI_USER_SUFFIX.key
+  private val SuffixKey = Configuration.AI_USER_SUFFIX.key
 
   private var gatewayContext: GatewayContext = _
   private var tokenService: TokenService = _
