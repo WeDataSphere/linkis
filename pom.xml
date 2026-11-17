@@ -249,10 +249,8 @@
         <artifactId>linkis-module</artifactId>
         <version>${project.version}</version>
         <exclusions>
-          <exclusion>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-          </exclusion>
+          <!-- REQ-06 v1.2 (§9.2): 解除 linkis-module 的 spring-boot-starter-tomcat 排除，
+               使 web-tomcat profile 下 Tomcat 可传递到依赖方；默认构建 linkis-module 无 Tomcat，无影响。 -->
           <exclusion>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
@@ -1009,12 +1007,9 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-web</artifactId>
         <version>${spring.boot.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-tomcat</artifactId>
-          </exclusion>
-        </exclusions>
+        <!-- REQ-06 v1.2 (§9.2): 解除 spring-boot-starter-web 的 spring-boot-starter-tomcat 排除（managed 级）。
+             linkis-module 自身 base 仍显式排除 tomcat 以保默认 Jetty；此处解除为 web-tomcat profile /
+             开源容器包装配 Tomcat 提供通道（默认构建 linkis-module 走 base 排除，仍无 Tomcat）。 -->
       </dependency>
       <dependency>
         <groupId>org.springframework.boot</groupId>

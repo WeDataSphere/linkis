@@ -130,10 +130,20 @@ abstract class JavaProcessEngineConnLaunchBuilder
     if (!enablePublicModule) {
       addPathToClassPath(environment, buildPath(Seq(LINKIS_PUBLIC_MODULE_PATH.getValue + "/*")))
     }
-    // then, add BES path if configured.
-    val besPath = EnvConfiguration.ENGINE_CONN_BES_PATH.getValue
-    if (StringUtils.isNotBlank(besPath)) {
-      addPathToClassPath(environment, besPath + "/*")
+    // then, add the web container dir resolved from WEB_CONTAINER (REQ-06 FR-3).
+    // 与 sbin/ext/container-common.sh 三态语义统一：jetty|tomcat 用开源容器目录，bes 用 BES_PATH；
+    // 目标目录缺失或无 jar 时回退开源容器目录；两者皆无则打 ERROR（引擎将因无 ServletWebServerFactory 启动失败）。
+    val containerDir = resolveWebContainerDir
+    containerDir match {
+      case Some(dir) =>
+        addPathToClassPath(environment, dir + "/*")
+        logger.info(s"EngineConn web container added to classpath: $dir")
+      case None =>
+        logger.error(
+          "ERROR|引擎侧 Web 容器目录均缺失，classpath 无容器，EngineConn 将因 " +
+            "MissingWebServerFactoryBeanException 启动失败，请检查 WEB_CONTAINER / " +
+            "JETTY_CONTAINER_PATH / BES_PATH 配置"
+        )
     }
     // finally, add the suitable properties key to classpath
     val taskClassPathFiles = EnvConfiguration.ENGINE_CONN_CLASSPATH_FILES.getValue(
@@ -156,6 +166,73 @@ abstract class JavaProcessEngineConnLaunchBuilder
   ): Array[String] =
     if (!ifAddHiveConfigPath) Array.empty
     else Array(HADOOP_CONF_DIR.toString, HIVE_CONF_DIR.toString)
+
+  /**
+   * REQ-06 FR-3：按 WEB_CONTAINER 解析引擎侧 Web 容器目录。
+   *
+   * 三态语义与 sbin/ext/container-common.sh 保持一致：
+   * -jetty|tomcat -> 开源容器目录（ENGINE_CONN_CONTAINER_PATH，目录名 linkis-jetty，内容由出包 profile 决定，运行时以
+   * WEB_CONTAINER 对齐 Spring 定制器条件）
+   * -bes -> BES_PATH（ENGINE_CONN_BES_PATH）
+   * -非法值 -> 回退 jetty
+   *
+   * fail-safe：主目录缺失或无 jar 时回退开源容器目录（与 container-common.sh 一致）， 两者皆不可用返回 None，由调用侧打 ERROR
+   * 日志，绝不静默拼入空目录。
+   */
+  protected def resolveWebContainerDir: Option[String] = {
+    val mode = Option(EnvConfiguration.ENGINE_CONN_WEB_CONTAINER.getValue)
+      .map(_.trim.toLowerCase)
+      .filter(m => m == "jetty" || m == "tomcat" || m == "bes")
+      .getOrElse {
+        logger.warn(
+          s"非法 WEB_CONTAINER=${EnvConfiguration.ENGINE_CONN_WEB_CONTAINER.getValue}，回退 jetty"
+        )
+        "jetty"
+      }
+    val openSourceDir = Option(EnvConfiguration.ENGINE_CONN_CONTAINER_PATH.getValue)
+      .map(_.trim)
+      .filter(_.nonEmpty)
+    val primaryDir =
+      if (mode == "bes") {
+        Option(EnvConfiguration.ENGINE_CONN_BES_PATH.getValue).map(_.trim).filter(_.nonEmpty)
+      } else openSourceDir
+    val resolved =
+      primaryDir.filter(containerDirUsable).orElse(openSourceDir.filter(containerDirUsable))
+    if (resolved.isEmpty) {
+      logger.error(
+        s"ERROR|引擎侧 Web 容器目录不可用(mode=$mode, primary=${primaryDir.orNull}, " +
+          s"fallback=${openSourceDir.orNull})：目录不存在、无 jar 或过滤后无剩余 jar"
+      )
+    }
+    resolved
+  }
+
+  /**
+   * 判断容器目录可用：目录存在，且存在至少一个未被排除清单过滤掉的 jar。 排除清单见 ENGINE_CONN_CONTAINER_EXCLUDE_JARS（默认过滤
+   * jakarta.servlet-api / tomcat-embed-el， 避免与 Spring Boot 2.7 + JDK8 的 javax.servlet 命名空间冲突，同
+   * REQ-04 双代冲突一类）。
+   */
+  protected def containerDirUsable(dir: String): Boolean = {
+    val file = new File(dir)
+    if (!file.isDirectory) return false
+    val excluded = excludedContainerJarPrefixes
+    Option(file.list())
+      .exists(names =>
+        names.exists(name =>
+          name.endsWith(".jar") && !excluded.exists(prefix => name.startsWith(prefix))
+        )
+      )
+  }
+
+  protected def excludedContainerJarPrefixes: Seq[String] =
+    Option(EnvConfiguration.ENGINE_CONN_CONTAINER_EXCLUDE_JARS.getValue)
+      .map(
+        _.split(",")
+          .map(_.trim)
+          .filter(_.nonEmpty)
+          .toSeq
+      )
+      .getOrElse(Seq.empty)
 
   protected def getExtractJavaOpts: String = EnvConfiguration.ENGINE_CONN_JAVA_EXTRA_OPTS.getValue
 

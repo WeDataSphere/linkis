@@ -92,4 +92,35 @@ object EnvConfiguration {
     System.getenv("BES_PATH"),
     "BES application server path for engineconn, auto-read from BES_PATH env var"
   )
+
+  // REQ-06 FR-3：引擎侧 Web 容器模式（jetty | tomcat | bes），与 sbin/ext/container-common.sh
+  // 共用同一个 WEB_CONTAINER 环境变量，实现"单一开关两处生效"。非法值由调用侧回退 jetty。
+  val ENGINE_CONN_WEB_CONTAINER = CommonVars(
+    "linkis.web.container",
+    Option(System.getenv("WEB_CONTAINER")).map(_.trim).filter(_.nonEmpty).getOrElse("jetty"),
+    "Web container mode for engineconn: jetty|tomcat|bes (REQ-06 FR-3)"
+  )
+
+  // REQ-06 FR-3：开源容器包目录。目录名沿用 linkis-jetty（历史命名），实际内容由出包 profile
+  // 决定（web-jetty 出 Jetty / web-tomcat 出 Tomcat），运行时靠 WEB_CONTAINER 对齐定制器条件，
+  // 故 jetty 与 tomcat 两模式共用本目录，切换只改 WEB_CONTAINER 一处。
+  val ENGINE_CONN_CONTAINER_PATH = CommonVars(
+    "linkis.engineconn.container.path",
+    Option(System.getenv("JETTY_CONTAINER_PATH"))
+      .map(_.trim)
+      .filter(_.nonEmpty)
+      .getOrElse(Configuration.getLinkisHome + "/lib/linkis-extensions/linkis-jetty"),
+    "Open source web container dir for engineconn (jetty or tomcat, by build form)"
+  )
+
+  // REQ-06 FR-3：容器目录内需跳过的 jar 文件名前缀。linkis-jetty 目录实测混入
+  // jakarta.servlet-api（jakarta 命名空间）与 tomcat-embed-el，本项目为 Spring Boot 2.7 + JDK8，
+  // 使用 javax.servlet；两者共存会引入命名空间冲突（同 REQ-04 javax.ws.rs-api 双代冲突一类），
+  // 故拼接引擎 classpath 时按文件名过滤，不静默放行。
+  val ENGINE_CONN_CONTAINER_EXCLUDE_JARS = CommonVars(
+    "linkis.engineconn.container.excludeJars",
+    "jakarta.servlet-api,tomcat-embed-el",
+    "Jar name prefixes excluded when assembling engineconn container classpath (REQ-06 FR-3)"
+  )
+
 }

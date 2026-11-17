@@ -18,23 +18,19 @@
 package org.apache.linkis.server.conf;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.embedded.jetty.JettyServerCustomizer;
 import org.springframework.boot.web.embedded.jetty.JettyServletWebServerFactory;
 import org.springframework.boot.web.server.WebServerFactoryCustomizer;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.filter.CharacterEncodingFilter;
-
-import javax.servlet.DispatcherType;
 
 import java.io.File;
-import java.util.EnumSet;
 
 import org.apache.commons.io.FileUtils;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
@@ -43,9 +39,17 @@ import org.slf4j.LoggerFactory;
 /**
  * Jetty-specific {@link WebServerFactoryCustomizer} bean.
  *
- * <p>Conditionally loaded only when Jetty is on the classpath. When the enterprise version
- * excludes Jetty and uses BES, this class will not be loaded by Spring, and BES's own
- * auto-configuration will provide the embedded servlet container.
+ * <p>REQ-06 (v1.2): active only when Jetty is on the classpath AND
+ * {@code linkis.web.container=jetty} (default when the property is absent, via
+ * {@code matchIfMissing=true}). Under Tomcat/BES the property is set to a non-jetty value so this
+ * bean is not loaded — preventing the "customizer loaded but not applied" dangling state (R-001).
+ * When the enterprise version excludes Jetty and uses BES, this class is likewise skipped and BES's
+ * own auto-configuration provides the embedded servlet container.
+ *
+ * <p>Only Jetty-private concerns are configured here (session handler, war/static resource, context
+ * path). The {@code CharacterEncodingFilter} and the REST/WS/Security registration are handled
+ * uniformly by the container-agnostic {@code LinkisServletContextInitializer} for all three
+ * containers, so they are deliberately NOT registered here (avoids a duplicate filter under Jetty).
  *
  * <p><b>Important:</b> All Jetty-specific types are referenced only inside method bodies
  * (anonymous inner classes), never in method signatures. This prevents
@@ -55,6 +59,7 @@ import org.slf4j.LoggerFactory;
  */
 @org.springframework.context.annotation.Configuration
 @ConditionalOnClass(JettyServletWebServerFactory.class)
+@ConditionalOnProperty(name = "linkis.web.container", havingValue = "jetty", matchIfMissing = true)
 public class JettyServerCustomizerConfiguration {
 
   private static final Logger logger = LoggerFactory.getLogger(JettyServerCustomizerConfiguration.class);
@@ -71,15 +76,30 @@ public class JettyServerCustomizerConfiguration {
                 Handler[] childHandlersByClass =
                     server.getChildHandlersByClass(WebAppContext.class);
                 final WebAppContext webApp = (WebAppContext) childHandlersByClass[0];
-                FilterHolder filterHolder = new FilterHolder(CharacterEncodingFilter.class);
-                filterHolder.setInitParameter(
-                    "encoding",
-                    org.apache.linkis.common.conf.Configuration.BDP_ENCODING().getValue());
-                filterHolder.setInitParameter("forceEncoding", "true");
-                webApp.addFilter(filterHolder, "/*", EnumSet.allOf(DispatcherType.class));
+                // REQ-06 v1.2: CharacterEncodingFilter is registered uniformly by the
+                // container-agnostic LinkisServletContextInitializer (jetty|tomcat|bes). It is
+                // intentionally NOT re-registered here, to avoid a duplicate characterEncoding
+                // Filter under Jetty (AC-2: characterEncoding filter count must equal 1).
+                logger.info(
+                    "[REQ-06] JettyServerCustomizerConfiguration applied (linkis.web.container=jetty); "
+                        + "Jetty-private: session/war/static only; encoding filter delegated to "
+                        + "LinkisServletContextInitializer");
 
                 // session handler
                 webApp.setSessionHandler(new SessionHandler());
+                // REQ-06 v1.3: session timeout must be applied regardless of distinct/war mode.
+                // Distributed (distinct) deployments skip the war/static block below, and the
+                // container-agnostic LinkisServletContextInitializer now defers to this customizer
+                // under Jetty (ServletContext#setSessionTimeout throws AbstractMethodError on
+                // WebAppContext$Context). Unit here is SECONDS.
+                webApp
+                    .getSessionHandler()
+                    .setMaxInactiveInterval(
+                        (int)
+                            (ServerConfiguration.BDP_SERVER_WEB_SESSION_TIMEOUT()
+                                    .getValue()
+                                    .toLong()
+                                / 1000));
 
                 if (!ServerConfiguration.BDP_SERVER_DISTINCT_MODE().getValue()) {
                   // setupWebAppContext inlined to avoid Jetty types in method signatures
@@ -121,14 +141,6 @@ public class JettyServerCustomizerConfiguration {
                   // Explicit bind to root
                   webApp.addServlet(new ServletHolder(new DefaultServlet()), "/*");
                   webApp.setWelcomeFiles(new String[] {"index.html", "index.htm"});
-                  webApp
-                      .getSessionHandler()
-                      .setMaxInactiveInterval(
-                          (int)
-                              (ServerConfiguration.BDP_SERVER_WEB_SESSION_TIMEOUT()
-                                      .getValue()
-                                      .toLong()
-                                  / 1000));
                   webApp.setInitParameter(
                       "org.eclipse.jetty.servlet.Default.dirAllowed",
                       ServerConfiguration.BDP_SERVER_SERVER_DEFAULT_DIR_ALLOWED().getValue());

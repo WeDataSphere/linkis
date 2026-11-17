@@ -524,6 +524,28 @@
         </dependency>
       </dependencies>
     </profile>
+    <!-- REQ-06 v1.2 (§9.2): Tomcat 构建 profile。-Dweb.container=tomcat 时激活，为 linkis-module
+         引入 spring-boot-starter-tomcat，使开源容器包可按 profile 装配 Tomcat（成组放开，非无条件）。
+         默认构建（无 -Dweb.container）不激活 → 行为与改造前一致（仅 Jetty）。
+         注：Jetty 依赖保留在 base（非 optional）——linkis-cs-server 测试经 linkis-rpc 传递依赖 Jetty，
+         若 optional 化会破坏其 test 编译；R-001（Jetty 定制器悬空）由 §3.4 的
+         @ConditionalOnProperty(jetty) 运行时门禁保证，不依赖 pom 层剥离 Jetty。见设计 §9.2 v1.2 备注。 -->
+    <profile>
+      <id>web-tomcat</id>
+      <activation>
+        <property>
+          <name>web.container</name>
+          <value>tomcat</value>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.springframework.boot</groupId>
+          <artifactId>spring-boot-starter-tomcat</artifactId>
+          <version>${spring.boot.version}</version>
+        </dependency>
+      </dependencies>
+    </profile>
   </profiles>
 
 </project>
