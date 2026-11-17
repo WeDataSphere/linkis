@@ -17,6 +17,7 @@
 
 package org.apache.linkis.gateway.security.token
 
+import org.apache.linkis.common.conf.Configuration
 import org.apache.linkis.common.utils.{Logging, MD5Utils, TokenSensitiveUtils, Utils}
 import org.apache.linkis.gateway.authentication.service.{DynamicTokenService, TokenService}
 import org.apache.linkis.gateway.config.GatewayConfiguration
@@ -26,8 +27,8 @@ import org.apache.linkis.gateway.security.{GatewaySSOUtils, SecurityFilter}
 import org.apache.linkis.server.Message
 import org.apache.linkis.server.conf.ServerConfiguration
 import org.apache.linkis.server.utils.ModuleUserUtils
+
 import org.apache.commons.lang3.StringUtils
-import org.apache.linkis.common.conf.Configuration
 
 import scala.util.Try
 
@@ -158,7 +159,7 @@ object TokenAuthentication extends Logging {
           s"Token authentication succeed, uri: ${gatewayContext.getRequest.getRequestURI}, token: ${TokenSensitiveUtils
             .maskToken(token)}, tokenUser: $tokenUser."
         )
-        GatewaySSOUtils.setLoginUser(gatewayContext, tokenUser)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext, tokenUser)
         val msg =
           Message.ok("login successful(登录成功)！").data("userName", tokenUser).data("isAdmin", false)
         SecurityFilter.filterResponse(gatewayContext, msg)
@@ -168,9 +169,9 @@ object TokenAuthentication extends Logging {
         if (logger.isDebugEnabled()) {
           logger.debug(s"Token auth of user : ${tokenUser} has param : tokenAlive : true.")
         }
-        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, true)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext.getRequest, tokenUser, true)
       } else {
-        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, false)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext.getRequest, tokenUser, false)
       }
       true
     } else {
@@ -316,16 +317,16 @@ object TokenAuthentication extends Logging {
           s"token: ${TokenSensitiveUtils.maskToken(token)}, user: $tokenUser"
       )
       if (login) {
-        GatewaySSOUtils.setLoginUser(gatewayContext, tokenUser)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext, tokenUser)
         val msg =
           Message.ok("login successful(登录成功)！").data("userName", tokenUser).data("isAdmin", false)
         SecurityFilter.filterResponse(gatewayContext, msg)
         return false
       }
       if (GatewayConfiguration.ENABLE_TOEKN_AUTHENTICATION_ALIVE.getValue) {
-        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, true)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext.getRequest, tokenUser, true)
       } else {
-        GatewaySSOUtils.setLoginUser(gatewayContext.getRequest, tokenUser, false)
+        GatewaySSOUtils.setLoginUserFromToken(gatewayContext.getRequest, tokenUser, false)
       }
       true
     } else {

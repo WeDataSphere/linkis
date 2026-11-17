@@ -102,6 +102,28 @@ object GatewaySSOUtils extends Logging {
     )
   }
 
+  /** As [[setLoginUser]] but the minted ticket is tagged as token-authentication origin. */
+  def setLoginUserFromToken(gatewayContext: GatewayContext, username: String): Unit = {
+    val proxyUser = ProxyUserUtils.getProxyUser(username)
+    SSOUtils.setLoginUserFromToken(
+      (cookieName, ticketId) => {
+        val c = new Cookie(cookieName, ticketId)
+        c.setMaxAge(-1)
+        c.setPath("/")
+        if (cookieDomainSetupSwitch) {
+          val host = gatewayContext.getRequest.getHeaders.get("Host")
+          if (host != null && host.nonEmpty) {
+            c.setDomain(
+              getCookieDomain(host.head, GatewayConfiguration.GATEWAY_DOMAIN_LEVEL.getValue)
+            )
+          }
+        }
+        gatewayContext.getResponse.addCookie(c)
+      },
+      proxyUser
+    )
+  }
+
   def setLoginUser(
       request: GatewayHttpRequest,
       username: String,
@@ -109,6 +131,25 @@ object GatewaySSOUtils extends Logging {
   ): Unit = {
     val proxyUser = ProxyUserUtils.getProxyUser(username)
     SSOUtils.setLoginUser(c => request.addCookie(c.getName, Array(c)), proxyUser, updateSession)
+  }
+
+  /** As [[setLoginUser]] but the minted ticket is tagged as token-authentication origin. */
+  def setLoginUserFromToken(
+      request: GatewayHttpRequest,
+      username: String,
+      updateSession: Boolean = true
+  ): Unit = {
+    val proxyUser = ProxyUserUtils.getProxyUser(username)
+    SSOUtils.setLoginUserFromToken(
+      (cookieName, ticketId) => {
+        val c = new Cookie(cookieName, ticketId)
+        c.setMaxAge(-1)
+        c.setPath("/")
+        request.addCookie(c.getName, Array(c))
+      },
+      proxyUser,
+      updateSession
+    )
   }
 
   def removeLoginUser(gatewayContext: GatewayContext): Unit = {

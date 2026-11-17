@@ -167,6 +167,19 @@ object ServerConfiguration extends Logging {
   val BDP_SERVER_WEB_SESSION_TIMEOUT =
     CommonVars("wds.linkis.server.web.session.timeout", new TimeType("2h"))
 
+  // 票据来源标记与按来源区分的长短会话（修复 token 认证每请求签新票导致缓存无限增长）
+  // Whether to tag each session ticket with the origin that issued it (browser login vs. token
+  // authentication) so the two can carry independent lifetimes. Default off: the legacy
+  // single-lifetime behaviour is preserved until it is switched on explicitly.
+  val SESSION_TICKET_ORIGIN_ENABLE =
+    CommonVars("linkis.server.session.ticket.origin.enable", false)
+
+  // token 认证签发的票据寿命：接口调用是"即用即弃"，不需要跟随浏览器的 2 小时会话。
+  // Lifetime of tickets issued by token authentication. These are per-request and never expire
+  // on their own under the legacy model, which is what made the container grow unbounded.
+  val SESSION_TICKET_TOKEN_TIMEOUT =
+    CommonVars("linkis.server.session.ticket.token.timeout", new TimeType("5m"))
+
   val BDP_SERVER_EVENT_QUEUE_SIZE = CommonVars("wds.linkis.server.event.queue.size", 5000)
 
   val BDP_SERVER_EVENT_CONSUMER_THREAD_SIZE =
@@ -210,14 +223,5 @@ object ServerConfiguration extends Logging {
   val LINKIS_SERVER_ENTRANCE_HEADER_KEY =
     CommonVars("linkis.server.entrance.header.key", "jobInstanceKey")
 
-  // 会话票证有界缓存总开关（默认关闭，现网存在 OOM 时上线显式置 true 并重启）
-  // Whether to back the session ticket container with a bounded cache (capacity + access expiry)
-  val SESSION_TICKET_CACHE_BOUNDED_ENABLE =
-    CommonVars("linkis.server.session.ticket.cache.bounded.enable", true)
-
-  // 有界缓存最大条目数（按"在线用户数×3"估算，超出即 LRU 逐出；≤0 时按 100000 兜底）
-  // Maximum number of session tickets held by the bounded cache
-  val SESSION_TICKET_CACHE_MAX_SIZE =
-    CommonVars("linkis.server.session.ticket.cache.max.size", 100000)
 
 }
