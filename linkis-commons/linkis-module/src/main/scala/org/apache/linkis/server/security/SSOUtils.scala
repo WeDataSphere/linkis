@@ -50,7 +50,7 @@ object SSOUtils extends Logging {
     ServerConfiguration.SESSION_TICKET_ORIGIN_ENABLE.getValue
 
   /**
-   * ticketId -> origin, for tickets issued by token authentication only.
+   * ticketId -> issue/last-refresh time, for tickets issued by token authentication only.
    *
    * Kept as a *side* table rather than folding the origin into the main map's value: under
    * `linkis.session.redis.cache.enabled=true` the main container is [[UserTicketService]], which
@@ -59,10 +59,13 @@ object SSOUtils extends Logging {
    * representation stays byte-for-byte compatible.
    *
    * Only token-issued tickets are recorded; anything absent from this map is a browser ticket and
-   * keeps the full `sessionTimeout`. That keeps the side table bounded by "in-flight token
-   * requests" instead of "all sessions", and means the flag being off costs one empty map.
+   * keeps the full `sessionTimeout`. The timestamps are what bound it: under SsoRedis the main
+   * container keeps every entry in Redis and its local map stays empty, so a sweep that walks the
+   * main container can never reach a token ticket. The sweep therefore expires this side table
+   * directly (see [[expireTokenTickets]]); otherwise it would grow by one entry per token request
+   * forever -- the very OOM this feature exists to remove.
    */
-  private val tokenTicketIds = new ConcurrentHashMap[String, java.lang.Boolean]()
+  private val tokenTicketIssuedAt = new ConcurrentHashMap[String, Long]()
 
   private val userTicketIdToLastAccessTime = getUserTicketIdMap
 
@@ -88,13 +91,13 @@ object SSOUtils extends Logging {
    */
   private def timeoutOf(ticketId: String): Long = {
     if (!originEnabled) sessionTimeout
-    else if (tokenTicketIds.containsKey(ticketId)) tokenTimeout
+    else if (tokenTicketIssuedAt.containsKey(ticketId)) tokenTimeout
     else sessionTimeout
   }
 
   /** Forget the origin tag once the ticket itself is gone, so the side table cannot leak. */
   private def forgetOrigin(ticketId: String): Unit = {
-    if (originEnabled) tokenTicketIds.remove(ticketId)
+    if (originEnabled) tokenTicketIssuedAt.remove(ticketId)
   }
 
   /**
@@ -103,10 +106,38 @@ object SSOUtils extends Logging {
    * Called right after the ticket is put into the main container. No-op when the feature is off.
    */
   private[security] def markTokenTicket(ticketId: String): Unit = {
-    if (originEnabled) tokenTicketIds.put(ticketId, java.lang.Boolean.TRUE)
+    if (originEnabled) tokenTicketIssuedAt.put(ticketId, System.currentTimeMillis())
   }
 
-  // SwEEp cadence. Token tickets expire on `tokenTimeout` (minutes), so a sweep that only runs
+  /** Keep the side table in step with the sliding refresh applied to the main container. */
+  private def touchTokenTicket(ticketId: String, now: Long): Unit = {
+    if (originEnabled && tokenTicketIssuedAt.containsKey(ticketId)) {
+      tokenTicketIssuedAt.put(ticketId, now)
+    }
+  }
+
+  /**
+   * Expire token-issued tickets: drop them from the side table and from the main container.
+   *
+   * Driven by the side table rather than by the main container on purpose. Under SsoRedis the main
+   * container is [[UserTicketService]]: `put` only writes Redis, so its local map is always empty
+   * and iterating it never visits a token ticket. Sweeping the side table directly is the only way
+   * to keep it bounded (and, on the Redis branch, the only thing that actually retires a 5m
+   * ticket).
+   */
+  private[security] def expireTokenTickets(
+      now: Long,
+      issuedAt: ConcurrentHashMap[String, Long],
+      onExpired: String => Unit
+  ): Unit = {
+    issuedAt.asScala.foreach { case (ticketId, issued) =>
+      if (now - issued > tokenTimeout && issuedAt.remove(ticketId, issued)) {
+        onExpired(ticketId)
+      }
+    }
+  }
+
+  // Sweep cadence. Token tickets expire on `tokenTimeout` (minutes), so a sweep that only runs
   // every `sessionTimeout / 10` (12 minutes when the session is 2h) would let them linger long
   // past their lifetime. Sweep on the shorter of the two lifetimes instead.
   private val sweepInterval =
@@ -134,6 +165,15 @@ object SSOUtils extends Logging {
               forgetOrigin(k)
             }
           }
+        }
+        // Token tickets are expired from the side table, not from the iteration above: under
+        // SsoRedis the main container holds nothing locally, so the loop above sees an empty map.
+        if (originEnabled) {
+          expireTokenTickets(
+            System.currentTimeMillis,
+            tokenTicketIssuedAt,
+            ticketId => userTicketIdToLastAccessTime.remove(ticketId)
+          )
         }
       } { t =>
         logger.error("failed to do remove", t)
@@ -303,7 +343,9 @@ object SSOUtils extends Logging {
           throw new LoginExpireException("Login has expired, please log in again!(登录已过期，请重新登录！)")
         }
       } else if (System.currentTimeMillis - lastAccessTime >= effectiveTimeout * 0.5) {
-        userTicketIdToLastAccessTime.put(userTicketId, System.currentTimeMillis)
+        val now = System.currentTimeMillis
+        userTicketIdToLastAccessTime.put(userTicketId, now)
+        touchTokenTicket(userTicketId, now)
       }
     }
 
