@@ -98,7 +98,7 @@ object EnvConfiguration {
   val ENGINE_CONN_WEB_CONTAINER = CommonVars(
     "linkis.web.container",
     Option(System.getenv("WEB_CONTAINER")).map(_.trim).filter(_.nonEmpty).getOrElse("jetty"),
-    "Web container mode for engineconn: jetty|tomcat|bes (REQ-06 FR-3)"
+    "Web container mode for engineconn: jetty|tomcat|bes"
   )
 
   // REQ-06 FR-3：开源容器包目录。目录名沿用 linkis-jetty（历史命名），实际内容由出包 profile
@@ -120,7 +120,7 @@ object EnvConfiguration {
   val ENGINE_CONN_CONTAINER_EXCLUDE_JARS = CommonVars(
     "linkis.engineconn.container.excludeJars",
     "jakarta.servlet-api,tomcat-embed-el",
-    "Jar name prefixes excluded when assembling engineconn container classpath (REQ-06 FR-3)"
+    "Jar name prefixes excluded when assembling engineconn container classpath"
   )
 
 }
