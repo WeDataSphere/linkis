@@ -17,6 +17,8 @@
 
 package org.apache.linkis.jobhistory.restful.api;
 
+import org.apache.linkis.common.conf.BDPConfiguration;
+import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.utils.JsonUtils;
 import org.apache.linkis.jobhistory.Scan;
 import org.apache.linkis.jobhistory.WebApplicationServer;
@@ -54,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyObject;
 import static org.mockito.Mockito.when;
@@ -106,7 +109,42 @@ public class QueryRestfulApiTest {
         JsonUtils.jackson().readValue(mvcResult.getResponse().getContentAsString(), Message.class);
     assertEquals(MessageStatus.SUCCESS(), res.getStatus());
 
+    // REQ-01: 既有五个字段必须保持下发（兼容性约束），新增 aiSwitch 字段
+    assertEquals(true, res.getData().get("admin"));
+    assertEquals(true, res.getData().get("historyAdmin"));
+    assertEquals(true, res.getData().get("deptAdmin"));
+    assertEquals(false, res.getData().get("canResultSet"));
+    assertNotNull(res.getData().get("errorMsgTip"));
+    assertEquals(false, res.getData().get("aiSwitch"));
+
     logger.info(mvcResult.getResponse().getContentAsString());
+  }
+
+  /** REQ-01 AC-3.3: 开关值非法时不得让整个接口失败，须降级为 false 并保留其余字段。 */
+  @Test
+  @DisplayName("governanceStationAdmin degrades aiSwitch to false on illegal value")
+  public void testGovernanceStationAdminWithIllegalAiSwitch() throws Exception {
+    // extractConfig 优先级高于 configReload 且 BDPConfiguration 无 remove API，
+    // 因此不能用置回 "false" 的方式收尾（会在 JVM 内留下伪配置），改为恢复原值。
+    Boolean origin = (Boolean) Configuration.AI_USER_ENABLE().getValue();
+    BDPConfiguration.set("linkis.ai.user.enable", "not-a-boolean");
+    try {
+      MvcResult mvcResult =
+          mockMvc
+              .perform(get("/jobhistory/governanceStationAdmin"))
+              .andExpect(status().isOk())
+              .andReturn();
+
+      Message res =
+          JsonUtils.jackson()
+              .readValue(mvcResult.getResponse().getContentAsString(), Message.class);
+      assertEquals(MessageStatus.SUCCESS(), res.getStatus());
+      assertEquals(false, res.getData().get("aiSwitch"));
+      assertNotNull(res.getData().get("admin"));
+      assertNotNull(res.getData().get("errorMsgTip"));
+    } finally {
+      BDPConfiguration.set("linkis.ai.user.enable", String.valueOf(origin));
+    }
   }
 
   @Test

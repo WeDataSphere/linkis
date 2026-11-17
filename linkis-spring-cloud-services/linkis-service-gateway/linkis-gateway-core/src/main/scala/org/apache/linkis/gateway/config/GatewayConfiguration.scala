@@ -152,10 +152,10 @@ object GatewayConfiguration {
    * the same token, so AI users can pass the gateway with the original user's token. The login
    * identity still keeps the AI tokenUser, only the credential check is downgraded.
    *
-   * Read via getHotValue so that it can be turned off at runtime without restarting the gateway.
+   * Read via getValue at gateway startup (see TokenAuthentication), so a change of this switch
+   * takes effect only after the gateway is restarted.
    */
   val AI_USER_TOKEN_DOWNGRADE_ENABLE =
     CommonVars("wds.linkis.gateway.ai.user.token.downgrade.enable", false)
-
 
 }
