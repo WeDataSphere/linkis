@@ -212,8 +212,8 @@ object SSOUtils extends Logging {
     logger.info(s"add login userTicketCookie for user $username.")
     val userTicketId = getUserTicketId(username)
     if (updateSession) {
-      userTicketIdToLastAccessTime.put(userTicketId, System.currentTimeMillis())
       if (fromToken) markTokenTicket(userTicketId)
+      userTicketIdToLastAccessTime.put(userTicketId, System.currentTimeMillis())
     }
     val cookie = new Cookie(USER_TICKET_ID_STRING, userTicketId)
     cookie.setMaxAge(-1)
@@ -244,8 +244,8 @@ object SSOUtils extends Logging {
     logger.info(s"add login userTicket for user $username.")
     val userTicketId = getUserTicketKV(username)
     if (updateSession) {
-      userTicketIdToLastAccessTime.put(userTicketId._2, System.currentTimeMillis())
       markTokenTicket(userTicketId._2)
+      userTicketIdToLastAccessTime.put(userTicketId._2, System.currentTimeMillis())
     }
     addUserTicketKV(userTicketId._1, userTicketId._2)
   }
@@ -344,8 +344,12 @@ object SSOUtils extends Logging {
         }
       } else if (System.currentTimeMillis - lastAccessTime >= effectiveTimeout * 0.5) {
         val now = System.currentTimeMillis
-        userTicketIdToLastAccessTime.put(userTicketId, now)
+        // touch the side table BEFORE updating the main container so that the sweep thread's
+        // CAS-based expireTokenTickets cannot race ahead and delete a freshly-refreshed token
+        // ticket: once the side-table timestamp moves forward the CAS remove(oldIssued) fails and
+        // the sweep skips this ticket, leaving the following main-container update safe.
         touchTokenTicket(userTicketId, now)
+        userTicketIdToLastAccessTime.put(userTicketId, now)
       }
     }
 

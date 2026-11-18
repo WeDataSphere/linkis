@@ -169,10 +169,12 @@ object ServerConfiguration extends Logging {
 
   // 票据来源标记与按来源区分的长短会话（修复 token 认证每请求签新票导致缓存无限增长）
   // Whether to tag each session ticket with the origin that issued it (browser login vs. token
-  // authentication) so the two can carry independent lifetimes. Default off: the legacy
-  // single-lifetime behaviour is preserved until it is switched on explicitly.
+  // authentication) so the two can carry independent lifetimes. Default on: token-authenticated
+  // tickets expire after token.timeout instead of living as long as the browser session, which is
+  // what kept the ticket map growing without bound. Set to false to restore the legacy
+  // single-lifetime behaviour.
   val SESSION_TICKET_ORIGIN_ENABLE =
-    CommonVars("linkis.server.session.ticket.origin.enable", false)
+    CommonVars("linkis.server.session.ticket.origin.enable", true)
 
   // token 认证签发的票据寿命：接口调用是"即用即弃"，不需要跟随浏览器的 2 小时会话。
   // Lifetime of tickets issued by token authentication. These are per-request and never expire
@@ -222,6 +224,5 @@ object ServerConfiguration extends Logging {
 
   val LINKIS_SERVER_ENTRANCE_HEADER_KEY =
     CommonVars("linkis.server.entrance.header.key", "jobInstanceKey")
-
 
 }
