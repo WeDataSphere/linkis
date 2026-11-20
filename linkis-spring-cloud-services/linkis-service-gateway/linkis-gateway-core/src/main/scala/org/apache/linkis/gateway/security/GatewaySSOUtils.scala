@@ -20,9 +20,12 @@ package org.apache.linkis.gateway.security
 import org.apache.linkis.common.utils.{Logging, Utils}
 import org.apache.linkis.gateway.config.GatewayConfiguration
 import org.apache.linkis.gateway.http.{GatewayContext, GatewayHttpRequest}
+import org.apache.linkis.server.conf.ServerConfiguration
 import org.apache.linkis.server.exception.LoginExpireException
 import org.apache.linkis.server.security.{ServerSSOUtils, SSOUtils}
 import org.apache.linkis.server.security.SecurityFilter._
+
+import org.apache.commons.lang3.StringUtils
 
 import javax.servlet.http.Cookie
 
@@ -152,8 +155,18 @@ object GatewaySSOUtils extends Logging {
     )
   }
 
-  def removeLoginUser(gatewayContext: GatewayContext): Unit = {
-    SSOUtils.removeLoginUser(gatewayContext.getRequest.getCookies.asScala.flatMap(_._2).toArray)
+  /**
+   * Discard the caller's login session and return the ticket id that was discarded, if the request
+   * carried one. Returning it lets the logout response say which session ended; the id is read once
+   * here because [[SSOUtils.removeLoginUser]] blanks the cookie it is given on the way out.
+   */
+  def removeLoginUser(gatewayContext: GatewayContext): Option[String] = {
+    val cookies = getCookies(gatewayContext)
+    val ticketCookieName = ServerConfiguration.LINKIS_SERVER_SESSION_TICKETID_KEY.getValue
+    val discardedTicketId = Option(cookies)
+      .flatMap(_.find(_.getName == ticketCookieName).map(_.getValue))
+      .filter(StringUtils.isNotBlank)
+    SSOUtils.removeLoginUser(cookies)
     SSOUtils.removeLoginUserByAddCookie(c => {
       if (cookieDomainSetupSwitch) {
         val host = gatewayContext.getRequest.getHeaders.get("Host")
@@ -165,6 +178,7 @@ object GatewaySSOUtils extends Logging {
       }
       gatewayContext.getResponse.addCookie(c)
     })
+    discardedTicketId
   }
 
   def updateLastAccessTime(gatewayContext: GatewayContext): Unit =

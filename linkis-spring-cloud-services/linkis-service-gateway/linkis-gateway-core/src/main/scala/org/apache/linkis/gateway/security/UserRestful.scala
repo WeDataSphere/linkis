@@ -141,13 +141,24 @@ abstract class AbstractUserRestful extends UserRestful with Logging {
 
   protected def tryLogin(context: GatewayContext): Message
 
+  /**
+   * Log out and report the ticket that was discarded.
+   *
+   * The response carries `discardedTicketId` so a caller can prove the session really ended instead
+   * of inferring it from the absence of a `Set-Cookie` header (look at
+   * [[GatewaySSOUtils.removeLoginUser]]: the per-domain clearing cookies that used to be the only
+   * visible signal are skipped when the request has no `Host` header). The id is no longer a
+   * credential once it has been deleted from the ticket store, but it is still kept out of the log.
+   */
   def logout(gatewayContext: GatewayContext): Message = {
-    GatewaySSOUtils.removeLoginUser(gatewayContext)
+    val discardedTicketId = GatewaySSOUtils.removeLoginUser(gatewayContext)
     if (GatewayConfiguration.ENABLE_SSO_LOGIN.getValue) {
       SSOInterceptor.getSSOInterceptor.logout(gatewayContext)
     }
     if (securityHooks != null) securityHooks.foreach(_.preLogout(gatewayContext))
-    "Logout successful(退出登录成功)！"
+    val message: Message = "Logout successful(退出登录成功)！"
+    discardedTicketId.foreach(message.data("discardedTicketId", _))
+    message
   }
 
   def userInfo(gatewayContext: GatewayContext): Message = {

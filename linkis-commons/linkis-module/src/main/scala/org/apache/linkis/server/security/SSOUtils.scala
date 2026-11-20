@@ -124,15 +124,32 @@ object SSOUtils extends Logging {
    * and iterating it never visits a token ticket. Sweeping the side table directly is the only way
    * to keep it bounded (and, on the Redis branch, the only thing that actually retires a 5m
    * ticket).
+   *
+   * The side-table stamp is JVM-local, but under SsoRedis the ticket itself lives in a store shared
+   * by every gateway instance: a peer can keep it alive through the sliding refresh without this
+   * JVM ever seeing the activity, leaving the local stamp stale. Retiring on the local stamp alone
+   * would let one instance delete an actively-used session minted elsewhere, so the shared
+   * last-access time (`lastAccessOf`) must be stale too; while it is still fresh the local stamp is
+   * re-aligned instead.
    */
   private[security] def expireTokenTickets(
       now: Long,
       issuedAt: ConcurrentHashMap[String, Long],
+      lastAccessOf: String => Long,
       onExpired: String => Unit
   ): Unit = {
     issuedAt.asScala.foreach { case (ticketId, issued) =>
-      if (now - issued > tokenTimeout && issuedAt.remove(ticketId, issued)) {
-        onExpired(ticketId)
+      if (now - issued > tokenTimeout) {
+        val lastAccess = lastAccessOf(ticketId)
+        if (now - lastAccess > tokenTimeout) {
+          if (issuedAt.remove(ticketId, issued)) {
+            onExpired(ticketId)
+          }
+        } else {
+          // Still in active use through the shared container; re-align the local stamp so this
+          // entry is not re-examined every sweep until it may really be stale.
+          issuedAt.put(ticketId, math.max(issued, lastAccess))
+        }
       }
     }
   }
@@ -168,10 +185,14 @@ object SSOUtils extends Logging {
         }
         // Token tickets are expired from the side table, not from the iteration above: under
         // SsoRedis the main container holds nothing locally, so the loop above sees an empty map.
+        // `lastAccessOf` consults the shared container (Redis-aware via UserTicketService) so a
+        // ticket an HA peer keeps refreshing is never retired on a stale local stamp alone; an
+        // entry absent from the shared container maps to 0 (never accessed) and is cleaned up.
         if (originEnabled) {
           expireTokenTickets(
             System.currentTimeMillis,
             tokenTicketIssuedAt,
+            ticketId => userTicketIdToLastAccessTime.getOrDefault(ticketId, 0L),
             ticketId => userTicketIdToLastAccessTime.remove(ticketId)
           )
         }
@@ -258,15 +279,47 @@ object SSOUtils extends Logging {
   def removeLoginUser(getCookies: => Array[Cookie]): Unit = {
     val cookies = getCookies
     if (cookies != null) cookies.find(_.getName == USER_TICKET_ID_STRING).foreach { cookie =>
-      if (userTicketIdToLastAccessTime.containsKey(cookie.getValue)) {
-        userTicketIdToLastAccessTime.remove(cookie.getValue)
-        forgetOrigin(cookie.getValue)
-      }
+      discardTicket(cookie.getValue)
       cookie.setValue(null)
       cookie.setMaxAge(0)
     }
     ProxyUserSSOUtils.removeProxyUser(cookies)
   }
+
+  /**
+   * Delete the ticket from the ticket store, not merely forget it.
+   *
+   * The ticket store is the authority for whether a cookie is still a valid login: it is consulted
+   * by [[isTimeoutOrNot]] and by [[getUserAndLoginTime]]. Under SsoRedis the store is backed by
+   * Redis and every read hits it, so dropping the entry here really does invalidate the ticket;
+   * under the in-memory store this is the only handle anyone else has on the entry anyway. The
+   * sweep thread's expiry would eventually drop it too, but only after a full `sessionTimeout`,
+   * which is why logout must remove it eagerly rather than rely on expiry.
+   *
+   * The removal is unconditional on purpose: a store that reports `containsKey == false` is not a
+   * reason to skip the `remove` -- [[UserTicketService.containsKey]] is a separate Redis round trip
+   * from [[UserTicketService.remove]], and a failed probe must never leave the ticket behind.
+   */
+  private def discardTicket(ticketId: String): Unit = {
+    if (ticketId != null) {
+      userTicketIdToLastAccessTime.remove(ticketId)
+      forgetOrigin(ticketId)
+    }
+  }
+
+  /**
+   * Register a ticket in the store the way a real login does, so tests can drive the logout path.
+   */
+  private[security] def putLoginUserTicketForTest(ticketId: String): Unit =
+    userTicketIdToLastAccessTime.put(ticketId, System.currentTimeMillis())
+
+  /** Read through the *live* store, the one every production path writes to. */
+  private[security] def getUserTicketIdMapOfTicketForTest(ticketId: String): Option[Long] =
+    Option(userTicketIdToLastAccessTime.get(ticketId))
+
+  /** Undo [[putLoginUserTicketForTest]], so one test's ticket cannot leak into the next. */
+  private[security] def removeLoginUserTicketForTest(ticketId: String): Unit =
+    discardTicket(ticketId)
 
   def removeLoginUserByAddCookie(addEmptyCookie: Cookie => Unit): Unit = {
     val cookie = new Cookie(USER_TICKET_ID_STRING, null)
@@ -278,12 +331,7 @@ object SSOUtils extends Logging {
   }
 
   def removeLoginUser(removeKeyReturnValue: String => Option[String]): Unit =
-    removeKeyReturnValue(USER_TICKET_ID_STRING).foreach { t =>
-      if (userTicketIdToLastAccessTime.containsKey(t)) {
-        userTicketIdToLastAccessTime.remove(t)
-        forgetOrigin(t)
-      }
-    }
+    removeKeyReturnValue(USER_TICKET_ID_STRING).foreach(discardTicket)
 
   def getLoginUsername(getCookies: => Array[Cookie]): String = getLoginUser(getCookies).getOrElse(
     throw new NonLoginException(s"You are not logged in, please login first(您尚未登录，请先登录!)")

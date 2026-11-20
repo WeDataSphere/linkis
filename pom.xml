@@ -243,6 +243,11 @@
 
   <dependencyManagement>
     <dependencies>
+      <dependency>
+        <groupId>com.google.code.findbugs</groupId>
+        <artifactId>jsr305</artifactId>
+        <version>3.0.2</version>
+      </dependency>
       <!-- linkis -->
       <dependency>
         <groupId>org.apache.linkis</groupId>
@@ -1097,6 +1102,14 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- 全仓多个模块使用 javax.annotation.Nullable（linkis-label-common、linkis-cs-server、
+         flink 插件、linkis-udf-service），但此前无任何模块显式声明 jsr305，仅靠传递依赖
+         侥幸带入；传递链断裂即编译失败。注解类 provided 作用域不进入产物，对运行时无影响。 -->
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <scope>provided</scope>
+    </dependency>
     <!-- Test -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
