@@ -191,6 +191,41 @@ class TokenAuthenticationAiDowngradeTest {
     )
   }
 
+  // A3: switch flipped at runtime takes effect without restarting the gateway
+  @Test
+  @DisplayName("A3: runtime switch change is hot-read by the downgrade gate")
+  def hotSwitchTakesEffectWithoutRestart(): Unit = {
+    val svc = new RecordingTokenService(Set("zhangsan"))
+    TokenAuthentication.setTokenService(svc)
+    Assertions.assertFalse(
+      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
+      "switch off by default: no downgrade"
+    )
+    System.setProperty(SwitchKey, "true")
+    Assertions.assertTrue(
+      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
+      "switch turned on at runtime: downgrade applies without restart"
+    )
+    System.setProperty(SwitchKey, "false")
+    Assertions.assertFalse(
+      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
+      "switch turned off at runtime: downgrade stops without restart"
+    )
+  }
+
+  // A3: an unreadable hot value degrades to the startup snapshot instead of throwing
+  @Test
+  @DisplayName("A3: reader helpers degrade to startup snapshot on unreadable value")
+  def readersDegradeOnUnreadableValue(): Unit = {
+    System.setProperty(SwitchKey, "not-a-boolean")
+    Assertions.assertFalse(
+      TokenAuthentication.readAiDowngradeSwitch(),
+      "unparsable hot value must fall back to the startup snapshot(default false)"
+    )
+    System.setProperty(SuffixKey, "_ai")
+    Assertions.assertEquals("_ai", TokenAuthentication.readAiSuffix(), "suffix hot read works")
+  }
+
   // AC7: concurrent _ai requests are independent, no cross-talk
   @Test
   @DisplayName("AC7: concurrent _ai requests are independent, no cross-talk")

@@ -27,6 +27,14 @@ import org.apache.linkis.jobhistory.service.JobHistoryQueryService;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.MessageStatus;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.Appender;
+import org.apache.logging.log4j.core.LogEvent;
+import org.apache.logging.log4j.core.Logger;
+import org.apache.logging.log4j.core.appender.AbstractAppender;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -45,13 +53,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.core.Appender;
-import org.apache.logging.log4j.core.LogEvent;
-import org.apache.logging.log4j.core.Logger;
-import org.apache.logging.log4j.core.appender.AbstractAppender;
-import org.apache.logging.log4j.core.layout.PatternLayout;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -84,11 +85,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * </ul>
  *
  * <p>取值注入方式说明：{@code BDPConfiguration.getOption(key, hotload=true)} 先查 {@code extractConfig}
- * （{@code BDPConfiguration.set} 写入处），因此 {@code set} 对本接口的热加载取值链同样生效，这是本类全部
- * 开关态用例的注入手段。
+ * （{@code BDPConfiguration.set} 写入处），因此 {@code set} 对本接口的热加载取值链同样生效，这是本类全部 开关态用例的注入手段。
  *
- * <p>已知边界（R-01）：配置项构造链故障在 {@code tryCatch} 之外求值，属快速失败而非降级，
- * 该场景由 {@code QueryRestfulApiAiSwitchTest#testAiSwitchKeyConstructionFailsFast} 独立守卫，本类不重复。
+ * <p>已知边界（R-01）：配置项构造链故障在 {@code tryCatch} 之外求值，属快速失败而非降级， 该场景由 {@code
+ * QueryRestfulApiAiSwitchTest#testAiSwitchKeyConstructionFailsFast} 独立守卫，本类不重复。
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = {WebApplicationServer.class, Scan.class})
@@ -203,8 +203,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
     Message res = requestWithAiSwitchValue("true");
     Object aiSwitch = res.getData().get("aiSwitch");
     assertEquals(Boolean.TRUE, aiSwitch, "开关开启时 aiSwitch 须为 Boolean.TRUE");
-    assertEquals(
-        Boolean.class, aiSwitch.getClass(), "aiSwitch 须为 JSON 原生布尔，不得为字符串 \"true\"");
+    assertEquals(Boolean.class, aiSwitch.getClass(), "aiSwitch 须为 JSON 原生布尔，不得为字符串 \"true\"");
     assertFalse(aiSwitch instanceof String, "aiSwitch 不得下发字符串形式");
     assertEquals(EXPECTED_KEYS, res.getData().keySet(), "data 须为既有五字段 + aiSwitch 共六键");
     assertFiveLegacyFieldsPresent(res);
@@ -243,8 +242,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
     assertNotNull(res.getData().get("aiSwitch"), "aiSwitch 字段须存在于报文");
     java.nio.file.Files.write(
         tempDir.resolve("TC-REQ01-012.field-order-evidence.txt"),
-        java.util.Collections.singletonList(
-            "实测报文 data 段（HashMap 载体，顺序不稳定）：" + body),
+        java.util.Collections.singletonList("实测报文 data 段（HashMap 载体，顺序不稳定）：" + body),
         java.nio.charset.StandardCharsets.UTF_8);
   }
 
@@ -257,13 +255,10 @@ public class QueryRestfulApiAiSwitchConfigTest {
         new HashSet<>(
             Arrays.asList("admin", "historyAdmin", "deptAdmin", "canResultSet", "errorMsgTip"));
     for (String legacyKey : legacyKeys) {
-      assertNotNull(
-          res.getData().get(legacyKey), "旧消费方依赖的既有字段 " + legacyKey + " 不得缺失");
+      assertNotNull(res.getData().get(legacyKey), "旧消费方依赖的既有字段 " + legacyKey + " 不得缺失");
     }
     Object extra = res.getData().get("aiSwitch");
-    assertTrue(
-        extra == null || extra instanceof Boolean,
-        "新增字段类型须为布尔或缺失，旧消费方按未知字段忽略时不产生类型异常");
+    assertTrue(extra == null || extra instanceof Boolean, "新增字段类型须为布尔或缺失，旧消费方按未知字段忽略时不产生类型异常");
   }
 
   // ------------------------------- TC-REQ01-015/017 非法值降级与布尔边界
@@ -297,9 +292,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
     for (String value : unparseable) {
       Message res = requestWithAiSwitchValue(value);
       assertEquals(
-          Boolean.FALSE,
-          res.getData().get("aiSwitch"),
-          "不可解析取值 [" + value + "] 须降级为 false");
+          Boolean.FALSE, res.getData().get("aiSwitch"), "不可解析取值 [" + value + "] 须降级为 false");
       assertEquals(EXPECTED_KEYS, res.getData().keySet(), "取值 [" + value + "] 下不得丢失字段");
     }
   }
@@ -359,10 +352,8 @@ public class QueryRestfulApiAiSwitchConfigTest {
       setRaw("");
       Message res = requestExpectingSuccess();
       assertFiveLegacyFieldsPresent(res);
-      assertEquals(
-          Boolean.FALSE, res.getData().get("aiSwitch"), "未配置时 aiSwitch 取默认 false");
-      assertEquals(
-          EXPECTED_KEYS, res.getData().keySet(), "关闭态下六字段结构与开启态一致，唯一差异为字段值");
+      assertEquals(Boolean.FALSE, res.getData().get("aiSwitch"), "未配置时 aiSwitch 取默认 false");
+      assertEquals(EXPECTED_KEYS, res.getData().keySet(), "关闭态下六字段结构与开启态一致，唯一差异为字段值");
     } finally {
       restoreRaw(origin);
     }
@@ -371,8 +362,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
   // -------------------------------- TC-REQ01-019 WARN 日志留痕（当前未落地）
 
   @Test
-  @DisplayName(
-      "TC-REQ01-019: 非法值触发降级路径的 WARN 留痕 —— 当前实现未落地，按实测判定（偏差登记 G-01）")
+  @DisplayName("TC-REQ01-019: 非法值触发降级路径的 WARN 留痕 —— 当前实现未落地，按实测判定（偏差登记 G-01）")
   public void testWarnLogOnIllegalValue() throws Exception {
     attachCapturingAppender(CAPTURE_NAME);
     try {
@@ -414,9 +404,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
           res.getData().get("canResultSet"),
           "空部门 ID 命中默认空串限制项，canResultSet 为 false（既有语义，与 aiSwitch 无关）");
       assertEquals(
-          true,
-          res.getData().get("errorMsgTip") instanceof String,
-          "errorMsgTip 须为字符串（既有类型不变）");
+          true, res.getData().get("errorMsgTip") instanceof String, "errorMsgTip 须为字符串（既有类型不变）");
     }
   }
 
@@ -430,13 +418,10 @@ public class QueryRestfulApiAiSwitchConfigTest {
     assertFalse(
         Configuration.isJobHistoryAdmin("req01_non_admin_user"), "非管理员 isJobHistoryAdmin 须为 false");
     assertFalse(
-        Configuration.isDepartmentAdmin("req01_non_admin_user"),
-        "非管理员 isDepartmentAdmin 须为 false");
+        Configuration.isDepartmentAdmin("req01_non_admin_user"), "非管理员 isDepartmentAdmin 须为 false");
     // 既有边界（非 REQ-01 引入）：JOB_RESULT_DEPARTMENT_LIMIT 默认值为空串，经 getHotValue.split(",")
     // 得到 [""]，空串恰好命中空部门 ID，故 canResultSet 为 false。此处只断言「与 aiSwitch 无关、稳定存在」。
-    assertFalse(
-        Configuration.canResultSetByDepartment(""),
-        "空部门 ID 命中空串限制项属既有实现边界，此处仅登记，不改动语义");
+    assertFalse(Configuration.canResultSetByDepartment(""), "空部门 ID 命中空串限制项属既有实现边界，此处仅登记，不改动语义");
 
     // 接口层：非管理员判定为 false 时，governanceStationAdmin 仍须 200 且字段完整下发，不返回 403
     Message res = requestExpectingSuccess();

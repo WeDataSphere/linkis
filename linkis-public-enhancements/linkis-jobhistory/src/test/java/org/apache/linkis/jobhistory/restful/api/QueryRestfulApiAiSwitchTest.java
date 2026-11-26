@@ -27,14 +27,15 @@ import org.apache.linkis.jobhistory.service.JobHistoryQueryService;
 import org.apache.linkis.server.Message;
 import org.apache.linkis.server.MessageStatus;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.context.ApplicationContext;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.util.Arrays;
@@ -52,10 +53,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,8 +64,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * REQ-01 支持 _ai 用户切换 —— {@code /jobhistory/governanceStationAdmin} 的 aiSwitch 契约扩展单测。
  *
- * <p>本类为「待落地补丁」：默认不进入 incubator-linkis 代码库，需经用户授权后在 Stage 7 拷入
- * {@code linkis-public-enhancements/linkis-jobhistory/src/test/java/org/apache/linkis/jobhistory/restful/api/}
+ * <p>本类为「待落地补丁」：默认不进入 incubator-linkis 代码库，需经用户授权后在 Stage 7 拷入 {@code
+ * linkis-public-enhancements/linkis-jobhistory/src/test/java/org/apache/linkis/jobhistory/restful/api/}
  * 后执行：
  *
  * <pre>
@@ -76,24 +75,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * <p>覆盖 TC-REQ01-005 / 007 / 011 / 014 / 015 / 016 / 017 / 018 / 019 / 020 / 021 / 033 / 041（后端侧）。
  *
  * <p><b>已在 227555fce 实测（2026-11-11，本机 JDK8 + Maven 离线）</b>：
+ *
  * <ul>
- *   <li>PASS：true→true、abc→false、空/空白→false、TRUE→true、FALSE→false、同进程内翻转（getHotValue）、
- *       原生 Boolean、data 恰好 6 键
- *   <li><b>R-01（e4e2e5c33 已修复）</b>：原实现 key 在 tryCatch 内求值，catch 分支二次访问配置，
- *       配置对象构造链抛错时兜底失效、异常穿透至 HTTP 500。修复后 key 提前到 try 外求值，
- *       catch 分支不再访问任何配置方法。{@code testConfigReadFailureDegradesInsteadOfEscaping}
- *       固化修复后口径：取值链抛错 → aiSwitch=false 且 6 键齐全，禁止改回断言抛异常。
- *   <li>WARN 日志断言（TC-019）本机不可编译验证：jobhistory 模块无 logback、log4j-core 不在测试
- *       编译类路径（pom 未声明），如需落地需在 Stage 7 补测试作用域依赖，见方案 §7.3。
+ *   <li>PASS：true→true、abc→false、空/空白→false、TRUE→true、FALSE→false、同进程内翻转（getHotValue）、 原生
+ *       Boolean、data 恰好 6 键
+ *   <li><b>R-01（e4e2e5c33 已修复）</b>：原实现 key 在 tryCatch 内求值，catch 分支二次访问配置， 配置对象构造链抛错时兜底失效、异常穿透至 HTTP
+ *       500。修复后 key 提前到 try 外求值， catch 分支不再访问任何配置方法。{@code
+ *       testConfigReadFailureDegradesInsteadOfEscaping} 固化修复后口径：取值链抛错 → aiSwitch=false 且 6
+ *       键齐全，禁止改回断言抛异常。
+ *   <li>WARN 日志断言（TC-019）本机不可编译验证：jobhistory 模块无 logback、log4j-core 不在测试 编译类路径（pom 未声明），如需落地需在
+ *       Stage 7 补测试作用域依赖，见方案 §7.3。
  * </ul>
  *
  * <p>断言依据（incubator-linkis @ e4e2e5c33）：
  *
  * <ul>
- *   <li>QueryRestfulApi.java:97-107 读取链 {@code LinkisUtils.tryCatch(() -> AI_USER_ENABLE().getHotValue(), t -> {log.warn(...); return FALSE;})}
+ *   <li>QueryRestfulApi.java:97-107 读取链 {@code LinkisUtils.tryCatch(() ->
+ *       AI_USER_ENABLE().getHotValue(), t -> {log.warn(...); return FALSE;})}
  *   <li>QueryRestfulApi.java:108-114 data 链式 6 字段，追加 aiSwitch 于末尾
- *   <li>BDPConfiguration.formatValue 对 Boolean 用 Scala {@code String.toBoolean}：空/空白回落默认值（不抛异常、无 WARN），
- *       其余非 true/false 抛 IllegalArgumentException（触发 tryCatch → WARN + false）
+ *   <li>BDPConfiguration.formatValue 对 Boolean 用 Scala {@code String.toBoolean}：空/空白回落默认值（不抛异常、无
+ *       WARN）， 其余非 true/false 抛 IllegalArgumentException（触发 tryCatch → WARN + false）
  * </ul>
  */
 @ExtendWith(SpringExtension.class)
@@ -116,7 +117,6 @@ public class QueryRestfulApiAiSwitchTest {
 
   /** 原始值快照：extractConfig 优先级最高且无 remove API，必须恢复原值而非置字面 false。 */
   private String originValue;
-
 
   @BeforeEach
   public void setUp() {
@@ -178,10 +178,7 @@ public class QueryRestfulApiAiSwitchTest {
                 "admin", "historyAdmin", "deptAdmin", "canResultSet", "errorMsgTip", "aiSwitch")),
         data.keySet(),
         "data 键集合必须恰为 6 个业务字段");
-    assertEquals(
-        Boolean.class,
-        data.get("aiSwitch").getClass(),
-        "aiSwitch 必须为原生 Boolean（非字符串）");
+    assertEquals(Boolean.class, data.get("aiSwitch").getClass(), "aiSwitch 必须为原生 Boolean（非字符串）");
     assertTrue(data.get("admin") instanceof Boolean);
     assertTrue(data.get("historyAdmin") instanceof Boolean);
     assertTrue(data.get("deptAdmin") instanceof Boolean);
@@ -256,14 +253,10 @@ public class QueryRestfulApiAiSwitchTest {
     assertEquals(Boolean.FALSE, call().getData().get("aiSwitch"));
     BDPConfiguration.set(KEY, "true");
     assertEquals(
-        Boolean.TRUE,
-        call().getData().get("aiSwitch"),
-        "同进程内改配置后下一次请求即生效 → 证明读取路径为 getHotValue");
+        Boolean.TRUE, call().getData().get("aiSwitch"), "同进程内改配置后下一次请求即生效 → 证明读取路径为 getHotValue");
     BDPConfiguration.set(KEY, "false");
     assertEquals(
-        Boolean.FALSE,
-        call().getData().get("aiSwitch"),
-        "回滚写回原值后即恢复（对应 TC-032；删除配置行不会恢复，见方案 D-4）");
+        Boolean.FALSE, call().getData().get("aiSwitch"), "回滚写回原值后即恢复（对应 TC-032；删除配置行不会恢复，见方案 D-4）");
   }
 
   // ---------------------------------------------------------------------------
@@ -290,12 +283,12 @@ public class QueryRestfulApiAiSwitchTest {
   }
 
   /**
-   * R-01 回归守卫（e4e2e5c33 修复后口径）：配置对象构造链本身抛错时，不得让异常穿透到 HTTP 500，
-   * 必须由 tryCatch 兜住并降级为 aiSwitch=false，其余 5 个管理字段照常返回。
+   * R-01 回归守卫（e4e2e5c33 修复后口径）：配置对象构造链本身抛错时，不得让异常穿透到 HTTP 500， 必须由 tryCatch 兜住并降级为
+   * aiSwitch=false，其余 5 个管理字段照常返回。
    *
-   * <p>实现现状（QueryRestfulApi.java:98）：{@code String aiSwitchKey = Configuration.AI_USER_ENABLE().key();}
-   * 位于 tryCatch <b>之外</b>。这是 R-01 的有意取舍 —— 用「key 求值失败即快速失败」换取 catch 分支
-   * 零配置访问。因此本用例只固定可兜底的阶段：取值链（getHotValue）抛错必须降级；key 求值阶段
+   * <p>实现现状（QueryRestfulApi.java:98）：{@code String aiSwitchKey =
+   * Configuration.AI_USER_ENABLE().key();} 位于 tryCatch <b>之外</b>。这是 R-01 的有意取舍 —— 用「key
+   * 求值失败即快速失败」换取 catch 分支 零配置访问。因此本用例只固定可兜底的阶段：取值链（getHotValue）抛错必须降级；key 求值阶段
    * 抛错视为不可恢复的基础设施故障，不属于本开关的降级范围。
    */
   @Test
@@ -345,12 +338,14 @@ public class QueryRestfulApiAiSwitchTest {
     BDPConfiguration.set(KEY, "true");
     try (MockedStatic<Configuration> mocked =
         Mockito.mockStatic(Configuration.class, Mockito.CALLS_REAL_METHODS)) {
-      mocked.when(() -> Configuration.isAdmin(org.mockito.ArgumentMatchers.anyString()))
+      mocked
+          .when(() -> Configuration.isAdmin(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(false);
-      mocked.when(() -> Configuration.isJobHistoryAdmin(org.mockito.ArgumentMatchers.anyString()))
+      mocked
+          .when(() -> Configuration.isJobHistoryAdmin(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(false);
-      mocked.when(
-              () -> Configuration.isDepartmentAdmin(org.mockito.ArgumentMatchers.anyString()))
+      mocked
+          .when(() -> Configuration.isDepartmentAdmin(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(false);
       Message res = call();
       assertEquals(MessageStatus.SUCCESS(), res.getStatus(), "本需求不新增鉴权，非管理员不得 403");
@@ -363,11 +358,7 @@ public class QueryRestfulApiAiSwitchTest {
 
   // ---------------------------------------------------------------------------
   private Message call() throws Exception {
-    MvcResult result =
-        mockMvc
-            .perform(get(URL))
-            .andExpect(status().isOk())
-            .andReturn();
+    MvcResult result = mockMvc.perform(get(URL)).andExpect(status().isOk()).andReturn();
     assertEquals(
         MediaType.APPLICATION_JSON.getType(),
         result.getResponse().getContentType() == null

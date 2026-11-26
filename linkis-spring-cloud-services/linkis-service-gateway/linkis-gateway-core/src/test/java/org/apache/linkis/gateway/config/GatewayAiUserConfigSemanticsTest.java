@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -238,13 +239,22 @@ public class GatewayAiUserConfigSemanticsTest {
   }
 
   @Test
-  @DisplayName("TC-039/037: 后缀运行期变更对 getValue 快照不可见（变更须重启网关生效）")
+  @DisplayName("TC-039/037: 后缀与开关运行期变更经 getHotValue 立即可见（A3 FIX：免重启生效）")
   public void testSuffixChangeRequiresRestart() {
-    String snapshot = (String) Configuration.AI_USER_SUFFIX().getValue();
+    String originSuffixHot = (String) Configuration.AI_USER_SUFFIX().getHotValue();
     BDPConfiguration.set(SUFFIX_KEY, "_bot");
     assertEquals(
-        snapshot,
-        Configuration.AI_USER_SUFFIX().getValue(),
-        "getValue 为启动期快照：运行期改后缀不立即生效（对应 TC-037 需重启网关的口径）");
+        "_bot",
+        Configuration.AI_USER_SUFFIX().getHotValue(),
+        "运行期改后缀经 getHotValue 立即生效（A3 FIX 后口径）");
+    BDPConfiguration.set(SUFFIX_KEY, originSuffixHot == null ? "" : originSuffixHot);
+
+    // 非法值必须抛异常而非静默回落 true：TokenAuthentication.readAiDowngradeSwitch 依赖该异常
+    // 走 catch 分支回落启动期快照，A3 FIX 的「坏配置不放大降级面」才成立。
+    BDPConfiguration.set(SWITCH_KEY, "definitely-not-a-boolean");
+    assertThrows(
+        Throwable.class,
+        () -> GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE().getHotValue(),
+        "非法开关值必须抛异常，交由调用方 catch 回落启动期快照");
   }
 }

@@ -218,10 +218,10 @@ object TokenAuthentication extends Logging {
       host: String,
       gatewayContext: GatewayContext
   ): Boolean = {
-    if (!GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.getValue) {
+    if (!readAiDowngradeSwitch()) {
       return false
     }
-    val aiSuffix = Configuration.AI_USER_SUFFIX.getValue
+    val aiSuffix = readAiSuffix()
     if (StringUtils.isBlank(aiSuffix) || !tokenUser.endsWith(aiSuffix)) {
       return false
     }
@@ -253,6 +253,44 @@ object TokenAuthentication extends Logging {
       )
     }
     retryOk
+  }
+
+  /**
+   * Read the AI user token downgrade switch as a runtime(hot) value so that a config change takes
+   * effect without restarting the gateway. Any read failure degrades to the old startup snapshot,
+   * which keeps the switch semantics unchanged(default false) instead of breaking token auth.
+   */
+  private[token] def readAiDowngradeSwitch(): Boolean = {
+    Utils.tryCatch(
+      // the hot value may come back boxed after BDPConfiguration reloads, so widen it first
+      AI_USER_TOKEN_DOWNGRADE_ENABLE
+        .getHotValue()
+        .asInstanceOf[AnyRef]
+        .asInstanceOf[java.lang.Boolean]
+        .booleanValue()
+    ) { t =>
+      logger.warn(
+        "token downgrade: failed to read hot value of " +
+          s"${GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.key}, fallback to startup value.",
+        t
+      )
+      GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE.getValue
+    }
+  }
+
+  /**
+   * Read the AI user suffix as a runtime(hot) value; any read failure degrades to the startup
+   * snapshot so that an unreadable config can never widen the downgrade scope.
+   */
+  private[token] def readAiSuffix(): String = {
+    Utils.tryCatch(Configuration.AI_USER_SUFFIX.getHotValue()) { t =>
+      logger.warn(
+        s"token downgrade: failed to read hot value of ${Configuration.AI_USER_SUFFIX.key}, " +
+          "fallback to startup value.",
+        t
+      )
+      Configuration.AI_USER_SUFFIX.getValue
+    }
   }
 
   /**
