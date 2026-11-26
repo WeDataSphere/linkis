@@ -17,7 +17,7 @@
 
 package org.apache.linkis.gateway.security.token
 
-import org.apache.linkis.common.conf.Configuration
+import org.apache.linkis.common.conf.{CommonVars, Configuration}
 import org.apache.linkis.gateway.authentication.bo.{Token, User}
 import org.apache.linkis.gateway.authentication.service.TokenService
 import org.apache.linkis.gateway.config.GatewayConfiguration
@@ -33,8 +33,10 @@ import org.mockito.Mockito
 /**
  * Unit tests for AI user token downgrade logic ([[TokenAuthentication.tryAiUserTokenDowngrade]]).
  *
- * The downgrade switch and suffix are declared with `getHotValue`, so they read Java system
- * properties at runtime; tests control them via `System.setProperty` and clean up afterwards.
+ * The downgrade switch and suffix are read via `CommonVars.getValue`, a startup snapshot frozen at
+ * construction time. Runtime changes (`System.setProperty` / `BDPConfiguration.set`) no longer
+ * affect them, so tests build the desired snapshot by reflectively overriding the frozen `getValue`
+ * field and restore it afterwards.
  */
 class TokenAuthenticationAiDowngradeTest {
 
@@ -62,7 +64,36 @@ class TokenAuthenticationAiDowngradeTest {
     System.clearProperty(SuffixKey)
   }
 
-  private def enableSwitch(): Unit = System.setProperty(SwitchKey, "true")
+  /** Reflectively override a CommonVars' frozen getValue snapshot; returns the old value. */
+  private def setSnapshot[T](cv: CommonVars[T], value: T): AnyRef = {
+    val f = classOf[CommonVars[_]].getDeclaredField("getValue")
+    f.setAccessible(true)
+    val old = f.get(cv)
+    f.set(cv, value.asInstanceOf[AnyRef])
+    old
+  }
+
+  private def restoreSnapshot[T](cv: CommonVars[T], old: AnyRef): Unit = {
+    val f = classOf[CommonVars[_]].getDeclaredField("getValue")
+    f.setAccessible(true)
+    f.set(cv, old)
+  }
+
+  /** Run body with the downgrade switch snapshot forced to `value`, then restore it. */
+  private def withSwitchSnapshot[A](value: Boolean)(body: => A): A = {
+    val cv = GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE
+    val old = setSnapshot(cv, value)
+    try body
+    finally restoreSnapshot(cv, old)
+  }
+
+  /** Run body with the AI user suffix snapshot forced to `value`, then restore it. */
+  private def withSuffixSnapshot[A](value: String)(body: => A): A = {
+    val cv = Configuration.AI_USER_SUFFIX
+    val old = setSnapshot(cv, value)
+    try body
+    finally restoreSnapshot(cv, old)
+  }
 
   // AC1: switch off -> downgrade skipped, doAuth not retried at all
   @Test
@@ -81,8 +112,7 @@ class TokenAuthenticationAiDowngradeTest {
   // AC2: switch on + zhangsan_ai -> retry doAuth once with zhangsan, success
   @Test
   @DisplayName("AC2: switch on + zhangsan_ai -> retry doAuth with zhangsan, success")
-  def downgradeSuccess(): Unit = {
-    enableSwitch()
+  def downgradeSuccess(): Unit = withSwitchSnapshot(true) {
     Mockito.when(tokenService.doAuth(anyString, anyString, anyString)).thenReturn(true)
     val ok = TokenAuthentication.tryAiUserTokenDowngrade(
       "TOKEN-A",
@@ -99,8 +129,7 @@ class TokenAuthenticationAiDowngradeTest {
   // AC3: retry fails -> false, single retry, no second attempt
   @Test
   @DisplayName("AC3: retry fails -> false, single retry, no second attempt")
-  def downgradeRetryFails(): Unit = {
-    enableSwitch()
+  def downgradeRetryFails(): Unit = withSwitchSnapshot(true) {
     Mockito.when(tokenService.doAuth(anyString, anyString, anyString)).thenReturn(false)
     val ok = TokenAuthentication.tryAiUserTokenDowngrade(
       "TOKEN-A",
@@ -115,8 +144,7 @@ class TokenAuthenticationAiDowngradeTest {
   // AC4: non-_ai suffix users not triggered
   @Test
   @DisplayName("AC4: non-_ai user (zhangsan, zhangsan_ai2) -> no downgrade")
-  def nonAiUserNotTriggered(): Unit = {
-    enableSwitch()
+  def nonAiUserNotTriggered(): Unit = withSwitchSnapshot(true) {
     // plain user without suffix
     Assertions.assertFalse(
       TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan", "h", gatewayContext)
@@ -131,8 +159,7 @@ class TokenAuthenticationAiDowngradeTest {
   // AC5: doAuth throws -> caught, returns false, no propagation
   @Test
   @DisplayName("AC5: doAuth throws exception -> fallback false, no propagation")
-  def downgradeExceptionCaught(): Unit = {
-    enableSwitch()
+  def downgradeExceptionCaught(): Unit = withSwitchSnapshot(true) {
     Mockito
       .when(tokenService.doAuth(anyString, anyString, anyString))
       .thenThrow(new RuntimeException("simulated doAuth failure"))
@@ -149,8 +176,7 @@ class TokenAuthenticationAiDowngradeTest {
   // AC6: malformed original user guard (empty, path sep, .., whitespace) -> skip downgrade
   @Test
   @DisplayName("AC6/security: malformed original user -> skip downgrade, doAuth not called")
-  def malformedOriginalUser(): Unit = {
-    enableSwitch()
+  def malformedOriginalUser(): Unit = withSwitchSnapshot(true) {
     Mockito.when(tokenService.doAuth(anyString, anyString, anyString)).thenReturn(true)
     // suffix only -> original empty
     Assertions.assertFalse(
@@ -178,59 +204,47 @@ class TokenAuthenticationAiDowngradeTest {
   // Q2: suffix configurable
   @Test
   @DisplayName("configurable suffix: _bot triggers downgrade for zhangsan_bot, _ai no longer")
-  def configurableSuffix(): Unit = {
-    enableSwitch()
-    System.setProperty(SuffixKey, "_bot")
-    Mockito.when(tokenService.doAuth(anyString, anyString, anyString)).thenReturn(true)
-    val ok = TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_bot", "h", gatewayContext)
-    Assertions.assertTrue(ok)
-    Mockito.verify(tokenService).doAuth(eqTo("T"), eqTo("zhangsan"), eqTo("h"))
-    // default _ai no longer triggers under custom suffix
-    Assertions.assertFalse(
-      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext)
-    )
+  def configurableSuffix(): Unit = withSwitchSnapshot(true) {
+    withSuffixSnapshot("_bot") {
+      Mockito.when(tokenService.doAuth(anyString, anyString, anyString)).thenReturn(true)
+      val ok =
+        TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_bot", "h", gatewayContext)
+      Assertions.assertTrue(ok)
+      Mockito.verify(tokenService).doAuth(eqTo("T"), eqTo("zhangsan"), eqTo("h"))
+      // default _ai no longer triggers under custom suffix
+      Assertions.assertFalse(
+        TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext)
+      )
+    }
   }
 
-  // A3: switch flipped at runtime takes effect without restarting the gateway
+  // A3: runtime property change does not affect the frozen snapshot (no hot reload)
   @Test
-  @DisplayName("A3: runtime switch change is hot-read by the downgrade gate")
-  def hotSwitchTakesEffectWithoutRestart(): Unit = {
+  @DisplayName("A3: runtime property change does not affect the startup snapshot")
+  def snapshotNotFollowRuntimeProperty(): Unit = {
+    // 快照默认 false：即使运行期写入 true，降级闸门仍读到 false（不降级）
     val svc = new RecordingTokenService(Set("zhangsan"))
     TokenAuthentication.setTokenService(svc)
-    Assertions.assertFalse(
-      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
-      "switch off by default: no downgrade"
-    )
     System.setProperty(SwitchKey, "true")
-    Assertions.assertTrue(
-      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
-      "switch turned on at runtime: downgrade applies without restart"
-    )
-    System.setProperty(SwitchKey, "false")
-    Assertions.assertFalse(
-      TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
-      "switch turned off at runtime: downgrade stops without restart"
-    )
-  }
-
-  // A3: an unreadable hot value degrades to the startup snapshot instead of throwing
-  @Test
-  @DisplayName("A3: reader helpers degrade to startup snapshot on unreadable value")
-  def readersDegradeOnUnreadableValue(): Unit = {
-    System.setProperty(SwitchKey, "not-a-boolean")
-    Assertions.assertFalse(
-      TokenAuthentication.readAiDowngradeSwitch(),
-      "unparsable hot value must fall back to the startup snapshot(default false)"
-    )
-    System.setProperty(SuffixKey, "_ai")
-    Assertions.assertEquals("_ai", TokenAuthentication.readAiSuffix(), "suffix hot read works")
+    try {
+      Assertions.assertFalse(
+        TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
+        "getValue 为启动快照，运行期 System.setProperty 不改变降级闸门（仍为 false）"
+      )
+      // 对比：显式构造 true 快照后，同一调用即可降级（证明闸门读的确实是快照值）
+      withSwitchSnapshot(true) {
+        Assertions.assertTrue(
+          TokenAuthentication.tryAiUserTokenDowngrade("T", "zhangsan_ai", "h", gatewayContext),
+          "快照为 true 时降级生效"
+        )
+      }
+    } finally System.clearProperty(SwitchKey)
   }
 
   // AC7: concurrent _ai requests are independent, no cross-talk
   @Test
   @DisplayName("AC7: concurrent _ai requests are independent, no cross-talk")
-  def concurrentDowngrade(): Unit = {
-    enableSwitch()
+  def concurrentDowngrade(): Unit = withSwitchSnapshot(true) {
     val successOriginals = (1 to 15).map(i => s"user$i").toSet
     val failOriginals = (1 to 15).map(i => s"failuser$i").toSet
     val svc = new RecordingTokenService(successOriginals)

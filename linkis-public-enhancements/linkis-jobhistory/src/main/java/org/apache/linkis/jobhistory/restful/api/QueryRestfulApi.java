@@ -19,7 +19,6 @@ package org.apache.linkis.jobhistory.restful.api;
 
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.exception.LinkisCommonErrorException;
-import org.apache.linkis.common.utils.LinkisUtils;
 import org.apache.linkis.governance.common.constant.job.JobRequestConstants;
 import org.apache.linkis.governance.common.entity.job.QueryException;
 import org.apache.linkis.jobhistory.cache.impl.DefaultQueryCacheManager;
@@ -92,24 +91,13 @@ public class QueryRestfulApi {
   public Message governanceStationAdmin(HttpServletRequest req) {
     String username = ModuleUserUtils.getOperationUser(req, "governanceStationAdmin");
     String departmentId = JobhistoryUtils.getDepartmentByuser(username);
-    // REQ-01: _ai 用户切换开关下发，前端据此渲染；热加载，关掉立即生效。
-    // 读取失败（如配置值非法）时告警并降级为 false，不影响其余管理字段返回。
-    // key 在 try 之外求值：catch 分支内不再调用任何配置访问方法，避免兜底本身二次抛错。
-    String aiSwitchKey = Configuration.AI_USER_ENABLE().key();
-    Boolean aiSwitch =
-        LinkisUtils.tryCatch(
-            () -> (Boolean) Configuration.AI_USER_ENABLE().getHotValue(),
-            t -> {
-              log.warn("Failed to read {}, degrade aiSwitch to false", aiSwitchKey, t);
-              return Boolean.FALSE;
-            });
     return Message.ok()
         .data("admin", Configuration.isAdmin(username))
         .data("historyAdmin", Configuration.isJobHistoryAdmin(username))
         .data("deptAdmin", Configuration.isDepartmentAdmin(username))
         .data("canResultSet", Configuration.canResultSetByDepartment(departmentId))
         .data("errorMsgTip", Configuration.ERROR_MSG_TIP().getValue())
-        .data("aiSwitch", aiSwitch);
+        .data("aiSwitch", Configuration.AI_USER_ENABLE().getValue());
   }
 
   @ApiOperation(value = "getTaskByID", notes = "get task by id", response = Message.class)

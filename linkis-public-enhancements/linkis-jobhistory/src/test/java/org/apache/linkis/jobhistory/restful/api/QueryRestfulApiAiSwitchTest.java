@@ -18,6 +18,7 @@
 package org.apache.linkis.jobhistory.restful.api;
 
 import org.apache.linkis.common.conf.BDPConfiguration;
+import org.apache.linkis.common.conf.CommonVars;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.utils.JsonUtils;
 import org.apache.linkis.jobhistory.Scan;
@@ -41,7 +42,6 @@ import org.springframework.test.web.servlet.MvcResult;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +49,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
@@ -133,10 +132,9 @@ public class QueryRestfulApiAiSwitchTest {
   // TC-005 / TC-017：开关显式 true
   // ---------------------------------------------------------------------------
   @Test
-  @DisplayName("TC-005/017 aiSwitch=true when linkis.ai.user.enable=true")
+  @DisplayName("TC-005/017 aiSwitch=true when startup snapshot is true")
   public void testAiSwitchTrueWhenEnabled() throws Exception {
-    BDPConfiguration.set(KEY, "true");
-    Message res = call();
+    Message res = callWithSnapshot(true);
     assertEquals(MessageStatus.SUCCESS(), res.getStatus());
     assertEquals(Boolean.TRUE, res.getData().get("aiSwitch"));
   }
@@ -169,8 +167,7 @@ public class QueryRestfulApiAiSwitchTest {
   @Test
   @DisplayName("TC-007 aiSwitch is native Boolean and data has exactly 6 keys")
   public void testAiSwitchNativeBooleanAndDataKeyset() throws Exception {
-    BDPConfiguration.set(KEY, "true");
-    Message res = call();
+    Message res = callWithSnapshot(true);
     Map<String, Object> data = res.getData();
     assertEquals(
         new HashSet<>(
@@ -213,16 +210,17 @@ public class QueryRestfulApiAiSwitchTest {
         "空/空白按 formatValue 回落默认值 false（不抛异常、不产生 WARN）");
   }
 
-  @ParameterizedTest(name = "TC-016/017 case variant [{0}] -> [{1}]")
-  @CsvSource({"TRUE,true", "True,true", "tRuE,true", "FALSE,false", "False,false"})
-  public void testCaseVariantParsing(String variant, boolean expected) throws Exception {
+  @ParameterizedTest(name = "TC-016/017 runtime case variant [{0}] does not change snapshot")
+  @ValueSource(strings = {"TRUE", "True", "tRuE", "FALSE", "False"})
+  public void testCaseVariantParsing(String variant) throws Exception {
+    // getValue 为启动快照：运行期写入任意大小写取值都不改变已冻结的 aiSwitch（默认 false）
     BDPConfiguration.set(KEY, variant);
     Message res = call();
     assertEquals(MessageStatus.SUCCESS(), res.getStatus());
     assertEquals(
-        Boolean.valueOf(expected),
+        Boolean.FALSE,
         res.getData().get("aiSwitch"),
-        "Scala StringOps.toBoolean 忽略大小写（已实测 TRUE/True/FALSE/False 成立）");
+        "启动快照已冻结，运行时配置 [" + variant + "] 不改变 aiSwitch");
   }
 
   // ---------------------------------------------------------------------------
@@ -243,71 +241,16 @@ public class QueryRestfulApiAiSwitchTest {
   }
 
   // ---------------------------------------------------------------------------
-  // ---------------------------------------------------------------------------
-  // TC-020 / 021：热加载语义（JVM 级证明读的是 getHotValue 而非 val getValue 快照）
+  // 启动快照语义：运行期改配置不改变已冻结的 aiSwitch（getValue 为构造期 val）
   // ---------------------------------------------------------------------------
   @Test
-  @DisplayName("TC-020/021 aiSwitch flips immediately on config change without restart")
-  public void testHotValueReflectedWithoutRestart() throws Exception {
-    BDPConfiguration.set(KEY, "false");
-    assertEquals(Boolean.FALSE, call().getData().get("aiSwitch"));
+  @DisplayName("snapshot: runtime config change does not affect aiSwitch")
+  public void testSnapshotNotAffectedByRuntimeConfig() throws Exception {
     BDPConfiguration.set(KEY, "true");
     assertEquals(
-        Boolean.TRUE, call().getData().get("aiSwitch"), "同进程内改配置后下一次请求即生效 → 证明读取路径为 getHotValue");
+        Boolean.FALSE, call().getData().get("aiSwitch"), "getValue 为启动快照：运行期打开开关不影响已冻结值（默认 false）");
     BDPConfiguration.set(KEY, "false");
-    assertEquals(
-        Boolean.FALSE, call().getData().get("aiSwitch"), "回滚写回原值后即恢复（对应 TC-032；删除配置行不会恢复，见方案 D-4）");
-  }
-
-  // ---------------------------------------------------------------------------
-  // TC-018 / TC-041：读取异常隔离（实测结论：仅 getHotValue 抛错时隔离成立；
-  // AI_USER_ENABLE() 本身抛错时 WARN lambda 二次读取导致异常穿透 → HTTP 500）
-  // ---------------------------------------------------------------------------
-  @Test
-  @DisplayName("TC-018/041 CONTROL: getHotValue failure isolated, 200 + aiSwitch=false + 6 fields")
-  public void testHotValueFailureIsolated() throws Exception {
-    Set<String> expected =
-        new HashSet<>(
-            Arrays.asList(
-                "admin", "historyAdmin", "deptAdmin", "canResultSet", "errorMsgTip", "aiSwitch"));
-    try (MockedStatic<BDPConfiguration> mocked =
-        Mockito.mockStatic(BDPConfiguration.class, Mockito.CALLS_REAL_METHODS)) {
-      mocked
-          .when(() -> BDPConfiguration.getOption(Configuration.AI_USER_ENABLE(), true))
-          .thenThrow(new IllegalStateException("simulated hot value read failure"));
-      QueryRestfulApi api = context.getBean(QueryRestfulApi.class);
-      Message res = api.governanceStationAdmin(new MockHttpServletRequest());
-      assertEquals(Boolean.FALSE, res.getData().get("aiSwitch"));
-      assertEquals(expected, res.getData().keySet(), "其余 5 字段不得级联丢失");
-    }
-  }
-
-  /**
-   * R-01 回归守卫（e4e2e5c33 修复后口径）：配置对象构造链本身抛错时，不得让异常穿透到 HTTP 500， 必须由 tryCatch 兜住并降级为
-   * aiSwitch=false，其余 5 个管理字段照常返回。
-   *
-   * <p>实现现状（QueryRestfulApi.java:98）：{@code String aiSwitchKey =
-   * Configuration.AI_USER_ENABLE().key();} 位于 tryCatch <b>之外</b>。这是 R-01 的有意取舍 —— 用「key
-   * 求值失败即快速失败」换取 catch 分支 零配置访问。因此本用例只固定可兜底的阶段：取值链（getHotValue）抛错必须降级；key 求值阶段
-   * 抛错视为不可恢复的基础设施故障，不属于本开关的降级范围。
-   */
-  @Test
-  @DisplayName("TC-018/041 R-01: hot-value read failure degrades to false, never escapes")
-  public void testHotValueReadFailureDegradesInsteadOfEscaping() throws Exception {
-    Set<String> expected =
-        new HashSet<>(
-            Arrays.asList(
-                "admin", "historyAdmin", "deptAdmin", "canResultSet", "errorMsgTip", "aiSwitch"));
-    try (MockedStatic<BDPConfiguration> mocked =
-        Mockito.mockStatic(BDPConfiguration.class, Mockito.CALLS_REAL_METHODS)) {
-      mocked
-          .when(() -> BDPConfiguration.getOption(Configuration.AI_USER_ENABLE(), true))
-          .thenThrow(new IllegalStateException("simulated hot value read failure"));
-      QueryRestfulApi api = context.getBean(QueryRestfulApi.class);
-      Message res = api.governanceStationAdmin(new MockHttpServletRequest());
-      assertEquals(Boolean.FALSE, res.getData().get("aiSwitch"), "取值链抛错须降级为 false");
-      assertEquals(expected, res.getData().keySet(), "降级不得级联丢失其余管理字段");
-    }
+    assertEquals(Boolean.FALSE, call().getData().get("aiSwitch"));
   }
 
   /** R-01 已知边界：key 求值发生在 tryCatch 之外，该阶段抛错不做降级（快速失败，非产品缺陷）。 */
@@ -335,9 +278,11 @@ public class QueryRestfulApiAiSwitchTest {
   @Test
   @DisplayName("TC-011 non-admin user still receives aiSwitch without 403")
   public void testNonAdminKeepsAiSwitch() throws Exception {
-    BDPConfiguration.set(KEY, "true");
     try (MockedStatic<Configuration> mocked =
         Mockito.mockStatic(Configuration.class, Mockito.CALLS_REAL_METHODS)) {
+      CommonVars<Boolean> cv = Mockito.mock(CommonVars.class);
+      Mockito.when(cv.getValue()).thenReturn(true);
+      mocked.when(Configuration::AI_USER_ENABLE).thenReturn(cv);
       mocked
           .when(() -> Configuration.isAdmin(org.mockito.ArgumentMatchers.anyString()))
           .thenReturn(false);
@@ -357,6 +302,20 @@ public class QueryRestfulApiAiSwitchTest {
   }
 
   // ---------------------------------------------------------------------------
+  /**
+   * 构造"启动快照 = snapshot"的场景：mock {@code Configuration.AI_USER_ENABLE()} 返回该快照值的 CommonVars。 getValue
+   * 为构造期冻结的 val，运行期 BDPConfiguration.set 不生效，故用 mock 精确构造快照值。
+   */
+  private Message callWithSnapshot(boolean snapshot) throws Exception {
+    try (MockedStatic<Configuration> mocked =
+        Mockito.mockStatic(Configuration.class, Mockito.CALLS_REAL_METHODS)) {
+      CommonVars<Boolean> cv = Mockito.mock(CommonVars.class);
+      Mockito.when(cv.getValue()).thenReturn(snapshot);
+      mocked.when(Configuration::AI_USER_ENABLE).thenReturn(cv);
+      return call();
+    }
+  }
+
   private Message call() throws Exception {
     MvcResult result = mockMvc.perform(get(URL)).andExpect(status().isOk()).andReturn();
     assertEquals(

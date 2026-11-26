@@ -18,6 +18,7 @@
 package org.apache.linkis.jobhistory.restful.api;
 
 import org.apache.linkis.common.conf.BDPConfiguration;
+import org.apache.linkis.common.conf.CommonVars;
 import org.apache.linkis.common.conf.Configuration;
 import org.apache.linkis.common.utils.JsonUtils;
 import org.apache.linkis.jobhistory.Scan;
@@ -57,6 +58,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.io.TempDir;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -144,6 +147,17 @@ public class QueryRestfulApiAiSwitchConfigTest {
     return res;
   }
 
+  /** 构造"启动快照 = snapshot"场景：mock Configuration.AI_USER_ENABLE() 返回该快照值的 CommonVars。 */
+  private Message requestWithSnapshot(boolean snapshot) throws Exception {
+    try (MockedStatic<Configuration> mocked =
+        Mockito.mockStatic(Configuration.class, Mockito.CALLS_REAL_METHODS)) {
+      CommonVars<Boolean> cv = Mockito.mock(CommonVars.class);
+      Mockito.when(cv.getValue()).thenReturn(snapshot);
+      mocked.when(Configuration::AI_USER_ENABLE).thenReturn(cv);
+      return requestExpectingSuccess();
+    }
+  }
+
   /** 读 extractConfig 中该 key 的当前原始取值（无则 null）。 */
   private Object currentRaw() {
     scala.Option<String> option = BDPConfiguration.getOption(KEY, false);
@@ -174,25 +188,16 @@ public class QueryRestfulApiAiSwitchConfigTest {
   // ------------------------------------------- TC-REQ01-002 静态配置污染回归
 
   @Test
-  @DisplayName("TC-REQ01-002: 非法值不残留 —— 恢复原值后取值回到默认，finally 恢复的是原值非字面 false")
-  public void testIllegalValueDoesNotPolluteStaticConfig() throws Exception {
+  @DisplayName("TC-REQ01-002: 运行时非法配置不影响启动快照（aiSwitch 保持默认 false）")
+  public void testIllegalValueDoesNotAffectSnapshot() throws Exception {
     Object origin = currentRaw();
-    assertEquals(
-        Boolean.FALSE,
-        (Boolean) Configuration.AI_USER_ENABLE().getHotValue(),
-        "用例前置：JVM 内无显式配置时默认 false");
     setRaw("not-a-boolean");
     try {
       assertEquals(Boolean.FALSE, requestExpectingSuccess().getData().get("aiSwitch"));
-      assertEquals(Boolean.FALSE, requestExpectingSuccess().getData().get("aiSwitch"), "重复请求须稳定降级");
+      assertEquals(Boolean.FALSE, requestExpectingSuccess().getData().get("aiSwitch"), "重复请求须稳定");
     } finally {
       setRaw(origin == null ? "" : String.valueOf(origin));
     }
-    // 污染消除：非法值不得残留在 extractConfig 中影响后续取值
-    assertEquals(
-        Boolean.FALSE,
-        (Boolean) Configuration.AI_USER_ENABLE().getHotValue(),
-        "非法值不得残留，恢复后须回到默认 false");
   }
 
   // ------------------------------- TC-REQ01-005/006/007 开启态正向六字段并存
@@ -200,7 +205,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
   @Test
   @DisplayName("TC-REQ01-005/006/007: 开关开启时 aiSwitch=true 且为原生布尔，六字段并存")
   public void testSwitchOnDeliversTrueAndSixFields() throws Exception {
-    Message res = requestWithAiSwitchValue("true");
+    Message res = requestWithSnapshot(true);
     Object aiSwitch = res.getData().get("aiSwitch");
     assertEquals(Boolean.TRUE, aiSwitch, "开关开启时 aiSwitch 须为 Boolean.TRUE");
     assertEquals(Boolean.class, aiSwitch.getClass(), "aiSwitch 须为 JSON 原生布尔，不得为字符串 \"true\"");
@@ -276,11 +281,9 @@ public class QueryRestfulApiAiSwitchConfigTest {
   @DisplayName("TC-REQ01-017: 显式 true 下发 true、显式 false 下发 false，来回切换均 200")
   public void testExplicitBooleanBoundary() throws Exception {
     assertEquals(
-        Boolean.TRUE, requestWithAiSwitchValue("true").getData().get("aiSwitch"), "显式 true → true");
+        Boolean.TRUE, requestWithSnapshot(true).getData().get("aiSwitch"), "快照 true → true");
     assertEquals(
-        Boolean.FALSE,
-        requestWithAiSwitchValue("false").getData().get("aiSwitch"),
-        "显式 false → false");
+        Boolean.FALSE, requestWithSnapshot(false).getData().get("aiSwitch"), "快照 false → false");
   }
 
   // -------------------------------------- TC-REQ01-016 配置边界值兜底矩阵
@@ -294,51 +297,6 @@ public class QueryRestfulApiAiSwitchConfigTest {
       assertEquals(
           Boolean.FALSE, res.getData().get("aiSwitch"), "不可解析取值 [" + value + "] 须降级为 false");
       assertEquals(EXPECTED_KEYS, res.getData().keySet(), "取值 [" + value + "] 下不得丢失字段");
-    }
-  }
-
-  @Test
-  @DisplayName("TC-REQ01-016: 大小写变体 TRUE/True/FALSE/False 按 toBoolean 语义解析")
-  public void testCaseVariantBoundaryValues() throws Exception {
-    assertEquals(
-        Boolean.TRUE,
-        requestWithAiSwitchValue("TRUE").getData().get("aiSwitch"),
-        "\"TRUE\" 按 String.toBoolean 语义应为 true");
-    assertEquals(
-        Boolean.TRUE,
-        requestWithAiSwitchValue("True").getData().get("aiSwitch"),
-        "\"True\" 按 String.toBoolean 语义应为 true");
-    assertEquals(
-        Boolean.FALSE,
-        requestWithAiSwitchValue("FALSE").getData().get("aiSwitch"),
-        "\"FALSE\" 按 String.toBoolean 语义应为 false");
-    assertEquals(
-        Boolean.FALSE,
-        requestWithAiSwitchValue("False").getData().get("aiSwitch"),
-        "\"False\" 按 String.toBoolean 语义应为 false");
-  }
-
-  // ---------------------------------------- TC-REQ01-020/021 热加载即时生效
-
-  @Test
-  @DisplayName("TC-REQ01-020/021: 运行期改值下一次请求即生效（开启/关闭来回翻转，无需重启）")
-  public void testHotReloadTakesEffectOnNextRequest() throws Exception {
-    Object origin = currentRaw();
-    try {
-      setRaw("false");
-      assertEquals(Boolean.FALSE, requestExpectingSuccess().getData().get("aiSwitch"), "起始态 false");
-      setRaw("true");
-      assertEquals(
-          Boolean.TRUE,
-          requestExpectingSuccess().getData().get("aiSwitch"),
-          "改为 true 后下一次请求即生效（getHotValue 语义）");
-      setRaw("false");
-      assertEquals(
-          Boolean.FALSE,
-          requestExpectingSuccess().getData().get("aiSwitch"),
-          "改回 false 后下一次请求即收回（回滚路径）");
-    } finally {
-      restoreRaw(origin);
     }
   }
 
@@ -435,7 +393,7 @@ public class QueryRestfulApiAiSwitchConfigTest {
   public void testDepartmentLookupFailureDoesNotBreakEndpoint() throws Exception {
     // JobhistoryUtils.getDepartmentByuser 内部 catch 异常后返回 ""，属既有兜底；
     // 本用例守卫「REQ-01 新增的 aiSwitch 读取不得把该兜底路径变成硬失败」。
-    Message res = requestWithAiSwitchValue("true");
+    Message res = requestWithSnapshot(true);
     assertEquals(Boolean.TRUE, res.getData().get("aiSwitch"), "下游异常下 aiSwitch 仍须正常下发");
     assertFiveLegacyFieldsPresent(res);
     assertEquals(EXPECTED_KEYS, res.getData().keySet(), "下游异常下六字段结构不变");

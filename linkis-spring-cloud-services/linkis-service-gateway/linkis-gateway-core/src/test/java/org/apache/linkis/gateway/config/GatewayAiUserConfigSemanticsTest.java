@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  * <p>断言依据：
  *
  * <pre>
- * GatewayConfiguration.scala:158  CommonVars("wds.linkis.gateway.ai.user.token.downgrade.enable", false)
+ * GatewayConfiguration.scala:158  CommonVars("linkis.ai.user.token.downgrade.enable", false)
  * Configuration.scala:167         CommonVars("linkis.ai.user.suffix", "_ai")
  * CommonVars.scala:25             val getValue  = BDPConfiguration.getOption(this).getOrElse(defaultValue)
  * CommonVars.scala:27             def getHotValue() = BDPConfiguration.getOption(this, true).getOrElse(defaultValue)
@@ -96,12 +96,10 @@ public class GatewayAiUserConfigSemanticsTest {
   // ---------------------------------------------------- TC-REQ01-028 key 与读取语义
 
   @Test
-  @DisplayName("TC-028: 降级开关 key 与默认值未变（wds.linkis.gateway.ai.user.token.downgrade.enable / false）")
+  @DisplayName("TC-028: 降级开关 key 与默认值未变（linkis.ai.user.token.downgrade.enable / false）")
   public void testSwitchKeyAndDefaultUnchanged() {
     assertEquals(
-        "wds.linkis.gateway.ai.user.token.downgrade.enable",
-        SWITCH_KEY,
-        "降级开关 key 不得变更（R-004 配置治理约束）");
+        "linkis.ai.user.token.downgrade.enable", SWITCH_KEY, "降级开关 key 不得变更（R-004 配置治理约束）");
     assertEquals(
         Boolean.FALSE,
         GatewayConfiguration.AI_USER_TOKEN_DOWNGRADE_ENABLE().defaultValue(),

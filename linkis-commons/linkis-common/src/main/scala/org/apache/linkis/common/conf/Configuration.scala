@@ -155,16 +155,13 @@ object Configuration extends Logging {
   val EXECUTE_RESULTSET_ALIAS_NUM =
     CommonVars("execute.resultset.alias.num", "0")
 
-  // ==================== REQ-01 _ai 用户切换（默认关闭，灰度后开启）====================
-
   /**
-   * AI 用户切换总开关；热加载，出问题可立即关闭，无需重启（ADR-002：必须用 getHotValue）
+   * AI 用户切换总开关
    */
   val AI_USER_ENABLE: CommonVars[Boolean] = CommonVars("linkis.ai.user.enable", false)
 
   /**
-   * AI 用户后缀镜像。与 linkis.ai.user.suffix 使用同一个 key（ADR-001）， 保证 gateway / pes-publicservice / pipeline
-   * 三侧取值天然一致， 避免跨模块 import GatewayConfiguration 造成依赖方向倒置。
+   * AI 用户后缀
    */
   val AI_USER_SUFFIX: CommonVars[String] = CommonVars("linkis.ai.user.suffix", "_ai")
 
